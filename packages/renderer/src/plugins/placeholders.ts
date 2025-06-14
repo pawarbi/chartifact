@@ -3,8 +3,8 @@
 * Licensed under the MIT License.
 */
 
-import { Token } from 'markdown-it';
-import { Batch, IInstance, Plugin, PrioritizedSignal } from '../factory';
+import { Token } from 'markdown-it/index.js';
+import { Batch, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
 
 function createTemplateFunction(template: string) {
     const parts = template.split(/(%7B%7B.*?%7D%7D)/g).map(part => {
@@ -97,7 +97,7 @@ export const placeholdersPlugin: Plugin = {
         const elementsByKeys = new Map<string, Element[]>();
 
         // Collect placeholders
-        for (const placeholder of placeholders) {
+        for (const placeholder of Array.from(placeholders)) {
             const key = placeholder.getAttribute('data-key');
             if (elementsByKeys.has(key)) {
                 elementsByKeys.get(key).push(placeholder);
@@ -107,9 +107,14 @@ export const placeholdersPlugin: Plugin = {
         }
 
         // Collect dynamic URLs
-        for (const element of dynamicUrls) {
+        for (const element of Array.from(dynamicUrls)) {
             const templateUrl = element.getAttribute('data-template-url');
-            const keys = Array.from(templateUrl.matchAll(/%7B%7B(.*?)%7D%7D/g)).map(match => match[1]);
+            const keys: string[] = [];
+            const regex = /%7B%7B(.*?)%7D%7D/g;
+            let match: RegExpExecArray | null;
+            while ((match = regex.exec(templateUrl)) !== null) {
+                keys.push(match[1]);
+            }
 
             const templateFunction = createTemplateFunction(templateUrl);
             templateFunctionMap.set(element, { templateFunction, batch: {} });

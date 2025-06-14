@@ -3,8 +3,8 @@
 * Licensed under the MIT License.
 */
 
-import { Batch, definePlugin, IInstance, Plugin, PrioritizedSignal } from '../factory';
-import { sanitizedHTML } from '../sanitize';
+import { Batch, definePlugin, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
+import { sanitizedHTML } from '../sanitize.js';
 
 interface Preset {
     name: string;
@@ -31,7 +31,7 @@ export const presetsPlugin: Plugin = {
     hydrateComponent: async (renderer, errorHandler) => {
         const presetsInstances: PresetsInstance[] = [];
         const containers = renderer.element.querySelectorAll('.presets');
-        for (const [index, container] of containers.entries()) {
+        for (const [index, container] of Array.from(containers).entries()) {
             if (!container.textContent) continue;
 
             const id = `presets${index}`;
@@ -81,16 +81,18 @@ export const presetsPlugin: Plugin = {
             presetsInstances.push(presetsInstance);
         }
         const instances: IInstance[] = presetsInstances.map((presetsInstance, index) => {
-            const initialSignals: PrioritizedSignal[] = presetsInstance.presets.flatMap(preset => {
-                return Object.keys(preset.state).map(signalName => {
-                    return {
-                        name: signalName,
-                        value: null,
-                        priority: -1,
-                        isData: undefined,  // we do not know if it is data or not
-                    };
-                });
-            });
+            const initialSignals: PrioritizedSignal[] = [].concat(
+                ...presetsInstance.presets.map(preset => {
+                    return Object.keys(preset.state).map(signalName => {
+                        return {
+                            name: signalName,
+                            value: null,
+                            priority: -1,
+                            isData: undefined,  // we do not know if it is data or not
+                        };
+                    });
+                })
+            );
             return {
                 ...presetsInstance,
                 initialSignals,

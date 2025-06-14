@@ -3,10 +3,10 @@
 * Licensed under the MIT License.
 */
 
-import MarkdownIt, { Token } from 'markdown-it';
+import MarkdownIt, { Token } from 'markdown-it/index.js';
 import { attrs } from '@mdit/plugin-attrs';
 import { container, MarkdownItContainerOptions } from '@mdit/plugin-container';
-import { ErrorHandler, Renderer } from './renderer';
+import { ErrorHandler, Renderer } from './renderer.js';
 
 declare const markdownit: typeof MarkdownIt;
 

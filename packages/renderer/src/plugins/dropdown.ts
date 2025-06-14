@@ -3,8 +3,8 @@
 * Licensed under the MIT License.
 */
 
-import { Batch, definePlugin, IInstance, Plugin } from '../factory';
-import { sanitizedHTML } from '../sanitize';
+import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
+import { sanitizedHTML } from '../sanitize.js';
 
 interface DropdownInstance {
     id: string;
@@ -38,7 +38,7 @@ export const dropdownPlugin: Plugin = {
     hydrateComponent: async (renderer, errorHandler) => {
         const dropdownInstances: DropdownInstance[] = [];
         const containers = renderer.element.querySelectorAll('.dropdown');
-        for (const [index, container] of containers.entries()) {
+        for (const [index, container] of Array.from(containers).entries()) {
             if (!container.textContent) continue;
 
             try {

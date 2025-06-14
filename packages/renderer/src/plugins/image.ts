@@ -3,8 +3,8 @@
 * Licensed under the MIT License.
 */
 
-import { definePlugin, IInstance, Plugin } from '../factory';
-import { sanitizedHTML } from '../sanitize';
+import { definePlugin, IInstance, Plugin } from '../factory.js';
+import { sanitizedHTML } from '../sanitize.js';
 
 export interface ImageSpec {
     srcSignalName: string;
@@ -36,7 +36,7 @@ export const imagePlugin: Plugin = {
     hydrateComponent: async (renderer, errorHandler) => {
         const imageInstances: ImageInstance[] = [];
         const containers = renderer.element.querySelectorAll('.image');
-        for (const [index, container] of containers.entries()) {
+        for (const [index, container] of Array.from(containers).entries()) {
             if (!container.textContent) continue;
             try {
                 const spec: ImageSpec = JSON.parse(container.textContent);

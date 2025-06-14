@@ -4,9 +4,9 @@
 */
 
 import MarkdownIt from 'markdown-it';
-import { Renderers } from 'vega-typings/types';
-import { create, IInstance, plugins } from './factory';
-import { SignalBus } from './signalbus';
+import { Renderers } from 'vega-typings';
+import { create, IInstance, plugins } from './factory.js';
+import { SignalBus } from './signalbus.js';
 
 export interface ErrorHandler {
     (error: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string): void;

@@ -3,11 +3,11 @@
 * Licensed under the MIT License.
 */
 
-import { definePlugin, Plugin, plugins, registerMarkdownPlugin } from './factory';
-import { Renderer } from './renderer';
-import { registerNativePlugins } from './plugins';
-import { sanitizedHTML } from './sanitize';
-import * as common from './plugins/common';
+import { definePlugin, Plugin, plugins, registerMarkdownPlugin } from './factory.js';
+import { Renderer } from './renderer.js';
+import { registerNativePlugins } from './plugins/index.js';
+import { sanitizedHTML } from './sanitize.js';
+import * as common from './plugins/common.js';
 
 registerNativePlugins();
 
@@ -30,5 +30,5 @@ export type MdVega = {
     common: typeof common;
 };
 
-export * as Plugins from './plugins/interfaces';
-export { Batch, IInstance } from './factory';
+export * as Plugins from './plugins/interfaces.js';
+export { Batch, IInstance } from './factory.js';

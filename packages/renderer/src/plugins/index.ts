@@ -3,15 +3,15 @@
 * Licensed under the MIT License.
 */
 
-import { registerMarkdownPlugin } from '../factory';
+import { registerMarkdownPlugin } from '../factory.js';
 
-import { dropdownPlugin } from './dropdown';
-import { imagePlugin } from './image';
-import { placeholdersPlugin } from './placeholders';
-import { presetsPlugin } from './presets';
-import { tabulatorPlugin } from './tabulator';
-import { vegaLitePlugin } from './vega-lite';
-import { vegaPlugin } from './vega';
+import { dropdownPlugin } from './dropdown.js';
+import { imagePlugin } from './image.js';
+import { placeholdersPlugin } from './placeholders.js';
+import { presetsPlugin } from './presets.js';
+import { tabulatorPlugin } from './tabulator.js';
+import { vegaLitePlugin } from './vega-lite.js';
+import { vegaPlugin } from './vega.js';
 
 export function registerNativePlugins() {
     registerMarkdownPlugin(dropdownPlugin);

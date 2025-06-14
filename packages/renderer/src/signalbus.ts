@@ -3,7 +3,7 @@
 * Licensed under the MIT License.
 */
 
-import { Batch, IInstance } from "./factory";
+import { Batch, IInstance } from "./factory.js";
 
 export enum LogLevel {
     none = 0,

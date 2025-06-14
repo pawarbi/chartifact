@@ -1,4 +1,4 @@
-export { DropdownSpec } from './dropdown';
-export { ImageSpec } from './image';
-export { PresetsSpec } from './presets';
-export { TabulatorSpec } from './tabulator';
+export { DropdownSpec } from './dropdown.js';
+export { ImageSpec } from './image.js';
+export { PresetsSpec } from './presets.js';
+export { TabulatorSpec } from './tabulator.js';

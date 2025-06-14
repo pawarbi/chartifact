@@ -3,8 +3,8 @@
 * Licensed under the MIT License.
 */
 
-import { definePlugin, Plugin } from '../factory';
-import { sanitizedHTML } from '../sanitize';
+import { definePlugin, Plugin } from '../factory.js';
+import { sanitizedHTML } from '../sanitize.js';
 
 export const vegaLitePlugin: Plugin = {
     name: 'vega-lite',

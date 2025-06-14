@@ -3,10 +3,10 @@
 * Licensed under the MIT License.
 */
 
-import { Batch, definePlugin, IInstance, Plugin } from '../factory';
-import { sanitizedHTML } from '../sanitize';
+import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
+import { sanitizedHTML } from '../sanitize.js';
 import { Tabulator, Options as TabulatorOptions } from 'tabulator-tables';
-import { dataNameSelectedSuffix } from './common';
+import { dataNameSelectedSuffix } from './common.js';
 
 interface TabulatorInstance {
     id: string;
@@ -33,7 +33,7 @@ export const tabulatorPlugin: Plugin = {
     hydrateComponent: async (renderer, errorHandler) => {
         const tabulatorInstances: TabulatorInstance[] = [];
         const containers = renderer.element.querySelectorAll('.tabulator');
-        for (const [index, container] of containers.entries()) {
+        for (const [index, container] of Array.from(containers).entries()) {
             if (!container.textContent) continue;
             if (!(window as unknown as CustomWindow).Tabulator) {
                 errorHandler(new Error('Tabulator not found'), 'tabulator', index, 'init', container);
