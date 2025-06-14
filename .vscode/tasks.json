@@ -27,6 +27,9 @@
 			"presentation": {
 				"group": "watch",
 				"reveal": "never"
+			},
+			"options": {
+				"cwd": "packages/vscode"
 			}
 		},
 		{
@@ -39,6 +42,9 @@
 			"presentation": {
 				"group": "watch",
 				"reveal": "never"
+			},
+			"options": {
+				"cwd": "packages/vscode"
 			}
 		},
 		{
@@ -48,7 +54,10 @@
 			"problemMatcher": [
 				"$tsc",
 				"$esbuild"
-			]
+			],
+			"options": {
+				"cwd": "packages/vscode"
+			}
 		}
 	]
 }
