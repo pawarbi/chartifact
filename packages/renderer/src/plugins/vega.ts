@@ -56,7 +56,7 @@ export const vegaPlugin: Plugin = {
         }
 
         //make a single array of all the initialSignals that are marked isData
-        const dataSignals = [].concat(...vegaInstances.map(vegaInstance => vegaInstance.initialSignals.filter(signal => signal.isData)));
+        const dataSignals = vegaInstances.map(vegaInstance => vegaInstance.initialSignals.filter(signal => signal.isData)).flat();
 
         //spin through all instances to see if its spec has data that matches with dataSignals
         for (const vegaInstance of vegaInstances) {
@@ -323,7 +323,7 @@ function isSignalDataBridge(signal: NewSignal) {
 }
 
 function prioritizeSignalValues(specInits: SpecInit[]) {
-    const highPrioritySignals = [].concat(...specInits.map(specInit => specInit.initialSignals.filter(signal => signal.priority > 0)));
+    const highPrioritySignals = specInits.map(specInit => specInit.initialSignals.filter(signal => signal.priority > 0)).flat();
     for (const specInit of specInits) {
         for (const prioritySignal of highPrioritySignals) {
             const matchSignal = specInit.spec.signals?.find(signal => signal.name === prioritySignal.name);

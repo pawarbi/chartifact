@@ -81,18 +81,16 @@ export const presetsPlugin: Plugin = {
             presetsInstances.push(presetsInstance);
         }
         const instances: IInstance[] = presetsInstances.map((presetsInstance, index) => {
-            const initialSignals: PrioritizedSignal[] = [].concat(
-                ...presetsInstance.presets.map(preset => {
-                    return Object.keys(preset.state).map(signalName => {
-                        return {
-                            name: signalName,
-                            value: null,
-                            priority: -1,
-                            isData: undefined,  // we do not know if it is data or not
-                        };
-                    });
-                })
-            );
+            const initialSignals: PrioritizedSignal[] = presetsInstance.presets.flatMap(preset => {
+                return Object.keys(preset.state).map(signalName => {
+                    return {
+                        name: signalName,
+                        value: null,
+                        priority: -1,
+                        isData: undefined,  // we do not know if it is data or not
+                    };
+                });
+            });
             return {
                 ...presetsInstance,
                 initialSignals,
