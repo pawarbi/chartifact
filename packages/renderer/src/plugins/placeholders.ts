@@ -99,8 +99,11 @@ export const placeholdersPlugin: Plugin = {
         // Collect placeholders
         for (const placeholder of Array.from(placeholders)) {
             const key = placeholder.getAttribute('data-key');
+            if (!key) {
+                continue;
+            }
             if (elementsByKeys.has(key)) {
-                elementsByKeys.get(key).push(placeholder);
+                elementsByKeys.get(key)!.push(placeholder);
             } else {
                 elementsByKeys.set(key, [placeholder]);
             }
@@ -109,6 +112,9 @@ export const placeholdersPlugin: Plugin = {
         // Collect dynamic URLs
         for (const element of Array.from(dynamicUrls)) {
             const templateUrl = element.getAttribute('data-template-url');
+            if (!templateUrl) {
+                continue;
+            }
             const keys: string[] = [];
             const regex = /%7B%7B(.*?)%7D%7D/g;
             let match: RegExpExecArray | null;
@@ -121,7 +127,7 @@ export const placeholdersPlugin: Plugin = {
 
             for (const key of keys) {
                 if (elementsByKeys.has(key)) {
-                    elementsByKeys.get(key).push(element);
+                    elementsByKeys.get(key)!.push(element);
                 } else {
                     elementsByKeys.set(key, [element]);
                 }

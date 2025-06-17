@@ -49,7 +49,7 @@ export const dropdownPlugin: Plugin = {
                         <label>
                             <span class="vega-bind-name">${spec.label || spec.name}</span>
                             <select class="vega-bind-select" id="${spec.name}" name="${spec.name}" ${spec.multiple ? 'multiple' : ''} size="${spec.size || 1}">
-${getOptions(spec.multiple, spec.options, spec.value)}
+${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""))}
                             </select>
                         </label>
                     </div>
@@ -103,7 +103,7 @@ ${getOptions(spec.multiple, spec.options, spec.value)}
                             if (hasFieldName) {
                                 const options = Array.from(uniqueOptions);
                                 const existingSelection = spec.multiple ? Array.from(element.selectedOptions).map(option => option.value) : element.value;
-                                element.innerHTML = getOptions(spec.multiple, options, existingSelection);
+                                element.innerHTML = getOptions(spec.multiple ?? false, options, existingSelection);
                                 if (!spec.multiple) {
                                     element.value = (batch[spec.name]?.value as string) || options[0];
                                 }
@@ -118,7 +118,7 @@ ${getOptions(spec.multiple, spec.options, spec.value)}
                         const value = batch[spec.name].value as string | string[];
                         if (spec.multiple) {
                             Array.from(element.options).forEach((option) => {
-                                option.selected = value && (value as string[]).includes(option.value);
+                                option.selected = !!(value && Array.isArray(value) && value.includes(option.value));
                             });
                         } else {
                             element.value = value as string;

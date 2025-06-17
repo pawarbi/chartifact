@@ -47,6 +47,7 @@ export class SignalBus {
         this.broadcastingStack.push(originId);
         for (const peerId of this.peerDependencies[originId]) {
             const peer = this.peers.find(p => p.id === peerId);
+            if (!peer) continue;
 
             //create a new batch with the signals that the peer is interested in
             const peerBatch: Batch = {};

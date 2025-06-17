@@ -40,7 +40,7 @@ export class Renderer {
     constructor(public element: HTMLElement, options?: RendererOptions) {
         this.options = { ...defaultRendererOptions, ...options };
         this.md = create({ classList: this.options.classList });
-        this.signalBus = this.options.signalBus || new SignalBus(this.options.dataSignalPrefix);
+        this.signalBus = this.options.signalBus || new SignalBus(this.options.dataSignalPrefix!);
         this.instances = {};
     }
 
