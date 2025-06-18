@@ -7,6 +7,7 @@ import { setupUrlHandling } from './url.js';
 console.log('Host index.ts loaded!');
 
 // Get DOM elements
+const loadingDiv = document.getElementById('loading') as HTMLElement;
 const helpDiv = document.getElementById('help') as HTMLElement;
 const appDiv = document.getElementById('app') as HTMLElement;
 const uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
@@ -24,7 +25,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // Setup URL parameter handling
-setupUrlHandling(hideHelpAndLoadFile);
+setupUrlHandling(hideLoadingAndLoadFile, showHelpAndHideLoading);
 
 // Global function for example buttons
 (window as any).loadExample = (examplePath: string) => {
@@ -32,6 +33,16 @@ setupUrlHandling(hideHelpAndLoadFile);
 };
 
 // Helper functions
+function hideLoadingAndLoadFile(filePath: string) {
+  loadingDiv.style.display = 'none';
+  loadMarkdownFile(filePath);
+}
+
+function showHelpAndHideLoading() {
+  loadingDiv.style.display = 'none';
+  helpDiv.style.display = 'block';
+}
+
 function hideHelpAndLoadFile(filePath: string) {
   loadMarkdownFile(filePath);
 }
@@ -51,7 +62,10 @@ async function loadMarkdownFile(filePath: string) {
 }
 
 function renderMarkdown(content: string) {
-  // Hide help when rendering any content
+  // Hide loading and help when rendering any content
+  if (loadingDiv) {
+    loadingDiv.style.display = 'none';
+  }
   if (helpDiv) {
     helpDiv.style.display = 'none';
   }
