@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Document Host</title>
+    <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script> -->
+    <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
+</head>
+
+<body>
+    <div id="help">
+        <h1>Interactive Document Host</h1>
+
+        You can render interactive documents here 4 ways:
+        <ul>
+            <li>Via clipboard: paste your markdown content directly when this page has focus</li>
+            <li>Via drag and drop: drop a markdown file onto this page</li>
+            <li>Via url parameter: add /?md=path/to/your/file.md to the url</li>
+            <li>Via file upload: click the button below to choose a file</li>
+        </ul>
+
+        <button id="upload-btn">Choose File to Upload</button>
+        <input type="file" id="file-input" accept=".md" style="display: none;">
+    </div>
+
+    <div id="app"></div>
+    <script type="module" src="/src/index.ts"></script>
+</body>
+
+</html>

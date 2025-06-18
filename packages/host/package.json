@@ -1,0 +1,23 @@
+{
+  "name": "@microsoft/interactive-document-host",
+  "version": "1.0.0",
+  "description": "ost page to render interactive documents",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --config vite.bundle.config.js",
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/microsoft/interactive-documents.git"
+  },
+  "author": "Dan Marshall",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/microsoft/interactive-documents/issues"
+  },
+  "homepage": "https://github.com/microsoft/interactive-documents#readme"
+}
