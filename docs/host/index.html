@@ -17,20 +17,33 @@
     <div id="loading" style="display: block; text-align: center; padding: 50px;">
         Loading...
     </div>
-    
+
     <div id="help" style="display: none;">
         <h1>Interactive Document Host</h1>
 
-        You can render interactive documents here 4 ways:
+        <p>
+            <a href="/docs/">Learn more about interactive documents</a>
+        </p>
+
+        You can render interactive documents here 5 ways:
         <ul>
             <li>Via clipboard: paste your markdown content directly when this page has focus</li>
             <li>Via drag and drop: drop a markdown file onto this page</li>
-            <li>Via url parameter: add /?load=url/to/your/file.md to the url</li>
-            <li>Via file upload: click the button below to choose a file</li>
+            <li>Via url parameter: add <em>?load=url/to/your/file.md</em> to the url</li>
+            <li>Via file upload: <button id="upload-btn">Choose File to Upload</button>
+                <input type="file" id="file-input" accept=".md" style="display: none;" />
+            </li>
+            <li>Via examples: click on an example below to load it
+                <ul>
+                    <li><a href="?load=../assets/examples/seattle-weather/1.idoc.md">Example 1</a></li>
+                    <li><a href="?load=../assets/examples/seattle-weather/2.idoc.md">Example 2</a></li>
+                    <li><a href="?load=../assets/examples/seattle-weather/3.idoc.md">Example 3</a></li>
+                </ul>
+            </li>
         </ul>
 
-        <button id="upload-btn">Choose File to Upload</button>
-        <input type="file" id="file-input" accept=".md" style="display: none;">
+        Refresh this page to start over.
+
     </div>
 
     <div id="app"></div>
