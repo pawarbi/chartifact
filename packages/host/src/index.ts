@@ -2,7 +2,7 @@ import { Renderer } from '@microsoft/interactive-document-renderer';
 import { setupClipboardHandling } from './clipboard.js';
 import { setupDragDropHandling } from './dragdrop.js';
 import { setupFileUpload } from './upload.js';
-import { setupUrlHandling } from './url.js';
+import { checkUrlForFile } from './url.js';
 
 // Get DOM elements
 const loadingDiv = document.getElementById('loading') as HTMLElement;
@@ -20,15 +20,10 @@ window.addEventListener('DOMContentLoaded', () => {
   setupClipboardHandling(renderMarkdown);
   setupDragDropHandling(appDiv, renderMarkdown);
   setupFileUpload(uploadBtn, fileInput, renderMarkdown);
+
+  // Check URL parameters for file to load
+  checkUrlForFile(hideLoadingAndLoadFile, showHelpAndHideLoading);
 });
-
-// Setup URL parameter handling
-setupUrlHandling(hideLoadingAndLoadFile, showHelpAndHideLoading);
-
-// Global function for example buttons
-(window as any).loadExample = (examplePath: string) => {
-  hideHelpAndLoadFile(`docs/assets/examples/${examplePath}`);
-};
 
 // Helper functions
 function hideLoadingAndLoadFile(filePath: string) {
@@ -39,10 +34,6 @@ function hideLoadingAndLoadFile(filePath: string) {
 function showHelpAndHideLoading() {
   loadingDiv.style.display = 'none';
   helpDiv.style.display = 'block';
-}
-
-function hideHelpAndLoadFile(filePath: string) {
-  loadMarkdownFile(filePath);
 }
 
 async function loadMarkdownFile(filePath: string) {
@@ -59,6 +50,16 @@ async function loadMarkdownFile(filePath: string) {
   }
 }
 
+const errorHandler = (error: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string) => {
+  appDiv.innerHTML = `<div style="color: red; padding: 20px;">
+    <strong>Error in ${pluginName}:</strong> ${error.message}<br>
+    <strong>Instance:</strong> ${instanceIndex}<br>
+    <strong>Phase:</strong> ${phase}<br>
+    <strong>Container:</strong> ${container.tagName}<br>
+    ${detail ? `<strong>Detail:</strong> ${detail}` : ''}
+  </div>`;
+};
+
 function renderMarkdown(content: string) {
   // Hide loading and help when rendering any content
   if (loadingDiv) {
@@ -67,26 +68,19 @@ function renderMarkdown(content: string) {
   if (helpDiv) {
     helpDiv.style.display = 'none';
   }
-  
+
   try {
     renderer.destroy(); // Clean up previous renderer instance
     // Use your renderer to process the markdown
-    const renderedContent = renderer.render(content);
+    const renderedContent = renderer.render(content, errorHandler);
   } catch (error) {
-    console.error('Error rendering markdown:', error);
-    appDiv.innerHTML = `<div style="color: red; padding: 20px;">Error rendering markdown content</div>`;
+    errorHandler(
+      error as Error,
+      'MarkdownRenderer',
+      0, // Instance index, can be adjusted if needed
+      'render',
+      appDiv,
+      'Error rendering markdown content'
+    );
   }
 }
-
-/*
-
-TODO:
-- check url for param to fetch md file and render it ✓
-- add drop handler to render an .md file ✓
-- if neither then:
-  - link to examples ✓
-  - link to documentation ✓
-  - show upload button ✓
-
-
-*/
