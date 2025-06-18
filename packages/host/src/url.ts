@@ -3,17 +3,55 @@
  */
 
 /**
- * Checks URL parameters for file to load
- * @param onFileLoad - Callback function to handle loading a file from URL parameter
- * @param onNoFileInUrl - Callback function to handle when no file is found in URL
+ * Checks URL parameters for file to load and loads the file content
+ * @param onFileLoad - Callback function to handle loaded file content
+ * @param onError - Callback function to handle errors during file loading
+ * @returns Promise<boolean> - true if load parameter was found, false otherwise
  */
-export function checkUrlForFile(onFileLoad: (filePath: string) => void, onNoFileInUrl?: () => void): void {
+export async function checkUrlForFile(
+  onFileLoad: (content: string) => void,
+  onError: (error: Error, details: string) => void
+): Promise<boolean> {
   const urlParams = new URLSearchParams(window.location.search);
   const mdFile = urlParams.get('load');
 
   if (mdFile) {
-    onFileLoad(mdFile);
-  } else if (onNoFileInUrl) {
-    onNoFileInUrl();
+    try {
+      const response = await fetch(mdFile);
+      if (!response.ok) {
+        throw new Error(`Failed to load ${mdFile}`);
+      }
+      const content = await response.text();
+      onFileLoad(content);
+      return true;
+    } catch (error) {
+      onError(error as Error, `Error loading file: ${mdFile}`);
+      return true; // We found a load parameter, even though it failed
+    }
+  } else {
+    return false; // No load parameter found
+  }
+}
+
+/**
+ * Loads a markdown file from a given file path
+ * @param filePath - The path to the markdown file
+ * @param onSuccess - Callback function to handle successful file load
+ * @param onError - Callback function to handle errors
+ */
+export async function loadMarkdownFile(
+  filePath: string,
+  onSuccess: (content: string) => void,
+  onError: (error: Error, details: string) => void
+): Promise<void> {
+  try {
+    const response = await fetch(filePath);
+    if (!response.ok) {
+      throw new Error(`Failed to load ${filePath}`);
+    }
+    const content = await response.text();
+    onSuccess(content);
+  } catch (error) {
+    onError(error as Error, `Error loading file: ${filePath}`);
   }
 }

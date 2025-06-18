@@ -4,83 +4,73 @@ import { setupDragDropHandling } from './dragdrop.js';
 import { setupFileUpload } from './upload.js';
 import { checkUrlForFile } from './url.js';
 
-// Get DOM elements
-const loadingDiv = document.getElementById('loading') as HTMLElement;
-const helpDiv = document.getElementById('help') as HTMLElement;
-const appDiv = document.getElementById('app') as HTMLElement;
-const uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
-const fileInput = document.getElementById('file-input') as HTMLInputElement;
+let loadingDiv: HTMLElement;
+let helpDiv: HTMLElement;
+let appDiv: HTMLElement;
+let uploadBtn: HTMLButtonElement;
+let fileInput: HTMLInputElement;
+
+function show(element: HTMLElement, shown: boolean) {
+  if (!element) {
+    return;
+  }
+  element.style.display = shown ? '' : 'none';
+}
+
+const errorHandler = (error: Error, details: string) => {
+  show(loadingDiv, false);
+  appDiv.innerHTML = `<div style="color: red; padding: 20px;">
+    <strong>Error:</strong> ${error.message}<br>
+    ${details}
+  </div>`;
+};
 
 // Initialize renderer
 const renderer = new Renderer(appDiv, {});
 
-// Setup all event handlers
-window.addEventListener('DOMContentLoaded', () => {
-  // Setup clipboard, drag-drop, and upload handling
-  setupClipboardHandling(renderMarkdown);
-  setupDragDropHandling(appDiv, renderMarkdown);
-  setupFileUpload(uploadBtn, fileInput, renderMarkdown);
-
-  // Check URL parameters for file to load
-  checkUrlForFile(hideLoadingAndLoadFile, showHelpAndHideLoading);
-});
-
-// Helper functions
-function hideLoadingAndLoadFile(filePath: string) {
-  loadingDiv.style.display = 'none';
-  loadMarkdownFile(filePath);
-}
-
-function showHelpAndHideLoading() {
-  loadingDiv.style.display = 'none';
-  helpDiv.style.display = 'block';
-}
-
-async function loadMarkdownFile(filePath: string) {
-  try {
-    const response = await fetch(filePath);
-    if (!response.ok) {
-      throw new Error(`Failed to load ${filePath}`);
-    }
-    const content = await response.text();
-    renderMarkdown(content);
-  } catch (error) {
-    console.error('Error loading markdown file:', error);
-    appDiv.innerHTML = `<div style="color: red; padding: 20px;">Error loading file: ${filePath}</div>`;
-  }
-}
-
-const errorHandler = (error: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string) => {
-  appDiv.innerHTML = `<div style="color: red; padding: 20px;">
-    <strong>Error in ${pluginName}:</strong> ${error.message}<br>
-    <strong>Instance:</strong> ${instanceIndex}<br>
-    <strong>Phase:</strong> ${phase}<br>
-    <strong>Container:</strong> ${container.tagName}<br>
-    ${detail ? `<strong>Detail:</strong> ${detail}` : ''}
-  </div>`;
-};
-
 function renderMarkdown(content: string) {
-  // Hide loading and help when rendering any content
-  if (loadingDiv) {
-    loadingDiv.style.display = 'none';
-  }
-  if (helpDiv) {
-    helpDiv.style.display = 'none';
-  }
+  show(loadingDiv, false);
+  show(helpDiv, false);
 
   try {
     renderer.destroy(); // Clean up previous renderer instance
     // Use your renderer to process the markdown
-    const renderedContent = renderer.render(content, errorHandler);
+    renderer.render(
+      content,
+      (error: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string) => {
+        const msg = `<strong>Error in ${pluginName}:</strong> ${error.message}<br>
+          <strong>Instance:</strong> ${instanceIndex}<br>
+          <strong>Phase:</strong> ${phase}<br>
+          <strong>Container:</strong> ${container.tagName}<br>
+          ${detail ? `<strong>Detail:</strong> ${detail}` : ''}`;
+        errorHandler(error, msg);
+      }
+    );
   } catch (error) {
     errorHandler(
-      error as Error,
-      'MarkdownRenderer',
-      0, // Instance index, can be adjusted if needed
-      'render',
-      appDiv,
-      'Error rendering markdown content'
+      error, 'Error rendering markdown content'
     );
   }
 }
+
+// Setup all event handlers
+window.addEventListener('DOMContentLoaded', async () => {
+  loadingDiv = document.getElementById('loading') as HTMLElement;
+  helpDiv = document.getElementById('help') as HTMLElement;
+  appDiv = document.getElementById('app') as HTMLElement;
+  uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
+  fileInput = document.getElementById('file-input') as HTMLInputElement;
+
+  show(helpDiv, false);
+
+  // Setup clipboard, drag-drop, and upload handling
+  setupClipboardHandling(renderMarkdown);
+  setupDragDropHandling(renderMarkdown, errorHandler);
+  setupFileUpload(uploadBtn, fileInput, renderMarkdown);
+
+  // Check URL parameters for file to load
+  if (!await checkUrlForFile(renderMarkdown, errorHandler)) {
+    show(loadingDiv, false);
+    show(helpDiv, true);
+  }
+});

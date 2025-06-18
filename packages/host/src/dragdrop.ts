@@ -4,12 +4,12 @@
 
 /**
  * Sets up drag and drop event handling for markdown files
- * @param appDiv - The app container element for displaying messages
  * @param onMarkdownDrop - Callback function to handle dropped markdown content
+ * @param onError - Callback function to handle errors
  */
 export function setupDragDropHandling(
-  appDiv: HTMLElement,
-  onMarkdownDrop: (content: string) => void
+  onMarkdownDrop: (content: string) => void,
+  onError: (error: Error, details: string) => void
 ): void {
   // Handle drag and drop
   document.addEventListener('dragover', (e) => {
@@ -31,10 +31,10 @@ export function setupDragDropHandling(
       const filePath = e.dataTransfer.getData('text/plain');
 
       if (filePath && filePath.endsWith('.md')) {
-        appDiv.innerHTML = `<div style="color: orange; padding: 20px;">
-                Cannot directly read local file: ${filePath}<br>
-                The browser blocks local files for security reasons. Try copying the file content and pasting it instead.
-            </div>`;
+        onError(
+          new Error(`Cannot directly read local file: ${filePath}`),
+          'The browser blocks local files for security reasons. Try copying the file content and pasting it instead.'
+        );
       }
     }
   });
