@@ -21,16 +21,20 @@ const errorHandler = (error: Error, details: string) => {
   show(loadingDiv, false);
   appDiv.innerHTML = `<div style="color: red; padding: 20px;">
     <strong>Error:</strong> ${error.message}<br>
-    ${details}
-  </div>`;
+      ${details}
+    </div>`;
 };
 
-// Initialize renderer
-const renderer = new Renderer(appDiv, {});
+let renderer: Renderer = undefined;
 
-function renderMarkdown(content: string) {
+export function renderMarkdown(content: string) {
   show(loadingDiv, false);
   show(helpDiv, false);
+
+  if (!renderer) {
+    errorHandler(new Error('Renderer not initialized'), 'Please wait for the application to load.');
+    return;
+  }
 
   try {
     renderer.destroy(); // Clean up previous renderer instance
@@ -62,6 +66,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   fileInput = document.getElementById('file-input') as HTMLInputElement;
 
   show(helpDiv, false);
+
+  // Initialize renderer
+  renderer = new Renderer(appDiv, {});
 
   // Setup clipboard, drag-drop, and upload handling
   setupClipboardHandling(renderMarkdown);
