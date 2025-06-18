@@ -1628,26 +1628,19 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
   function setupClipboardHandling(onMarkdownPaste) {
     document.addEventListener("paste", (e) => {
       e.preventDefault();
-      console.log("Paste event detected!");
       const clipboardData = e.clipboardData;
       if (clipboardData && clipboardData.files.length > 0) {
         const file = clipboardData.files[0];
-        console.log("File pasted:", file.name, file.type);
         if (file.name.endsWith(".md")) {
           handleFileFromClipboard(file, onMarkdownPaste);
         }
       } else if (clipboardData && clipboardData.items) {
         for (let i = 0; i < clipboardData.items.length; i++) {
           const item = clipboardData.items[i];
-          console.log("Clipboard item:", item.kind, item.type);
           if (item.kind === "string" && item.type === "text/plain") {
             item.getAsString((content) => {
-              console.log("Got text content, length:", content.length);
-              console.log("Content preview:", content.substring(0, 100));
               if (content.trim()) {
                 onMarkdownPaste(content);
-              } else {
-                console.log("Content was empty or whitespace only");
               }
             });
             break;
@@ -1672,7 +1665,6 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     document.addEventListener("drop", (e) => {
       var _a, _b;
       e.preventDefault();
-      console.log("File dropped!");
       const files = (_a = e.dataTransfer) == null ? void 0 : _a.files;
       if (files && files.length > 0) {
         const file = files[0];
@@ -1681,7 +1673,6 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         }
       } else if ((_b = e.dataTransfer) == null ? void 0 : _b.types.includes("text/plain")) {
         const filePath = e.dataTransfer.getData("text/plain");
-        console.log("VS Code file path:", filePath);
         if (filePath && filePath.endsWith(".md")) {
           appDiv2.innerHTML = `<div style="color: orange; padding: 20px;">
                 Cannot directly read local file: ${filePath}<br>
@@ -1732,7 +1723,6 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       }
     });
   }
-  console.log("Host index.ts loaded!");
   const loadingDiv = document.getElementById("loading");
   const helpDiv = document.getElementById("help");
   const appDiv = document.getElementById("app");

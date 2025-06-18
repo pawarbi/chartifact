@@ -4,8 +4,6 @@ import { setupDragDropHandling } from './dragdrop.js';
 import { setupFileUpload } from './upload.js';
 import { setupUrlHandling } from './url.js';
 
-console.log('Host index.ts loaded!');
-
 // Get DOM elements
 const loadingDiv = document.getElementById('loading') as HTMLElement;
 const helpDiv = document.getElementById('help') as HTMLElement;

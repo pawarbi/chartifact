@@ -8,7 +8,7 @@
  * @param onMarkdownDrop - Callback function to handle dropped markdown content
  */
 export function setupDragDropHandling(
-  appDiv: HTMLElement, 
+  appDiv: HTMLElement,
   onMarkdownDrop: (content: string) => void
 ): void {
   // Handle drag and drop
@@ -18,8 +18,6 @@ export function setupDragDropHandling(
 
   document.addEventListener('drop', (e) => {
     e.preventDefault();
-
-    console.log('File dropped!');
 
     const files = e.dataTransfer?.files;
     if (files && files.length > 0) {
@@ -31,7 +29,6 @@ export function setupDragDropHandling(
     } else if (e.dataTransfer?.types.includes('text/plain')) {
       // Handle VS Code file drops
       const filePath = e.dataTransfer.getData('text/plain');
-      console.log('VS Code file path:', filePath);
 
       if (filePath && filePath.endsWith('.md')) {
         appDiv.innerHTML = `<div style="color: orange; padding: 20px;">

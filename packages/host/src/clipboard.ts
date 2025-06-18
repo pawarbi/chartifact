@@ -11,12 +11,9 @@ export function setupClipboardHandling(onMarkdownPaste: (content: string) => voi
   document.addEventListener('paste', (e) => {
     e.preventDefault();
 
-    console.log('Paste event detected!');
-
     const clipboardData = e.clipboardData;
     if (clipboardData && clipboardData.files.length > 0) {
       const file = clipboardData.files[0];
-      console.log('File pasted:', file.name, file.type);
       if (file.name.endsWith('.md')) {
         handleFileFromClipboard(file, onMarkdownPaste);
       }
@@ -24,16 +21,13 @@ export function setupClipboardHandling(onMarkdownPaste: (content: string) => voi
       // Handle clipboard items (VS Code puts file content as text)
       for (let i = 0; i < clipboardData.items.length; i++) {
         const item = clipboardData.items[i];
-        console.log('Clipboard item:', item.kind, item.type);
 
         if (item.kind === 'string' && item.type === 'text/plain') {
           item.getAsString((content) => {
-            console.log('Got text content, length:', content.length);
-            console.log('Content preview:', content.substring(0, 100));
             if (content.trim()) {
               onMarkdownPaste(content);
             } else {
-              console.log('Content was empty or whitespace only');
+              // Content was empty or whitespace only
             }
           });
           break;
