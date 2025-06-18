@@ -11,7 +11,7 @@ export function setupUrlHandling(onFileLoad: (filePath: string) => void, onNoFil
   // Check URL parameters on load
   window.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const mdFile = urlParams.get('md') || urlParams.get('file');
+    const mdFile = urlParams.get('load');
 
     if (mdFile) {
       onFileLoad(mdFile);
@@ -19,13 +19,4 @@ export function setupUrlHandling(onFileLoad: (filePath: string) => void, onNoFil
       onNoFileInUrl();
     }
   });
-}
-
-/**
- * Gets the markdown file parameter from the current URL
- * @returns The markdown file path from URL parameters, or null if not found
- */
-export function getMarkdownFileFromUrl(): string | null {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('md') || urlParams.get('file');
 }
