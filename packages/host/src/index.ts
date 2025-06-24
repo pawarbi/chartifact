@@ -3,6 +3,7 @@ import { setupClipboardHandling } from './clipboard.js';
 import { setupDragDropHandling } from './dragdrop.js';
 import { setupFileUpload } from './upload.js';
 import { checkUrlForFile } from './url.js';
+import { setupPostMessageHandling, postStatus } from './postmessage.js';
 
 let loadingDiv: HTMLElement;
 let helpDiv: HTMLElement;
@@ -37,6 +38,7 @@ export function renderMarkdown(content: string) {
   }
 
   try {
+    postStatus({ status: 'rendering', details: 'Starting markdown rendering' });
     renderer.destroy(); // Clean up previous renderer instance
     // Use your renderer to process the markdown
     renderer.render(
@@ -48,12 +50,15 @@ export function renderMarkdown(content: string) {
           <strong>Container:</strong> ${container.tagName}<br>
           ${detail ? `<strong>Detail:</strong> ${detail}` : ''}`;
         errorHandler(error, msg);
+        postStatus({ status: 'error', details: `Rendering error in ${pluginName}: ${error.message}` });
       }
     );
+    postStatus({ status: 'rendered', details: 'Markdown rendering completed successfully' });
   } catch (error) {
     errorHandler(
       error, 'Error rendering markdown content'
     );
+    postStatus({ status: 'error', details: `Rendering failed: ${error.message}` });
   }
 }
 
@@ -70,10 +75,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   // Initialize renderer
   renderer = new Renderer(appDiv, {});
 
-  // Setup clipboard, drag-drop, and upload handling
+  // Setup clipboard, drag-drop, upload, and postMessage handling
   setupClipboardHandling(renderMarkdown);
   setupDragDropHandling(renderMarkdown, errorHandler);
   setupFileUpload(uploadBtn, fileInput, renderMarkdown);
+  setupPostMessageHandling(renderMarkdown, errorHandler);
+
+  // Send ready message to parent window (if embedded)
+  postStatus({ status: 'ready' });
 
   // Check URL parameters for file to load
   if (!await checkUrlForFile(renderMarkdown, errorHandler)) {
