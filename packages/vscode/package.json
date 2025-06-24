@@ -16,8 +16,20 @@
       {
         "command": "interactive-documents-vscode.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "interactive-documents-vscode.previewIdoc",
+        "title": "Preview Interactive Document"
       }
-    ]
+    ],    "menus": {
+      "explorer/context": [
+        {
+          "command": "interactive-documents-vscode.previewIdoc",
+          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
+          "group": "z_idocs@1"
+        }
+      ]
+    }
   },
   "scripts": {
     "test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/extensionTests.js",
