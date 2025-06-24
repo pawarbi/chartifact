@@ -24,6 +24,7 @@
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@types/assert": "^1.5.11",
     "@types/mocha": "^10.0.10",
+    "@types/node": "^24.0.3",
     "@types/vscode": "^1.101.0",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
