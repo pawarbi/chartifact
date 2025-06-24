@@ -14,10 +14,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "interactive-documents-vscode.helloWorld",
-        "title": "Hello World"
-      },
-      {
         "command": "interactive-documents-vscode.previewIdoc",
         "title": "Preview Interactive Document"
       }
