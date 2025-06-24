@@ -21,13 +21,13 @@
     <div id="help" style="display: none;">
         <h1>Interactive Document Host</h1>
 
-        You can render interactive documents here 4 ways:
+        You can render interactive documents here via several methods:
         <ul>
-            <li>Via clipboard: paste your markdown content directly when this page has focus</li>
-            <li>Via drag and drop: drop a markdown file onto this page</li>
-            <li>Via url parameter: add /?load=url/to/your/file.md to the url</li>
-            <li>Via file upload: click the button below to choose a file</li>
-            <li>Via postmessage: send markdown content to this page using the <code>window.postMessage</code> API with the property <code>markdown</code></li>
+            <li><b>Clipboard</b>: paste your markdown content directly when this page has focus</li>
+            <li><b>Drag and drop</b>: drop a markdown file onto this page</li>
+            <li><b>URL parameter</b>: add /?load=url/to/your/file.md to the url</li>
+            <li><b>PostMessage</b>: send markdown content to this page using the <code>window.postMessage</code> API with the property <code>markdown</code></li>
+            <li><b>File upload</b>: click the button below to choose a file</li>
         </ul>
 
         <button type="button" id="upload-btn">Choose File to Upload</button>
