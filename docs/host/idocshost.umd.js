@@ -1751,13 +1751,17 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     });
   }
   function postStatus(message) {
-    if (window.parent && window.parent !== window) {
+    if (target) {
       const messageWithTimestamp = {
         ...message,
         timestamp: Date.now()
       };
-      window.parent.postMessage(messageWithTimestamp, "*");
+      target.postMessage(messageWithTimestamp, "*");
     }
+  }
+  let target = window.parent || window.opener || window;
+  function setPostMessageTarget(newTarget) {
+    target = newTarget;
   }
   let loadingDiv;
   let helpDiv;
@@ -1828,5 +1832,6 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     }
   });
   exports2.renderMarkdown = renderMarkdown;
+  exports2.setPostMessageTarget = setPostMessageTarget;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });
