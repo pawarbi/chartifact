@@ -20,7 +20,7 @@ export function getWebviewContent(webView: vscode.Webview, extensionPath: string
     <title>Interactive Document Host</title>
     ${link(resourceUrl('tabulator.min.css'))}
     ${script(resourceUrl('markdown-it.min.js'))}
-    ${script(resourceUrl('vega.js'))}
+    ${script(resourceUrl('vega.min.js'))}
     ${script(resourceUrl('vega-lite.min.js'))}
     ${script(resourceUrl('tabulator.min.js'))}
 </head>
