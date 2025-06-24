@@ -46,12 +46,18 @@ export function setupPostMessageHandling(
  * @param message - The message to send (without timestamp)
  */
 export function postStatus(message: Omit<StatusMessage, 'timestamp'>): void {
-    if (window.parent && window.parent !== window) {
+    if (target) {
         const messageWithTimestamp = {
             ...message,
             timestamp: Date.now()
         };
 
-        window.parent.postMessage(messageWithTimestamp, '*');
+        target.postMessage(messageWithTimestamp, '*');
     }
+}
+
+let target = window.parent || window.opener || window;
+
+export function setPostMessageTarget(newTarget: Window): void {
+    target = newTarget;
 }

@@ -5,6 +5,8 @@ import { setupFileUpload } from './upload.js';
 import { checkUrlForFile } from './url.js';
 import { setupPostMessageHandling, postStatus } from './postmessage.js';
 
+export { setPostMessageTarget } from './postmessage.js';
+
 let loadingDiv: HTMLElement;
 let helpDiv: HTMLElement;
 let appDiv: HTMLElement;
