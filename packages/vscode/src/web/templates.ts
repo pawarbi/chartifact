@@ -1,3 +1,5 @@
+import { getResource } from "./resources";
+
 export const sample = `# Seattle Weather
 
 Here is a stacked bar chart of Seattle weather:
@@ -34,7 +36,7 @@ The colors distinguish between different weather conditions such as sun, fog, dr
 \`\`\`
 `;
 
-export const htmlMarkdownWrapper = (markdown: string) => `<!DOCTYPE html>
+export const htmlMarkdownWrapper = (markdown: string): string => `<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -49,13 +51,15 @@ export const htmlMarkdownWrapper = (markdown: string) => `<!DOCTYPE html>
     <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
 
     <!-- TODO: use CDN version -->
-    <script src="../../../../packages/renderer/dist/umd/idocs.umd.js"></script>
+    <script>
+${getResource('idocs.umd.js')}
+    </script>
 
 </head>
 
 <body>
 
-    <textarea id="markdown-input" style="display:none">${markdown}</textarea>
+    <textarea id="markdown-input" style="display:none;min-height:300px;width:100%;">${markdown}</textarea>
 
     <div id="content"></div>
 
