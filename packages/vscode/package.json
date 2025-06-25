@@ -35,6 +35,13 @@
           "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
           "group": "interactive-documents"
         }
+      ],
+      "editor/title/context": [
+        {
+          "command": "interactive-documents-vscode.previewIdoc",
+          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
+          "group": "interactive-documents"
+        }
       ]
     }
   },
