@@ -13,7 +13,8 @@ const commonOutputConfig = {
   entryFileNames: 'idocshost.umd.js',
 };
 
-export default defineConfig({  build: {
+export default defineConfig({
+  build: {
     lib: {
       entry: './src/index.ts',
     },
