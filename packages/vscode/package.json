@@ -21,6 +21,11 @@
       {
         "command": "interactive-documents-vscode.previewIdoc",
         "title": "Preview Interactive Document"
+      },
+      {
+        "command": "interactive-documents-vscode.convertToHtml",
+        "title": "Convert to HTML",
+        "category": "Interactive Documents"
       }
     ],
     "menus": {
@@ -34,11 +39,21 @@
           "command": "interactive-documents-vscode.previewIdoc",
           "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
           "group": "interactive-documents"
+        },
+        {
+          "command": "interactive-documents-vscode.convertToHtml",
+          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
+          "group": "interactive-documents"
         }
       ],
       "editor/title/context": [
         {
           "command": "interactive-documents-vscode.previewIdoc",
+          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
+          "group": "interactive-documents"
+        },
+        {
+          "command": "interactive-documents-vscode.convertToHtml",
           "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
           "group": "interactive-documents"
         }

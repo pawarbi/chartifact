@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { createNewIdoc } from './command-new';
 import { PreviewManager } from './command-preview';
+import { convertToHtml } from './command-convert-html';
 
 export function activate(context: vscode.ExtensionContext) {
 	// Create preview manager
@@ -23,6 +24,17 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	context.subscriptions.push(previewDisposable);
+
+	// Register the convert to HTML command for .idoc.md files
+	const convertToHtmlDisposable = vscode.commands.registerCommand('interactive-documents-vscode.convertToHtml', async (fileUri: vscode.Uri) => {
+		try {
+			await convertToHtml(fileUri);
+		} catch (error) {
+			vscode.window.showErrorMessage(`Failed to convert to HTML: ${error}`);
+		}
+	});
+
+	context.subscriptions.push(convertToHtmlDisposable);
 
 	// Ensure preview manager is disposed when extension deactivates
 	context.subscriptions.push({

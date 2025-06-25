@@ -47,13 +47,15 @@ export const htmlMarkdownWrapper = (markdown: string) => `<!DOCTYPE html>
     <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
     <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
-    <script src="../dist/umd/idocs.umd.js"></script>
+
+    <!-- TODO: use CDN version -->
+    <script src="../../../../packages/renderer/dist/umd/idocs.umd.js"></script>
 
 </head>
 
 <body>
 
-    <textarea id="markdown-input">${markdown}</textarea>
+    <textarea id="markdown-input" style="display:none">${markdown}</textarea>
 
     <div id="content"></div>
 
