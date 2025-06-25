@@ -1,19 +1,3 @@
-import { getResource } from "./resources";
-
-/**
- * Escapes HTML entities to prevent XSS attacks
- */
-function escapeHtml(text: string): string {
-    const map: { [key: string]: string } = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-    };
-    return text.replace(/[&<>"']/g, (m) => map[m]);
-}
-
 export const sample = `# Seattle Weather
 
 Here is a stacked bar chart of Seattle weather:
@@ -49,38 +33,3 @@ The colors distinguish between different weather conditions such as sun, fog, dr
 }
 \`\`\`
 `;
-
-export const htmlMarkdownWrapper = (markdown: string): string => `<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mdv test</title>
-    <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
-
-    <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
-    <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
-
-    <!-- TODO: use CDN version -->
-    <script>
-${getResource('idocs.umd.js')}
-    </script>
-
-</head>
-
-<body>
-
-    <textarea id="markdown-input" style="display:none;min-height:300px;width:100%;">${escapeHtml(markdown)}</textarea>
-
-    <div id="content"></div>
-
-    <script>
-        IDocs.bindTextarea(document.getElementById('markdown-input'), document.getElementById('content'));
-    </script>
-
-</body>
-
-</html>`;

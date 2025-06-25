@@ -1,5 +1,15 @@
 import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
+import { link, script } from './html';
+
+export interface HostOptions {
+  clipboard?: boolean;
+  dragDrop?: boolean;
+  fileUpload?: boolean;
+  postMessage?: boolean;
+  postMessageTarget?: Window;
+  url?: boolean;
+}
 
 interface HostMessage {
 	markdown?: string;
@@ -33,14 +43,17 @@ export class PreviewManager {
 		} else {
 			// Otherwise, create a new panel
 			this.current = newPanel(this.context, uriFsPath);
+			const { panel } = this.current;
 
-			this.current.panel.onDidDispose(() => {
+			panel.webview.html = getWebviewContent(panel.webview, this.context);
+
+			panel.onDidDispose(() => {
 				this.current = undefined;
 				this.disposeFileWatcher();
 			}, null, this.context.subscriptions);
 
 			// Handle messages from the webview
-			this.current.panel.webview.onDidReceiveMessage(message => {
+			panel.webview.onDidReceiveMessage(message => {
 				this.handleWebviewMessage(message, fileUri, uriFsPath);
 			}, undefined, this.context.subscriptions);
 
@@ -128,4 +141,49 @@ export class PreviewManager {
 			});
 		}
 	}
+}
+
+function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionContext) {
+
+	function resourceUrl(resource: string) {
+		// Get path to resource on disk
+		const onDiskPath = vscode.Uri.file(context.extensionPath + '/resources/' + resource);
+
+		// And get the special URI to use with the webview
+		return webView.asWebviewUri(onDiskPath);
+	}
+
+	const hostOptions: HostOptions = {
+		clipboard: false,
+		dragDrop: false,
+		fileUpload: false,
+		url: false
+	};
+
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Document Host</title>
+    ${link(resourceUrl('tabulator.min.css'))}
+    ${script(resourceUrl('markdown-it.min.js'))}
+    ${script(resourceUrl('vega.min.js'))}
+    ${script(resourceUrl('vega-lite.min.js'))}
+    ${script(resourceUrl('tabulator.min.js'))}
+</head>
+<body>
+    <div id="loading" style="text-align: center; padding: 50px;">
+        Loading...
+    </div>
+
+    <div id="app"></div>
+
+    ${script(resourceUrl('idocshost.umd.js'))}
+
+    <script>
+		Object.assign(IDocsHost.options, ${JSON.stringify(hostOptions)}, { postMessageTarget: acquireVsCodeApi() });
+    </script>
+</body>
+</html>`;
 }

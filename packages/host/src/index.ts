@@ -6,12 +6,12 @@ import { checkUrlForFile } from './url.js';
 import { setupPostMessageHandling, postStatus } from './postmessage.js';
 
 export interface HostOptions {
-  clipboard: boolean;
-  dragDrop: boolean;
-  fileUpload: boolean;
-  postMessage: boolean;
-  postMessageTarget: Window;
-  url: boolean;
+  clipboard?: boolean;
+  dragDrop?: boolean;
+  fileUpload?: boolean;
+  postMessage?: boolean;
+  postMessageTarget?: Window;
+  url?: boolean;
 }
 
 export const options: HostOptions = {
