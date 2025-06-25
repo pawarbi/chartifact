@@ -4,7 +4,7 @@
 */
 
 import { definePlugin, Plugin, plugins, registerMarkdownPlugin } from './factory.js';
-import { Renderer } from './renderer.js';
+import { Renderer, bindTextarea } from './renderer.js';
 import { registerNativePlugins } from './plugins/index.js';
 import { sanitizedHTML } from './sanitize.js';
 import * as common from './plugins/common.js';
@@ -12,6 +12,7 @@ import * as common from './plugins/common.js';
 registerNativePlugins();
 
 export {
+    bindTextarea,
     definePlugin,
     Plugin,
     plugins,
@@ -21,7 +22,8 @@ export {
     common,
 };
 
-export type MdVega = {
+export type IDocs = {
+    bindTextarea: typeof bindTextarea;
     definePlugin: typeof definePlugin;
     plugins: typeof plugins;
     registerMarkdownPlugin: typeof registerMarkdownPlugin;
