@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { sample } from './template';
+import { sample } from './templates';
 
 /**
  * Handles the creation of new Interactive Documents
