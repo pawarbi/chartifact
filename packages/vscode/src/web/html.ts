@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 import * as vscode from 'vscode';
 
-export function getWebviewContent(webView: vscode.Webview, extensionPath: string, fileUriFsPath: string) {
+export function getWebviewContent(webView: vscode.Webview, extensionPath: string) {
 
     function resourceUrl(resource: string) {
         // Get path to resource on disk
@@ -11,6 +11,13 @@ export function getWebviewContent(webView: vscode.Webview, extensionPath: string
         // And get the special URI to use with the webview
         return webView.asWebviewUri(onDiskPath);
     }
+
+    const hostOptions = {
+        clipboard: false,
+        dragDrop: false,
+        fileUpload: false,
+        url: false
+    };
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -29,20 +36,12 @@ export function getWebviewContent(webView: vscode.Webview, extensionPath: string
         Loading...
     </div>
 
-    <div id="help" style="display: none;">
-    </div>
-
     <div id="app"></div>
     ${script(resourceUrl('idocshost.umd.js'))}
 
     <script>
     // Initialize the Interactive Documents Host
-    const vscode = acquireVsCodeApi();
-    IDocsHost.options.postMessageTarget = vscode;
-    IDocsHost.options.clipboard = false; // Disable clipboard access
-    IDocsHost.options.dragDrop = false; // Disable drag and drop
-    IDocsHost.options.fileUpload = false; // Disable file upload
-    IDocsHost.options.url = false; // Disable URL loading
+    Object.assign(IDocsHost.options, ${ JSON.stringify(hostOptions) }, { postMessageTarget: acquireVsCodeApi() });
     </script>
 </body>
 </html>`;

@@ -26,6 +26,6 @@ export function newPanel(context: vscode.ExtensionContext, uriFsPath: string, ur
         uriFsPath,
     };
     const webView = webViewWithUri.panel.webview;
-    webViewWithUri.panel.webview.html = getWebviewContent(webView, context.extensionPath, uriFsPath);
+    webViewWithUri.panel.webview.html = getWebviewContent(webView, context.extensionPath);
     return webViewWithUri;
 }
