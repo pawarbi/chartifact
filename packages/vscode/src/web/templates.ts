@@ -1,5 +1,19 @@
 import { getResource } from "./resources";
 
+/**
+ * Escapes HTML entities to prevent XSS attacks
+ */
+function escapeHtml(text: string): string {
+    const map: { [key: string]: string } = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    };
+    return text.replace(/[&<>"']/g, (m) => map[m]);
+}
+
 export const sample = `# Seattle Weather
 
 Here is a stacked bar chart of Seattle weather:
@@ -59,7 +73,7 @@ ${getResource('idocs.umd.js')}
 
 <body>
 
-    <textarea id="markdown-input" style="display:none;min-height:300px;width:100%;">${markdown}</textarea>
+    <textarea id="markdown-input" style="display:none;min-height:300px;width:100%;">${escapeHtml(markdown)}</textarea>
 
     <div id="content"></div>
 
