@@ -10,6 +10,7 @@ interface HostMessage {
  */
 export class PreviewManager {
 	private current: WebViewWithUri | undefined = undefined;
+	private fileWatcher: vscode.FileSystemWatcher | undefined = undefined;
 
 	constructor(private context: vscode.ExtensionContext) { }
 
@@ -35,12 +36,16 @@ export class PreviewManager {
 
 			this.current.panel.onDidDispose(() => {
 				this.current = undefined;
+				this.disposeFileWatcher();
 			}, null, this.context.subscriptions);
 
 			// Handle messages from the webview
 			this.current.panel.webview.onDidReceiveMessage(message => {
 				this.handleWebviewMessage(message, fileUri, uriFsPath);
 			}, undefined, this.context.subscriptions);
+
+			// Set up file watcher for auto-refresh
+			this.setupFileWatcher(fileUri);
 		}
 	}
 
@@ -79,6 +84,48 @@ export class PreviewManager {
 		if (this.current) {
 			this.current.panel.dispose();
 			this.current = undefined;
+		}
+		this.disposeFileWatcher();
+	}
+
+	/**
+	 * Sets up a file system watcher for the given file URI
+	 */
+	private setupFileWatcher(fileUri: vscode.Uri) {
+		// Dispose existing watcher if any
+		this.disposeFileWatcher();
+
+		// Create a file watcher for the specific file
+		this.fileWatcher = vscode.workspace.createFileSystemWatcher(fileUri.fsPath);
+
+		// Listen for file changes
+		this.fileWatcher.onDidChange(() => {
+			this.refreshPreview(fileUri);
+		});
+
+		// Add to context subscriptions for cleanup
+		this.context.subscriptions.push(this.fileWatcher);
+	}
+
+	/**
+	 * Disposes of the current file watcher
+	 */
+	private disposeFileWatcher() {
+		if (this.fileWatcher) {
+			this.fileWatcher.dispose();
+			this.fileWatcher = undefined;
+		}
+	}
+
+	/**
+	 * Refreshes the preview by re-reading the file and rendering
+	 */
+	private refreshPreview(fileUri: vscode.Uri) {
+		if (this.current && this.current.panel.visible) {
+			vscode.workspace.fs.readFile(fileUri).then(uint8array => {
+				const markdown = new TextDecoder().decode(uint8array);
+				this.renderMarkdown(markdown);
+			});
 		}
 	}
 }
