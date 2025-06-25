@@ -36,9 +36,13 @@ export function getWebviewContent(webView: vscode.Webview, extensionPath: string
     ${script(resourceUrl('idocshost.umd.js'))}
 
     <script>
-    console.log('Interactive Documents Host loaded');
+    // Initialize the Interactive Documents Host
     const vscode = acquireVsCodeApi();
-    IDocsHost.setPostMessageTarget(vscode);
+    IDocsHost.options.postMessageTarget = vscode;
+    IDocsHost.options.clipboard = false; // Disable clipboard access
+    IDocsHost.options.dragDrop = false; // Disable drag and drop
+    IDocsHost.options.fileUpload = false; // Disable file upload
+    IDocsHost.options.url = false; // Disable URL loading
     </script>
 </body>
 </html>`;

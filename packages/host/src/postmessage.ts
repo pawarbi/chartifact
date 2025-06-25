@@ -45,7 +45,7 @@ export function setupPostMessageHandling(
  * Sends a message to the parent window
  * @param message - The message to send (without timestamp)
  */
-export function postStatus(message: Omit<StatusMessage, 'timestamp'>): void {
+export function postStatus(target: Window, message: Omit<StatusMessage, 'timestamp'>): void {
     if (target) {
         const messageWithTimestamp = {
             ...message,
@@ -54,10 +54,4 @@ export function postStatus(message: Omit<StatusMessage, 'timestamp'>): void {
 
         target.postMessage(messageWithTimestamp, '*');
     }
-}
-
-let target = window.parent || window.opener || window;
-
-export function setPostMessageTarget(newTarget: Window): void {
-    target = newTarget;
 }

@@ -309,19 +309,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     plugins.push(plugin);
     return "register";
   }
-  function create(options) {
+  function create(options2) {
     var _a;
     const md = new markdownit();
     for (const plugin of plugins) {
       plugin.initializePlugin(md);
     }
     md.use(G);
-    (_a = options == null ? void 0 : options.classList) == null ? void 0 : _a.forEach((name) => {
+    (_a = options2 == null ? void 0 : options2.classList) == null ? void 0 : _a.forEach((name) => {
       const containerOptions = { name };
       md.use(R, containerOptions);
     });
     const originalFence = md.renderer.rules.fence;
-    md.renderer.rules.fence = function(tokens, idx, options2, env, slf) {
+    md.renderer.rules.fence = function(tokens, idx, options3, env, slf) {
       const token = tokens[idx];
       const info = token.info.trim();
       if (info.startsWith("json ")) {
@@ -332,7 +332,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
       if (originalFence) {
-        return originalFence(tokens, idx, options2, env, slf);
+        return originalFence(tokens, idx, options3, env, slf);
       } else {
         return "";
       }
@@ -521,14 +521,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     classList: ["markdown-block"]
   };
   class Renderer {
-    constructor(element, options) {
+    constructor(element, options2) {
       __publicField(this, "element");
       __publicField(this, "md");
       __publicField(this, "instances");
       __publicField(this, "signalBus");
       __publicField(this, "options");
       this.element = element;
-      this.options = { ...defaultRendererOptions, ...options };
+      this.options = { ...defaultRendererOptions, ...options2 };
       this.md = create({ classList: this.options.classList });
       this.signalBus = this.options.signalBus || new SignalBus(this.options.dataSignalPrefix);
       this.instances = {};
@@ -666,11 +666,11 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                   }
                 });
                 if (hasFieldName) {
-                  const options = Array.from(uniqueOptions);
+                  const options2 = Array.from(uniqueOptions);
                   const existingSelection = spec.multiple ? Array.from(element.selectedOptions).map((option) => option.value) : element.value;
-                  element.innerHTML = getOptions(spec.multiple ?? false, options, existingSelection);
+                  element.innerHTML = getOptions(spec.multiple ?? false, options2, existingSelection);
                   if (!spec.multiple) {
-                    element.value = ((_b = batch[spec.name]) == null ? void 0 : _b.value) || options[0];
+                    element.value = ((_b = batch[spec.name]) == null ? void 0 : _b.value) || options2[0];
                   }
                 } else {
                   element.innerHTML = `<option value="">Field "${dynamicOptions.fieldName}" not found</option>`;
@@ -715,26 +715,26 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       return instances;
     }
   };
-  function getOptions(multiple, options, selected) {
-    if (!options) {
+  function getOptions(multiple, options2, selected) {
+    if (!options2) {
       if (multiple) {
         if (Array.isArray(selected)) {
-          options = selected;
+          options2 = selected;
         } else {
           if (selected) {
-            options = [selected];
+            options2 = [selected];
           }
         }
       } else {
         if (selected) {
-          options = [selected];
+          options2 = [selected];
         }
       }
     }
-    if (!options) {
+    if (!options2) {
       return "";
     }
-    return options.map((option) => {
+    return options2.map((option) => {
       let attr = "";
       if (multiple) {
         attr = (selected || []).includes(option) ? "selected" : "";
@@ -904,13 +904,13 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           return `<span class="dynamic-placeholder" data-key="${key}">{${key}}</span>`;
         };
       });
-      md.renderer.rules["link_open"] = function(tokens, idx, options, env, slf) {
+      md.renderer.rules["link_open"] = function(tokens, idx, options2, env, slf) {
         handleDynamicUrl(tokens, idx, "href");
-        return slf.renderToken(tokens, idx, options);
+        return slf.renderToken(tokens, idx, options2);
       };
-      md.renderer.rules["image"] = function(tokens, idx, options, env, slf) {
+      md.renderer.rules["image"] = function(tokens, idx, options2, env, slf) {
         handleDynamicUrl(tokens, idx, "src");
-        return slf.renderToken(tokens, idx, options);
+        return slf.renderToken(tokens, idx, options2);
       };
     },
     hydrateComponent: async (renderer2) => {
@@ -1135,15 +1135,15 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         }
         try {
           const spec = JSON.parse(container.textContent);
-          let options = {
+          let options2 = {
             autoColumns: true,
             layout: "fitColumns",
             maxHeight: "200px"
           };
           if (spec.options && Object.keys(spec.options).length > 0) {
-            options = spec.options;
+            options2 = spec.options;
           }
-          const table = new window.Tabulator(container, options);
+          const table = new window.Tabulator(container, options2);
           const tabulatorInstance = { id: container.id, spec, table };
           tabulatorInstances.push(tabulatorInstance);
         } catch (e) {
@@ -1714,18 +1714,18 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
   }
   async function checkUrlForFile(onFileLoad, onError) {
     const urlParams = new URLSearchParams(window.location.search);
-    const mdFile = urlParams.get("load");
-    if (mdFile) {
+    const loadUrl = urlParams.get("load");
+    if (loadUrl) {
       try {
-        const response = await fetch(mdFile);
+        const response = await fetch(loadUrl);
         if (!response.ok) {
-          throw new Error(`Failed to load ${mdFile}`);
+          throw new Error(`Failed to load ${loadUrl}`);
         }
         const content = await response.text();
         onFileLoad(content);
         return true;
       } catch (error) {
-        onError(error, `Error loading file: ${mdFile}`);
+        onError(error, `Error loading file: ${loadUrl}`);
         return true;
       }
     } else {
@@ -1750,7 +1750,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       }
     });
   }
-  function postStatus(message) {
+  function postStatus(target, message) {
     if (target) {
       const messageWithTimestamp = {
         ...message,
@@ -1759,10 +1759,14 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       target.postMessage(messageWithTimestamp, "*");
     }
   }
-  let target = window.parent || window.opener || window;
-  function setPostMessageTarget(newTarget) {
-    target = newTarget;
-  }
+  const options = {
+    clipboard: true,
+    dragDrop: true,
+    fileUpload: true,
+    postMessage: true,
+    postMessageTarget: window.opener || window.parent || window,
+    url: true
+  };
   let loadingDiv;
   let helpDiv;
   let appDiv;
@@ -1790,7 +1794,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       return;
     }
     try {
-      postStatus({ status: "rendering", details: "Starting markdown rendering" });
+      postStatus(options.postMessageTarget, { status: "rendering", details: "Starting markdown rendering" });
       renderer.destroy();
       renderer.render(
         content,
@@ -1801,16 +1805,16 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           <strong>Container:</strong> ${container.tagName}<br>
           ${detail ? `<strong>Detail:</strong> ${detail}` : ""}`;
           errorHandler(error, msg);
-          postStatus({ status: "error", details: `Rendering error in ${pluginName}: ${error.message}` });
+          postStatus(options.postMessageTarget, { status: "error", details: `Rendering error in ${pluginName}: ${error.message}` });
         }
       );
-      postStatus({ status: "rendered", details: "Markdown rendering completed successfully" });
+      postStatus(options.postMessageTarget, { status: "rendered", details: "Markdown rendering completed successfully" });
     } catch (error) {
       errorHandler(
         error,
         "Error rendering markdown content"
       );
-      postStatus({ status: "error", details: `Rendering failed: ${error.message}` });
+      postStatus(options.postMessageTarget, { status: "error", details: `Rendering failed: ${error.message}` });
     }
   }
   window.addEventListener("DOMContentLoaded", async () => {
@@ -1819,19 +1823,28 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     appDiv = document.getElementById("app");
     uploadBtn = document.getElementById("upload-btn");
     fileInput = document.getElementById("file-input");
+    show(loadingDiv, true);
     show(helpDiv, false);
     renderer = new Renderer(appDiv, {});
-    setupClipboardHandling(renderMarkdown);
-    setupDragDropHandling(renderMarkdown, errorHandler);
-    setupFileUpload(uploadBtn, fileInput, renderMarkdown);
-    setupPostMessageHandling(renderMarkdown, errorHandler);
-    postStatus({ status: "ready" });
-    if (!await checkUrlForFile(renderMarkdown, errorHandler)) {
+    if (options.clipboard) {
+      setupClipboardHandling(renderMarkdown);
+    }
+    if (options.dragDrop) {
+      setupDragDropHandling(renderMarkdown, errorHandler);
+    }
+    if (options.fileUpload) {
+      setupFileUpload(uploadBtn, fileInput, renderMarkdown);
+    }
+    if (options.postMessage) {
+      setupPostMessageHandling(renderMarkdown, errorHandler);
+    }
+    if (!options.url || options.url && !await checkUrlForFile(renderMarkdown, errorHandler)) {
       show(loadingDiv, false);
       show(helpDiv, true);
+      postStatus(options.postMessageTarget, { status: "ready" });
     }
   });
+  exports2.options = options;
   exports2.renderMarkdown = renderMarkdown;
-  exports2.setPostMessageTarget = setPostMessageTarget;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });

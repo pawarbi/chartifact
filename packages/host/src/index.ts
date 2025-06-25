@@ -5,7 +5,23 @@ import { setupFileUpload } from './upload.js';
 import { checkUrlForFile } from './url.js';
 import { setupPostMessageHandling, postStatus } from './postmessage.js';
 
-export { setPostMessageTarget } from './postmessage.js';
+export interface HostOptions {
+  clipboard: boolean;
+  dragDrop: boolean;
+  fileUpload: boolean;
+  postMessage: boolean;
+  postMessageTarget: Window;
+  url: boolean;
+}
+
+export const options: HostOptions = {
+  clipboard: true,
+  dragDrop: true,
+  fileUpload: true,
+  postMessage: true,
+  postMessageTarget: window.opener || window.parent || window,
+  url: true,
+};
 
 let loadingDiv: HTMLElement;
 let helpDiv: HTMLElement;
@@ -40,7 +56,7 @@ export function renderMarkdown(content: string) {
   }
 
   try {
-    postStatus({ status: 'rendering', details: 'Starting markdown rendering' });
+    postStatus(options.postMessageTarget, { status: 'rendering', details: 'Starting markdown rendering' });
     renderer.destroy(); // Clean up previous renderer instance
     // Use your renderer to process the markdown
     renderer.render(
@@ -52,15 +68,15 @@ export function renderMarkdown(content: string) {
           <strong>Container:</strong> ${container.tagName}<br>
           ${detail ? `<strong>Detail:</strong> ${detail}` : ''}`;
         errorHandler(error, msg);
-        postStatus({ status: 'error', details: `Rendering error in ${pluginName}: ${error.message}` });
+        postStatus(options.postMessageTarget, { status: 'error', details: `Rendering error in ${pluginName}: ${error.message}` });
       }
     );
-    postStatus({ status: 'rendered', details: 'Markdown rendering completed successfully' });
+    postStatus(options.postMessageTarget, { status: 'rendered', details: 'Markdown rendering completed successfully' });
   } catch (error) {
     errorHandler(
       error, 'Error rendering markdown content'
     );
-    postStatus({ status: 'error', details: `Rendering failed: ${error.message}` });
+    postStatus(options.postMessageTarget, { status: 'error', details: `Rendering failed: ${error.message}` });
   }
 }
 
@@ -72,23 +88,32 @@ window.addEventListener('DOMContentLoaded', async () => {
   uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
   fileInput = document.getElementById('file-input') as HTMLInputElement;
 
+  show(loadingDiv, true);
   show(helpDiv, false);
 
   // Initialize renderer
   renderer = new Renderer(appDiv, {});
 
-  // Setup clipboard, drag-drop, upload, and postMessage handling
-  setupClipboardHandling(renderMarkdown);
-  setupDragDropHandling(renderMarkdown, errorHandler);
-  setupFileUpload(uploadBtn, fileInput, renderMarkdown);
-  setupPostMessageHandling(renderMarkdown, errorHandler);
-
-  // Send ready message to parent window (if embedded)
-  postStatus({ status: 'ready' });
+  // Setup clipboard, drag-drop, upload, and postMessage handling based on options
+  if (options.clipboard) {
+    setupClipboardHandling(renderMarkdown);
+  }
+  if (options.dragDrop) {
+    setupDragDropHandling(renderMarkdown, errorHandler);
+  }
+  if (options.fileUpload) {
+    setupFileUpload(uploadBtn, fileInput, renderMarkdown);
+  }
+  if (options.postMessage) {
+    setupPostMessageHandling(renderMarkdown, errorHandler);
+  }
 
   // Check URL parameters for file to load
-  if (!await checkUrlForFile(renderMarkdown, errorHandler)) {
+  if (!options.url || (options.url && !await checkUrlForFile(renderMarkdown, errorHandler))) {
     show(loadingDiv, false);
     show(helpDiv, true);
+
+    // Send ready message to parent window (if embedded)
+    postStatus(options.postMessageTarget, { status: 'ready' });
   }
 });

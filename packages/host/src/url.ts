@@ -13,19 +13,19 @@ export async function checkUrlForFile(
   onError: (error: Error, details: string) => void
 ): Promise<boolean> {
   const urlParams = new URLSearchParams(window.location.search);
-  const mdFile = urlParams.get('load');
+  const loadUrl = urlParams.get('load');
 
-  if (mdFile) {
+  if (loadUrl) {
     try {
-      const response = await fetch(mdFile);
+      const response = await fetch(loadUrl);
       if (!response.ok) {
-        throw new Error(`Failed to load ${mdFile}`);
+        throw new Error(`Failed to load ${loadUrl}`);
       }
       const content = await response.text();
       onFileLoad(content);
       return true;
     } catch (error) {
-      onError(error as Error, `Error loading file: ${mdFile}`);
+      onError(error as Error, `Error loading file: ${loadUrl}`);
       return true; // We found a load parameter, even though it failed
     }
   } else {
