@@ -14,15 +14,26 @@
   "contributes": {
     "commands": [
       {
+        "command": "interactive-documents-vscode.newIdoc",
+        "title": "New Interactive Document (markdown)",
+        "category": "Interactive Documents"
+      },
+      {
         "command": "interactive-documents-vscode.previewIdoc",
         "title": "Preview Interactive Document"
       }
-    ],    "menus": {
+    ],
+    "menus": {
       "explorer/context": [
+        {
+          "command": "interactive-documents-vscode.newIdoc",
+          "when": "explorerResourceIsFolder",
+          "group": "interactive-documents"
+        },
         {
           "command": "interactive-documents-vscode.previewIdoc",
           "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
-          "group": "z_idocs@1"
+          "group": "interactive-documents"
         }
       ]
     }
