@@ -1,13 +1,17 @@
 import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
 
+interface HostMessage {
+	markdown?: string;
+}
+
 /**
  * Manages the preview functionality for Interactive Documents
  */
 export class PreviewManager {
 	private current: WebViewWithUri | undefined = undefined;
 
-	constructor(private context: vscode.ExtensionContext) {}
+	constructor(private context: vscode.ExtensionContext) { }
 
 	/**
 	 * Shows the preview for the given file URI
@@ -47,18 +51,24 @@ export class PreviewManager {
 		switch (message.status) {
 			case 'ready': {
 				vscode.workspace.fs.readFile(fileUri).then(uint8array => {
-					if (this.current && this.current.panel.visible) {
-						const renderMessage: { markdown?: string } = {};
 
-						// If the file is a markdown file, we can send the markdown content
-						if (uriFsPath.endsWith('.idoc.md')) {
-							renderMessage['markdown'] = new TextDecoder().decode(uint8array);
-						}
-						this.current.panel.webview.postMessage(renderMessage);
+					// If the file is a markdown file, we can send the markdown content
+					if (uriFsPath.endsWith('.idoc.md')) {
+						const markdown = new TextDecoder().decode(uint8array);
+						this.renderMarkdown(markdown);
 					}
+
 				});
 				break;
 			}
+		}
+	}
+
+	public renderMarkdown(markdown: string) {
+		if (this.current && this.current.panel.visible) {
+			const renderMessage: HostMessage = {};
+			renderMessage.markdown = markdown;
+			this.current.panel.webview.postMessage(renderMessage);
 		}
 	}
 
