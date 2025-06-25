@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "build": "npm run build:01 --workspaces --if-present && npm run build:02 --workspaces --if-present",
     "start": "npm run dev -w @microsoft/interactive-document-host"
   },
   "repository": {

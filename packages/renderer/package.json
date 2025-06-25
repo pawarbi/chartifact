@@ -17,7 +17,8 @@
     "watch-typescript": "tsc -p . -w",
     "build-typescript": "tsc -p .",
     "bundle": "vite build --config vite.bundle.config.js",
-    "build": "npm run build-typescript && npm run bundle"
+    "build": "npm run build-typescript && npm run bundle",
+    "build:01": "npm run build"
   },
   "repository": {
     "type": "git",
