@@ -18,33 +18,34 @@ export type VariableValueArray = string[] | number[] | boolean[] | object[];
 export type VariableValue = VariableValuePrimitive | VariableValueArray;
 
 export interface Variable {
-    variableId: VariableID;
-    type: VariableType;
-    isArray?: boolean;
-    initialValue: VariableValue;
-    calculation?: Calculation;
+  variableId: VariableID;
+  type: VariableType;
+  isArray?: boolean;
+  initialValue: VariableValue;
+  calculation?: Calculation;
 }
 
 export interface Calculation {
-    dependsOn?: VariableID[];
+  dependsOn?: VariableID[];
 
-    // Vega expression language, used to calculate the value based on other variables. Not for object arrays.
-    vegaExpression?: string;
+  /** Vega expression language, used to calculate the value based on other variables. Not for object arrays. */
+  vegaExpression?: string;
 
-    //If a varable type is object and isArray is true, the calculation must be a DataFrameTransformation
-    dataFrameTransformations?: Transforms[];
+  /** If a variable type is object and isArray is true, the calculation must be a DataFrameTransformation */
+  dataFrameTransformations?: Transforms[];
 }
 
 export interface NameValuePairs {
-  name: string; // case-sensitive, do not rename
+  /** case-sensitive, do not rename */
+  name: string;
   value: VariableValue;
 }
 
 export interface MappedNameValuePairs extends NameValuePairs {
-  // IMPORTANT! map to a variable whenever possible
+  /** IMPORTANT! map to a variable whenever possible */
   variableId?: VariableID;
 
-  //a calculated value
+  /** a calculated value */
   calculation?: Calculation;
 }
 
@@ -52,13 +53,15 @@ export interface UrlRef {
   origin: string;
   urlPath: string;
 
-  //these become query parameters in the URL
+  /** these become query parameters in the URL */
   mappedParams?: MappedNameValuePairs[];
 }
 
 export interface DataSourceBase {
-  dataSourceName: VariableID; // name of the data source, used to reference it in the UI, has same constraints as VariableID
-  format?: DataSourceBaseFormat; // optional, default is 'json'
+  /** name of the data source, used to reference it in the UI, has same constraints as VariableID */
+  dataSourceName: VariableID;
+  /** optional, default is 'json' */
+  format?: DataSourceBaseFormat;
   dataFrameTransformations?: Transforms[];
 }
 
@@ -68,6 +71,7 @@ export interface ElementBase {
 }
 
 export interface VariableControl extends ElementBase {
-    variableId: VariableID;
-    label?: string; //optional label if the variableId is not descriptive enough
+  variableId: VariableID;
+  /** optional label if the variableId is not descriptive enough */
+  label?: string;
 }

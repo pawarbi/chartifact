@@ -1,6 +1,4 @@
-//BEGIN LLM IGNORE
-import { DataSourceBase, VariableID, VariableControl, ElementBase, UrlRef } from './common';
-//END LLM IGNORE
+import { DataSourceBase, VariableID, VariableControl, ElementBase, UrlRef } from './common.js';
 
 /**
  * Interactive Elements
@@ -39,35 +37,40 @@ export interface SliderElement extends VariableControl {
  */
 
 export interface DynamicDropdownOptions {
-  dataSourceName: VariableID; // name of the data source to use for data
-  fieldName: string; // name of the field to use for options
+  /** name of the data source to use for data */
+  dataSourceName: VariableID;
+  /** name of the field to use for options */
+  fieldName: string;
 }
 
 export interface DropdownElement extends VariableControl {
   type: 'dropdown';
 
-  // one of either options or dynamicOptions must be set
+  /** one of either options or dynamicOptions must be set */
   options?: string[];
   dynamicOptions?: DynamicDropdownOptions;
 
-  multiple?: boolean; // allow multiple selections
-  size?: number; // number of options to show at once
+  /** allow multiple selections */
+  multiple?: boolean;
+  /** number of options to show at once */
+  size?: number;
 }
 
 export interface ChartPlaceholder {
-  // A list of available chart templates will be provided below, the Assistant will choose one of these templates to render a chart
+  /** A list of available chart templates will be provided below, the Assistant will choose one of these templates to render a chart */
   chartTemplateKey: string;
   dataSourceBase: DataSourceBase;
-  // what this chart intends to show
+  /** what this chart intends to show */
   chartIntent: string;
 }
 
 export interface ChartFull extends ChartPlaceholder {
-  spec: object; // either a Vega or Vega-Lite spec
+  /** either a Vega or Vega-Lite spec */
+  spec: object;
 }
 
-// When creating a new page: for charts, the Assistant will create a ChartPlaceholder
-// When working with existing pages/charts, the Assistant can use ChartFull
+/** When creating a new page: for charts, the Assistant will create a ChartPlaceholder */
+/** When working with existing pages/charts, the Assistant can use ChartFull */
 export type ChartValue = ChartPlaceholder | ChartFull;
 
 /**
@@ -98,7 +101,8 @@ export interface ImageElement extends ElementBase {
 export interface TableElement extends ElementBase {
   type: 'table';
   dataSourceName: string;
-  options: object;  // Tabulator options (must be serializable, so no callbacks allowed)
+  /** Tabulator options (must be serializable, so no callbacks allowed) */
+  options: object;
 
   /**
    * Example table options

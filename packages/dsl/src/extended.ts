@@ -1,6 +1,4 @@
-//BEGIN LLM IGNORE
-import { ElementBase } from './common';
-//END LLM IGNORE
+import { ElementBase } from './common.js';
 
 export interface Preset {
     name: string;
