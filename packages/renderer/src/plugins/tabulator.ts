@@ -5,13 +5,14 @@
 
 import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
-import { Tabulator, Options as TabulatorOptions } from 'tabulator-tables';
+import { Tabulator as TabulatorType, Options as TabulatorOptions } from 'tabulator-tables';
 import { dataNameSelectedSuffix } from './common.js';
 
 interface TabulatorInstance {
     id: string;
     spec: TabulatorSpec;
-    table: Tabulator;
+    table: TabulatorType;
+    built: boolean;
 }
 
 export interface TabulatorSpec {
@@ -19,9 +20,7 @@ export interface TabulatorSpec {
     options: TabulatorOptions;
 }
 
-interface CustomWindow extends Window {
-    Tabulator: typeof Tabulator;
-}
+declare const Tabulator: typeof TabulatorType;
 
 export const tabulatorPlugin: Plugin = {
     name: 'tabulator',
@@ -35,7 +34,7 @@ export const tabulatorPlugin: Plugin = {
         const containers = renderer.element.querySelectorAll('.tabulator');
         for (const [index, container] of Array.from(containers).entries()) {
             if (!container.textContent) continue;
-            if (!(window as unknown as CustomWindow).Tabulator) {
+            if (!Tabulator) {
                 errorHandler(new Error('Tabulator not found'), 'tabulator', index, 'init', container);
                 continue;
             }
@@ -54,8 +53,12 @@ export const tabulatorPlugin: Plugin = {
                     options = spec.options;
                 }
 
-                const table = new (window as unknown as CustomWindow).Tabulator(container as HTMLElement, options);
-                const tabulatorInstance: TabulatorInstance = { id: container.id, spec, table };
+                const table = new Tabulator(container as HTMLElement, options);
+                const tabulatorInstance: TabulatorInstance = { id: container.id, spec, table, built: false };
+                table.on('tableBuilt', () => {
+                    table.off('tableBuilt');
+                    tabulatorInstance.built = true;
+                });
                 tabulatorInstances.push(tabulatorInstance);
             } catch (e) {
                 container.innerHTML = `<div class="error">${e.toString()}</div>`;
@@ -84,7 +87,17 @@ export const tabulatorPlugin: Plugin = {
                 recieveBatch: async (batch) => {
                     const newData = batch[tabulatorInstance.spec.dataSignalName].value as object[];
                     if (newData) {
-                        tabulatorInstance.table.setData(newData);
+                        //make sure tabulator is ready before setting data
+                        if (!tabulatorInstance.built) {
+                            tabulatorInstance.table.off('tableBuilt');
+                            tabulatorInstance.table.on('tableBuilt', () => {
+                                tabulatorInstance.built = true;
+                                tabulatorInstance.table.off('tableBuilt');
+                                tabulatorInstance.table.setData(newData);
+                            });
+                        } else {
+                            tabulatorInstance.table.setData(newData);
+                        }
                     }
                 },
                 beginListening(sharedSignals) {
