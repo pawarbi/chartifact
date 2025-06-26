@@ -1,0 +1,11 @@
+{
+  "name": "dsl",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build:01": "tsc -p ."
+  },
+  "author": "Dan Marshall",
+  "license": "MIT",
+  "description": ""
+}
