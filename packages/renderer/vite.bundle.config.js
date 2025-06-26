@@ -16,7 +16,7 @@ const commonOutputConfig = {
 export default defineConfig({
   build: {
     lib: {
-      entry: './dist/es2022/index.js',  // Path to the entry file for the bundle
+      entry: './dist/esnext/index.js',
     },
     minify: false,
     rollupOptions: {
