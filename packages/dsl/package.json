@@ -2,8 +2,14 @@
   "name": "dsl",
   "version": "1.0.0",
   "main": "index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
-    "build:01": "tsc -p ."
+    "declaration": "rollup -c rollup.config.types.js",
+    "strip-blanks": "node -e \"const fs=require('fs');const p='dist/index.d.ts';const t=fs.readFileSync(p,'utf8').split(/\\r?\\n/).filter(l=>l.trim()).join('\\n');fs.writeFileSync(p,t);\"",
+    "tsc": "tsc -p .",
+    "build": "npm run tsc && npm run declaration && npm run strip-blanks",
+    "build:01": "npm run build"
   },
   "author": "Dan Marshall",
   "license": "MIT",
