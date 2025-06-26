@@ -1,4 +1,4 @@
-import { DataSourceBaseFormat, DataSourceByDynamicURL, extendedElements, ImageElement, InteractiveElement, InteractiveExplanatoryPage, PageElement, UrlRef } from "dsl";
+import { DataSourceBaseFormat, DataSourceByDynamicURL, extendedElements, ImageElement, InteractiveElement, InteractiveDocument, PageElement, UrlRef } from "dsl";
 import { Spec as VegaSpec } from 'vega-typings';
 import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
 
@@ -64,7 +64,7 @@ export function isInteractiveElement(element: PageElement<extendedElements>) {
     return interactiveTypes.includes(element.type);
 }
 
-export function getInteractiveElements(page: InteractiveExplanatoryPage<extendedElements>) {
+export function getInteractiveElements(page: InteractiveDocument<extendedElements>) {
     const interactiveElements = page.groups.map(g => g.elements).flat().filter(e => isInteractiveElement(e)) as InteractiveElement[];
     return interactiveElements;
 }
@@ -89,7 +89,7 @@ export function compareUrls(a: string, b: string) {
         ;
 }
 
-export function gatherPageOrigins(page: InteractiveExplanatoryPage<extendedElements>) {
+export function gatherPageOrigins(page: InteractiveDocument<extendedElements>) {
     const origins = new Set<string>();
 
     // Collect origins from dataLoaders
@@ -111,9 +111,9 @@ export function gatherPageOrigins(page: InteractiveExplanatoryPage<extendedEleme
     return Array.from(origins);
 }
 
-export function changePageOrigin(page: InteractiveExplanatoryPage<extendedElements>, oldOrigin: string, newOrigin: string) {
+export function changePageOrigin(page: InteractiveDocument<extendedElements>, oldOrigin: string, newOrigin: string) {
     const newOriginUrl = new URL(newOrigin, window.location.origin);
-    const newPage: InteractiveExplanatoryPage<extendedElements> = {
+    const newPage: InteractiveDocument<extendedElements> = {
         ...page,
         dataLoaders: page.dataLoaders.map(loader => {
             if (loader.type === 'url' && loader.urlRef.origin === oldOrigin) {

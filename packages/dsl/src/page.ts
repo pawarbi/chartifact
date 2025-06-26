@@ -11,8 +11,8 @@ export interface ElementGroup<T = never> {
   elements: PageElement<T>[];
 }
 
-/** Define the basic structure of an interactive page */
-export interface InteractiveExplanatoryPage<T = never> {
+/** Define the basic structure of an interactive document */
+export interface InteractiveDocument<T = never> {
   title: string;
   theme: string;
   /** the first groupId should be 'main' */

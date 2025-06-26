@@ -1,6 +1,6 @@
 import { Spec as VegaSpec } from 'vega-typings';
 import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
-import { ChartFull, DataSource, ElementGroup, extendedElements, InteractiveExplanatoryPage, Variable } from 'dsl';
+import { ChartFull, DataSource, ElementGroup, extendedElements, InteractiveDocument, Variable } from 'dsl';
 import { getChartType } from './util.js';
 import { addDynamicDataLoaderToSpec, createSpecWithVariables, VegaScope } from './loader.js';
 import { Plugins } from '@microsoft/interactive-document-renderer';
@@ -22,7 +22,7 @@ ${content}
 
 const $schema = "https://vega.github.io/schema/vega/v5.json";
 
-export function targetMarkdown(page: InteractiveExplanatoryPage<extendedElements>) {
+export function targetMarkdown(page: InteractiveDocument<extendedElements>) {
     const mdSections: string[] = [];
 
     const vegaScope = dataLoaderMarkdown(page.dataLoaders.filter(dl => dl.type !== 'spec'), page.variables);
