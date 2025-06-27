@@ -8,6 +8,9 @@ import { InteractiveDocument } from 'dsl';
 import compiler from '@microsoft/interactive-document-compiler';
 import { postStatus } from './post-send.js';
 
+export { RenderRequestMessage } from './post-receive.js';
+export { StatusMessage } from './post-send.js';
+
 function getElement(elementOrSelector: string | HTMLElement): HTMLElement | null {
   if (typeof elementOrSelector === 'string') {
     return document.querySelector(elementOrSelector) as HTMLElement;

@@ -13,7 +13,7 @@ export function setupClipboardHandling(host: Host) {
       const file = clipboardData.files[0];
       readFile(file, host);
     } else if (clipboardData && clipboardData.items) {
-      // Handle clipboard items (VS Code puts file content as text)
+      let handled = false;
       for (let i = 0; i < clipboardData.items.length; i++) {
         const item = clipboardData.items[i];
 
@@ -36,11 +36,24 @@ export function setupClipboardHandling(host: Host) {
             }
             determineContent(content, host);
           });
+          handled = true;
           break;
         }
       }
+      if (!handled) {
+        host.errorHandler(
+          new Error('Unsupported clipboard content'),
+          'Please paste a markdown file, JSON file, or valid text content.'
+        );
+      }
+    } else {
+      host.errorHandler(
+        new Error('Unsupported clipboard content'),
+        'Please paste a markdown file, JSON file, or valid text content.'
+      );
     }
   };
+
   document.addEventListener('paste', pasteHandler);
 
   return () => {

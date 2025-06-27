@@ -9,8 +9,6 @@ export function setupDragDropHandling(host: Host) {
     e.stopPropagation();
   };
 
-  document.addEventListener('dragover', dragHandler);
-
   const dropHandler = (e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -38,10 +36,16 @@ export function setupDragDropHandling(host: Host) {
         return;
       }
       determineContent(content, host);
+    } else {
+      host.errorHandler(
+        new Error('Unsupported drop content'),
+        'Please drop a markdown file, JSON file, or valid text content.'
+      );
     }
   };
 
   document.addEventListener('drop', dropHandler);
+  document.addEventListener('dragover', dragHandler);
 
   return () => {
     document.removeEventListener('drop', dropHandler);

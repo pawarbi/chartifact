@@ -1,7 +1,7 @@
 import { InteractiveDocument } from 'dsl';
 import { Host } from './index.js';
 
-interface RequestMessage {
+export interface RenderRequestMessage {
     markdown?: string;
     interactiveDocument?: InteractiveDocument;
 }
@@ -18,7 +18,7 @@ export function setupPostMessageHandling(host: Host) {
                 return;
             }
 
-            const data: RequestMessage = event.data;
+            const data: RenderRequestMessage = event.data;
 
             if (data.markdown) {
                 host.render(data.markdown, undefined);

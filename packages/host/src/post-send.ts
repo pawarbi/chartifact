@@ -1,4 +1,4 @@
-interface StatusMessage {
+export interface StatusMessage {
     status: 'ready' | 'compiling' | 'rendering' | 'rendered' | 'error' | 'loading';
     details?: string;
     timestamp: number;
