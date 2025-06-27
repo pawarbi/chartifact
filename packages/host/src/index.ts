@@ -58,9 +58,11 @@ export class Host {
   public fileInput: HTMLElement;
   public renderer: Renderer;
 
+  private removeInteractionHandlers: (() => void)[];
+
   constructor(options: InitializeHostOptions) {
     this.options = { ...defaultOptions, ...options.options };
-    console.log('Host initialized with options:', this.options);
+    this.removeInteractionHandlers = [];
 
     this.appDiv = getElement(options.app);
     this.loadingDiv = getElement(options.loading);
@@ -80,10 +82,10 @@ export class Host {
 
     // Setup clipboard, drag-drop, upload, and postMessage handling based on options
     if (this.options.clipboard) {
-      setupClipboardHandling(this);
+      this.removeInteractionHandlers.push(setupClipboardHandling(this));
     }
     if (this.options.dragDrop) {
-      setupDragDropHandling(this);
+      this.removeInteractionHandlers.push(setupDragDropHandling(this));
     }
     if (this.options.fileUpload) {
       setupFileUpload(this);
@@ -115,16 +117,21 @@ export class Host {
       this.renderInteractiveDocument(interactiveDocument);
     } else if (markdown) {
       this.renderMarkdown(markdown);
+    } else {
+      this.errorHandler(new Error('No content provided'), 'Please provide either markdown or an interactive document to render.');
     }
+    //remove interactions that are disruptive (after a document is rendered)
+    this.removeInteractionHandlers.forEach(removeHandler => removeHandler());
+    this.removeInteractionHandlers = []; // Clear handlers after rendering
   }
 
-  public renderInteractiveDocument(content: InteractiveDocument) {
+  private renderInteractiveDocument(content: InteractiveDocument) {
     postStatus(this.options.postMessageTarget, { status: 'compiling', details: 'Starting interactive document compilation' });
     const markdown = compiler(content);
     this.renderMarkdown(markdown);
   }
 
-  public renderMarkdown(content: string) {
+  private renderMarkdown(content: string) {
     show(this.loadingDiv, false);
     show(this.helpDiv, false);
 

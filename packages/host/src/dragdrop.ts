@@ -38,12 +38,13 @@ export function setupDragDropHandling(host: Host) {
         return;
       }
       determineContent(content, host);
-
-      // Remove the event listener after handling the drop
-      document.removeEventListener('drop', dropHandler);
-      document.removeEventListener('dragover', dragHandler);
     }
   };
 
   document.addEventListener('drop', dropHandler);
+
+  return () => {
+    document.removeEventListener('drop', dropHandler);
+    document.removeEventListener('dragover', dragHandler);
+  };
 }

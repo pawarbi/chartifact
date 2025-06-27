@@ -35,8 +35,6 @@ export function setupClipboardHandling(host: Host) {
               return;
             }
             determineContent(content, host);
-            //remove the event listener after handling the paste
-            document.removeEventListener('paste', pasteHandler);
           });
           break;
         }
@@ -44,4 +42,8 @@ export function setupClipboardHandling(host: Host) {
     }
   };
   document.addEventListener('paste', pasteHandler);
+
+  return () => {
+    document.removeEventListener('paste', pasteHandler);
+  };
 }
