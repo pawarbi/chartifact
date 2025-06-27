@@ -3,7 +3,7 @@ import { determineContent } from "./string.js";
 
 export function checkUrlForFile(host: Host) {
   const urlParams = new URLSearchParams(window.location.search);
-  const loadUrl = urlParams.get('load');
+  const loadUrl = urlParams.get(host.options.urlParamName);
 
   if (loadUrl) {
     try {

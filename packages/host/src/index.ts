@@ -1,15 +1,15 @@
 import { Renderer } from '@microsoft/interactive-document-renderer';
+import compiler from '@microsoft/interactive-document-compiler';
 import { setupClipboardHandling } from './clipboard.js';
 import { setupDragDropHandling } from './dragdrop.js';
 import { setupFileUpload } from './upload.js';
 import { checkUrlForFile } from './url.js';
 import { setupPostMessageHandling } from './post-receive.js';
 import { InteractiveDocument } from 'dsl';
-import compiler from '@microsoft/interactive-document-compiler';
 import { postStatus } from './post-send.js';
 
-export { RenderRequestMessage } from './post-receive.js';
-export { StatusMessage } from './post-send.js';
+export type { RenderRequestMessage } from './post-receive.js';
+export type { StatusMessage } from './post-send.js';
 
 function getElement(elementOrSelector: string | HTMLElement): HTMLElement | null {
   if (typeof elementOrSelector === 'string') {
@@ -31,29 +31,31 @@ export interface InitializeHostOptions {
   help?: string | HTMLElement;
   uploadButton?: string | HTMLElement;
   fileInput?: string | HTMLElement;
-  options?: HostOptions;
+  options?: ListenOptions;
 }
 
-export interface HostOptions {
+export interface ListenOptions {
   clipboard?: boolean;
   dragDrop?: boolean;
   fileUpload?: boolean;
   postMessage?: boolean;
   postMessageTarget?: Window;
   url?: boolean;
+  urlParamName?: string;
 }
 
-const defaultOptions: HostOptions = {
+const defaultOptions: ListenOptions = {
   clipboard: true,
   dragDrop: true,
   fileUpload: true,
   postMessage: true,
   postMessageTarget: window.opener || window.parent || window,
   url: true,
+  urlParamName: 'load',
 };
 
 export class Host {
-  public options: HostOptions;
+  public options: ListenOptions;
   public appDiv: HTMLElement;
   public loadingDiv: HTMLElement;
   public helpDiv: HTMLElement;
