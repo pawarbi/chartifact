@@ -1,18 +1,19 @@
-/**
- * File upload handling functionality
- */
+import { readFile } from "./file.js";
+import { ContentHandler, ErrorHandler } from "./index.js";
 
-/**
- * Sets up file upload event handling for markdown files
- * @param uploadBtn - The upload button element
- * @param fileInput - The file input element
- * @param onMarkdownUpload - Callback function to handle uploaded markdown content
- */
-export function setupFileUpload(
-  uploadBtn: HTMLButtonElement | null,
-  fileInput: HTMLInputElement | null,
-  onMarkdownUpload: (content: string) => void
-): void {
+export function setupFileUpload(contentHandler: ContentHandler, errorHandler: ErrorHandler) {
+  const uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+
+  // Ensure elements exist
+  if (!uploadBtn || !fileInput) {
+    errorHandler(
+      new Error('Upload button or file input not found'),
+      'Please ensure the upload button and file input elements are present in the HTML.'
+    );
+    return;
+  }
+
   // Handle file upload button
   uploadBtn?.addEventListener('click', () => {
     fileInput?.click();
@@ -21,22 +22,13 @@ export function setupFileUpload(
   // Handle file input change
   fileInput?.addEventListener('change', (event) => {
     const file = (event.target as HTMLInputElement).files?.[0];
-    if (file && file.name.endsWith('.md')) {
-      handleFileUpload(file, onMarkdownUpload);
+    if (file) {
+      readFile(file, contentHandler, errorHandler);
+    } else {
+      errorHandler(
+        new Error('No file selected'),
+        'Please select a markdown or JSON file to upload.'
+      );
     }
   });
-}
-
-/**
- * Handles an uploaded file
- * @param file - The uploaded file
- * @param onMarkdownUpload - Callback function to handle the file content
- */
-function handleFileUpload(file: File, onMarkdownUpload: (content: string) => void): void {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const content = e.target?.result as string;
-    onMarkdownUpload(content);
-  };
-  reader.readAsText(file);
 }

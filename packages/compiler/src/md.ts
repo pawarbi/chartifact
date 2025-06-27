@@ -6,7 +6,7 @@ import { addDynamicDataLoaderToSpec, createSpecWithVariables, VegaScope } from '
 import { Plugins } from '@microsoft/interactive-document-renderer';
 
 function mdWrap(type: string, content: string) {
-    return `\`\`\`${type}\n${content}\n\`\`\``;
+    return `\`\`\`json ${type}\n${content}\n\`\`\``;
 }
 
 function chartWrap(spec: VegaSpec | VegaLiteSpec) {

@@ -1129,7 +1129,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       for (const [index, container] of Array.from(containers).entries()) {
         if (!container.textContent)
           continue;
-        if (!window.Tabulator) {
+        if (!Tabulator) {
           errorHandler2(new Error("Tabulator not found"), "tabulator", index, "init", container);
           continue;
         }
@@ -1143,7 +1143,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           if (spec.options && Object.keys(spec.options).length > 0) {
             options2 = spec.options;
           }
-          const table = new window.Tabulator(container, options2);
+          const table = new Tabulator(container, options2);
           const tabulatorInstance = { id: container.id, spec, table };
           tabulatorInstances.push(tabulatorInstance);
         } catch (e) {

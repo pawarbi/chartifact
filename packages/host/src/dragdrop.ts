@@ -1,55 +1,48 @@
-/**
- * Drag and drop handling functionality
- */
+import { readFile } from "./file.js";
+import { ContentHandler, ErrorHandler } from "./index.js";
+import { determineContent } from "./string.js";
 
-/**
- * Sets up drag and drop event handling for markdown files
- * @param onMarkdownDrop - Callback function to handle dropped markdown content
- * @param onError - Callback function to handle errors
- */
-export function setupDragDropHandling(
-  onMarkdownDrop: (content: string) => void,
-  onError: (error: Error, details: string) => void
-): void {
-  // Handle drag and drop
-  document.addEventListener('dragover', (e) => {
+export function setupDragDropHandling(contentHandler: ContentHandler, errorHandler: ErrorHandler) {
+
+  const dragHandler = (e: DragEvent) => {
     e.preventDefault();
-  });
+    e.stopPropagation();
+  };
 
-  document.addEventListener('drop', (e) => {
+  document.addEventListener('dragover', dragHandler);
+
+  const dropHandler = (e: DragEvent) => {
     e.preventDefault();
 
     const files = e.dataTransfer?.files;
     if (files && files.length > 0) {
       // Handle regular file drops (Windows shell)
       const file = files[0];
-      if (file.name.endsWith('.md')) {
-        handleDroppedFile(file, onMarkdownDrop);
-      }
+      readFile(file, contentHandler, errorHandler);
     } else if (e.dataTransfer?.types.includes('text/plain')) {
-      // Handle VS Code file drops
-      const filePath = e.dataTransfer.getData('text/plain');
-
-      if (filePath && filePath.endsWith('.md')) {
-        onError(
-          new Error(`Cannot directly read local file: ${filePath}`),
-          'The browser blocks local files for security reasons. Try copying the file content and pasting it instead.'
+      let content = e.dataTransfer.getData('text/plain');
+      if (!content) {
+        errorHandler(
+          new Error('Dropped content is empty'),
+          'The dropped content was empty. Please drop valid markdown content or JSON.'
         );
+        return;
       }
-    }
-  });
-}
+      content = content.trim();
+      if (!content) {
+        errorHandler(
+          new Error('Dropped content is empty'),
+          'The dropped content was only whitespace. Please drop valid markdown content or JSON.'
+        );
+        return;
+      }
+      determineContent(content, contentHandler, errorHandler);
 
-/**
- * Handles a file dropped onto the page
- * @param file - The dropped file
- * @param onMarkdownDrop - Callback function to handle the file content
- */
-function handleDroppedFile(file: File, onMarkdownDrop: (content: string) => void): void {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const content = e.target?.result as string;
-    onMarkdownDrop(content);
+      // Remove the event listener after handling the drop
+      document.removeEventListener('drop', dropHandler);
+      document.removeEventListener('dragover', dragHandler);
+    }
   };
-  reader.readAsText(file);
+
+  document.addEventListener('drop', dropHandler);
 }

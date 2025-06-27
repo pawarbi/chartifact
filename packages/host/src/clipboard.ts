@@ -1,22 +1,16 @@
-/**
- * Clipboard handling functionality
- */
+import { readFile } from "./file.js";
+import { ContentHandler, ErrorHandler } from "./index.js";
+import { determineContent } from "./string.js";
 
-/**
- * Sets up clipboard paste event handling for markdown content
- * @param onMarkdownPaste - Callback function to handle pasted markdown content
- */
-export function setupClipboardHandling(onMarkdownPaste: (content: string) => void): void {
-  // Handle paste (for VS Code file copy)
-  document.addEventListener('paste', (e) => {
+export function setupClipboardHandling(contentHandler: ContentHandler, errorHandler: ErrorHandler) {
+
+  const pasteHandler = (e: ClipboardEvent) => {
     e.preventDefault();
 
     const clipboardData = e.clipboardData;
     if (clipboardData && clipboardData.files.length > 0) {
       const file = clipboardData.files[0];
-      if (file.name.endsWith('.md')) {
-        handleFileFromClipboard(file, onMarkdownPaste);
-      }
+      readFile(file, contentHandler, errorHandler);
     } else if (clipboardData && clipboardData.items) {
       // Handle clipboard items (VS Code puts file content as text)
       for (let i = 0; i < clipboardData.items.length; i++) {
@@ -24,29 +18,29 @@ export function setupClipboardHandling(onMarkdownPaste: (content: string) => voi
 
         if (item.kind === 'string' && item.type === 'text/plain') {
           item.getAsString((content) => {
-            if (content.trim()) {
-              onMarkdownPaste(content);
-            } else {
-              // Content was empty or whitespace only
+            if (!content) {
+              errorHandler(
+                new Error('Pasted content is empty'),
+                'The pasted content was empty. Please paste valid markdown content or JSON.'
+              );
+              return;
             }
+            content = content.trim();
+            if (!content) {
+              errorHandler(
+                new Error('Pasted content is empty'),
+                'The pasted content was only whitespace. Please paste valid markdown content or JSON.'
+              );
+              return;
+            }
+            determineContent(content, contentHandler, errorHandler);
+            //remove the event listener after handling the paste
+            document.removeEventListener('paste', pasteHandler);
           });
           break;
         }
       }
     }
-  });
-}
-
-/**
- * Handles a file pasted from the clipboard
- * @param file - The file from clipboard
- * @param onMarkdownPaste - Callback function to handle the file content
- */
-function handleFileFromClipboard(file: File, onMarkdownPaste: (content: string) => void): void {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const content = e.target?.result as string;
-    onMarkdownPaste(content);
   };
-  reader.readAsText(file);
+  document.addEventListener('paste', pasteHandler);
 }

@@ -1,7 +1,7 @@
 {
   "name": "@microsoft/interactive-document-compiler",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/esnext/index.js",
   "type": "module",
   "scripts": {
     "clean": "rimraf dist",
