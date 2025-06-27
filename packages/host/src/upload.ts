@@ -2,11 +2,10 @@ import { readFile } from "./file.js";
 import { Host } from "./index.js";
 
 export function setupFileUpload(host: Host) {
-  const uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
-  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const { uploadButton, fileInput } = host;
 
   // Ensure elements exist
-  if (!uploadBtn || !fileInput) {
+  if (!uploadButton || !fileInput) {
     host.errorHandler(
       new Error('Upload button or file input not found'),
       'Please ensure the upload button and file input elements are present in the HTML.'
@@ -15,7 +14,7 @@ export function setupFileUpload(host: Host) {
   }
 
   // Handle file upload button
-  uploadBtn?.addEventListener('click', () => {
+  uploadButton?.addEventListener('click', () => {
     fileInput?.click();
   });
 

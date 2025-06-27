@@ -23,9 +23,11 @@ function show(element: HTMLElement, shown: boolean) {
 }
 
 export interface InitializeHostOptions {
-  app?: string | HTMLElement;
+  app: string | HTMLElement;
   loading?: string | HTMLElement;
   help?: string | HTMLElement;
+  uploadButton?: string | HTMLElement;
+  fileInput?: string | HTMLElement;
   options?: HostOptions;
 }
 
@@ -49,18 +51,22 @@ const defaultOptions: HostOptions = {
 
 export class Host {
   public options: HostOptions;
+  public appDiv: HTMLElement;
   public loadingDiv: HTMLElement;
   public helpDiv: HTMLElement;
-  public appDiv: HTMLElement;
+  public uploadButton: HTMLElement;
+  public fileInput: HTMLElement;
   public renderer: Renderer;
 
   constructor(options: InitializeHostOptions) {
     this.options = { ...defaultOptions, ...options.options };
     console.log('Host initialized with options:', this.options);
 
+    this.appDiv = getElement(options.app);
     this.loadingDiv = getElement(options.loading);
     this.helpDiv = getElement(options.help);
-    this.appDiv = getElement(options.app);
+    this.uploadButton = getElement(options.uploadButton);
+    this.fileInput = getElement(options.fileInput);
 
     if (!this.appDiv) {
       throw new Error('App container not found');
