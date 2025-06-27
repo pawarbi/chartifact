@@ -1,8 +1,8 @@
 import { readFile } from "./file.js";
-import { ContentHandler, ErrorHandler } from "./index.js";
+import { Host } from "./index.js";
 import { determineContent } from "./string.js";
 
-export function setupDragDropHandling(contentHandler: ContentHandler, errorHandler: ErrorHandler) {
+export function setupDragDropHandling(host: Host) {
 
   const dragHandler = (e: DragEvent) => {
     e.preventDefault();
@@ -13,16 +13,17 @@ export function setupDragDropHandling(contentHandler: ContentHandler, errorHandl
 
   const dropHandler = (e: DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
 
     const files = e.dataTransfer?.files;
     if (files && files.length > 0) {
       // Handle regular file drops (Windows shell)
       const file = files[0];
-      readFile(file, contentHandler, errorHandler);
+      readFile(file, host);
     } else if (e.dataTransfer?.types.includes('text/plain')) {
       let content = e.dataTransfer.getData('text/plain');
       if (!content) {
-        errorHandler(
+        host.errorHandler(
           new Error('Dropped content is empty'),
           'The dropped content was empty. Please drop valid markdown content or JSON.'
         );
@@ -30,13 +31,13 @@ export function setupDragDropHandling(contentHandler: ContentHandler, errorHandl
       }
       content = content.trim();
       if (!content) {
-        errorHandler(
+        host.errorHandler(
           new Error('Dropped content is empty'),
           'The dropped content was only whitespace. Please drop valid markdown content or JSON.'
         );
         return;
       }
-      determineContent(content, contentHandler, errorHandler);
+      determineContent(content, host);
 
       // Remove the event listener after handling the drop
       document.removeEventListener('drop', dropHandler);

@@ -26,7 +26,6 @@
             <li><b>Clipboard</b>: paste your markdown content directly when this page has focus</li>
             <li><b>Drag and drop</b>: drop a markdown file onto this page</li>
             <li><b>URL parameter</b>: add /?load=url/to/your/file.md to the url</li>
-            <li><b>PostMessage</b>: send markdown content to this page using the <code>window.postMessage</code> API with the property <code>markdown</code></li>
             <li><b>File upload</b>: click the button below to choose a file</li>
         </ul>
 
@@ -35,7 +34,16 @@
     </div>
 
     <div id="app"></div>
-    <script type="module" src="/src/index.ts"></script>
+
+    <script type="module">
+        import { Host } from '/src/index.ts';
+        new Host({
+            app: '#app',
+            loading: '#loading',
+            help: '#help'
+        });
+    </script>
+
 </body>
 
 </html>

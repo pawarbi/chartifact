@@ -1,16 +1,17 @@
 import { readFile } from "./file.js";
-import { ContentHandler, ErrorHandler } from "./index.js";
+import { Host } from "./index.js";
 import { determineContent } from "./string.js";
 
-export function setupClipboardHandling(contentHandler: ContentHandler, errorHandler: ErrorHandler) {
+export function setupClipboardHandling(host: Host) {
 
   const pasteHandler = (e: ClipboardEvent) => {
     e.preventDefault();
+    e.stopPropagation();
 
     const clipboardData = e.clipboardData;
     if (clipboardData && clipboardData.files.length > 0) {
       const file = clipboardData.files[0];
-      readFile(file, contentHandler, errorHandler);
+      readFile(file, host);
     } else if (clipboardData && clipboardData.items) {
       // Handle clipboard items (VS Code puts file content as text)
       for (let i = 0; i < clipboardData.items.length; i++) {
@@ -19,7 +20,7 @@ export function setupClipboardHandling(contentHandler: ContentHandler, errorHand
         if (item.kind === 'string' && item.type === 'text/plain') {
           item.getAsString((content) => {
             if (!content) {
-              errorHandler(
+              host.errorHandler(
                 new Error('Pasted content is empty'),
                 'The pasted content was empty. Please paste valid markdown content or JSON.'
               );
@@ -27,13 +28,13 @@ export function setupClipboardHandling(contentHandler: ContentHandler, errorHand
             }
             content = content.trim();
             if (!content) {
-              errorHandler(
+              host.errorHandler(
                 new Error('Pasted content is empty'),
                 'The pasted content was only whitespace. Please paste valid markdown content or JSON.'
               );
               return;
             }
-            determineContent(content, contentHandler, errorHandler);
+            determineContent(content, host);
             //remove the event listener after handling the paste
             document.removeEventListener('paste', pasteHandler);
           });
