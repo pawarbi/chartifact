@@ -1,19 +1,7 @@
 import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
 import { link, script } from './html';
-
-export interface HostOptions {
-  clipboard?: boolean;
-  dragDrop?: boolean;
-  fileUpload?: boolean;
-  postMessage?: boolean;
-  postMessageTarget?: Window;
-  url?: boolean;
-}
-
-interface HostMessage {
-	markdown?: string;
-}
+import type { ListenOptions, RenderRequestMessage } from '@microsoft/interactive-document-host/types' with { 'resolution-mode': 'import' };
 
 /**
  * Manages the preview functionality for Interactive Documents
@@ -84,7 +72,7 @@ export class PreviewManager {
 
 	public renderMarkdown(markdown: string) {
 		if (this.current && this.current.panel.visible) {
-			const renderMessage: HostMessage = {};
+			const renderMessage: RenderRequestMessage = {};
 			renderMessage.markdown = markdown;
 			this.current.panel.webview.postMessage(renderMessage);
 		}
@@ -153,11 +141,11 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 		return webView.asWebviewUri(onDiskPath);
 	}
 
-	const hostOptions: HostOptions = {
+	const hostOptions: ListenOptions = {
 		clipboard: false,
 		dragDrop: false,
 		fileUpload: false,
-		url: false
+		url: false,
 	};
 
 	return `<!DOCTYPE html>
@@ -177,12 +165,17 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
         Loading...
     </div>
 
-    <div id="app"></div>
+	<div id="app"></div>
 
     ${script(resourceUrl('idocshost.umd.js'))}
 
     <script>
-		Object.assign(IDocsHost.options, ${JSON.stringify(hostOptions)}, { postMessageTarget: acquireVsCodeApi() });
+		const options = { ...{ "clipboard": false, "dragDrop": false, "fileUpload": false, "url": false }, ...{ postMessageTarget: acquireVsCodeApi() } };
+		const host = new IDocsHost.Host({
+			app: '#app',
+			loading: '#loading',
+			options,
+		});
     </script>
 </body>
 </html>`;

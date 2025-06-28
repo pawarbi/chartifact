@@ -1,10 +1,5 @@
-import { InteractiveDocument } from 'dsl';
 import { Host } from './index.js';
-
-export interface RenderRequestMessage {
-    markdown?: string;
-    interactiveDocument?: InteractiveDocument;
-}
+import type { RenderRequestMessage } from './types.js';
 
 export function setupPostMessageHandling(host: Host) {
     window.addEventListener('message', (event) => {

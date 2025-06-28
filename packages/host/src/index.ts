@@ -7,9 +7,9 @@ import { checkUrlForFile } from './url.js';
 import { setupPostMessageHandling } from './post-receive.js';
 import { InteractiveDocument } from 'dsl';
 import { postStatus } from './post-send.js';
+import { ListenOptions } from './types.js';
 
-export type { RenderRequestMessage } from './post-receive.js';
-export type { StatusMessage } from './post-send.js';
+export type * from './types.js';
 
 function getElement(elementOrSelector: string | HTMLElement): HTMLElement | null {
   if (typeof elementOrSelector === 'string') {
@@ -32,16 +32,6 @@ export interface InitializeHostOptions {
   uploadButton?: string | HTMLElement;
   fileInput?: string | HTMLElement;
   options?: ListenOptions;
-}
-
-export interface ListenOptions {
-  clipboard?: boolean;
-  dragDrop?: boolean;
-  fileUpload?: boolean;
-  postMessage?: boolean;
-  postMessageTarget?: Window;
-  url?: boolean;
-  urlParamName?: string;
 }
 
 const defaultOptions: ListenOptions = {
