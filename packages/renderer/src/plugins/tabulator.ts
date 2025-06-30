@@ -17,7 +17,7 @@ interface TabulatorInstance {
 
 export interface TabulatorSpec {
     dataSignalName: string;
-    options: TabulatorOptions;
+    options?: TabulatorOptions;
 }
 
 declare const Tabulator: typeof TabulatorType;
@@ -73,7 +73,7 @@ export const tabulatorPlugin: Plugin = {
                 priority: -1,
                 isData: true,
             }];
-            if (tabulatorInstance.spec.options.selectableRows) {
+            if (tabulatorInstance.spec.options?.selectableRows) {
                 initialSignals.push({
                     name: `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`,
                     value: [],
@@ -101,7 +101,7 @@ export const tabulatorPlugin: Plugin = {
                     }
                 },
                 beginListening(sharedSignals) {
-                    if (tabulatorInstance.spec.options.selectableRows) {
+                    if (tabulatorInstance.spec.options?.selectableRows) {
                         for (const { isData, signalName } of sharedSignals) {
                             if (isData) {
                                 const matchData = signalName === `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`;
