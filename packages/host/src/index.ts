@@ -9,6 +9,8 @@ import { InteractiveDocument } from 'dsl';
 import { postStatus } from './post-send.js';
 import { ListenOptions } from './types.js';
 
+export { Renderer };
+
 export type * from './types.js';
 
 function getElement(elementOrSelector: string | HTMLElement): HTMLElement | null {
