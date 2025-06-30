@@ -309,19 +309,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     plugins.push(plugin);
     return "register";
   }
-  function create(options2) {
+  function create(options) {
     var _a;
     const md = new markdownit();
     for (const plugin of plugins) {
       plugin.initializePlugin(md);
     }
     md.use(G);
-    (_a = options2 == null ? void 0 : options2.classList) == null ? void 0 : _a.forEach((name) => {
+    (_a = options == null ? void 0 : options.classList) == null ? void 0 : _a.forEach((name) => {
       const containerOptions = { name };
       md.use(R, containerOptions);
     });
     const originalFence = md.renderer.rules.fence;
-    md.renderer.rules.fence = function(tokens, idx, options3, env, slf) {
+    md.renderer.rules.fence = function(tokens, idx, options2, env, slf) {
       const token = tokens[idx];
       const info = token.info.trim();
       if (info.startsWith("json ")) {
@@ -332,7 +332,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
       if (originalFence) {
-        return originalFence(tokens, idx, options3, env, slf);
+        return originalFence(tokens, idx, options2, env, slf);
       } else {
         return "";
       }
@@ -521,21 +521,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     classList: ["markdown-block"]
   };
   class Renderer {
-    constructor(element, options2) {
+    constructor(element, options) {
       __publicField(this, "element");
       __publicField(this, "md");
       __publicField(this, "instances");
       __publicField(this, "signalBus");
       __publicField(this, "options");
       this.element = element;
-      this.options = { ...defaultRendererOptions, ...options2 };
+      this.options = { ...defaultRendererOptions, ...options };
       this.md = create({ classList: this.options.classList });
       this.signalBus = this.options.signalBus || new SignalBus(this.options.dataSignalPrefix);
       this.instances = {};
     }
-    async render(markdown, errorHandler2) {
-      if (!errorHandler2) {
-        errorHandler2 = (error, pluginName, instanceIndex, phase) => {
+    async render(markdown, errorHandler) {
+      if (!errorHandler) {
+        errorHandler = (error, pluginName, instanceIndex, phase) => {
           console.error(`Error in plugin ${pluginName} instance ${instanceIndex} phase ${phase}`, error);
         };
       }
@@ -547,7 +547,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       for (let i = 0; i < plugins.length; i++) {
         const plugin = plugins[i];
         if (plugin.hydrateComponent) {
-          hydrationPromises.push(plugin.hydrateComponent(this, errorHandler2).then((instances) => {
+          hydrationPromises.push(plugin.hydrateComponent(this, errorHandler).then((instances) => {
             return {
               pluginName: plugin.name,
               instances
@@ -604,9 +604,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const DropdownId = `Dropdown-${idx}`;
       return sanitizedHTML("div", { id: DropdownId, class: "dropdown" }, token.content.trim());
     },
-    hydrateComponent: async (renderer2, errorHandler2) => {
+    hydrateComponent: async (renderer, errorHandler) => {
       const dropdownInstances = [];
-      const containers = renderer2.element.querySelectorAll(".dropdown");
+      const containers = renderer.element.querySelectorAll(".dropdown");
       for (const [index, container] of Array.from(containers).entries()) {
         if (!container.textContent)
           continue;
@@ -628,7 +628,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           dropdownInstances.push(dropdownInstance);
         } catch (e) {
           container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler2(e, "Dropdown", index, "parse", container);
+          errorHandler(e, "Dropdown", index, "parse", container);
           continue;
         }
       }
@@ -666,11 +666,11 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                   }
                 });
                 if (hasFieldName) {
-                  const options2 = Array.from(uniqueOptions);
+                  const options = Array.from(uniqueOptions);
                   const existingSelection = spec.multiple ? Array.from(element.selectedOptions).map((option) => option.value) : element.value;
-                  element.innerHTML = getOptions(spec.multiple ?? false, options2, existingSelection);
+                  element.innerHTML = getOptions(spec.multiple ?? false, options, existingSelection);
                   if (!spec.multiple) {
-                    element.value = ((_b = batch[spec.name]) == null ? void 0 : _b.value) || options2[0];
+                    element.value = ((_b = batch[spec.name]) == null ? void 0 : _b.value) || options[0];
                   }
                 } else {
                   element.innerHTML = `<option value="">Field "${dynamicOptions.fieldName}" not found</option>`;
@@ -698,7 +698,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                   isData: false
                 }
               };
-              renderer2.signalBus.broadcast(dropdownInstance.id, batch);
+              renderer.signalBus.broadcast(dropdownInstance.id, batch);
             });
           },
           getCurrentSignalValue: () => {
@@ -715,26 +715,26 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       return instances;
     }
   };
-  function getOptions(multiple, options2, selected) {
-    if (!options2) {
+  function getOptions(multiple, options, selected) {
+    if (!options) {
       if (multiple) {
         if (Array.isArray(selected)) {
-          options2 = selected;
+          options = selected;
         } else {
           if (selected) {
-            options2 = [selected];
+            options = [selected];
           }
         }
       } else {
         if (selected) {
-          options2 = [selected];
+          options = [selected];
         }
       }
     }
-    if (!options2) {
+    if (!options) {
       return "";
     }
-    return options2.map((option) => {
+    return options.map((option) => {
       let attr = "";
       if (multiple) {
         attr = (selected || []).includes(option) ? "selected" : "";
@@ -761,9 +761,9 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       const ImageId = `Image-${idx}`;
       return sanitizedHTML("div", { id: ImageId, class: "image" }, token.content.trim());
     },
-    hydrateComponent: async (renderer2, errorHandler2) => {
+    hydrateComponent: async (renderer, errorHandler) => {
       const imageInstances = [];
-      const containers = renderer2.element.querySelectorAll(".image");
+      const containers = renderer.element.querySelectorAll(".image");
       for (const [index, container] of Array.from(containers).entries()) {
         if (!container.textContent)
           continue;
@@ -790,7 +790,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           element.onerror = () => {
             spinner.style.display = "none";
             element.style.opacity = ImageOpacity.error;
-            errorHandler2(new Error("Image failed to load"), "image", index, "load", container, element.src);
+            errorHandler(new Error("Image failed to load"), "image", index, "load", container, element.src);
           };
           container.style.position = "relative";
           spinner.style.position = "absolute";
@@ -801,7 +801,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           imageInstances.push(imageInstance);
         } catch (e) {
           container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler2(e, "Image", index, "parse", container);
+          errorHandler(e, "Image", index, "parse", container);
         }
       }
       const instances = imageInstances.map((imageInstance, index) => {
@@ -904,19 +904,19 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           return `<span class="dynamic-placeholder" data-key="${key}">{${key}}</span>`;
         };
       });
-      md.renderer.rules["link_open"] = function(tokens, idx, options2, env, slf) {
+      md.renderer.rules["link_open"] = function(tokens, idx, options, env, slf) {
         handleDynamicUrl(tokens, idx, "href");
-        return slf.renderToken(tokens, idx, options2);
+        return slf.renderToken(tokens, idx, options);
       };
-      md.renderer.rules["image"] = function(tokens, idx, options2, env, slf) {
+      md.renderer.rules["image"] = function(tokens, idx, options, env, slf) {
         handleDynamicUrl(tokens, idx, "src");
-        return slf.renderToken(tokens, idx, options2);
+        return slf.renderToken(tokens, idx, options);
       };
     },
-    hydrateComponent: async (renderer2) => {
+    hydrateComponent: async (renderer) => {
       const templateFunctionMap = /* @__PURE__ */ new WeakMap();
-      const placeholders = renderer2.element.querySelectorAll(".dynamic-placeholder");
-      const dynamicUrls = renderer2.element.querySelectorAll("[data-template-url]");
+      const placeholders = renderer.element.querySelectorAll(".dynamic-placeholder");
+      const dynamicUrls = renderer.element.querySelectorAll("[data-template-url]");
       const elementsByKeys = /* @__PURE__ */ new Map();
       for (const placeholder of Array.from(placeholders)) {
         const key = placeholder.getAttribute("data-key");
@@ -970,7 +970,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
               for (const element of elements) {
                 if (element.classList.contains("dynamic-placeholder")) {
                   const markdownContent = ((_a = batch[key].value) == null ? void 0 : _a.toString()) || "";
-                  const parsedMarkdown = isMarkdownInline(markdownContent) ? renderer2.md.renderInline(markdownContent) : renderer2.md.render(markdownContent);
+                  const parsedMarkdown = isMarkdownInline(markdownContent) ? renderer.md.renderInline(markdownContent) : renderer.md.render(markdownContent);
                   element.innerHTML = parsedMarkdown;
                 } else if (element.hasAttribute("data-template-url")) {
                   const templateData = templateFunctionMap.get(element);
@@ -1016,9 +1016,9 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       const pluginId = `preset-${idx}`;
       return sanitizedHTML("div", { id: pluginId, class: "presets" }, JSON.stringify(spec));
     },
-    hydrateComponent: async (renderer2, errorHandler2) => {
+    hydrateComponent: async (renderer, errorHandler) => {
       const presetsInstances = [];
-      const containers = renderer2.element.querySelectorAll(".presets");
+      const containers = renderer.element.querySelectorAll(".presets");
       for (const [index, container] of Array.from(containers).entries()) {
         if (!container.textContent)
           continue;
@@ -1028,7 +1028,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           presets = JSON.parse(container.textContent);
         } catch (e) {
           container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler2(e, "presets", index, "parse", container);
+          errorHandler(e, "presets", index, "parse", container);
           continue;
         }
         if (!Array.isArray(presets)) {
@@ -1054,7 +1054,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
               for (const [signalName, value] of Object.entries(preset.state)) {
                 batch[signalName] = { value, isData: false };
               }
-              renderer2.signalBus.broadcast(id, batch);
+              renderer.signalBus.broadcast(id, batch);
             };
             li.appendChild(button);
             li.appendChild(document.createTextNode(" "));
@@ -1083,8 +1083,8 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           initialSignals,
           broadcastComplete: async () => {
             const state = {};
-            for (const signalName of Object.keys(renderer2.signalBus.signalDeps)) {
-              state[signalName] = renderer2.signalBus.signalDeps[signalName].value;
+            for (const signalName of Object.keys(renderer.signalBus.signalDeps)) {
+              state[signalName] = renderer.signalBus.signalDeps[signalName].value;
             }
             setAllPresetsActiveState(presetsInstance, state);
           }
@@ -1123,32 +1123,36 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       const tabulatorId = `tabulator-${idx}`;
       return sanitizedHTML("div", { id: tabulatorId, class: "tabulator", style: "box-sizing: border-box;" }, token.content.trim());
     },
-    hydrateComponent: async (renderer2, errorHandler2) => {
+    hydrateComponent: async (renderer, errorHandler) => {
       const tabulatorInstances = [];
-      const containers = renderer2.element.querySelectorAll(".tabulator");
+      const containers = renderer.element.querySelectorAll(".tabulator");
       for (const [index, container] of Array.from(containers).entries()) {
         if (!container.textContent)
           continue;
         if (!Tabulator) {
-          errorHandler2(new Error("Tabulator not found"), "tabulator", index, "init", container);
+          errorHandler(new Error("Tabulator not found"), "tabulator", index, "init", container);
           continue;
         }
         try {
           const spec = JSON.parse(container.textContent);
-          let options2 = {
+          let options = {
             autoColumns: true,
             layout: "fitColumns",
             maxHeight: "200px"
           };
           if (spec.options && Object.keys(spec.options).length > 0) {
-            options2 = spec.options;
+            options = spec.options;
           }
-          const table = new Tabulator(container, options2);
-          const tabulatorInstance = { id: container.id, spec, table };
+          const table = new Tabulator(container, options);
+          const tabulatorInstance = { id: container.id, spec, table, built: false };
+          table.on("tableBuilt", () => {
+            table.off("tableBuilt");
+            tabulatorInstance.built = true;
+          });
           tabulatorInstances.push(tabulatorInstance);
         } catch (e) {
           container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler2(e, "tabulator", index, "parse", container);
+          errorHandler(e, "tabulator", index, "parse", container);
           continue;
         }
       }
@@ -1173,7 +1177,16 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           recieveBatch: async (batch) => {
             const newData = batch[tabulatorInstance.spec.dataSignalName].value;
             if (newData) {
-              tabulatorInstance.table.setData(newData);
+              if (!tabulatorInstance.built) {
+                tabulatorInstance.table.off("tableBuilt");
+                tabulatorInstance.table.on("tableBuilt", () => {
+                  tabulatorInstance.built = true;
+                  tabulatorInstance.table.off("tableBuilt");
+                  tabulatorInstance.table.setData(newData);
+                });
+              } else {
+                tabulatorInstance.table.setData(newData);
+              }
             }
           },
           beginListening(sharedSignals) {
@@ -1190,8 +1203,8 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                           isData: true
                         }
                       };
-                      renderer2.signalBus.log(tabulatorInstance.id, "sending batch", batch);
-                      renderer2.signalBus.broadcast(tabulatorInstance.id, batch);
+                      renderer.signalBus.log(tabulatorInstance.id, "sending batch", batch);
+                      renderer.signalBus.broadcast(tabulatorInstance.id, batch);
                     });
                   }
                 }
@@ -1287,19 +1300,19 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       const vegaId = `vega-${idx}`;
       return sanitizedHTML("div", { id: vegaId, class: "vega-chart" }, token.content.trim());
     },
-    hydrateComponent: async (renderer2, errorHandler2) => {
+    hydrateComponent: async (renderer, errorHandler) => {
       const vegaInstances = [];
-      const containers = renderer2.element.querySelectorAll(".vega-chart");
+      const containers = renderer.element.querySelectorAll(".vega-chart");
       const specInits = [];
       for (const [index, container] of Array.from(containers).entries()) {
-        const specInit = await createSpecInit(container, index, renderer2, errorHandler2);
+        const specInit = await createSpecInit(container, index, renderer, errorHandler);
         if (specInit) {
           specInits.push(specInit);
         }
       }
       prioritizeSignalValues(specInits);
       for (const specInit of specInits) {
-        const vegaInstance = await createVegaInstance(specInit, renderer2, errorHandler2);
+        const vegaInstance = await createVegaInstance(specInit, renderer, errorHandler);
         if (vegaInstance) {
           vegaInstances.push(vegaInstance);
         }
@@ -1324,13 +1337,13 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         const { spec, view, initialSignals } = vegaInstance;
         const startBatch = (from) => {
           if (!vegaInstance.batch) {
-            renderer2.signalBus.log(vegaInstance.id, "starting batch", from);
+            renderer.signalBus.log(vegaInstance.id, "starting batch", from);
             vegaInstance.batch = {};
             view.runAfter(() => {
               const { batch } = vegaInstance;
               vegaInstance.batch = void 0;
-              renderer2.signalBus.log(vegaInstance.id, "sending batch", batch);
-              renderer2.signalBus.broadcast(vegaInstance.id, batch);
+              renderer.signalBus.log(vegaInstance.id, "sending batch", batch);
+              renderer.signalBus.broadcast(vegaInstance.id, batch);
             });
           }
         };
@@ -1338,27 +1351,27 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           ...vegaInstance,
           initialSignals,
           recieveBatch: async (batch, from) => {
-            renderer2.signalBus.log(vegaInstance.id, "recieved batch", batch, from);
+            renderer.signalBus.log(vegaInstance.id, "recieved batch", batch, from);
             return new Promise((resolve) => {
               view.runAfter(async () => {
-                if (recieveBatch(batch, renderer2, vegaInstance)) {
-                  renderer2.signalBus.log(vegaInstance.id, "running after _pulse, changes from", from);
+                if (recieveBatch(batch, renderer, vegaInstance)) {
+                  renderer.signalBus.log(vegaInstance.id, "running after _pulse, changes from", from);
                   vegaInstance.needToRun = true;
                 } else {
-                  renderer2.signalBus.log(vegaInstance.id, "no changes");
+                  renderer.signalBus.log(vegaInstance.id, "no changes");
                 }
-                renderer2.signalBus.log(vegaInstance.id, "running view after _pulse finished");
+                renderer.signalBus.log(vegaInstance.id, "running view after _pulse finished");
                 resolve();
               });
             });
           },
           broadcastComplete: async () => {
-            renderer2.signalBus.log(vegaInstance.id, "broadcastComplete");
+            renderer.signalBus.log(vegaInstance.id, "broadcastComplete");
             if (vegaInstance.needToRun) {
               view.runAfter(() => {
                 view.runAsync();
                 vegaInstance.needToRun = false;
-                renderer2.signalBus.log(vegaInstance.id, "running view after broadcastComplete");
+                renderer.signalBus.log(vegaInstance.id, "running view after broadcastComplete");
               });
             }
           },
@@ -1370,7 +1383,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
               if (isData) {
                 const matchData = (_a = spec.data) == null ? void 0 : _a.find((data) => data.name === signalName);
                 if (matchData && vegaInstance.dataSignals.includes(matchData.name)) {
-                  renderer2.signalBus.log(vegaInstance.id, "listening to data", signalName);
+                  renderer.signalBus.log(vegaInstance.id, "listening to data", signalName);
                   view.addDataListener(signalName, async (name, value) => {
                     startBatch(`data:${signalName}`);
                     vegaInstance.batch[name] = { value, isData };
@@ -1383,7 +1396,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                 matchSignal.bind || // ui elements
                 matchSignal.update;
                 if (isChangeSource) {
-                  renderer2.signalBus.log(vegaInstance.id, "listening to signal", signalName);
+                  renderer.signalBus.log(vegaInstance.id, "listening to signal", signalName);
                   view.addSignalListener(signalName, async (name, value) => {
                     startBatch(`signal:${signalName}`);
                     vegaInstance.batch[name] = { value, isData };
@@ -1409,16 +1422,16 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       return instances;
     }
   };
-  function recieveBatch(batch, renderer2, vegaInstance) {
+  function recieveBatch(batch, renderer, vegaInstance) {
     var _a, _b;
     const { spec, view } = vegaInstance;
-    const doLog = renderer2.signalBus.logLevel === LogLevel.all;
-    doLog && renderer2.signalBus.log(vegaInstance.id, "recieveBatch", batch);
+    const doLog = renderer.signalBus.logLevel === LogLevel.all;
+    doLog && renderer.signalBus.log(vegaInstance.id, "recieveBatch", batch);
     let hasAnyChange = false;
     for (const signalName in batch) {
       const batchItem = batch[signalName];
       if (ignoredSignals.includes(signalName)) {
-        doLog && renderer2.signalBus.log(vegaInstance.id, "ignoring reverved signal name", signalName, batchItem.value);
+        doLog && renderer.signalBus.log(vegaInstance.id, "ignoring reverved signal name", signalName, batchItem.value);
         continue;
       }
       if (batchItem.isData) {
@@ -1435,7 +1448,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
             hasAnyChange = true;
           }
         }
-        doLog && renderer2.signalBus.log(vegaInstance.id, `(isData) ${logReason2}`, signalName, batchItem.value);
+        doLog && renderer.signalBus.log(vegaInstance.id, `(isData) ${logReason2}`, signalName, batchItem.value);
       }
       let logReason = "";
       const matchSignal = (_b = spec.signals) == null ? void 0 : _b.find((signal) => signal.name === signalName);
@@ -1459,11 +1472,11 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           }
         }
       }
-      doLog && renderer2.signalBus.log(vegaInstance.id, logReason, signalName, batchItem.value);
+      doLog && renderer.signalBus.log(vegaInstance.id, logReason, signalName, batchItem.value);
     }
     return hasAnyChange;
   }
-  async function createSpecInit(container, index, renderer2, errorHandler2) {
+  async function createSpecInit(container, index, renderer, errorHandler) {
     var _a;
     if (!container.textContent) {
       container.innerHTML = '<div class="error">Expected a spec object or a url</div>';
@@ -1474,12 +1487,12 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       result = await resolveSpec(container.textContent);
     } catch (e) {
       container.innerHTML = `<div class="error">${e.toString()}</div>`;
-      errorHandler2(e, "vega", index, "resolve", container);
+      errorHandler(e, "vega", index, "resolve", container);
       return;
     }
     if (result.error) {
       container.innerHTML = `<div class="error">${result.error.toString()}</div>`;
-      errorHandler2(result.error, "vega", index, "resolve", container);
+      errorHandler(result.error, "vega", index, "resolve", container);
       return;
     }
     if (!result.spec) {
@@ -1491,7 +1504,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       if (ignoredSignals.includes(signal.name))
         return;
       let isData = isSignalDataBridge(signal);
-      if (signal.name.startsWith(renderer2.options.dataSignalPrefix)) {
+      if (signal.name.startsWith(renderer.options.dataSignalPrefix)) {
         isData = true;
       }
       return {
@@ -1504,7 +1517,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     const specInit = { container, index, initialSignals, spec };
     return specInit;
   }
-  async function createVegaInstance(specInit, renderer2, errorHandler2) {
+  async function createVegaInstance(specInit, renderer, errorHandler) {
     const { container, index, initialSignals, spec } = specInit;
     const id = `vega-${index}`;
     let runtime;
@@ -1513,15 +1526,15 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       runtime = vega.parse(spec);
     } catch (e) {
       container.innerHTML = `<div class="error">${e.toString()}</div>`;
-      errorHandler2(e, "vega", index, "parse", container);
+      errorHandler(e, "vega", index, "parse", container);
       return;
     }
     try {
       view = new vega.View(runtime, {
         container,
-        renderer: renderer2.options.vegaRenderer,
+        renderer: renderer.options.vegaRenderer,
         logger: new VegaLogger((error) => {
-          errorHandler2(error, "vega", index, "view", container);
+          errorHandler(error, "vega", index, "view", container);
         })
       });
       view.run();
@@ -1530,13 +1543,13 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           continue;
         const currentValue = view.signal(signal.name);
         if (currentValue !== signal.value) {
-          renderer2.signalBus.log(id, "re-setting initial signal", signal.name, signal.value, currentValue);
+          renderer.signalBus.log(id, "re-setting initial signal", signal.name, signal.value, currentValue);
           signal.value = currentValue;
         }
       }
     } catch (e) {
       container.innerHTML = `<div class="error">${e.toString()}</div>`;
-      errorHandler2(e, "vega", index, "view", container);
+      errorHandler(e, "vega", index, "view", container);
       return;
     }
     const dataSignals = initialSignals.filter((signal) => {
@@ -1563,10 +1576,10 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
   }
   vega.expressionFunction("urlParam", urlParam);
   class VegaLogger {
-    constructor(errorHandler2) {
+    constructor(errorHandler) {
       __publicField(this, "errorHandler");
       __publicField(this, "logLevel", 0);
-      this.errorHandler = errorHandler2;
+      this.errorHandler = errorHandler;
       this.error = this.error.bind(this);
       this.warn = this.warn.bind(this);
       this.info = this.info.bind(this);
@@ -1625,125 +1638,589 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
   * Licensed under the MIT License.
   */
   registerNativePlugins();
-  function setupClipboardHandling(onMarkdownPaste) {
-    document.addEventListener("paste", (e) => {
-      e.preventDefault();
-      const clipboardData = e.clipboardData;
-      if (clipboardData && clipboardData.files.length > 0) {
-        const file = clipboardData.files[0];
-        if (file.name.endsWith(".md")) {
-          handleFileFromClipboard(file, onMarkdownPaste);
+  function safeVariableName(name) {
+    return name.replace(/[^a-zA-Z0-9_]/g, "_");
+  }
+  function getChartType(spec) {
+    const $schema2 = spec == null ? void 0 : spec.$schema;
+    if (!$schema2) {
+      return "vega-lite";
+    }
+    return $schema2.includes("vega-lite") ? "vega-lite" : "vega";
+  }
+  class VegaScope {
+    constructor(spec) {
+      __publicField(this, "spec");
+      __publicField(this, "urlCount", 0);
+      this.spec = spec;
+    }
+    addOrigin(origin) {
+      if (!this.spec.signals) {
+        this.spec.signals = [];
+      }
+      let origins = this.spec.signals.find((d2) => d2.name === "origins");
+      if (!origins) {
+        origins = {
+          name: "origins",
+          value: {}
+        };
+        this.spec.signals.unshift(origins);
+      }
+      origins.value[origin] = origin;
+    }
+    createUrlSignal(urlRef) {
+      const { origin, urlPath, mappedParams } = urlRef;
+      const name = `url:${this.urlCount++}:${safeVariableName(origin + urlPath)}`;
+      const signal = { name };
+      this.addOrigin(origin);
+      signal.update = `origins[${JSON.stringify(origin)}]+'${urlPath}'`;
+      if (mappedParams && mappedParams.length > 0) {
+        signal.update += ` + '?' + ${mappedParams.map((p) => `urlParam('${p.name}', ${variableValueExpression(p)})`).join(` + '&' + `)}`;
+      }
+      if (!this.spec.signals) {
+        this.spec.signals = [];
+      }
+      this.spec.signals.push(signal);
+      return signal;
+    }
+  }
+  function variableValueExpression(param) {
+    if (param.variableId) {
+      return param.variableId;
+    } else if (param.calculation) {
+      return "(" + param.calculation.vegaExpression + ")";
+    } else {
+      return JSON.stringify(param.value);
+    }
+  }
+  function addDynamicDataLoaderToSpec(vegaScope, dataSource) {
+    const { spec } = vegaScope;
+    const { dataSourceName } = dataSource;
+    const urlSignal = vegaScope.createUrlSignal(dataSource.urlRef);
+    const url = { signal: urlSignal.name };
+    if (!spec.signals) {
+      spec.signals = [];
+    }
+    spec.signals.push({
+      name: dataSourceName,
+      update: `data('${dataSourceName}')`
+    });
+    if (!spec.data) {
+      spec.data = [];
+    }
+    spec.data.unshift({
+      name: dataSourceName,
+      url,
+      format: { type: dataSource.format || "json" },
+      transform: dataSource.dataFrameTransformations || []
+    });
+  }
+  function createSpecWithVariables(variables, stubDataLoaders) {
+    const spec = {
+      $schema: "https://vega.github.io/schema/vega/v5.json",
+      signals: [],
+      data: []
+    };
+    topologicalSort(variables).forEach((v2) => {
+      if (isDataframePipeline(v2)) {
+        const { dataFrameTransformations } = v2.calculation;
+        const data = {
+          name: v2.variableId,
+          source: v2.calculation.dependsOn || [],
+          transform: dataFrameTransformations
+        };
+        spec.data.push(data);
+        if (!spec.signals) {
+          spec.signals = [];
         }
-      } else if (clipboardData && clipboardData.items) {
-        for (let i = 0; i < clipboardData.items.length; i++) {
-          const item = clipboardData.items[i];
-          if (item.kind === "string" && item.type === "text/plain") {
-            item.getAsString((content) => {
-              if (content.trim()) {
-                onMarkdownPaste(content);
-              }
-            });
+        spec.signals.push({
+          name: v2.variableId,
+          update: `data('${v2.variableId}')`
+        });
+      } else {
+        const signal = { name: v2.variableId, value: v2.initialValue };
+        if (v2.calculation) {
+          signal.update = v2.calculation.vegaExpression;
+        }
+        spec.signals.push(signal);
+      }
+    });
+    return spec;
+  }
+  function isDataframePipeline(variable) {
+    var _a, _b;
+    return variable.type === "object" && !!variable.isArray && (((_a = variable.calculation) == null ? void 0 : _a.dependsOn) !== void 0 && variable.calculation.dependsOn.length > 0 || ((_b = variable.calculation) == null ? void 0 : _b.dataFrameTransformations) !== void 0 && variable.calculation.dataFrameTransformations.length > 0);
+  }
+  function topologicalSort(list) {
+    var _a;
+    const nameToObject = /* @__PURE__ */ new Map();
+    const inDegree = /* @__PURE__ */ new Map();
+    const graph = /* @__PURE__ */ new Map();
+    for (const obj of list) {
+      nameToObject.set(obj.variableId, obj);
+      inDegree.set(obj.variableId, 0);
+      graph.set(obj.variableId, []);
+    }
+    for (const obj of list) {
+      const sources = ((_a = obj.calculation) == null ? void 0 : _a.dependsOn) || [];
+      for (const dep of sources) {
+        if (!graph.has(dep)) {
+          continue;
+        }
+        graph.get(dep).push(obj.variableId);
+        inDegree.set(obj.variableId, inDegree.get(obj.variableId) + 1);
+      }
+    }
+    const queue = [];
+    for (const [name, degree] of inDegree.entries()) {
+      if (degree === 0)
+        queue.push(name);
+    }
+    const sorted = [];
+    while (queue.length) {
+      const current = queue.shift();
+      sorted.push(nameToObject.get(current));
+      for (const neighbor of graph.get(current)) {
+        inDegree.set(neighbor, inDegree.get(neighbor) - 1);
+        if (inDegree.get(neighbor) === 0) {
+          queue.push(neighbor);
+        }
+      }
+    }
+    if (sorted.length !== list.length) {
+      throw new Error("Cycle or missing dependency detected");
+    }
+    return sorted;
+  }
+  function mdWrap(type, content) {
+    return `\`\`\`json ${type}
+${content}
+\`\`\``;
+  }
+  function chartWrap(spec) {
+    const chartType = getChartType(spec);
+    return mdWrap(chartType, JSON.stringify(spec, null, 4));
+  }
+  function mdContainerWrap(id, content) {
+    return `::: markdown-block {#${id}}
+${content}
+:::`;
+  }
+  const $schema = "https://vega.github.io/schema/vega/v5.json";
+  function targetMarkdown(page) {
+    const mdSections = [];
+    const vegaScope = dataLoaderMarkdown(page.dataLoaders.filter((dl) => dl.type !== "spec"), page.variables);
+    for (const dataLoader of page.dataLoaders.filter((dl) => dl.type === "spec")) {
+      mdSections.push(chartWrap(dataLoader.spec));
+    }
+    for (const group of page.groups) {
+      mdSections.push(mdContainerWrap(group.groupId, groupMarkdown(group, page.variables, vegaScope)));
+    }
+    mdSections.unshift(chartWrap(vegaScope.spec));
+    const markdown = mdSections.join("\n\n");
+    return markdown;
+  }
+  function dataLoaderMarkdown(dataSources, variables) {
+    const spec = createSpecWithVariables(variables);
+    const vegaScope = new VegaScope(spec);
+    for (const dataSource of dataSources) {
+      switch (dataSource.type) {
+        case "file": {
+          break;
+        }
+        case "url": {
+          addDynamicDataLoaderToSpec(vegaScope, dataSource);
+          break;
+        }
+      }
+      if (!spec.data) {
+        spec.data = [];
+      }
+      spec.data.push({
+        name: dataSource.dataSourceName + "-selected"
+      });
+    }
+    return vegaScope;
+  }
+  function groupMarkdown(group, variables, vegaScope) {
+    var _a, _b, _c, _d;
+    const mdElements = [];
+    for (const element of group.elements) {
+      if (typeof element === "string") {
+        mdElements.push(element);
+      } else if (typeof element === "object") {
+        switch (element.type) {
+          case "chart": {
+            const chartFull = element.chart;
+            if (!chartFull.spec) {
+              mdElements.push("![Chart Spinner](/img/chart-spinner.gif)");
+            } else {
+              mdElements.push(chartWrap(chartFull.spec));
+            }
+            break;
+          }
+          case "checkbox": {
+            const spec = {
+              $schema,
+              signals: [
+                {
+                  name: element.variableId,
+                  value: (_a = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _a.initialValue,
+                  bind: {
+                    input: "checkbox"
+                  }
+                }
+              ]
+            };
+            mdElements.push(chartWrap(spec));
+            break;
+          }
+          case "dropdown": {
+            const ddSpec = {
+              name: element.variableId,
+              value: (_b = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _b.initialValue,
+              label: element.label
+            };
+            if (element.dynamicOptions) {
+              ddSpec.dynamicOptions = {
+                dataSignalName: element.dynamicOptions.dataSourceName,
+                fieldName: element.dynamicOptions.fieldName
+              };
+            } else {
+              ddSpec.options = element.options;
+            }
+            if (element.multiple) {
+              ddSpec.multiple = element.multiple;
+              ddSpec.size = element.size || 1;
+            }
+            mdElements.push(mdWrap("dropdown", JSON.stringify(ddSpec, null, 2)));
+            break;
+          }
+          case "image": {
+            const urlSignal = vegaScope.createUrlSignal(element.urlRef);
+            const imageSpec = {
+              srcSignalName: urlSignal.name,
+              alt: element.alt,
+              width: element.width,
+              height: element.height
+            };
+            mdElements.push(mdWrap("image", JSON.stringify(imageSpec, null, 2)));
+            break;
+          }
+          case "presets": {
+            const presetsSpec = element.presets;
+            mdElements.push(mdWrap("presets", JSON.stringify(presetsSpec, null, 2)));
+            break;
+          }
+          case "slider": {
+            const spec = {
+              $schema,
+              signals: [
+                {
+                  name: element.variableId,
+                  value: (_c = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _c.initialValue,
+                  bind: {
+                    input: "range",
+                    min: element.min,
+                    max: element.max,
+                    step: element.step,
+                    debounce: 100
+                  }
+                }
+              ]
+            };
+            mdElements.push(chartWrap(spec));
+            break;
+          }
+          case "table": {
+            const tableSpec = {
+              dataSignalName: element.dataSourceName,
+              options: element.options
+            };
+            mdElements.push(mdWrap("tabulator", JSON.stringify(tableSpec, null, 2)));
+            break;
+          }
+          case "textbox": {
+            const spec = {
+              $schema,
+              signals: [
+                {
+                  name: element.variableId,
+                  value: (_d = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _d.initialValue,
+                  bind: {
+                    input: "text",
+                    debounce: 100
+                  }
+                }
+              ]
+            };
+            mdElements.push(chartWrap(spec));
             break;
           }
         }
       }
-    });
+    }
+    const markdown = mdElements.join("\n\n");
+    return markdown;
   }
-  function handleFileFromClipboard(file, onMarkdownPaste) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      var _a;
-      const content = (_a = e.target) == null ? void 0 : _a.result;
-      onMarkdownPaste(content);
-    };
-    reader.readAsText(file);
+  function compileToMarkdown(page) {
+    if (!page || typeof page !== "object" || !page.groups || !Array.isArray(page.groups)) {
+      throw new Error("Invalid page structure");
+    }
+    const markdownContent = targetMarkdown(page);
+    return markdownContent;
   }
-  function setupDragDropHandling(onMarkdownDrop, onError) {
-    document.addEventListener("dragover", (e) => {
+  function readFile(file, host) {
+    if (file.name.endsWith(".idoc.json") || file.name.endsWith(".idoc.md")) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        var _a;
+        let content = (_a = e.target) == null ? void 0 : _a.result;
+        if (!content) {
+          host.errorHandler(
+            new Error("File content is empty"),
+            "The file is empty. Please use a valid markdown or JSON file."
+          );
+          return;
+        }
+        content = content.trim();
+        if (!content) {
+          host.errorHandler(
+            new Error("File content is empty"),
+            "The file is empty or contains only whitespace. Please use a valid markdown or JSON file."
+          );
+          return;
+        }
+        if (file.name.endsWith(".idoc.json")) {
+          try {
+            const idoc = JSON.parse(content);
+            host.render(void 0, idoc);
+            return;
+          } catch (jsonError) {
+            host.errorHandler(
+              new Error("Invalid JSON content"),
+              "The file content is not valid JSON."
+            );
+            return;
+          }
+        } else if (file.name.endsWith(".idoc.md")) {
+          host.render(content);
+        }
+      };
+      reader.onerror = (e) => {
+        host.errorHandler(new Error("Failed to read file"), "Error reading file");
+      };
+      reader.readAsText(file);
+    } else {
+      host.errorHandler(
+        new Error("Invalid file type"),
+        "Only markdown (.idoc.md) or JSON (.idoc.json) files are supported."
+      );
+    }
+  }
+  function determineContent(content, host) {
+    if (!content) {
+      host.errorHandler(
+        new Error("Content is empty"),
+        "The content was empty. Please use valid markdown content or JSON."
+      );
+      return;
+    }
+    if (typeof content !== "string") {
+      host.errorHandler(
+        new Error("Invalid content type"),
+        "The content is not a string. Please use valid markdown content or JSON."
+      );
+      return;
+    }
+    content = content.trim();
+    if (!content) {
+      host.errorHandler(
+        new Error("Content is empty"),
+        "The content was only whitespace. Please use valid markdown content or JSON."
+      );
+      return;
+    }
+    if (content.startsWith("{") && content.endsWith("}")) {
+      try {
+        const idoc = JSON.parse(content);
+        host.render(void 0, idoc);
+      } catch (jsonError) {
+        host.errorHandler(
+          new Error("Invalid JSON content in clipboard"),
+          "The pasted content is not valid JSON. Please copy a valid interactive document JSON file."
+        );
+        return;
+      }
+    } else {
+      host.render(content);
+    }
+  }
+  function setupClipboardHandling(host) {
+    const pasteHandler = (e) => {
       e.preventDefault();
-    });
-    document.addEventListener("drop", (e) => {
+      e.stopPropagation();
+      const clipboardData = e.clipboardData;
+      if (clipboardData && clipboardData.files.length > 0) {
+        const file = clipboardData.files[0];
+        readFile(file, host);
+      } else if (clipboardData && clipboardData.items) {
+        let handled = false;
+        for (let i = 0; i < clipboardData.items.length; i++) {
+          const item = clipboardData.items[i];
+          if (item.kind === "string" && item.type === "text/plain") {
+            item.getAsString((content) => {
+              if (!content) {
+                host.errorHandler(
+                  new Error("Pasted content is empty"),
+                  "The pasted content was empty. Please paste valid markdown content or JSON."
+                );
+                return;
+              }
+              content = content.trim();
+              if (!content) {
+                host.errorHandler(
+                  new Error("Pasted content is empty"),
+                  "The pasted content was only whitespace. Please paste valid markdown content or JSON."
+                );
+                return;
+              }
+              determineContent(content, host);
+            });
+            handled = true;
+            break;
+          }
+        }
+        if (!handled) {
+          host.errorHandler(
+            new Error("Unsupported clipboard content"),
+            "Please paste a markdown file, JSON file, or valid text content."
+          );
+        }
+      } else {
+        host.errorHandler(
+          new Error("Unsupported clipboard content"),
+          "Please paste a markdown file, JSON file, or valid text content."
+        );
+      }
+    };
+    document.addEventListener("paste", pasteHandler);
+    return () => {
+      document.removeEventListener("paste", pasteHandler);
+    };
+  }
+  function setupDragDropHandling(host) {
+    const dragHandler = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    const dropHandler = (e) => {
       var _a, _b;
       e.preventDefault();
+      e.stopPropagation();
       const files = (_a = e.dataTransfer) == null ? void 0 : _a.files;
       if (files && files.length > 0) {
         const file = files[0];
-        if (file.name.endsWith(".md")) {
-          handleDroppedFile(file, onMarkdownDrop);
-        }
+        readFile(file, host);
       } else if ((_b = e.dataTransfer) == null ? void 0 : _b.types.includes("text/plain")) {
-        const filePath = e.dataTransfer.getData("text/plain");
-        if (filePath && filePath.endsWith(".md")) {
-          onError(
-            new Error(`Cannot directly read local file: ${filePath}`),
-            "The browser blocks local files for security reasons. Try copying the file content and pasting it instead."
+        let content = e.dataTransfer.getData("text/plain");
+        if (!content) {
+          host.errorHandler(
+            new Error("Dropped content is empty"),
+            "The dropped content was empty. Please drop valid markdown content or JSON."
           );
+          return;
         }
+        content = content.trim();
+        if (!content) {
+          host.errorHandler(
+            new Error("Dropped content is empty"),
+            "The dropped content was only whitespace. Please drop valid markdown content or JSON."
+          );
+          return;
+        }
+        determineContent(content, host);
+      } else {
+        host.errorHandler(
+          new Error("Unsupported drop content"),
+          "Please drop a markdown file, JSON file, or valid text content."
+        );
       }
-    });
-  }
-  function handleDroppedFile(file, onMarkdownDrop) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      var _a;
-      const content = (_a = e.target) == null ? void 0 : _a.result;
-      onMarkdownDrop(content);
     };
-    reader.readAsText(file);
+    document.addEventListener("drop", dropHandler);
+    document.addEventListener("dragover", dragHandler);
+    return () => {
+      document.removeEventListener("drop", dropHandler);
+      document.removeEventListener("dragover", dragHandler);
+    };
   }
-  function setupFileUpload(uploadBtn2, fileInput2, onMarkdownUpload) {
-    uploadBtn2 == null ? void 0 : uploadBtn2.addEventListener("click", () => {
-      fileInput2 == null ? void 0 : fileInput2.click();
+  function setupFileUpload(host) {
+    const { uploadButton, fileInput } = host;
+    if (!uploadButton || !fileInput) {
+      host.errorHandler(
+        new Error("Upload button or file input not found"),
+        "Please ensure the upload button and file input elements are present in the HTML."
+      );
+      return;
+    }
+    uploadButton == null ? void 0 : uploadButton.addEventListener("click", () => {
+      fileInput == null ? void 0 : fileInput.click();
     });
-    fileInput2 == null ? void 0 : fileInput2.addEventListener("change", (event) => {
+    fileInput == null ? void 0 : fileInput.addEventListener("change", (event) => {
       var _a;
       const file = (_a = event.target.files) == null ? void 0 : _a[0];
-      if (file && file.name.endsWith(".md")) {
-        handleFileUpload(file, onMarkdownUpload);
+      if (file) {
+        readFile(file, host);
+      } else {
+        host.errorHandler(
+          new Error("No file selected"),
+          "Please select a markdown or JSON file to upload."
+        );
       }
     });
   }
-  function handleFileUpload(file, onMarkdownUpload) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      var _a;
-      const content = (_a = e.target) == null ? void 0 : _a.result;
-      onMarkdownUpload(content);
-    };
-    reader.readAsText(file);
-  }
-  async function checkUrlForFile(onFileLoad, onError) {
+  function checkUrlForFile(host) {
     const urlParams = new URLSearchParams(window.location.search);
-    const loadUrl = urlParams.get("load");
+    const loadUrl = urlParams.get(host.options.urlParamName);
     if (loadUrl) {
       try {
-        const response = await fetch(loadUrl);
-        if (!response.ok) {
-          throw new Error(`Failed to load ${loadUrl}`);
-        }
-        const content = await response.text();
-        onFileLoad(content);
-        return true;
+        fetch(loadUrl).then((response) => {
+          if (!response.ok) {
+            throw new Error(`Failed to load ${loadUrl}`);
+          }
+          return response.text();
+        }).then((content) => {
+          determineContent(content, host);
+        }).catch((error) => {
+          host.errorHandler(error, `Error loading file: ${loadUrl}`);
+        });
       } catch (error) {
-        onError(error, `Error loading file: ${loadUrl}`);
-        return true;
+        host.errorHandler(error, `Error loading file: ${loadUrl}`);
       }
+      return true;
     } else {
       return false;
     }
   }
-  function setupPostMessageHandling(onMarkdownReceived, onError) {
+  function setupPostMessageHandling(host) {
     window.addEventListener("message", (event) => {
       try {
         if (!event.data || typeof event.data !== "object") {
+          host.errorHandler(
+            new Error("Invalid message format"),
+            "Received message is not an object or is undefined."
+          );
           return;
         }
         const data = event.data;
-        if (data.markdown && typeof data.markdown === "string") {
-          onMarkdownReceived(data.markdown);
+        if (data.markdown) {
+          host.render(data.markdown, void 0);
+        } else if (data.interactiveDocument) {
+          host.render(void 0, data.interactiveDocument);
+        } else {
         }
       } catch (error) {
-        onError == null ? void 0 : onError(
+        host.errorHandler(
           error,
           "Error processing postMessage event"
         );
@@ -1759,92 +2236,123 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       target.postMessage(messageWithTimestamp, "*");
     }
   }
-  const options = {
-    clipboard: true,
-    dragDrop: true,
-    fileUpload: true,
-    postMessage: true,
-    postMessageTarget: window.opener || window.parent || window,
-    url: true
-  };
-  let loadingDiv;
-  let helpDiv;
-  let appDiv;
-  let uploadBtn;
-  let fileInput;
+  function getElement(elementOrSelector) {
+    if (typeof elementOrSelector === "string") {
+      return document.querySelector(elementOrSelector);
+    }
+    return elementOrSelector;
+  }
   function show(element, shown) {
     if (!element) {
       return;
     }
     element.style.display = shown ? "" : "none";
   }
-  const errorHandler = (error, details) => {
-    show(loadingDiv, false);
-    appDiv.innerHTML = `<div style="color: red; padding: 20px;">
+  const defaultOptions = {
+    clipboard: true,
+    dragDrop: true,
+    fileUpload: true,
+    postMessage: true,
+    postMessageTarget: window.opener || window.parent || window,
+    url: true,
+    urlParamName: "load"
+  };
+  class Host {
+    constructor(options) {
+      __publicField(this, "options");
+      __publicField(this, "appDiv");
+      __publicField(this, "loadingDiv");
+      __publicField(this, "helpDiv");
+      __publicField(this, "uploadButton");
+      __publicField(this, "fileInput");
+      __publicField(this, "renderer");
+      __publicField(this, "removeInteractionHandlers");
+      this.options = { ...defaultOptions, ...options.options };
+      this.removeInteractionHandlers = [];
+      this.appDiv = getElement(options.app);
+      this.loadingDiv = getElement(options.loading);
+      this.helpDiv = getElement(options.help);
+      this.uploadButton = getElement(options.uploadButton);
+      this.fileInput = getElement(options.fileInput);
+      if (!this.appDiv) {
+        throw new Error("App container not found");
+      }
+      show(this.loadingDiv, true);
+      show(this.helpDiv, false);
+      this.renderer = new Renderer(this.appDiv, {});
+      if (this.options.clipboard) {
+        this.removeInteractionHandlers.push(setupClipboardHandling(this));
+      }
+      if (this.options.dragDrop) {
+        this.removeInteractionHandlers.push(setupDragDropHandling(this));
+      }
+      if (this.options.fileUpload) {
+        setupFileUpload(this);
+      }
+      if (this.options.postMessage) {
+        setupPostMessageHandling(this);
+      }
+      if (!this.options.url || this.options.url && !checkUrlForFile(this)) {
+        show(this.loadingDiv, false);
+        show(this.helpDiv, true);
+        postStatus(this.options.postMessageTarget, { status: "ready" });
+      }
+    }
+    errorHandler(error, details) {
+      show(this.loadingDiv, false);
+      this.appDiv.innerHTML = `<div style="color: red; padding: 20px;">
     <strong>Error:</strong> ${error.message}<br>
       ${details}
     </div>`;
-  };
-  let renderer = void 0;
-  function renderMarkdown(content) {
-    show(loadingDiv, false);
-    show(helpDiv, false);
-    if (!renderer) {
-      errorHandler(new Error("Renderer not initialized"), "Please wait for the application to load.");
-      return;
     }
-    try {
-      postStatus(options.postMessageTarget, { status: "rendering", details: "Starting markdown rendering" });
-      renderer.destroy();
-      renderer.render(
-        content,
-        (error, pluginName, instanceIndex, phase, container, detail) => {
-          const msg = `<strong>Error in ${pluginName}:</strong> ${error.message}<br>
+    render(markdown, interactiveDocument) {
+      if (interactiveDocument) {
+        this.renderInteractiveDocument(interactiveDocument);
+      } else if (markdown) {
+        this.renderMarkdown(markdown);
+      } else {
+        this.errorHandler(new Error("No content provided"), "Please provide either markdown or an interactive document to render.");
+      }
+      this.removeInteractionHandlers.forEach((removeHandler) => removeHandler());
+      this.removeInteractionHandlers = [];
+    }
+    renderInteractiveDocument(content) {
+      postStatus(this.options.postMessageTarget, { status: "compiling", details: "Starting interactive document compilation" });
+      const markdown = compileToMarkdown(content);
+      this.renderMarkdown(markdown);
+    }
+    renderMarkdown(content) {
+      show(this.loadingDiv, false);
+      show(this.helpDiv, false);
+      if (!this.renderer) {
+        this.errorHandler(new Error("Renderer not initialized"), "Please wait for the application to load.");
+        return;
+      }
+      try {
+        postStatus(this.options.postMessageTarget, { status: "rendering", details: "Starting markdown rendering" });
+        this.renderer.destroy();
+        this.renderer.render(
+          content,
+          (error, pluginName, instanceIndex, phase, container, detail) => {
+            const msg = `<strong>Error in ${pluginName}:</strong> ${error.message}<br>
           <strong>Instance:</strong> ${instanceIndex}<br>
           <strong>Phase:</strong> ${phase}<br>
           <strong>Container:</strong> ${container.tagName}<br>
           ${detail ? `<strong>Detail:</strong> ${detail}` : ""}`;
-          errorHandler(error, msg);
-          postStatus(options.postMessageTarget, { status: "error", details: `Rendering error in ${pluginName}: ${error.message}` });
-        }
-      );
-      postStatus(options.postMessageTarget, { status: "rendered", details: "Markdown rendering completed successfully" });
-    } catch (error) {
-      errorHandler(
-        error,
-        "Error rendering markdown content"
-      );
-      postStatus(options.postMessageTarget, { status: "error", details: `Rendering failed: ${error.message}` });
+            this.errorHandler(error, msg);
+            postStatus(this.options.postMessageTarget, { status: "error", details: `Rendering error in ${pluginName}: ${error.message}` });
+          }
+        );
+        postStatus(this.options.postMessageTarget, { status: "rendered", details: "Markdown rendering completed successfully" });
+      } catch (error) {
+        this.errorHandler(
+          error,
+          "Error rendering markdown content"
+        );
+        postStatus(this.options.postMessageTarget, { status: "error", details: `Rendering failed: ${error.message}` });
+      }
     }
   }
-  window.addEventListener("DOMContentLoaded", async () => {
-    loadingDiv = document.getElementById("loading");
-    helpDiv = document.getElementById("help");
-    appDiv = document.getElementById("app");
-    uploadBtn = document.getElementById("upload-btn");
-    fileInput = document.getElementById("file-input");
-    show(loadingDiv, true);
-    show(helpDiv, false);
-    renderer = new Renderer(appDiv, {});
-    if (options.clipboard) {
-      setupClipboardHandling(renderMarkdown);
-    }
-    if (options.dragDrop) {
-      setupDragDropHandling(renderMarkdown, errorHandler);
-    }
-    if (options.fileUpload) {
-      setupFileUpload(uploadBtn, fileInput, renderMarkdown);
-    }
-    if (options.postMessage) {
-      setupPostMessageHandling(renderMarkdown, errorHandler);
-    }
-    if (!options.url || options.url && !await checkUrlForFile(renderMarkdown, errorHandler)) {
-      show(loadingDiv, false);
-      show(helpDiv, true);
-      postStatus(options.postMessageTarget, { status: "ready" });
-    }
-  });
-  exports2.options = options;
-  exports2.renderMarkdown = renderMarkdown;
+  exports2.Host = Host;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });
