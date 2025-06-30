@@ -102,7 +102,7 @@ export interface TableElement extends ElementBase {
   type: 'table';
   dataSourceName: string;
   /** Tabulator options (must be serializable, so no callbacks allowed) */
-  options: object;
+  options?: object;
 
   /**
    * Example table options
