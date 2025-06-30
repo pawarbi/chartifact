@@ -56,25 +56,36 @@ export class PreviewManager {
 	private handleWebviewMessage(message: any, fileUri: vscode.Uri, uriFsPath: string) {
 		switch (message.status) {
 			case 'ready': {
-				vscode.workspace.fs.readFile(fileUri).then(uint8array => {
-
-					// If the file is a markdown file, we can send the markdown content
-					if (uriFsPath.endsWith('.idoc.md')) {
-						const markdown = new TextDecoder().decode(uint8array);
-						this.renderMarkdown(markdown);
-					}
-
-				});
+				this.getFileContentAndRender(fileUri, uriFsPath);
 				break;
 			}
 		}
 	}
 
-	public renderMarkdown(markdown: string) {
+	private getFileContentAndRender(fileUri: vscode.Uri, uriFsPath: string) {
+		vscode.workspace.fs.readFile(fileUri).then(uint8array => {
+
+			// If the file is a markdown file, we can send the markdown content
+			if (uriFsPath.endsWith('.idoc.md')) {
+				const markdown = new TextDecoder().decode(uint8array);
+				this.render({ markdown });
+			} else if (uriFsPath.endsWith('.idoc.json')) {
+				// If the file is a JSON file, we can send the JSON content
+				const jsonContent = new TextDecoder().decode(uint8array);
+				try {
+					const interactiveDocument = JSON.parse(jsonContent);
+					this.render({ interactiveDocument });
+				} catch (error) {
+					vscode.window.showErrorMessage(`Failed to parse JSON: ${error}`);
+				}
+			}
+
+		});
+	}
+
+	public render(renderRequestMessage: RenderRequestMessage) {
 		if (this.current && this.current.panel.visible) {
-			const renderMessage: RenderRequestMessage = {};
-			renderMessage.markdown = markdown;
-			this.current.panel.webview.postMessage(renderMessage);
+			this.current.panel.webview.postMessage(renderRequestMessage);
 		}
 	}
 
@@ -123,10 +134,7 @@ export class PreviewManager {
 	 */
 	private refreshPreview(fileUri: vscode.Uri) {
 		if (this.current && this.current.panel.visible) {
-			vscode.workspace.fs.readFile(fileUri).then(uint8array => {
-				const markdown = new TextDecoder().decode(uint8array);
-				this.renderMarkdown(markdown);
-			});
+			this.getFileContentAndRender(fileUri, this.current.uriFsPath);
 		}
 	}
 }

@@ -20,7 +20,8 @@
       },
       {
         "command": "interactive-documents-vscode.previewIdoc",
-        "title": "Preview Interactive Document"
+        "title": "Preview Interactive Document",
+        "category": "Interactive Documents"
       },
       {
         "command": "interactive-documents-vscode.convertToHtml",
@@ -41,6 +42,11 @@
           "group": "interactive-documents"
         },
         {
+          "command": "interactive-documents-vscode.previewIdoc",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
+          "group": "interactive-documents"
+        },
+        {
           "command": "interactive-documents-vscode.convertToHtml",
           "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
           "group": "interactive-documents"
@@ -50,6 +56,11 @@
         {
           "command": "interactive-documents-vscode.previewIdoc",
           "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
+          "group": "interactive-documents"
+        },
+        {
+          "command": "interactive-documents-vscode.previewIdoc",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
           "group": "interactive-documents"
         },
         {
