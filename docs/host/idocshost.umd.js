@@ -1157,13 +1157,14 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         }
       }
       const instances = tabulatorInstances.map((tabulatorInstance, index) => {
+        var _a;
         const initialSignals = [{
           name: tabulatorInstance.spec.dataSignalName,
           value: null,
           priority: -1,
           isData: true
         }];
-        if (tabulatorInstance.spec.options.selectableRows) {
+        if ((_a = tabulatorInstance.spec.options) == null ? void 0 : _a.selectableRows) {
           initialSignals.push({
             name: `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`,
             value: [],
@@ -1190,7 +1191,8 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
             }
           },
           beginListening(sharedSignals) {
-            if (tabulatorInstance.spec.options.selectableRows) {
+            var _a2;
+            if ((_a2 = tabulatorInstance.spec.options) == null ? void 0 : _a2.selectableRows) {
               for (const { isData, signalName } of sharedSignals) {
                 if (isData) {
                   const matchData = signalName === `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`;
