@@ -1,5 +1,5 @@
 import { Renderer } from '@microsoft/interactive-document-renderer';
-import compiler from '@microsoft/interactive-document-compiler';
+import { targetMarkdown } from '@microsoft/interactive-document-compiler';
 import { setupClipboardHandling } from './clipboard.js';
 import { setupDragDropHandling } from './dragdrop.js';
 import { setupFileUpload } from './upload.js';
@@ -124,7 +124,7 @@ export class Host {
 
   private renderInteractiveDocument(content: InteractiveDocument) {
     postStatus(this.options.postMessageTarget, { status: 'compiling', details: 'Starting interactive document compilation' });
-    const markdown = compiler(content);
+    const markdown = targetMarkdown(content);
     this.renderMarkdown(markdown);
   }
 

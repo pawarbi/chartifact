@@ -111,8 +111,7 @@ export function gatherPageOrigins(page: InteractiveDocument<extendedElements>) {
     return Array.from(origins);
 }
 
-export function changePageOrigin(page: InteractiveDocument<extendedElements>, oldOrigin: string, newOrigin: string) {
-    const newOriginUrl = new URL(newOrigin, window.location.origin);
+export function changePageOrigin(page: InteractiveDocument<extendedElements>, oldOrigin: string, newOriginUrl: URL) {
     const newPage: InteractiveDocument<extendedElements> = {
         ...page,
         dataLoaders: page.dataLoaders.map(loader => {

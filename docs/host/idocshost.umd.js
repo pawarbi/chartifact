@@ -1963,13 +1963,6 @@ ${content}
     const markdown = mdElements.join("\n\n");
     return markdown;
   }
-  function compileToMarkdown(page) {
-    if (!page || typeof page !== "object" || !page.groups || !Array.isArray(page.groups)) {
-      throw new Error("Invalid page structure");
-    }
-    const markdownContent = targetMarkdown(page);
-    return markdownContent;
-  }
   function readFile(file, host) {
     if (file.name.endsWith(".idoc.json") || file.name.endsWith(".idoc.md")) {
       const reader = new FileReader();
@@ -2318,7 +2311,7 @@ ${content}
     }
     renderInteractiveDocument(content) {
       postStatus(this.options.postMessageTarget, { status: "compiling", details: "Starting interactive document compilation" });
-      const markdown = compileToMarkdown(content);
+      const markdown = targetMarkdown(content);
       this.renderMarkdown(markdown);
     }
     renderMarkdown(content) {
@@ -2354,5 +2347,6 @@ ${content}
     }
   }
   exports2.Host = Host;
+  exports2.Renderer = Renderer;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });
