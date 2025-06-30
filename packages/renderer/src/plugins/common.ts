@@ -1,1 +1,1 @@
-export const dataNameSelectedSuffix = '-selected';
+export const dataNameSelectedSuffix = '_selected';
