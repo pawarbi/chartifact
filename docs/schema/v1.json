@@ -600,6 +600,41 @@
           "additionalProperties": false,
           "properties": {
             "content": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "dataFrameTransformations": {
+              "items": {
+                "$ref": "#/definitions/Transforms"
+              },
+              "type": "array"
+            },
+            "dataSourceName": {
+              "$ref": "#/definitions/VariableID",
+              "description": "name of the data source, used to reference it in the UI, has same constraints as VariableID"
+            },
+            "format": {
+              "$ref": "#/definitions/DataSourceBaseFormat",
+              "description": "optional, default is 'json'"
+            },
+            "type": {
+              "const": "json",
+              "type": "string"
+            }
+          },
+          "required": [
+            "content",
+            "dataSourceName",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
               "type": "string"
             },
             "dataFrameTransformations": {

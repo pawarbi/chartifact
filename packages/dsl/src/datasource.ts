@@ -9,6 +9,12 @@ export interface ReturnType {
 
 /** Data source types */
 
+/** JSON data */
+export interface DataSourceByJSON extends DataSourceBase {
+  type: 'json';
+  content: object[];
+}
+
 /** User uploaded their own data file */
 export interface DataSourceByFile extends DataSourceBase {
   type: 'file';
@@ -27,7 +33,7 @@ export interface DataSourceByDynamicURL extends DataSourceBase {
 }
 
 /** Union type for DataSource */
-export type DataSource<T = {}> = (DataSourceByFile | DataSourceByDynamicURL) & T;
+export type DataSource<T = {}> = (DataSourceByJSON | DataSourceByFile | DataSourceByDynamicURL) & T;
 
 /** LLM Should not use this type */
 export interface DataLoaderBySpec {
