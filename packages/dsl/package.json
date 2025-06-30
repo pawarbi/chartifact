@@ -5,10 +5,11 @@
   "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
+    "schema": "ts-json-schema-generator --path src/schema.ts --type InteractiveDocumentWithSchema --out dist/idoc.schema.json",
     "declaration": "rollup -c rollup.config.types.js",
-    "strip-blanks": "node -e \"const fs=require('fs');const p='dist/index.d.ts';const t=fs.readFileSync(p,'utf8').split(/\\r?\\n/).filter(l=>l.trim()).join('\\n');fs.writeFileSync(p,t);\"",
+    "strip-blanks": "node -e \"const fs=require('fs');const p='dist/idoc.d.ts';const t=fs.readFileSync(p,'utf8').split(/\\r?\\n/).filter(l=>l.trim()).join('\\n');fs.writeFileSync(p,t);\"",
     "tsc": "tsc -p .",
-    "build": "npm run tsc && npm run declaration && npm run strip-blanks",
+    "build": "npm run tsc && npm run declaration && npm run strip-blanks && npm run schema",
     "build:01": "npm run build"
   },
   "author": "Dan Marshall",
