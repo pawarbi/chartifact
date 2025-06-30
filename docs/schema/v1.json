@@ -1716,9 +1716,6 @@
           "$ref": "#/definitions/Layout",
           "description": "Assistant should not populate these during the initial create phase."
         },
-        "theme": {
-          "type": "string"
-        },
         "title": {
           "type": "string"
         },
@@ -1732,7 +1729,6 @@
       "required": [
         "dataLoaders",
         "groups",
-        "theme",
         "title",
         "variables"
       ],
