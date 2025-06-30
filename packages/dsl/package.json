@@ -2,7 +2,7 @@
   "name": "dsl",
   "version": "1.0.0",
   "main": "index.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/idoc.d.ts",
   "type": "module",
   "scripts": {
     "schema": "ts-json-schema-generator --path src/schema.ts --type InteractiveDocumentWithSchema --out dist/idoc.schema.json",
