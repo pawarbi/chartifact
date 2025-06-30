@@ -6,10 +6,11 @@
   "type": "module",
   "scripts": {
     "schema": "ts-json-schema-generator --path src/schema.ts --type InteractiveDocumentWithSchema --out dist/idoc.schema.json",
+    "copy-schema": "node -e \"const fs=require('fs');const path=require('path');fs.mkdirSync('../../docs/schema',{recursive:true});fs.copyFileSync('dist/idoc.schema.json','../../docs/schema/v1.json');\"",
     "declaration": "rollup -c rollup.config.types.js",
     "strip-blanks": "node -e \"const fs=require('fs');const p='dist/idoc.d.ts';const t=fs.readFileSync(p,'utf8').split(/\\r?\\n/).filter(l=>l.trim()).join('\\n');fs.writeFileSync(p,t);\"",
     "tsc": "tsc -p .",
-    "build": "npm run tsc && npm run declaration && npm run strip-blanks && npm run schema",
+    "build": "npm run tsc && npm run declaration && npm run strip-blanks && npm run schema && npm run copy-schema",
     "build:01": "npm run build"
   },
   "author": "Dan Marshall",
