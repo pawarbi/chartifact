@@ -85,7 +85,7 @@ export const tabulatorPlugin: Plugin = {
                 ...tabulatorInstance,
                 initialSignals,
                 recieveBatch: async (batch) => {
-                    const newData = batch[tabulatorInstance.spec.dataSignalName].value as object[];
+                    const newData = batch[tabulatorInstance.spec.dataSignalName]?.value as object[];
                     if (newData) {
                         //make sure tabulator is ready before setting data
                         if (!tabulatorInstance.built) {
