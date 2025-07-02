@@ -53,7 +53,7 @@ export class Host {
   public helpDiv: HTMLElement;
   public uploadButton: HTMLElement;
   public fileInput: HTMLElement;
-  public renderer: Renderer;
+  public renderer: markdown.Renderer;
 
   private removeInteractionHandlers: (() => void)[];
 
@@ -75,7 +75,7 @@ export class Host {
     show(this.helpDiv, false);
 
     // Initialize renderer
-    this.renderer = new Renderer(this.appDiv, {});
+    this.renderer = new markdown.Renderer(this.appDiv, {});
 
     // Setup clipboard, drag-drop, upload, and postMessage handling based on options
     if (this.options.clipboard) {

@@ -615,7 +615,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     hydrateComponent: async (renderer, errorHandler) => {
       const dropdownInstances = [];
       const containers = renderer.element.querySelectorAll(".dropdown");
-      for (const [index, container] of Array.from(containers).entries()) {
+      for (const [index2, container] of Array.from(containers).entries()) {
         if (!container.textContent)
           continue;
         try {
@@ -636,11 +636,11 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           dropdownInstances.push(dropdownInstance);
         } catch (e) {
           container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler(e, "Dropdown", index, "parse", container);
+          errorHandler(e, "Dropdown", index2, "parse", container);
           continue;
         }
       }
-      const instances = dropdownInstances.map((dropdownInstance, index) => {
+      const instances = dropdownInstances.map((dropdownInstance, index2) => {
         const { element, spec } = dropdownInstance;
         const initialSignals = [{
           name: spec.name,
@@ -772,7 +772,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     hydrateComponent: async (renderer, errorHandler) => {
       const imageInstances = [];
       const containers = renderer.element.querySelectorAll(".image");
-      for (const [index, container] of Array.from(containers).entries()) {
+      for (const [index2, container] of Array.from(containers).entries()) {
         if (!container.textContent)
           continue;
         try {
@@ -798,7 +798,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           element.onerror = () => {
             spinner.style.display = "none";
             element.style.opacity = ImageOpacity.error;
-            errorHandler(new Error("Image failed to load"), "image", index, "load", container, element.src);
+            errorHandler(new Error("Image failed to load"), "image", index2, "load", container, element.src);
           };
           container.style.position = "relative";
           spinner.style.position = "absolute";
@@ -809,10 +809,10 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           imageInstances.push(imageInstance);
         } catch (e) {
           container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler(e, "Image", index, "parse", container);
+          errorHandler(e, "Image", index2, "parse", container);
         }
       }
-      const instances = imageInstances.map((imageInstance, index) => {
+      const instances = imageInstances.map((imageInstance, index2) => {
         const { element, spinner, id, spec } = imageInstance;
         return {
           id,
@@ -1027,16 +1027,16 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     hydrateComponent: async (renderer, errorHandler) => {
       const presetsInstances = [];
       const containers = renderer.element.querySelectorAll(".presets");
-      for (const [index, container] of Array.from(containers).entries()) {
+      for (const [index2, container] of Array.from(containers).entries()) {
         if (!container.textContent)
           continue;
-        const id = `presets${index}`;
+        const id = `presets${index2}`;
         let presets;
         try {
           presets = JSON.parse(container.textContent);
         } catch (e) {
           container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler(e, "presets", index, "parse", container);
+          errorHandler(e, "presets", index2, "parse", container);
           continue;
         }
         if (!Array.isArray(presets)) {
@@ -1074,7 +1074,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         }
         presetsInstances.push(presetsInstance);
       }
-      const instances = presetsInstances.map((presetsInstance, index) => {
+      const instances = presetsInstances.map((presetsInstance, index2) => {
         const initialSignals = presetsInstance.presets.flatMap((preset) => {
           return Object.keys(preset.state).map((signalName) => {
             return {
@@ -1120,6 +1120,10 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     }
   }
   const dataNameSelectedSuffix = "_selected";
+  const common = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+    __proto__: null,
+    dataNameSelectedSuffix
+  }, Symbol.toStringTag, { value: "Module" }));
   /*!
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
@@ -1134,11 +1138,11 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     hydrateComponent: async (renderer, errorHandler) => {
       const tabulatorInstances = [];
       const containers = renderer.element.querySelectorAll(".tabulator");
-      for (const [index, container] of Array.from(containers).entries()) {
+      for (const [index2, container] of Array.from(containers).entries()) {
         if (!container.textContent)
           continue;
         if (!Tabulator) {
-          errorHandler(new Error("Tabulator not found"), "tabulator", index, "init", container);
+          errorHandler(new Error("Tabulator not found"), "tabulator", index2, "init", container);
           continue;
         }
         try {
@@ -1160,11 +1164,11 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           tabulatorInstances.push(tabulatorInstance);
         } catch (e) {
           container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler(e, "tabulator", index, "parse", container);
+          errorHandler(e, "tabulator", index2, "parse", container);
           continue;
         }
       }
-      const instances = tabulatorInstances.map((tabulatorInstance, index) => {
+      const instances = tabulatorInstances.map((tabulatorInstance, index2) => {
         var _a;
         const initialSignals = [{
           name: tabulatorInstance.spec.dataSignalName,
@@ -1315,8 +1319,8 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       const vegaInstances = [];
       const containers = renderer.element.querySelectorAll(".vega-chart");
       const specInits = [];
-      for (const [index, container] of Array.from(containers).entries()) {
-        const specInit = await createSpecInit(container, index, renderer, errorHandler);
+      for (const [index2, container] of Array.from(containers).entries()) {
+        const specInit = await createSpecInit(container, index2, renderer, errorHandler);
         if (specInit) {
           specInits.push(specInit);
         }
@@ -1487,7 +1491,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     }
     return hasAnyChange;
   }
-  async function createSpecInit(container, index, renderer, errorHandler) {
+  async function createSpecInit(container, index2, renderer, errorHandler) {
     var _a;
     if (!container.textContent) {
       container.innerHTML = '<div class="error">Expected a spec object or a url</div>';
@@ -1498,12 +1502,12 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       result = await resolveSpec(container.textContent);
     } catch (e) {
       container.innerHTML = `<div class="error">${e.toString()}</div>`;
-      errorHandler(e, "vega", index, "resolve", container);
+      errorHandler(e, "vega", index2, "resolve", container);
       return;
     }
     if (result.error) {
       container.innerHTML = `<div class="error">${result.error.toString()}</div>`;
-      errorHandler(result.error, "vega", index, "resolve", container);
+      errorHandler(result.error, "vega", index2, "resolve", container);
       return;
     }
     if (!result.spec) {
@@ -1525,19 +1529,19 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         isData
       };
     }).filter(Boolean)) || [];
-    const specInit = { container, index, initialSignals, spec };
+    const specInit = { container, index: index2, initialSignals, spec };
     return specInit;
   }
   async function createVegaInstance(specInit, renderer, errorHandler) {
-    const { container, index, initialSignals, spec } = specInit;
-    const id = `vega-${index}`;
+    const { container, index: index2, initialSignals, spec } = specInit;
+    const id = `vega-${index2}`;
     let runtime;
     let view;
     try {
       runtime = vega.parse(spec);
     } catch (e) {
       container.innerHTML = `<div class="error">${e.toString()}</div>`;
-      errorHandler(e, "vega", index, "parse", container);
+      errorHandler(e, "vega", index2, "parse", container);
       return;
     }
     try {
@@ -1545,7 +1549,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         container,
         renderer: renderer.options.vegaRenderer,
         logger: new VegaLogger((error) => {
-          errorHandler(error, "vega", index, "view", container);
+          errorHandler(error, "vega", index2, "view", container);
         })
       });
       view.run();
@@ -1560,7 +1564,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       }
     } catch (e) {
       container.innerHTML = `<div class="error">${e.toString()}</div>`;
-      errorHandler(e, "vega", index, "view", container);
+      errorHandler(e, "vega", index2, "view", container);
       return;
     }
     const dataSignals = initialSignals.filter((signal) => {
@@ -1644,11 +1648,25 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     registerMarkdownPlugin(vegaLitePlugin);
     registerMarkdownPlugin(vegaPlugin);
   }
+  const interfaces = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+    __proto__: null
+  }, Symbol.toStringTag, { value: "Module" }));
   /*!
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
   registerNativePlugins();
+  const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+    __proto__: null,
+    Plugins: interfaces,
+    Renderer,
+    bindTextarea,
+    common,
+    definePlugin,
+    plugins,
+    registerMarkdownPlugin,
+    sanitizedHTML
+  }, Symbol.toStringTag, { value: "Module" }));
   function safeVariableName(name) {
     return name.replace(/[^a-zA-Z0-9_]/g, "_");
   }
@@ -2341,11 +2359,11 @@ ${content}
       ${details}
     </div>`;
     }
-    render(markdown, interactiveDocument) {
+    render(markdown2, interactiveDocument) {
       if (interactiveDocument) {
         this.renderInteractiveDocument(interactiveDocument);
-      } else if (markdown) {
-        this.renderMarkdown(markdown);
+      } else if (markdown2) {
+        this.renderMarkdown(markdown2);
       } else {
         this.errorHandler(new Error("No content provided"), "Please provide either markdown or an interactive document to render.");
       }
@@ -2354,8 +2372,8 @@ ${content}
     }
     renderInteractiveDocument(content) {
       postStatus(this.options.postMessageTarget, { status: "compiling", details: "Starting interactive document compilation" });
-      const markdown = targetMarkdown(content);
-      this.renderMarkdown(markdown);
+      const markdown2 = targetMarkdown(content);
+      this.renderMarkdown(markdown2);
     }
     renderMarkdown(content) {
       show(this.loadingDiv, false);
@@ -2390,7 +2408,6 @@ ${content}
     }
   }
   exports2.Host = Host;
-  exports2.Renderer = Renderer;
-  exports2.bindTextarea = bindTextarea;
+  exports2.markdown = index;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });
