@@ -40,6 +40,18 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(convertToHtmlDisposable);
 
+	// Register the convert to Markdown command for .idoc.json files
+	const convertToMarkdownDisposable = vscode.commands.registerCommand('interactive-documents-vscode.convertToMarkdown', async (fileUri: vscode.Uri) => {
+		try {
+			const { convertToMarkdown } = await import('./command-convert-md.mjs');
+			await convertToMarkdown(fileUri);
+		} catch (error) {
+			vscode.window.showErrorMessage(`Failed to convert to Markdown: ${error}`);
+		}
+	});
+
+	context.subscriptions.push(convertToMarkdownDisposable);
+
 	// Ensure preview manager is disposed when extension deactivates
 	context.subscriptions.push({
 		dispose: () => previewManager.dispose()
