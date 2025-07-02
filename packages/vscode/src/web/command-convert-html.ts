@@ -39,40 +39,15 @@ export async function convertToHtml(fileUri: vscode.Uri) {
 }
 
 function htmlMarkdownWrapper(markdown: string, fileUri: vscode.Uri) {
-	return `<!DOCTYPE html>
-<html lang="en">
+	const template = getResource('template.html');
+	const rendererScript = getResource('idocs.renderer.umd.js');
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${escapeHtml(getFileNameWithoutExtension(fileUri))}</title>
-    <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+	const result = template
+		.replace('{{TITLE}}', () => escapeHtml(getFileNameWithoutExtension(fileUri)))
+		.replace('{{RENDERER_SCRIPT}}', () => `<script>\n${rendererScript}\n</script>`)
+		.replace('{{MARKDOWN_CONTENT}}', () => escapeTextareaContent(markdown));
 
-    <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
-    <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
-
-    <!-- TODO: use CDN version -->
-    <script>
-${getResource('idocs.renderer.umd.js')}
-    </script>
-
-</head>
-
-<body>
-
-    <textarea id="markdown-input" style="display:none;min-height:300px;width:100%;" placeholder="Type your Interactive Document markdown here...">${escapeTextareaContent(markdown)}</textarea>
-
-    <div id="content"></div>
-
-    <script>
-        IDocs.bindTextarea(document.getElementById('markdown-input'), document.getElementById('content'));
-    </script>
-
-</body>
-
-</html>`;
+	return result;
 }
 
 function getFileNameWithoutExtension(fileUri: any): any {

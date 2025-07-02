@@ -4,9 +4,9 @@ import { PreviewManager } from './command-preview';
 import { convertToHtml } from './command-convert-html';
 import { initializeResources } from './resources';
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
 	// Initialize all resource contents eagerly
-	initializeResources(context);
+	await initializeResources(context);
 
 	// Create preview manager
 	const previewManager = new PreviewManager(context);
