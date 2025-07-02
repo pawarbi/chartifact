@@ -4,13 +4,13 @@ import commonjs from '@rollup/plugin-commonjs';
 
 const commonOutputConfig = {
   format: 'umd',
-  name: 'IDocsHost',
+  name: 'IDocs',
   globals: {
     'markdown-it': 'markdownit',
     'vega': 'vega',
     'vega-lite': 'vegaLite',
   },
-  entryFileNames: 'idocshost.umd.js',
+  entryFileNames: 'idocs.host.umd.js',
 };
 
 export default defineConfig({
@@ -26,11 +26,11 @@ export default defineConfig({
       output: [
         {
           ...commonOutputConfig,
-          dir: '../../docs/host',
+          dir: './dist/umd',
         },
         {
           ...commonOutputConfig,
-          dir: '../vscode/resources',
+          dir: '../../docs/host',
         },
       ],
       plugins: [

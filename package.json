@@ -3,7 +3,8 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "build": "npm run build:01 --workspaces --if-present && npm run build:02 --workspaces --if-present && npm run build:03 --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present",
+    "build": "npm run build:01 --workspaces --if-present && npm run build:02 --workspaces --if-present && npm run build:03 --workspaces --if-present && npm run build:04 --workspaces --if-present",
     "start": "npm run dev -w @microsoft/interactive-document-host"
   },
   "repository": {

@@ -5,6 +5,7 @@
   "types": "dist/idoc.d.ts",
   "type": "module",
   "scripts": {
+    "clean": "rimraf dist",
     "schema": "ts-json-schema-generator --path src/schema.ts --type InteractiveDocumentWithSchema --out dist/idoc.schema.json",
     "copy-schema": "node scripts/copy-schema.js",
     "declaration": "rollup -c rollup.config.types.js",

@@ -17,6 +17,7 @@
     "dist"
   ],
   "scripts": {
+    "clean": "rimraf dist",
     "dev": "vite",
     "build-typescript": "tsc -p .",
     "bundle": "vite build --config vite.bundle.config.js",

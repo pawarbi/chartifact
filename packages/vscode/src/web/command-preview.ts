@@ -175,11 +175,11 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 
 	<div id="app"></div>
 
-    ${script(resourceUrl('idocshost.umd.js'))}
+    ${script(resourceUrl('idocs.host.umd.js'))}
 
     <script>
 		const options = { ...${JSON.stringify(hostOptions)}, ...{ postMessageTarget: acquireVsCodeApi() } };
-		const host = new IDocsHost.Host({
+		const host = new IDocs.Host({
 			app: '#app',
 			loading: '#loading',
 			options,

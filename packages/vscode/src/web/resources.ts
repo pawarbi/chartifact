@@ -6,7 +6,7 @@ const cachedResources: Record<string, string> = {};
 // Initialize resource contents (call this during extension activation)
 export const initializeResources = async (context: vscode.ExtensionContext): Promise<void> => {
   const resourcesToLoad = [
-    'idocs.umd.js',
+    'idocs.renderer.umd.js',
   ];
 
   for (const resourceName of resourcesToLoad) {

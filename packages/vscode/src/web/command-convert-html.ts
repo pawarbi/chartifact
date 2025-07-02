@@ -71,7 +71,7 @@ function htmlMarkdownWrapper(markdown: string, fileUri: vscode.Uri) {
 
     <!-- TODO: use CDN version -->
     <script>
-${getResource('idocs.umd.js')}
+${getResource('idocs.renderer.umd.js')}
     </script>
 
 </head>

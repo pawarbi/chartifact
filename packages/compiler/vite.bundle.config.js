@@ -10,7 +10,7 @@ const commonOutputConfig = {
     'vega': 'vega',
     'vega-lite': 'vegaLite',
   },
-  entryFileNames: 'idocs.umd.js',
+  entryFileNames: 'idocs.compiler.umd.js',
 };
 
 export default defineConfig({

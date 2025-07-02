@@ -10,7 +10,7 @@ const commonOutputConfig = {
     'vega': 'vega',
     'vega-lite': 'vegaLite',
   },
-  entryFileNames: 'idocs.umd.js',
+  entryFileNames: 'idocs.renderer.umd.js',
 };
 
 export default defineConfig({
@@ -26,10 +26,6 @@ export default defineConfig({
         {
           ...commonOutputConfig,
           dir: './dist/umd',
-        },
-        {
-          ...commonOutputConfig,
-          dir: '../vscode/resources',
         },
       ],
       plugins: [
