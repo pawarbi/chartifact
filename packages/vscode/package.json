@@ -14,7 +14,12 @@
   "contributes": {
     "commands": [
       {
-        "command": "interactive-documents-vscode.newIdoc",
+        "command": "interactive-documents-vscode.newIdocJson",
+        "title": "New Interactive Document (json)",
+        "category": "Interactive Documents"
+      },
+      {
+        "command": "interactive-documents-vscode.newIdocMarkdown",
         "title": "New Interactive Document (markdown)",
         "category": "Interactive Documents"
       },
@@ -37,7 +42,12 @@
     "menus": {
       "explorer/context": [
         {
-          "command": "interactive-documents-vscode.newIdoc",
+          "command": "interactive-documents-vscode.newIdocJson",
+          "when": "explorerResourceIsFolder",
+          "group": "interactive-documents"
+        },
+        {
+          "command": "interactive-documents-vscode.newIdocMarkdown",
           "when": "explorerResourceIsFolder",
           "group": "interactive-documents"
         },

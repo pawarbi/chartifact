@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { createNewIdoc } from './command-new';
+import { createNewDocument } from './command-new';
 import { PreviewManager } from './command-preview';
 import { convertToHtml } from './command-convert-html';
 import { initializeResources } from './resources';
@@ -12,15 +12,26 @@ export function activate(context: vscode.ExtensionContext) {
 	const previewManager = new PreviewManager(context);
 
 	// Register the new Interactive Document command
-	const newDocumentDisposable = vscode.commands.registerCommand('interactive-documents-vscode.newIdoc', async (uri?: vscode.Uri) => {
+	const newDocumentDisposable = vscode.commands.registerCommand('interactive-documents-vscode.newIdocMarkdown', async (uri?: vscode.Uri) => {
 		try {
-			await createNewIdoc(uri);
+			await createNewDocument(uri, 'markdown');
 		} catch (error) {
-			vscode.window.showErrorMessage(`Failed to create Interactive Document: ${error}`);
+			vscode.window.showErrorMessage(`Failed to create Interactive Document (Markdown): ${error}`);
 		}
 	});
 
 	context.subscriptions.push(newDocumentDisposable);
+
+	// Register the new Interactive Document (JSON) command
+	const newJsonDocumentDisposable = vscode.commands.registerCommand('interactive-documents-vscode.newIdocJson', async (uri?: vscode.Uri) => {
+		try {
+			await createNewDocument(uri, 'json');
+		} catch (error) {
+			vscode.window.showErrorMessage(`Failed to create Interactive Document (JSON): ${error}`);
+		}
+	});
+
+	context.subscriptions.push(newJsonDocumentDisposable);
 
 	// Register the preview command for .idoc.md files
 	const previewDisposable = vscode.commands.registerCommand('interactive-documents-vscode.previewIdoc', (fileUri: vscode.Uri) => {
