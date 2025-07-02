@@ -1,4 +1,4 @@
-import { bindTextarea, Renderer } from '@microsoft/interactive-document-renderer';
+import * as markdown from '@microsoft/interactive-document-markdown';
 import { targetMarkdown } from '@microsoft/interactive-document-compiler';
 import { setupClipboardHandling } from './clipboard.js';
 import { setupDragDropHandling } from './dragdrop.js';
@@ -9,7 +9,7 @@ import { InteractiveDocument } from 'dsl';
 import { postStatus } from './post-send.js';
 import { ListenOptions } from './types.js';
 
-export { bindTextarea, Renderer };
+export { markdown };
 
 export type * from './types.js';
 

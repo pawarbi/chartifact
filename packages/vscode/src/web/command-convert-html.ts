@@ -40,7 +40,7 @@ export async function convertToHtml(fileUri: vscode.Uri) {
 
 function htmlMarkdownWrapper(markdown: string, fileUri: vscode.Uri) {
 	const template = getResource('template.html');
-	const rendererScript = getResource('idocs.renderer.umd.js');
+	const rendererScript = getResource('idocs.markdown.umd.js');
 
 	const result = template
 		.replace('{{TITLE}}', () => escapeHtml(getFileNameWithoutExtension(fileUri)))

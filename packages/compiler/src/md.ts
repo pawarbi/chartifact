@@ -3,7 +3,7 @@ import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
 import { ChartFull, DataSource, ElementGroup, extendedElements, InteractiveDocument, Variable } from 'dsl';
 import { getChartType } from './util.js';
 import { addDynamicDataLoaderToSpec, addStaticDataLoaderToSpec, createSpecWithVariables, VegaScope } from './loader.js';
-import { common, Plugins } from '@microsoft/interactive-document-renderer';
+import { common, Plugins } from '@microsoft/interactive-document-markdown';
 
 function mdWrap(type: string, content: string) {
     return `\`\`\`json ${type}\n${content}\n\`\`\``;

@@ -97,7 +97,6 @@
     }
   },
   "scripts": {
-    "postinstall": "npm run resources",
     "resources": "node ./scripts/resources.mjs",
     "clean": "rimraf resources dist",
     "test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/extensionTests.js",

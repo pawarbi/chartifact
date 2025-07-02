@@ -4,13 +4,13 @@ import commonjs from '@rollup/plugin-commonjs';
 
 const commonOutputConfig = {
   format: 'umd',
-  name: 'IDocs',
+  name: 'IDocs.markdown',
   globals: {
     'markdown-it': 'markdownit',
     'vega': 'vega',
     'vega-lite': 'vegaLite',
   },
-  entryFileNames: 'idocs.renderer.umd.js',
+  entryFileNames: 'idocs.markdown.umd.js',
 };
 
 export default defineConfig({

@@ -2,7 +2,7 @@ import { Spec as VegaSpec } from 'vega-typings';
 import { DataSourceByDynamicURL, DataLoader, MappedNameValuePairs, UrlRef, Variable, DataSourceByFile, DataSourceByJSON } from 'dsl';
 import { NewSignal, Signal, SignalRef, SourceData, ValuesData } from 'vega';
 import { safeVariableName } from './util.js';
-import { common } from '@microsoft/interactive-document-renderer';
+import { common } from '@microsoft/interactive-document-markdown';
 
 export class VegaScope {
     private urlCount = 0;

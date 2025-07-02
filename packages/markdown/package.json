@@ -1,5 +1,5 @@
 {
-  "name": "@microsoft/interactive-document-renderer",
+  "name": "@microsoft/interactive-document-markdown",
   "type": "module",
   "private": true,
   "version": "1.0.0",
