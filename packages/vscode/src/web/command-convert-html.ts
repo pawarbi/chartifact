@@ -12,7 +12,7 @@ export async function convertToHtml(fileUri: vscode.Uri) {
 		const markdownText = new TextDecoder().decode(markdownContent);
 
 		// Wrap the markdown content in HTML
-		const htmlContent = htmlMarkdownWrapper(markdownText);
+		const htmlContent = htmlMarkdownWrapper(markdownText, fileUri);
 
 		// Generate the output filename with conflict resolution
 		const originalPath = fileUri.path;
@@ -54,14 +54,14 @@ export async function convertToHtml(fileUri: vscode.Uri) {
 	}
 }
 
-function htmlMarkdownWrapper(markdown: string) {
+function htmlMarkdownWrapper(markdown: string, fileUri: vscode.Uri) {
 	return `<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mdv test</title>
+    <title>${escapeHtml(getFileNameWithoutExtension(fileUri))}</title>
     <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
 
     <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
@@ -78,7 +78,7 @@ ${getResource('idocs.umd.js')}
 
 <body>
 
-    <textarea id="markdown-input" style="display:none;min-height:300px;width:100%;">${escapeTextareaContent(markdown)}</textarea>
+    <textarea id="markdown-input" style="display:none;min-height:300px;width:100%;" placeholder="Type your Interactive Document markdown here...">${escapeTextareaContent(markdown)}</textarea>
 
     <div id="content"></div>
 
@@ -89,4 +89,27 @@ ${getResource('idocs.umd.js')}
 </body>
 
 </html>`;
+}
+
+function getFileNameWithoutExtension(fileUri: any): any {
+	const path = fileUri.path;
+	const lastSlashIndex = path.lastIndexOf('/');
+	const lastDotIndex = path.lastIndexOf('.');
+	if (lastDotIndex > lastSlashIndex) {
+		return path.substring(lastSlashIndex + 1, lastDotIndex);
+	}
+	return path.substring(lastSlashIndex + 1);
+}
+
+function escapeHtml(text: string): string {
+	return text.replace(/[&<>"']/g, (char) => {
+		switch (char) {
+			case '&': return '&amp;';
+			case '<': return '&lt;';
+			case '>': return '&gt;';
+			case '"': return '&quot;';
+			case "'": return '&#39;';
+			default: return char;
+		}
+	});
 }
