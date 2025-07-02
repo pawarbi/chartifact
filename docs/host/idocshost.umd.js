@@ -581,6 +581,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this.instances = {};
     }
   }
+  function bindTextarea(textarea, outputElement, options) {
+    const renderer = new Renderer(outputElement, options);
+    textarea.addEventListener("input", () => {
+      renderer.render(textarea.value);
+    });
+    renderer.render(textarea.value);
+    return renderer;
+  }
   /*!
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
@@ -1111,7 +1119,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       }
     }
   }
-  const dataNameSelectedSuffix = "-selected";
+  const dataNameSelectedSuffix = "_selected";
   /*!
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
@@ -1176,7 +1184,8 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           ...tabulatorInstance,
           initialSignals,
           recieveBatch: async (batch) => {
-            const newData = batch[tabulatorInstance.spec.dataSignalName].value;
+            var _a2;
+            const newData = (_a2 = batch[tabulatorInstance.spec.dataSignalName]) == null ? void 0 : _a2.value;
             if (newData) {
               if (!tabulatorInstance.built) {
                 tabulatorInstance.table.off("tableBuilt");
@@ -1695,6 +1704,33 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       return JSON.stringify(param.value);
     }
   }
+  function addStaticDataLoaderToSpec(vegaScope, dataSource) {
+    const { spec } = vegaScope;
+    const { dataSourceName } = dataSource;
+    if (!spec.signals) {
+      spec.signals = [];
+    }
+    spec.signals.push({
+      name: dataSourceName,
+      update: `data('${dataSourceName}')`
+    });
+    if (!spec.data) {
+      spec.data = [];
+    }
+    const newData = {
+      name: dataSourceName,
+      values: []
+    };
+    if (dataSource.type === "json") {
+      newData.values = dataSource.content;
+    } else if (dataSource.type === "file") {
+      newData.format = {
+        type: dataSource.format
+      };
+      newData.values = [dataSource.content];
+    }
+    spec.data.push(newData);
+  }
   function addDynamicDataLoaderToSpec(vegaScope, dataSource) {
     const { spec } = vegaScope;
     const { dataSourceName } = dataSource;
@@ -1827,7 +1863,12 @@ ${content}
     const vegaScope = new VegaScope(spec);
     for (const dataSource of dataSources) {
       switch (dataSource.type) {
+        case "json": {
+          addStaticDataLoaderToSpec(vegaScope, dataSource);
+          break;
+        }
         case "file": {
+          addStaticDataLoaderToSpec(vegaScope, dataSource);
           break;
         }
         case "url": {
@@ -1838,8 +1879,8 @@ ${content}
       if (!spec.data) {
         spec.data = [];
       }
-      spec.data.push({
-        name: dataSource.dataSourceName + "-selected"
+      spec.data.unshift({
+        name: dataSource.dataSourceName + dataNameSelectedSuffix
       });
     }
     return vegaScope;
@@ -2350,5 +2391,6 @@ ${content}
   }
   exports2.Host = Host;
   exports2.Renderer = Renderer;
+  exports2.bindTextarea = bindTextarea;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });
