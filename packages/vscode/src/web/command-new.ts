@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { sample } from './templates';
+import { sampleMarkdown } from './templates';
 
 /**
  * Handles the creation of new Interactive Documents
@@ -45,7 +45,7 @@ async function createFileInFolder(uri: vscode.Uri) {
 	}
 
 	// Create the file with the sample content
-	const content = new TextEncoder().encode(sample);
+	const content = new TextEncoder().encode(sampleMarkdown);
 	await vscode.workspace.fs.writeFile(fileUri, content);
 
 	// Open the file in the editor
@@ -55,7 +55,7 @@ async function createFileInFolder(uri: vscode.Uri) {
 
 async function createUntitledDocument() {
 	const document = await vscode.workspace.openTextDocument({
-		content: sample,
+		content: sampleMarkdown,
 		language: 'markdown'
 	});
 
