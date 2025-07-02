@@ -1,7 +1,7 @@
-import { Host } from "./index.js";
+import { Listener } from "./listener.js";
 import { determineContent } from "./string.js";
 
-export function checkUrlForFile(host: Host) {
+export function checkUrlForFile(host: Listener) {
   const urlParams = new URLSearchParams(window.location.search);
   const loadUrl = urlParams.get(host.options.urlParamName);
 

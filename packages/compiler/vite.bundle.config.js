@@ -4,7 +4,7 @@ import commonjs from '@rollup/plugin-commonjs';
 
 const commonOutputConfig = {
   format: 'umd',
-  name: 'IDocs',
+  name: 'IDocs.compiler',
   globals: {
     'markdown-it': 'markdownit',
     'vega': 'vega',

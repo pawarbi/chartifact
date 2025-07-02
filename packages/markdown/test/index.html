@@ -333,10 +333,7 @@ Click the map above to show related data.
     <div id="content"></div>
 
     <script>
-        const { IDocs } = window;
-        console.log(IDocs);
-
-        const mdvr = IDocs.bindTextarea(document.getElementById('markdown-input'), document.getElementById('content'));
+        const mdvr = IDocs.markdown.bindTextarea(document.getElementById('markdown-input'), document.getElementById('content'));
         console.log('instance', mdvr);
     </script>
 

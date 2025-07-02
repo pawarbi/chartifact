@@ -19,7 +19,7 @@
     
     <script>
         const options = { ...hostOptions, ...{ postMessageTarget: acquireVsCodeApi() } };
-        const host = new IDocs.Host({
+        const host = new IDocs.host.Listener({
             app: '#app',
             loading: '#loading',
             options,

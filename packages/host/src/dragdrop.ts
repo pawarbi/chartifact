@@ -1,8 +1,8 @@
 import { readFile } from "./file.js";
-import { Host } from "./index.js";
+import { Listener } from "./listener.js";
 import { determineContent } from "./string.js";
 
-export function setupDragDropHandling(host: Host) {
+export function setupDragDropHandling(host: Listener) {
 
   const dragHandler = (e: DragEvent) => {
     e.preventDefault();

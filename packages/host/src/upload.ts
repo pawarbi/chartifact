@@ -1,7 +1,7 @@
 import { readFile } from "./file.js";
-import { Host } from "./index.js";
+import { Listener } from "./listener.js";
 
-export function setupFileUpload(host: Host) {
+export function setupFileUpload(host: Listener) {
   const { uploadButton, fileInput } = host;
 
   // Ensure elements exist

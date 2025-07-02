@@ -1,8 +1,8 @@
 import { readFile } from "./file.js";
-import { Host } from "./index.js";
+import { Listener } from "./listener.js";
 import { determineContent } from "./string.js";
 
-export function setupClipboardHandling(host: Host) {
+export function setupClipboardHandling(host: Listener) {
 
   const pasteHandler = (e: ClipboardEvent) => {
     e.preventDefault();

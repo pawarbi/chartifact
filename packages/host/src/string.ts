@@ -1,6 +1,6 @@
-import { Host } from "./index.js";
+import { Listener } from "./listener.js";
 
-export function determineContent(content: string, host: Host) {
+export function determineContent(content: string, host: Listener) {
     if (!content) {
         host.errorHandler(
             new Error('Content is empty'),

@@ -1,7 +1,7 @@
-import { Host } from './index.js';
+import { Listener } from './listener.js';
 import type { RenderRequestMessage } from './types.js';
 
-export function setupPostMessageHandling(host: Host) {
+export function setupPostMessageHandling(host: Listener) {
     window.addEventListener('message', (event) => {
         try {
             // Validate the message structure

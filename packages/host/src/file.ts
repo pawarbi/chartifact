@@ -1,6 +1,6 @@
-import { Host } from "./index.js";
+import { Listener } from "./listener.js";
 
-export function readFile(file: File, host: Host) {
+export function readFile(file: File, host: Listener) {
     if (file.name.endsWith('.idoc.json') || file.name.endsWith('.idoc.md')) {
         const reader = new FileReader();
         reader.onload = (e) => {
