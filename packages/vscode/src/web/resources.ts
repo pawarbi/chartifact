@@ -8,6 +8,7 @@ export const initializeResources = async (context: vscode.ExtensionContext): Pro
   const resourcesToLoad: [string, string][] = [
     ['resources', 'idocs.renderer.umd.js'],
     ['html', 'template.html'],
+    ['html', 'preview.html'],
   ];
   
   for (const [folder, filename] of resourcesToLoad) {

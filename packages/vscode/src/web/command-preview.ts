@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
 import { link, script } from './html';
+import { getResource } from './resources';
 import type { ListenOptions, RenderRequestMessage } from '@microsoft/interactive-document-host/types' with { 'resolution-mode': 'import' };
 
 /**
@@ -156,35 +157,21 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 		url: false,
 	};
 
-	return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Document Host</title>
-    ${link(resourceUrl('tabulator.min.css'))}
-    ${script(resourceUrl('markdown-it.min.js'))}
-    ${script(resourceUrl('vega.min.js'))}
-    ${script(resourceUrl('vega-lite.min.js'))}
-    ${script(resourceUrl('tabulator.min.js'))}
-</head>
-<body>
-    <div id="loading" style="text-align: center; padding: 50px;">
-        Loading...
-    </div>
+	// Build the resource links block
+	const resourceLinks = [
+		link(resourceUrl('tabulator.min.css')),
+		script(resourceUrl('markdown-it.min.js')),
+		script(resourceUrl('vega.min.js')),
+		script(resourceUrl('vega-lite.min.js')),
+		script(resourceUrl('tabulator.min.js'))
+	].join('\n    ');
 
-	<div id="app"></div>
-
-    ${script(resourceUrl('idocs.host.umd.js'))}
-
-    <script>
-		const options = { ...${JSON.stringify(hostOptions)}, ...{ postMessageTarget: acquireVsCodeApi() } };
-		const host = new IDocs.Host({
-			app: '#app',
-			loading: '#loading',
-			options,
-		});
-    </script>
-</body>
-</html>`;
+	const hostScript = script(resourceUrl('idocs.host.umd.js'));
+	
+	const template = getResource('preview.html');
+	
+	return template
+		.replace('{{RESOURCE_LINKS}}', () => resourceLinks)
+		.replace('{{HOST_SCRIPT}}', () => hostScript)
+		.replace('{{HOST_OPTIONS}}', () => `<script>const hostOptions = ${JSON.stringify(hostOptions)};</script>`);
 }
