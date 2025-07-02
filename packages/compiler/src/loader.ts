@@ -1,7 +1,8 @@
 import { Spec as VegaSpec } from 'vega-typings';
-import { DataSourceByDynamicURL, DataLoader, MappedNameValuePairs, UrlRef, Variable } from 'dsl';
+import { DataSourceByDynamicURL, DataLoader, MappedNameValuePairs, UrlRef, Variable, DataSourceByFile, DataSourceByJSON } from 'dsl';
 import { NewSignal, Signal, SignalRef, SourceData, ValuesData } from 'vega';
 import { safeVariableName } from './util.js';
+import { common } from '@microsoft/interactive-document-renderer';
 
 export class VegaScope {
     private urlCount = 0;
@@ -54,6 +55,42 @@ export function variableValueExpression(param: MappedNameValuePairs) {
     } else {
         return JSON.stringify(param.value);
     }
+}
+
+export function addStaticDataLoaderToSpec(vegaScope: VegaScope, dataSource: DataSourceByJSON | DataSourceByFile) {
+    const { spec } = vegaScope;
+    const { dataSourceName } = dataSource;
+
+    if (!spec.signals) {
+        spec.signals = [];
+    }
+    spec.signals.push(
+        {
+            name: dataSourceName,
+            update: `data('${dataSourceName}')`
+        }
+    );
+
+    //real data goes to the beginning of the data array
+    if (!spec.data) {
+        spec.data = [];
+    }
+
+    const newData: ValuesData = {
+        name: dataSourceName,
+        values: [],
+    };
+
+    if (dataSource.type === 'json') {
+        newData.values = dataSource.content;
+    } else if (dataSource.type === 'file') {
+        newData.format = {
+            type: dataSource.format
+        };
+        newData.values = [dataSource.content];
+    }
+
+    spec.data.push(newData);
 }
 
 export function addDynamicDataLoaderToSpec(vegaScope: VegaScope, dataSource: DataSourceByDynamicURL) {
@@ -109,7 +146,7 @@ export function createSpecWithVariables(variables: Variable[], stubDataLoaders?:
 
             //add a special "-selected" data item
             spec.data!.push({
-                name: dl.dataSourceName + '-selected',
+                name: dl.dataSourceName + common.dataNameSelectedSuffix,
                 values: [],
             });
         });

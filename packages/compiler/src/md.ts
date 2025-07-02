@@ -2,8 +2,8 @@ import { Spec as VegaSpec } from 'vega-typings';
 import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
 import { ChartFull, DataSource, ElementGroup, extendedElements, InteractiveDocument, Variable } from 'dsl';
 import { getChartType } from './util.js';
-import { addDynamicDataLoaderToSpec, createSpecWithVariables, VegaScope } from './loader.js';
-import { Plugins } from '@microsoft/interactive-document-renderer';
+import { addDynamicDataLoaderToSpec, addStaticDataLoaderToSpec, createSpecWithVariables, VegaScope } from './loader.js';
+import { common, Plugins } from '@microsoft/interactive-document-renderer';
 
 function mdWrap(type: string, content: string) {
     return `\`\`\`json ${type}\n${content}\n\`\`\``;
@@ -51,8 +51,12 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[]) {
     for (const dataSource of dataSources) {
 
         switch (dataSource.type) {
+            case 'json': {
+                addStaticDataLoaderToSpec(vegaScope, dataSource);
+                break;
+            }
             case 'file': {
-                //TODO
+                addStaticDataLoaderToSpec(vegaScope, dataSource);
                 break;
             }
             case 'url': {
@@ -67,8 +71,8 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[]) {
         if (!spec.data) {
             spec.data = [];
         }
-        spec.data.push({
-            name: dataSource.dataSourceName + '-selected',
+        spec.data.unshift({
+            name: dataSource.dataSourceName + common.dataNameSelectedSuffix,
         });
     }
 
