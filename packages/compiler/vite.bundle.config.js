@@ -27,10 +27,6 @@ export default defineConfig({
           ...commonOutputConfig,
           dir: './dist/umd',
         },
-        {
-          ...commonOutputConfig,
-          dir: '../vscode/resources',
-        },
       ],
       plugins: [
         resolve(),   // Resolves Node modules
