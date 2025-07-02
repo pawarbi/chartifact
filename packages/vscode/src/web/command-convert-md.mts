@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { targetMarkdown } from '@microsoft/interactive-document-compiler';
 import { InteractiveDocument } from 'dsl';
+import { findAvailableFileName } from './file.js';
 
 /**
  * Handles the conversion of .idoc.json files to markdown
@@ -24,24 +25,7 @@ export async function convertToMarkdown(fileUri: vscode.Uri) {
 		const markdownContent = targetMarkdown(interactiveDocument);
 
 		// Generate the output filename with conflict resolution
-		const originalPath = fileUri.path;
-		const basePath = originalPath.replace(/\.idoc\.json$/, '.idoc.md');
-		let outputUri = fileUri.with({ path: basePath });
-
-		// Check if file exists and find an available filename
-		let counter = 1;
-		while (true) {
-			try {
-				await vscode.workspace.fs.stat(outputUri);
-				// File exists, try next number
-				const pathWithCounter = basePath.replace(/\.idoc\.md$/, `-${counter}.idoc.md`);
-				outputUri = fileUri.with({ path: pathWithCounter });
-				counter++;
-			} catch {
-				// File doesn't exist, we can use this name
-				break;
-			}
-		}
+		const outputUri = await findAvailableFileName(fileUri, '.idoc.md', '.idoc.json');
 
 		// Write the markdown file
 		const markdownBytes = new TextEncoder().encode(markdownContent);

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { getResource } from './resources';
 import { escapeTextareaContent } from './html';
+import { findAvailableFileName } from './file.js';
 
 /**
  * Handles the conversion of .idoc.md files to HTML
@@ -15,24 +16,7 @@ export async function convertToHtml(fileUri: vscode.Uri) {
 		const htmlContent = htmlMarkdownWrapper(markdownText, fileUri);
 
 		// Generate the output filename with conflict resolution
-		const originalPath = fileUri.path;
-		const basePath = originalPath.replace(/\.idoc\.md$/, '.idoc.html');
-		let outputUri = fileUri.with({ path: basePath });
-
-		// Check if file exists and find an available filename
-		let counter = 1;
-		while (true) {
-			try {
-				await vscode.workspace.fs.stat(outputUri);
-				// File exists, try next number
-				const pathWithCounter = basePath.replace(/\.idoc\.html$/, `-${counter}.idoc.html`);
-				outputUri = fileUri.with({ path: pathWithCounter });
-				counter++;
-			} catch {
-				// File doesn't exist, we can use this name
-				break;
-			}
-		}
+		const outputUri = await findAvailableFileName(fileUri, '.idoc.html', '.idoc.md');
 
 		// Write the HTML file
 		const htmlBytes = new TextEncoder().encode(htmlContent);
