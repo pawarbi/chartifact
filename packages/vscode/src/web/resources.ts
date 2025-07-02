@@ -7,7 +7,7 @@ const cachedResources: Record<string, string | Error> = {};
 export const initializeResources = async (context: vscode.ExtensionContext): Promise<void> => {
   const resourcesToLoad: [string, string][] = [
     ['resources', 'idocs.markdown.umd.js'],
-    ['html', 'template.html'],
+    ['html', 'html.html'],
     ['html', 'preview.html'],
   ];
   

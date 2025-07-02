@@ -39,7 +39,7 @@ export async function convertToHtml(fileUri: vscode.Uri) {
 }
 
 function htmlMarkdownWrapper(markdown: string, fileUri: vscode.Uri) {
-	const template = getResource('template.html');
+	const template = getResource('html.html');
 	const rendererScript = getResource('idocs.markdown.umd.js');
 
 	const result = template
