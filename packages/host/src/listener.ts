@@ -1,5 +1,5 @@
-import { Renderer } from '@microsoft/interactive-document-markdown';
-import { targetMarkdown } from '@microsoft/interactive-document-compiler';
+import { Renderer, bindTextarea as r_bind } from '@microsoft/interactive-document-markdown';
+import { targetMarkdown, bindTextarea as c_bind } from '@microsoft/interactive-document-compiler';
 import { setupClipboardHandling } from './clipboard.js';
 import { setupDragDropHandling } from './dragdrop.js';
 import { setupFileUpload } from './upload.js';
@@ -9,9 +9,9 @@ import { InteractiveDocument } from 'dsl';
 import { postStatus } from './post-send.js';
 import { ListenOptions } from './types.js';
 
-function getElement(elementOrSelector: string | HTMLElement): HTMLElement | null {
+function getElement<T extends HTMLElement = HTMLElement>(elementOrSelector: string | T): T | null {
   if (typeof elementOrSelector === 'string') {
-    return document.querySelector(elementOrSelector) as HTMLElement;
+    return document.querySelector(elementOrSelector) as T;
   }
   return elementOrSelector;
 }
@@ -29,6 +29,7 @@ export interface InitializeOptions {
   help?: string | HTMLElement;
   uploadButton?: string | HTMLElement;
   fileInput?: string | HTMLElement;
+  textarea?: string | HTMLTextAreaElement;
   options?: ListenOptions;
 }
 
@@ -49,6 +50,7 @@ export class Listener {
   public helpDiv: HTMLElement;
   public uploadButton: HTMLElement;
   public fileInput: HTMLElement;
+  public textarea: HTMLTextAreaElement;
   public renderer: Renderer;
 
   private removeInteractionHandlers: (() => void)[];
@@ -62,6 +64,7 @@ export class Listener {
     this.helpDiv = getElement(options.help);
     this.uploadButton = getElement(options.uploadButton);
     this.fileInput = getElement(options.fileInput);
+    this.textarea = getElement<HTMLTextAreaElement>(options.textarea);
 
     if (!this.appDiv) {
       throw new Error('App container not found');
@@ -107,8 +110,17 @@ export class Listener {
 
   public render(markdown?: string, interactiveDocument?: InteractiveDocument) {
     if (interactiveDocument) {
+      if (this.textarea) {
+        this.textarea.value = JSON.stringify(interactiveDocument, null, 2);
+        c_bind(this.textarea, this.appDiv);
+      }
       this.renderInteractiveDocument(interactiveDocument);
+
     } else if (markdown) {
+      if (this.textarea) {
+        this.textarea.value = markdown;
+        r_bind(this.textarea, this.appDiv);
+      }
       this.renderMarkdown(markdown);
     } else {
       this.errorHandler(new Error('No content provided'), 'Please provide either markdown or an interactive document to render.');

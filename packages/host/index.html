@@ -14,6 +14,9 @@
 </head>
 
 <body>
+
+    <textarea id="textarea" style="width: 100%; height: 300px; display: none;" placeholder="Enter your markdown here..."></textarea>
+
     <div id="loading" style="text-align: center; padding: 50px;">
         Loading...
     </div>
@@ -36,13 +39,14 @@
     <div id="app"></div>
 
     <script type="module">
-        import { Host } from '/src/index.ts';
-        new Host({
+        import { Listener } from '/src/index.ts';
+        new Listener({
             app: '#app',
             loading: '#loading',
             help: '#help',
             uploadButton: '#upload-btn',
             fileInput: '#file-input',
+            textarea: '#textarea',
         });
     </script>
 
