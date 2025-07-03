@@ -19,12 +19,12 @@
 
 <body>
 
-    <textarea id="markdown-input" style="display:none;min-height:300px;width:100%;" placeholder="Type your Interactive Document markdown here...">{{MARKDOWN_CONTENT}}</textarea>
+    <textarea id="markdown-input" style="display:none;min-height:300px;width:100%;" placeholder="Type your Interactive Document json here...">{{JSON_CONTENT}}</textarea>
 
     <div id="content"></div>
 
     <script>
-        IDocs.markdown.bindTextarea(document.getElementById('markdown-input'), document.getElementById('content'));
+        IDocs.compiler.bindTextarea(document.getElementById('markdown-input'), document.getElementById('content'));
     </script>
 
 </body>

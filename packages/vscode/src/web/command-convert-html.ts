@@ -4,19 +4,33 @@ import { escapeTextareaContent } from './html';
 import { findAvailableFileName } from './file.js';
 
 /**
- * Handles the conversion of .idoc.md files to HTML
+ * Handles the conversion of .idoc.md and .idoc.json files to HTML
  */
 export async function convertToHtml(fileUri: vscode.Uri) {
 	try {
-		// Read the markdown content from the file
-		const markdownContent = await vscode.workspace.fs.readFile(fileUri);
-		const markdownText = new TextDecoder().decode(markdownContent);
+		// Read the file content
+		const fileContent = await vscode.workspace.fs.readFile(fileUri);
+		const fileText = new TextDecoder().decode(fileContent);
 
-		// Wrap the markdown content in HTML
-		const htmlContent = htmlMarkdownWrapper(markdownText, fileUri);
+		// Check file extension to determine how to process
+		const fileName = fileUri.fsPath.toLowerCase();
+		let htmlContent: string;
+		let originalExtension: string;
+
+		if (fileName.endsWith('.idoc.json')) {
+			// Handle JSON files
+			htmlContent = htmlJsonWrapper(fileText, fileUri);
+			originalExtension = '.idoc.json';
+		} else if (fileName.endsWith('.idoc.md')) {
+			// Handle Markdown files
+			htmlContent = htmlMarkdownWrapper(fileText, fileUri);
+			originalExtension = '.idoc.md';
+		} else {
+			throw new Error(`Unsupported file type. Expected .idoc.md or .idoc.json, got: ${fileName}`);
+		}
 
 		// Generate the output filename with conflict resolution
-		const outputUri = await findAvailableFileName(fileUri, '.idoc.html', '.idoc.md');
+		const outputUri = await findAvailableFileName(fileUri, '.idoc.html', originalExtension);
 
 		// Write the HTML file
 		const htmlBytes = new TextEncoder().encode(htmlContent);
@@ -46,6 +60,19 @@ function htmlMarkdownWrapper(markdown: string, fileUri: vscode.Uri) {
 		.replace('{{TITLE}}', () => escapeHtml(getFileNameWithoutExtension(fileUri)))
 		.replace('{{RENDERER_SCRIPT}}', () => `<script>\n${rendererScript}\n</script>`)
 		.replace('{{MARKDOWN_CONTENT}}', () => escapeTextareaContent(markdown));
+
+	return result;
+}
+
+function htmlJsonWrapper(json: string, fileUri: vscode.Uri) {
+	const template = getResource('json.html');
+	const rendererScript = getResource('idocs.markdown.umd.js');
+	const compilerScript = getResource('idocs.compiler.umd.js');
+
+	const result = template
+		.replace('{{TITLE}}', () => escapeHtml(getFileNameWithoutExtension(fileUri)))
+		.replace('{{RENDERER_SCRIPT}}', () => `<script>\n${rendererScript}\n${compilerScript}\n</script>`)
+		.replace('{{JSON_CONTENT}}', () => escapeTextareaContent(json));
 
 	return result;
 }

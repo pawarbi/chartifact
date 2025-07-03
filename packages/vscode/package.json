@@ -67,6 +67,11 @@
           "group": "interactive-documents"
         },
         {
+          "command": "interactive-documents-vscode.convertToHtml",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
+          "group": "interactive-documents"
+        },
+        {
           "command": "interactive-documents-vscode.convertToMarkdown",
           "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
           "group": "interactive-documents"
@@ -86,6 +91,11 @@
         {
           "command": "interactive-documents-vscode.convertToHtml",
           "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
+          "group": "interactive-documents"
+        },
+        {
+          "command": "interactive-documents-vscode.convertToHtml",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
           "group": "interactive-documents"
         },
         {

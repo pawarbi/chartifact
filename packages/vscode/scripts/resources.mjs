@@ -9,6 +9,7 @@ const resources = [
     '../../node_modules/tabulator-tables/dist/css/tabulator.min.css',
     '../../packages/host/dist/umd/idocs.host.umd.js',
     '../../packages/markdown/dist/umd/idocs.markdown.umd.js',
+    '../../packages/compiler/dist/umd/idocs.compiler.umd.js',
 ];
 
 const errors = [];
