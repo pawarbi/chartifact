@@ -1,38 +1,36 @@
 import * as vscode from 'vscode';
 import { getResource } from './resources';
 import { escapeTextareaContent } from './html';
+import { findAvailableFileName } from './file.js';
 
 /**
- * Handles the conversion of .idoc.md files to HTML
+ * Handles the conversion of .idoc.md and .idoc.json files to HTML
  */
 export async function convertToHtml(fileUri: vscode.Uri) {
 	try {
-		// Read the markdown content from the file
-		const markdownContent = await vscode.workspace.fs.readFile(fileUri);
-		const markdownText = new TextDecoder().decode(markdownContent);
+		// Read the file content
+		const fileContent = await vscode.workspace.fs.readFile(fileUri);
+		const fileText = new TextDecoder().decode(fileContent);
 
-		// Wrap the markdown content in HTML
-		const htmlContent = htmlMarkdownWrapper(markdownText);
+		// Check file extension to determine how to process
+		const fileName = fileUri.fsPath.toLowerCase();
+		let htmlContent: string;
+		let originalExtension: string;
+
+		if (fileName.endsWith('.idoc.json')) {
+			// Handle JSON files
+			htmlContent = htmlJsonWrapper(fileText, fileUri);
+			originalExtension = '.idoc.json';
+		} else if (fileName.endsWith('.idoc.md')) {
+			// Handle Markdown files
+			htmlContent = htmlMarkdownWrapper(fileText, fileUri);
+			originalExtension = '.idoc.md';
+		} else {
+			throw new Error(`Unsupported file type. Expected .idoc.md or .idoc.json, got: ${fileName}`);
+		}
 
 		// Generate the output filename with conflict resolution
-		const originalPath = fileUri.path;
-		const basePath = originalPath.replace(/\.idoc\.md$/, '.idoc.html');
-		let outputUri = fileUri.with({ path: basePath });
-
-		// Check if file exists and find an available filename
-		let counter = 1;
-		while (true) {
-			try {
-				await vscode.workspace.fs.stat(outputUri);
-				// File exists, try next number
-				const pathWithCounter = basePath.replace(/\.idoc\.html$/, `-${counter}.idoc.html`);
-				outputUri = fileUri.with({ path: pathWithCounter });
-				counter++;
-			} catch {
-				// File doesn't exist, we can use this name
-				break;
-			}
-		}
+		const outputUri = await findAvailableFileName(fileUri, '.idoc.html', originalExtension);
 
 		// Write the HTML file
 		const htmlBytes = new TextEncoder().encode(htmlContent);
@@ -54,39 +52,50 @@ export async function convertToHtml(fileUri: vscode.Uri) {
 	}
 }
 
-function htmlMarkdownWrapper(markdown: string) {
-	return `<!DOCTYPE html>
-<html lang="en">
+function htmlMarkdownWrapper(markdown: string, fileUri: vscode.Uri) {
+	const template = getResource('markdown.html');
+	const rendererScript = getResource('idocs.markdown.umd.js');
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mdv test</title>
-    <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+	const result = template
+		.replace('{{TITLE}}', () => escapeHtml(getFileNameWithoutExtension(fileUri)))
+		.replace('{{RENDERER_SCRIPT}}', () => `<script>\n${rendererScript}\n</script>`)
+		.replace('{{MARKDOWN_CONTENT}}', () => escapeTextareaContent(markdown));
 
-    <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
-    <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
+	return result;
+}
 
-    <!-- TODO: use CDN version -->
-    <script>
-${getResource('idocs.umd.js')}
-    </script>
+function htmlJsonWrapper(json: string, fileUri: vscode.Uri) {
+	const template = getResource('json.html');
+	const rendererScript = getResource('idocs.markdown.umd.js');
+	const compilerScript = getResource('idocs.compiler.umd.js');
 
-</head>
+	const result = template
+		.replace('{{TITLE}}', () => escapeHtml(getFileNameWithoutExtension(fileUri)))
+		.replace('{{RENDERER_SCRIPT}}', () => `<script>\n${rendererScript}\n${compilerScript}\n</script>`)
+		.replace('{{JSON_CONTENT}}', () => escapeTextareaContent(json));
 
-<body>
+	return result;
+}
 
-    <textarea id="markdown-input" style="display:none;min-height:300px;width:100%;">${escapeTextareaContent(markdown)}</textarea>
+function getFileNameWithoutExtension(fileUri: any): any {
+	const path = fileUri.path;
+	const lastSlashIndex = path.lastIndexOf('/');
+	const lastDotIndex = path.lastIndexOf('.');
+	if (lastDotIndex > lastSlashIndex) {
+		return path.substring(lastSlashIndex + 1, lastDotIndex);
+	}
+	return path.substring(lastSlashIndex + 1);
+}
 
-    <div id="content"></div>
-
-    <script>
-        IDocs.bindTextarea(document.getElementById('markdown-input'), document.getElementById('content'));
-    </script>
-
-</body>
-
-</html>`;
+function escapeHtml(text: string): string {
+	return text.replace(/[&<>"']/g, (char) => {
+		switch (char) {
+			case '&': return '&amp;';
+			case '<': return '&lt;';
+			case '>': return '&gt;';
+			case '"': return '&quot;';
+			case "'": return '&#39;';
+			default: return char;
+		}
+	});
 }

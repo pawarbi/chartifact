@@ -4,22 +4,21 @@ import commonjs from '@rollup/plugin-commonjs';
 
 const commonOutputConfig = {
   format: 'umd',
-  name: 'IDocs.host',
+  name: 'IDocs.compiler',
   globals: {
     'markdown-it': 'markdownit',
     'vega': 'vega',
     'vega-lite': 'vegaLite',
   },
-  entryFileNames: 'idocs.host.umd.js',
+  entryFileNames: 'idocs.compiler.umd.js',
 };
 
 export default defineConfig({
   build: {
     lib: {
-      entry: './src/index.ts',
+      entry: './dist/esnext/index.js',
     },
     minify: false,
-    emptyOutDir: false,
     rollupOptions: {
       // External dependencies that the library expects consumers to provide
       external: ['markdown-it', 'vega', 'vega-lite', 'tabulator-tables'],
@@ -27,10 +26,6 @@ export default defineConfig({
         {
           ...commonOutputConfig,
           dir: './dist/umd',
-        },
-        {
-          ...commonOutputConfig,
-          dir: '../../docs/host',
         },
       ],
       plugins: [

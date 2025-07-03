@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Document Host</title>
+    {{RESOURCE_LINKS}}
+</head>
+<body>
+    <div id="loading" style="text-align: center; padding: 50px;">
+        Loading...
+    </div>
+
+	<div id="app"></div>
+
+    {{HOST_SCRIPT}}
+
+    {{HOST_OPTIONS}}
+    
+    <script>
+        const options = { ...hostOptions, ...{ postMessageTarget: acquireVsCodeApi() } };
+        const host = new IDocs.host.Listener({
+            app: '#app',
+            loading: '#loading',
+            options,
+        });
+    </script>
+</body>
+</html>

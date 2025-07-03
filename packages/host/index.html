@@ -14,6 +14,9 @@
 </head>
 
 <body>
+
+    <textarea id="textarea" style="width: 100%; height: 300px; display: none;" placeholder="Enter your markdown here..."></textarea>
+
     <div id="loading" style="text-align: center; padding: 50px;">
         Loading...
     </div>
@@ -26,16 +29,27 @@
             <li><b>Clipboard</b>: paste your markdown content directly when this page has focus</li>
             <li><b>Drag and drop</b>: drop a markdown file onto this page</li>
             <li><b>URL parameter</b>: add /?load=url/to/your/file.md to the url</li>
-            <li><b>PostMessage</b>: send markdown content to this page using the <code>window.postMessage</code> API with the property <code>markdown</code></li>
             <li><b>File upload</b>: click the button below to choose a file</li>
         </ul>
 
         <button type="button" id="upload-btn">Choose File to Upload</button>
-        <input type="file" id="file-input" accept=".md" style="display: none;">
+        <input type="file" id="file-input" accept=".idoc.md,.idoc.json" style="display: none;">
     </div>
 
     <div id="app"></div>
-    <script type="module" src="/src/index.ts"></script>
+
+    <script type="module">
+        import { Listener } from '/src/index.ts';
+        new Listener({
+            app: '#app',
+            loading: '#loading',
+            help: '#help',
+            uploadButton: '#upload-btn',
+            fileInput: '#file-input',
+            textarea: '#textarea',
+        });
+    </script>
+
 </body>
 
 </html>

@@ -1,19 +1,8 @@
 import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
 import { link, script } from './html';
-
-export interface HostOptions {
-  clipboard?: boolean;
-  dragDrop?: boolean;
-  fileUpload?: boolean;
-  postMessage?: boolean;
-  postMessageTarget?: Window;
-  url?: boolean;
-}
-
-interface HostMessage {
-	markdown?: string;
-}
+import { getResource } from './resources';
+import type { ListenOptions, RenderRequestMessage } from '@microsoft/interactive-document-host/types' with { 'resolution-mode': 'import' };
 
 /**
  * Manages the preview functionality for Interactive Documents
@@ -68,25 +57,36 @@ export class PreviewManager {
 	private handleWebviewMessage(message: any, fileUri: vscode.Uri, uriFsPath: string) {
 		switch (message.status) {
 			case 'ready': {
-				vscode.workspace.fs.readFile(fileUri).then(uint8array => {
-
-					// If the file is a markdown file, we can send the markdown content
-					if (uriFsPath.endsWith('.idoc.md')) {
-						const markdown = new TextDecoder().decode(uint8array);
-						this.renderMarkdown(markdown);
-					}
-
-				});
+				this.getFileContentAndRender(fileUri, uriFsPath);
 				break;
 			}
 		}
 	}
 
-	public renderMarkdown(markdown: string) {
+	private getFileContentAndRender(fileUri: vscode.Uri, uriFsPath: string) {
+		vscode.workspace.fs.readFile(fileUri).then(uint8array => {
+
+			// If the file is a markdown file, we can send the markdown content
+			if (uriFsPath.endsWith('.idoc.md')) {
+				const markdown = new TextDecoder().decode(uint8array);
+				this.render({ markdown });
+			} else if (uriFsPath.endsWith('.idoc.json')) {
+				// If the file is a JSON file, we can send the JSON content
+				const jsonContent = new TextDecoder().decode(uint8array);
+				try {
+					const interactiveDocument = JSON.parse(jsonContent);
+					this.render({ interactiveDocument });
+				} catch (error) {
+					vscode.window.showErrorMessage(`Failed to parse JSON: ${error}`);
+				}
+			}
+
+		});
+	}
+
+	public render(renderRequestMessage: RenderRequestMessage) {
 		if (this.current && this.current.panel.visible) {
-			const renderMessage: HostMessage = {};
-			renderMessage.markdown = markdown;
-			this.current.panel.webview.postMessage(renderMessage);
+			this.current.panel.webview.postMessage(renderRequestMessage);
 		}
 	}
 
@@ -135,10 +135,7 @@ export class PreviewManager {
 	 */
 	private refreshPreview(fileUri: vscode.Uri) {
 		if (this.current && this.current.panel.visible) {
-			vscode.workspace.fs.readFile(fileUri).then(uint8array => {
-				const markdown = new TextDecoder().decode(uint8array);
-				this.renderMarkdown(markdown);
-			});
+			this.getFileContentAndRender(fileUri, this.current.uriFsPath);
 		}
 	}
 }
@@ -153,37 +150,28 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 		return webView.asWebviewUri(onDiskPath);
 	}
 
-	const hostOptions: HostOptions = {
+	const hostOptions: ListenOptions = {
 		clipboard: false,
 		dragDrop: false,
 		fileUpload: false,
-		url: false
+		url: false,
 	};
 
-	return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Document Host</title>
-    ${link(resourceUrl('tabulator.min.css'))}
-    ${script(resourceUrl('markdown-it.min.js'))}
-    ${script(resourceUrl('vega.min.js'))}
-    ${script(resourceUrl('vega-lite.min.js'))}
-    ${script(resourceUrl('tabulator.min.js'))}
-</head>
-<body>
-    <div id="loading" style="text-align: center; padding: 50px;">
-        Loading...
-    </div>
+	// Build the resource links block
+	const resourceLinks = [
+		link(resourceUrl('tabulator.min.css')),
+		script(resourceUrl('markdown-it.min.js')),
+		script(resourceUrl('vega.min.js')),
+		script(resourceUrl('vega-lite.min.js')),
+		script(resourceUrl('tabulator.min.js'))
+	].join('\n    ');
 
-    <div id="app"></div>
-
-    ${script(resourceUrl('idocshost.umd.js'))}
-
-    <script>
-		Object.assign(IDocsHost.options, ${JSON.stringify(hostOptions)}, { postMessageTarget: acquireVsCodeApi() });
-    </script>
-</body>
-</html>`;
+	const hostScript = script(resourceUrl('idocs.host.umd.js'));
+	
+	const template = getResource('preview.html');
+	
+	return template
+		.replace('{{RESOURCE_LINKS}}', () => resourceLinks)
+		.replace('{{HOST_SCRIPT}}', () => hostScript)
+		.replace('{{HOST_OPTIONS}}', () => `<script>const hostOptions = ${JSON.stringify(hostOptions)};</script>`);
 }

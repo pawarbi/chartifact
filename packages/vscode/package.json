@@ -14,24 +14,40 @@
   "contributes": {
     "commands": [
       {
-        "command": "interactive-documents-vscode.newIdoc",
+        "command": "interactive-documents-vscode.newIdocJson",
+        "title": "New Interactive Document (json)",
+        "category": "Interactive Documents"
+      },
+      {
+        "command": "interactive-documents-vscode.newIdocMarkdown",
         "title": "New Interactive Document (markdown)",
         "category": "Interactive Documents"
       },
       {
         "command": "interactive-documents-vscode.previewIdoc",
-        "title": "Preview Interactive Document"
+        "title": "Preview Interactive Document",
+        "category": "Interactive Documents"
       },
       {
         "command": "interactive-documents-vscode.convertToHtml",
         "title": "Convert to HTML",
+        "category": "Interactive Documents"
+      },
+      {
+        "command": "interactive-documents-vscode.convertToMarkdown",
+        "title": "Convert to Markdown",
         "category": "Interactive Documents"
       }
     ],
     "menus": {
       "explorer/context": [
         {
-          "command": "interactive-documents-vscode.newIdoc",
+          "command": "interactive-documents-vscode.newIdocJson",
+          "when": "explorerResourceIsFolder",
+          "group": "interactive-documents"
+        },
+        {
+          "command": "interactive-documents-vscode.newIdocMarkdown",
           "when": "explorerResourceIsFolder",
           "group": "interactive-documents"
         },
@@ -41,8 +57,23 @@
           "group": "interactive-documents"
         },
         {
+          "command": "interactive-documents-vscode.previewIdoc",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
+          "group": "interactive-documents"
+        },
+        {
           "command": "interactive-documents-vscode.convertToHtml",
           "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
+          "group": "interactive-documents"
+        },
+        {
+          "command": "interactive-documents-vscode.convertToHtml",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
+          "group": "interactive-documents"
+        },
+        {
+          "command": "interactive-documents-vscode.convertToMarkdown",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
           "group": "interactive-documents"
         }
       ],
@@ -53,21 +84,36 @@
           "group": "interactive-documents"
         },
         {
+          "command": "interactive-documents-vscode.previewIdoc",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
+          "group": "interactive-documents"
+        },
+        {
           "command": "interactive-documents-vscode.convertToHtml",
           "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
+          "group": "interactive-documents"
+        },
+        {
+          "command": "interactive-documents-vscode.convertToHtml",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
+          "group": "interactive-documents"
+        },
+        {
+          "command": "interactive-documents-vscode.convertToMarkdown",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
           "group": "interactive-documents"
         }
       ]
     }
   },
   "scripts": {
-    "postinstall": "npm run resources",
     "resources": "node ./scripts/resources.mjs",
     "clean": "rimraf resources dist",
     "test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/extensionTests.js",
     "pretest": "npm run compile-web",
     "vscode:prepublish": "npm run package-web",
-    "compile-web": "npm run check-types && npm run lint && node esbuild.js",
+    "build:04": "npm run compile-web",
+    "compile-web": "npm run check-types && npm run lint && npm run resources && node esbuild.js",
     "watch-web": "npm-run-all -p watch-web:*",
     "watch-web:esbuild": "node esbuild.js --watch",
     "watch-web:tsc": "tsc --noEmit --watch --project tsconfig.json",

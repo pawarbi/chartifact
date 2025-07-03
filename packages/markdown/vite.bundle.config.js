@@ -4,19 +4,19 @@ import commonjs from '@rollup/plugin-commonjs';
 
 const commonOutputConfig = {
   format: 'umd',
-  name: 'IDocs',
+  name: 'IDocs.markdown',
   globals: {
     'markdown-it': 'markdownit',
     'vega': 'vega',
     'vega-lite': 'vegaLite',
   },
-  entryFileNames: 'idocs.umd.js',
+  entryFileNames: 'idocs.markdown.umd.js',
 };
 
 export default defineConfig({
   build: {
     lib: {
-      entry: './dist/es2022/index.js',  // Path to the entry file for the bundle
+      entry: './dist/esnext/index.js',
     },
     minify: false,
     rollupOptions: {
@@ -26,10 +26,6 @@ export default defineConfig({
         {
           ...commonOutputConfig,
           dir: './dist/umd',
-        },
-        {
-          ...commonOutputConfig,
-          dir: '../vscode/resources',
         },
       ],
       plugins: [

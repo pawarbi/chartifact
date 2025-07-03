@@ -102,13 +102,3 @@ export class Renderer {
     }
 
 }
-
-export function bindTextarea(textarea: HTMLTextAreaElement, outputElement: HTMLElement, options?: RendererOptions) {
-    const renderer = new Renderer(outputElement, options);
-    textarea.addEventListener('input', () => {
-        renderer.render(textarea.value);
-    });
-    // Initial render
-    renderer.render(textarea.value);
-    return renderer;
-}

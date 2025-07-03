@@ -1,0 +1,26 @@
+{
+  "name": "@microsoft/interactive-document-compiler",
+  "version": "1.0.0",
+  "main": "dist/esnext/index.js",
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf dist",
+    "deploy": "node ./scripts/deploy.js",
+    "watch-typescript": "tsc -p . -w",
+    "build-typescript": "tsc -p .",
+    "bundle": "vite build --config vite.bundle.config.js",
+    "build": "npm run build-typescript && npm run bundle",
+    "build:02": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/microsoft/interactive-documents.git"
+  },
+  "author": "Dan Marshall",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/microsoft/interactive-documents/issues"
+  },
+  "homepage": "https://github.com/microsoft/interactive-documents#readme",
+  "description": ""
+}
