@@ -1,5 +1,5 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.IDocs = {}, global.vega, global.vegaLite));
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory((global.IDocs = global.IDocs || {}, global.IDocs.host = {}), global.vega, global.vegaLite));
 })(this, function(exports2, vega, vegaLite) {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
@@ -580,14 +580,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       this.instances = {};
     }
-  }
-  function bindTextarea(textarea, outputElement, options) {
-    const renderer = new Renderer(outputElement, options);
-    textarea.addEventListener("input", () => {
-      renderer.render(textarea.value);
-    });
-    renderer.render(textarea.value);
-    return renderer;
   }
   /*!
   * Copyright (c) Microsoft Corporation.
@@ -1648,6 +1640,16 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     registerMarkdownPlugin(vegaLitePlugin);
     registerMarkdownPlugin(vegaPlugin);
   }
+  function bindTextarea$1(textarea, outputElement, options) {
+    const renderer = new Renderer(outputElement, options);
+    const render = () => {
+      const content = textarea.value;
+      renderer.render(content);
+    };
+    textarea.addEventListener("input", render);
+    render();
+    return renderer;
+  }
   const interfaces = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null
   }, Symbol.toStringTag, { value: "Module" }));
@@ -1656,11 +1658,11 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
   * Licensed under the MIT License.
   */
   registerNativePlugins();
-  const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  const index$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     Plugins: interfaces,
     Renderer,
-    bindTextarea,
+    bindTextarea: bindTextarea$1,
     common,
     definePlugin,
     plugins,
@@ -1676,6 +1678,40 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       return "vega-lite";
     }
     return $schema2.includes("vega-lite") ? "vega-lite" : "vega";
+  }
+  function changePageOrigin(page, oldOrigin, newOriginUrl) {
+    const newPage = {
+      ...page,
+      dataLoaders: page.dataLoaders.map((loader) => {
+        if (loader.type === "url" && loader.urlRef.origin === oldOrigin) {
+          return {
+            ...loader,
+            urlRef: {
+              ...loader.urlRef,
+              origin: newOriginUrl.origin
+            }
+          };
+        }
+        return loader;
+      }),
+      groups: page.groups.map((group) => ({
+        ...group,
+        elements: group.elements.map((element) => {
+          if (typeof element === "object" && element.type === "image" && element.urlRef.origin === oldOrigin) {
+            const newImageElement = {
+              ...element,
+              urlRef: {
+                ...element.urlRef,
+                origin: newOriginUrl.origin
+              }
+            };
+            return newImageElement;
+          }
+          return element;
+        })
+      }))
+    };
+    return newPage;
   }
   class VegaScope {
     constructor(spec) {
@@ -2024,6 +2060,38 @@ ${content}
     const markdown = mdElements.join("\n\n");
     return markdown;
   }
+  function bindTextarea(textarea, outputElement, options) {
+    const renderer = new Renderer(outputElement, options);
+    const showError = (error) => {
+      console.error("Error parsing JSON:", error);
+      outputElement.innerHTML = `<div style="color: red; padding: 10px; border: 1px solid red; background-color: #ffe6e6; border-radius: 4px;">
+            <strong>Error:</strong> ${error instanceof Error ? error.message : String(error)}
+        </div>`;
+    };
+    const render = () => {
+      const json = textarea.value;
+      try {
+        const page = JSON.parse(json);
+        if (typeof page !== "object") {
+          showError(new Error("Invalid JSON format"));
+          return;
+        }
+        const md = targetMarkdown(page);
+        renderer.render(md);
+      } catch (error) {
+        showError(error);
+      }
+    };
+    textarea.addEventListener("input", render);
+    render();
+    return renderer;
+  }
+  const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+    __proto__: null,
+    bindTextarea,
+    changePageOrigin,
+    targetMarkdown
+  }, Symbol.toStringTag, { value: "Module" }));
   function readFile(file, host) {
     if (file.name.endsWith(".idoc.json") || file.name.endsWith(".idoc.md")) {
       const reader = new FileReader();
@@ -2311,7 +2379,7 @@ ${content}
     url: true,
     urlParamName: "load"
   };
-  class Host {
+  class Listener {
     constructor(options) {
       __publicField(this, "options");
       __publicField(this, "appDiv");
@@ -2319,6 +2387,7 @@ ${content}
       __publicField(this, "helpDiv");
       __publicField(this, "uploadButton");
       __publicField(this, "fileInput");
+      __publicField(this, "textarea");
       __publicField(this, "renderer");
       __publicField(this, "removeInteractionHandlers");
       this.options = { ...defaultOptions, ...options.options };
@@ -2328,6 +2397,7 @@ ${content}
       this.helpDiv = getElement(options.help);
       this.uploadButton = getElement(options.uploadButton);
       this.fileInput = getElement(options.fileInput);
+      this.textarea = getElement(options.textarea);
       if (!this.appDiv) {
         throw new Error("App container not found");
       }
@@ -2359,11 +2429,19 @@ ${content}
       ${details}
     </div>`;
     }
-    render(markdown2, interactiveDocument) {
+    render(markdown, interactiveDocument) {
       if (interactiveDocument) {
+        if (this.textarea) {
+          this.textarea.value = JSON.stringify(interactiveDocument, null, 2);
+          bindTextarea(this.textarea, this.appDiv);
+        }
         this.renderInteractiveDocument(interactiveDocument);
-      } else if (markdown2) {
-        this.renderMarkdown(markdown2);
+      } else if (markdown) {
+        if (this.textarea) {
+          this.textarea.value = markdown;
+          bindTextarea$1(this.textarea, this.appDiv);
+        }
+        this.renderMarkdown(markdown);
       } else {
         this.errorHandler(new Error("No content provided"), "Please provide either markdown or an interactive document to render.");
       }
@@ -2372,8 +2450,8 @@ ${content}
     }
     renderInteractiveDocument(content) {
       postStatus(this.options.postMessageTarget, { status: "compiling", details: "Starting interactive document compilation" });
-      const markdown2 = targetMarkdown(content);
-      this.renderMarkdown(markdown2);
+      const markdown = targetMarkdown(content);
+      this.renderMarkdown(markdown);
     }
     renderMarkdown(content) {
       show(this.loadingDiv, false);
@@ -2407,7 +2485,8 @@ ${content}
       }
     }
   }
-  exports2.Host = Host;
-  exports2.markdown = index;
+  exports2.Listener = Listener;
+  exports2.compiler = index;
+  exports2.markdown = index$1;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });
