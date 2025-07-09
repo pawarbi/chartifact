@@ -9,5 +9,7 @@ export function bindTextarea(textarea: HTMLTextAreaElement, outputElement: HTMLE
     };
 
     textarea.addEventListener('input', render);
+
+    render(); // Initial render
     return renderer;
 }
