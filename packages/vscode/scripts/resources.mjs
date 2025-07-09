@@ -2,6 +2,8 @@ import { resolve, basename } from 'path';
 import { existsSync, mkdirSync, unlinkSync, copyFileSync, readdirSync } from 'fs';
 
 const resources = [
+    '../../node_modules/react/umd/react.production.min.js',
+    '../../node_modules/react-dom/umd/react-dom.production.min.js',
     '../../node_modules/vega/build/vega.min.js',
     '../../node_modules/vega-lite/build/vega-lite.min.js',
     '../../node_modules/markdown-it/dist/markdown-it.min.js',
@@ -10,6 +12,7 @@ const resources = [
     '../../packages/host/dist/umd/idocs.host.umd.js',
     '../../packages/markdown/dist/umd/idocs.markdown.umd.js',
     '../../packages/compiler/dist/umd/idocs.compiler.umd.js',
+    '../../packages/editor/dist/umd/idocs.editor.umd.js',
 ];
 
 const errors = [];

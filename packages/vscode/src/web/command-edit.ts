@@ -2,12 +2,17 @@ import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
 import { link, script } from './html';
 import { getResource } from './resources';
-import type { ListenOptions, RenderRequestMessage } from '@microsoft/interactive-document-host/types' with { 'resolution-mode': 'import' };
+
+//TODO share this with editor
+interface RenderRequestMessage {
+	markdown?: string;
+	interactiveDocument?: any;
+}
 
 /**
- * Manages the preview functionality for Interactive Documents
+ * Manages the edit functionality for Interactive Documents
  */
-export class PreviewManager {
+export class EditManager {
 	private current: WebViewWithUri | undefined = undefined;
 	private fileWatcher: vscode.FileSystemWatcher | undefined = undefined;
 
@@ -150,13 +155,6 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 		return webView.asWebviewUri(onDiskPath);
 	}
 
-	const hostOptions: ListenOptions = {
-		clipboard: false,
-		dragDrop: false,
-		fileUpload: false,
-		url: false,
-	};
-
 	// Build the resource links block
 	const resourceLinks = [
 		link(resourceUrl('tabulator.min.css')),
@@ -164,14 +162,15 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 		script(resourceUrl('vega.min.js')),
 		script(resourceUrl('vega-lite.min.js')),
 		script(resourceUrl('tabulator.min.js')),
+		script(resourceUrl('react.production.min.js')),
+		script(resourceUrl('react-dom.production.min.js')),
 	].join('\n    ');
 
-	const hostScript = script(resourceUrl('idocs.host.umd.js'));
+	const hostScript = script(resourceUrl('idocs.editor.umd.js'));
 	
-	const template = getResource('preview.html');
+	const template = getResource('edit.html');
 	
 	return template
 		.replace('{{RESOURCE_LINKS}}', () => resourceLinks)
-		.replace('{{HOST_SCRIPT}}', () => hostScript)
-		.replace('{{HOST_OPTIONS}}', () => `<script>const hostOptions = ${JSON.stringify(hostOptions)};</script>`);
+		.replace('{{HOST_SCRIPT}}', () => hostScript);
 }

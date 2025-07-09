@@ -37,6 +37,11 @@
         "command": "interactive-documents-vscode.convertToMarkdown",
         "title": "Convert to Markdown",
         "category": "Interactive Documents"
+      },
+      {
+        "command": "interactive-documents-vscode.editIdoc",
+        "title": "Edit Interactive Document",
+        "category": "Interactive Documents"
       }
     ],
     "menus": {
@@ -75,6 +80,16 @@
           "command": "interactive-documents-vscode.convertToMarkdown",
           "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
           "group": "interactive-documents"
+        },
+        {
+          "command": "interactive-documents-vscode.editIdoc",
+          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
+          "group": "interactive-documents"
+        },
+        {
+          "command": "interactive-documents-vscode.editIdoc",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
+          "group": "interactive-documents"
         }
       ],
       "editor/title/context": [
@@ -100,6 +115,16 @@
         },
         {
           "command": "interactive-documents-vscode.convertToMarkdown",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
+          "group": "interactive-documents"
+        },
+        {
+          "command": "interactive-documents-vscode.editIdoc",
+          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
+          "group": "interactive-documents"
+        },
+        {
+          "command": "interactive-documents-vscode.editIdoc",
           "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
           "group": "interactive-documents"
         }
