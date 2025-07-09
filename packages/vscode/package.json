@@ -1,6 +1,7 @@
 {
   "name": "@microsoft/interactive-documents-vscode",
   "displayName": "interactive-documents-vscode",
+  "private": true,
   "description": "",
   "version": "0.0.1",
   "engines": {
