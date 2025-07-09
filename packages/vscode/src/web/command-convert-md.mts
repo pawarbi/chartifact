@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { targetMarkdown } from '@microsoft/interactive-document-compiler';
-import { InteractiveDocument } from 'dsl';
+import { InteractiveDocument } from 'schema';
 import { findAvailableFileName } from './file.js';
 
 /**

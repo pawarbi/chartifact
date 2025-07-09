@@ -5,7 +5,7 @@ import { setupDragDropHandling } from './dragdrop.js';
 import { setupFileUpload } from './upload.js';
 import { checkUrlForFile } from './url.js';
 import { setupPostMessageHandling } from './post-receive.js';
-import { InteractiveDocument } from 'dsl';
+import { InteractiveDocument } from 'schema';
 import { postStatus } from './post-send.js';
 import { ListenOptions } from './types.js';
 

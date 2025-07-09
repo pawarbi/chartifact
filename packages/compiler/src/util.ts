@@ -1,4 +1,4 @@
-import { DataSourceBaseFormat, DataSourceByDynamicURL, extendedElements, ImageElement, InteractiveElement, InteractiveDocument, PageElement, UrlRef } from "dsl";
+import { DataSourceBaseFormat, DataSourceByDynamicURL, extendedElements, ImageElement, InteractiveElement, InteractiveDocument, PageElement, UrlRef } from "schema";
 import { Spec as VegaSpec } from 'vega-typings';
 import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
 

@@ -1,6 +1,6 @@
 import { Renderer, RendererOptions } from "@microsoft/interactive-document-markdown";
 import { targetMarkdown } from "./md.js";
-import { InteractiveDocumentWithSchema } from "dsl";
+import { InteractiveDocumentWithSchema } from "schema";
 
 export function bindTextarea(textarea: HTMLTextAreaElement, outputElement: HTMLElement, options?: RendererOptions) {
     const renderer = new Renderer(outputElement, options);
