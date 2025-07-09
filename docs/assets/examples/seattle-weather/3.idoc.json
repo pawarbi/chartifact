@@ -1,6 +1,6 @@
 {
   "$schema": "../../../schema/v1.json",
-  "title": "Introduction to Data Narrative",
+  "title": "Seattle Weather",
   "dataLoaders": [
     {
       "type": "url",
