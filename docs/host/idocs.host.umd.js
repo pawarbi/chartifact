@@ -1647,7 +1647,6 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       renderer.render(content);
     };
     textarea.addEventListener("input", render);
-    render();
     return renderer;
   }
   const interfaces = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
@@ -2083,7 +2082,6 @@ ${content}
       }
     };
     textarea.addEventListener("input", render);
-    render();
     return renderer;
   }
   const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
