@@ -30,7 +30,7 @@ export default defineConfig({
         },
         {
           ...commonOutputConfig,
-          dir: '../../docs/host',
+          dir: '../../docs/view',
         },
       ],
       plugins: [
