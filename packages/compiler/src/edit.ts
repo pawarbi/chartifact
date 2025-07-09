@@ -28,7 +28,5 @@ export function bindTextarea(textarea: HTMLTextAreaElement, outputElement: HTMLE
     };
 
     textarea.addEventListener('input', render);
-    // Initial render
-    render();
     return renderer;
 }
