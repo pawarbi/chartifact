@@ -1,1 +1,1 @@
-export { InteractiveDocument, InteractiveDocumentWithSchema } from '../../../dsl/dist/idoc.d.ts';
+export { InteractiveDocument, InteractiveDocumentWithSchema } from '../../../schema/dist/idoc.d.ts';
