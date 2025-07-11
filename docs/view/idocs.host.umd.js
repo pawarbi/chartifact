@@ -1713,51 +1713,6 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     };
     return newPage;
   }
-  class VegaScope {
-    constructor(spec) {
-      __publicField(this, "spec");
-      __publicField(this, "urlCount", 0);
-      this.spec = spec;
-    }
-    addOrigin(origin) {
-      if (!this.spec.signals) {
-        this.spec.signals = [];
-      }
-      let origins = this.spec.signals.find((d2) => d2.name === "origins");
-      if (!origins) {
-        origins = {
-          name: "origins",
-          value: {}
-        };
-        this.spec.signals.unshift(origins);
-      }
-      origins.value[origin] = origin;
-    }
-    createUrlSignal(urlRef) {
-      const { origin, urlPath, mappedParams } = urlRef;
-      const name = `url:${this.urlCount++}:${safeVariableName(origin + urlPath)}`;
-      const signal = { name };
-      this.addOrigin(origin);
-      signal.update = `origins[${JSON.stringify(origin)}]+'${urlPath}'`;
-      if (mappedParams && mappedParams.length > 0) {
-        signal.update += ` + '?' + ${mappedParams.map((p) => `urlParam('${p.name}', ${variableValueExpression(p)})`).join(` + '&' + `)}`;
-      }
-      if (!this.spec.signals) {
-        this.spec.signals = [];
-      }
-      this.spec.signals.push(signal);
-      return signal;
-    }
-  }
-  function variableValueExpression(param) {
-    if (param.variableId) {
-      return param.variableId;
-    } else if (param.calculation) {
-      return "(" + param.calculation.vegaExpression + ")";
-    } else {
-      return JSON.stringify(param.value);
-    }
-  }
   function addStaticDataLoaderToSpec(vegaScope, dataSource) {
     const { spec } = vegaScope;
     const { dataSourceName } = dataSource;
@@ -1807,41 +1762,50 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       transform: dataSource.dataFrameTransformations || []
     });
   }
-  function createSpecWithVariables(variables, stubDataLoaders) {
-    const spec = {
-      $schema: "https://vega.github.io/schema/vega/v5.json",
-      signals: [],
-      data: []
-    };
-    topologicalSort(variables).forEach((v2) => {
-      if (isDataframePipeline(v2)) {
-        const { dataFrameTransformations } = v2.calculation;
-        const data = {
-          name: v2.variableId,
-          source: v2.calculation.dependsOn || [],
-          transform: dataFrameTransformations
-        };
-        spec.data.push(data);
-        if (!spec.signals) {
-          spec.signals = [];
-        }
-        spec.signals.push({
-          name: v2.variableId,
-          update: `data('${v2.variableId}')`
-        });
-      } else {
-        const signal = { name: v2.variableId, value: v2.initialValue };
-        if (v2.calculation) {
-          signal.update = v2.calculation.vegaExpression;
-        }
-        spec.signals.push(signal);
+  class VegaScope {
+    constructor(spec) {
+      __publicField(this, "spec");
+      __publicField(this, "urlCount", 0);
+      this.spec = spec;
+    }
+    addOrigin(origin) {
+      if (!this.spec.signals) {
+        this.spec.signals = [];
       }
-    });
-    return spec;
+      let origins = this.spec.signals.find((d2) => d2.name === "origins");
+      if (!origins) {
+        origins = {
+          name: "origins",
+          value: {}
+        };
+        this.spec.signals.unshift(origins);
+      }
+      origins.value[origin] = origin;
+    }
+    createUrlSignal(urlRef) {
+      const { origin, urlPath, mappedParams } = urlRef;
+      const name = `url:${this.urlCount++}:${safeVariableName(origin + urlPath)}`;
+      const signal = { name };
+      this.addOrigin(origin);
+      signal.update = `origins[${JSON.stringify(origin)}]+'${urlPath}'`;
+      if (mappedParams && mappedParams.length > 0) {
+        signal.update += ` + '?' + ${mappedParams.map((p) => `urlParam('${p.name}', ${variableValueExpression(p)})`).join(` + '&' + `)}`;
+      }
+      if (!this.spec.signals) {
+        this.spec.signals = [];
+      }
+      this.spec.signals.push(signal);
+      return signal;
+    }
   }
-  function isDataframePipeline(variable) {
-    var _a, _b;
-    return variable.type === "object" && !!variable.isArray && (((_a = variable.calculation) == null ? void 0 : _a.dependsOn) !== void 0 && variable.calculation.dependsOn.length > 0 || ((_b = variable.calculation) == null ? void 0 : _b.dataFrameTransformations) !== void 0 && variable.calculation.dataFrameTransformations.length > 0);
+  function variableValueExpression(param) {
+    if (param.variableId) {
+      return param.variableId;
+    } else if (param.calculation) {
+      return "(" + param.calculation.vegaExpression + ")";
+    } else {
+      return JSON.stringify(param.value);
+    }
   }
   function topologicalSort(list) {
     var _a;
@@ -1884,6 +1848,42 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     }
     return sorted;
   }
+  function createSpecWithVariables(variables, stubDataLoaders) {
+    const spec = {
+      $schema: "https://vega.github.io/schema/vega/v5.json",
+      signals: [],
+      data: []
+    };
+    topologicalSort(variables).forEach((v2) => {
+      if (isDataframePipeline(v2)) {
+        const { dataFrameTransformations } = v2.calculation;
+        const data = {
+          name: v2.variableId,
+          source: v2.calculation.dependsOn || [],
+          transform: dataFrameTransformations
+        };
+        spec.data.push(data);
+        if (!spec.signals) {
+          spec.signals = [];
+        }
+        spec.signals.push({
+          name: v2.variableId,
+          update: `data('${v2.variableId}')`
+        });
+      } else {
+        const signal = { name: v2.variableId, value: v2.initialValue };
+        if (v2.calculation) {
+          signal.update = v2.calculation.vegaExpression;
+        }
+        spec.signals.push(signal);
+      }
+    });
+    return spec;
+  }
+  function isDataframePipeline(variable) {
+    var _a, _b;
+    return variable.type === "object" && !!variable.isArray && (((_a = variable.calculation) == null ? void 0 : _a.dependsOn) !== void 0 && variable.calculation.dependsOn.length > 0 || ((_b = variable.calculation) == null ? void 0 : _b.dataFrameTransformations) !== void 0 && variable.calculation.dataFrameTransformations.length > 0);
+  }
   function mdWrap(type, content) {
     return `\`\`\`json ${type}
 ${content}
@@ -1901,12 +1901,14 @@ ${content}
   const $schema = "https://vega.github.io/schema/vega/v5.json";
   function targetMarkdown(page) {
     const mdSections = [];
-    const vegaScope = dataLoaderMarkdown(page.dataLoaders.filter((dl) => dl.type !== "spec"), page.variables);
-    for (const dataLoader of page.dataLoaders.filter((dl) => dl.type === "spec")) {
+    const dataLoaders = page.dataLoaders || [];
+    const variables = page.variables || [];
+    const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables);
+    for (const dataLoader of dataLoaders.filter((dl) => dl.type === "spec")) {
       mdSections.push(chartWrap(dataLoader.spec));
     }
     for (const group of page.groups) {
-      mdSections.push(mdContainerWrap(group.groupId, groupMarkdown(group, page.variables, vegaScope)));
+      mdSections.push(mdContainerWrap(group.groupId, groupMarkdown(group, variables, vegaScope)));
     }
     mdSections.unshift(chartWrap(vegaScope.spec));
     const markdown = mdSections.join("\n\n");
