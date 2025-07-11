@@ -2028,52 +2028,261 @@ ${content}
     return /* @__PURE__ */ React.createElement("div", { ref: containerRef });
   }
   function Editor(props) {
-    const page = {
-      title: "Sample Page",
+    const [page, setPage] = React.useState(() => ({
+      title: "Initializing...",
       layout: {
         css: ""
       },
       dataLoaders: [],
       groups: [
         {
+          groupId: "init",
+          elements: [
+            "# 🔄 Editor Initializing",
+            "Please wait while the editor loads...",
+            "",
+            "The editor is ready and waiting for content from the host application.",
+            "",
+            "📡 **Status**: Ready to receive documents"
+          ]
+        }
+      ],
+      variables: []
+    }));
+    React.useEffect(() => {
+      const handleMessage = (event) => {
+        if (event.data && event.data.sender !== "editor") {
+          if (event.data.type === "page" && event.data.page) {
+            const totalElements = event.data.page.groups.reduce((total, group) => total + group.elements.length, 0);
+            console.log("Editor received page from app:", {
+              title: event.data.page.title,
+              totalElements,
+              groups: event.data.page.groups.length
+            });
+            setPage(event.data.page);
+          }
+        }
+      };
+      window.addEventListener("message", handleMessage);
+      return () => {
+        window.removeEventListener("message", handleMessage);
+      };
+    }, []);
+    React.useEffect(() => {
+      const readyMessage = {
+        type: "ready",
+        sender: "editor"
+      };
+      window.parent.postMessage(readyMessage, "*");
+    }, []);
+    return /* @__PURE__ */ React.createElement(EditorView, { page });
+  }
+  function EditorView(props) {
+    const { page } = props;
+    const sendEditToApp = (newPage) => {
+      const pageMessage = {
+        type: "page",
+        page: newPage,
+        sender: "editor"
+      };
+      window.parent.postMessage(pageMessage, "*");
+    };
+    const deleteElement = (groupIndex, elementIndex) => {
+      const newPage = {
+        ...page,
+        groups: page.groups.map((group, gIdx) => {
+          if (gIdx === groupIndex) {
+            return {
+              ...group,
+              elements: group.elements.filter((_2, eIdx) => eIdx !== elementIndex)
+            };
+          }
+          return group;
+        })
+      };
+      const totalElements = newPage.groups.reduce((total, group) => total + group.elements.length, 0);
+      console.log("Editor sending delete result:", {
+        title: newPage.title,
+        totalElements,
+        groups: newPage.groups.length,
+        deletedFrom: { groupIndex, elementIndex }
+      });
+      sendEditToApp(newPage);
+    };
+    const deleteGroup = (groupIndex) => {
+      const newPage = {
+        ...page,
+        groups: page.groups.filter((_2, gIdx) => gIdx !== groupIndex)
+      };
+      sendEditToApp(newPage);
+    };
+    return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", height: "100vh" } }, /* @__PURE__ */ React.createElement("div", { style: { width: "300px", padding: "10px", borderRight: "1px solid #ccc" } }, /* @__PURE__ */ React.createElement("h3", null, "Tree View"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", null, "📄 ", page.title), /* @__PURE__ */ React.createElement("div", { style: { marginLeft: "20px" } }, page.groups.map((group, groupIndex) => /* @__PURE__ */ React.createElement("div", { key: groupIndex, style: { marginBottom: "10px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: "5px" } }, "📁 ", group.groupId, /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => deleteGroup(groupIndex),
+        style: {
+          background: "#ff4444",
+          color: "white",
+          border: "none",
+          borderRadius: "3px",
+          padding: "2px 6px",
+          fontSize: "10px",
+          cursor: "pointer"
+        },
+        title: "Delete group"
+      },
+      "✕"
+    )), /* @__PURE__ */ React.createElement("div", { style: { marginLeft: "20px" } }, group.elements.map((element, elementIndex) => /* @__PURE__ */ React.createElement("div", { key: elementIndex, style: { display: "flex", alignItems: "center", gap: "5px", marginBottom: "2px" } }, /* @__PURE__ */ React.createElement("span", null, typeof element === "string" ? `📝 ${element.slice(0, 30)}${element.length > 30 ? "..." : ""}` : `🎨 ${element.type}`), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: () => deleteElement(groupIndex, elementIndex),
+        style: {
+          background: "#ff4444",
+          color: "white",
+          border: "none",
+          borderRadius: "3px",
+          padding: "2px 6px",
+          fontSize: "10px",
+          cursor: "pointer"
+        },
+        title: "Delete element"
+      },
+      "✕"
+    ))))))))), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, padding: "10px" } }, /* @__PURE__ */ React.createElement("h3", null, "Document Preview"), /* @__PURE__ */ React.createElement(DocumentPreview, { page })));
+  }
+  function App(props) {
+    const initialPage = {
+      title: "Sample Page",
+      layout: { css: "" },
+      dataLoaders: [],
+      groups: [
+        {
           groupId: "main",
           elements: [
-            "# Sample Interactive Document",
-            "This is a test content to see if rendering works.",
-            "Here are some interactive elements:",
-            {
-              type: "chart",
-              chart: {
-                dataSourceBase: {
-                  dataSourceName: "testData"
-                },
-                chartTemplateKey: "bar",
-                chartIntent: "A simple test chart",
-                spec: {
-                  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-                  "data": {
-                    "values": [
-                      { "category": "A", "value": 28 },
-                      { "category": "B", "value": 55 },
-                      { "category": "C", "value": 43 }
-                    ]
-                  },
-                  "mark": "bar",
-                  "encoding": {
-                    "x": { "field": "category", "type": "nominal" },
-                    "y": { "field": "value", "type": "quantitative" }
-                  }
-                }
-              }
-            }
+            "# Welcome to Interactive Documents",
+            "1 This is a sample page loaded via postMessage.",
+            "2 This is a sample page loaded via postMessage.",
+            "3 This is a sample page loaded via postMessage.",
+            "The App component controls what content is displayed."
           ]
         }
       ],
       variables: []
     };
-    console.log("Editor rendering with page:", page);
-    return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", height: "100vh" } }, /* @__PURE__ */ React.createElement("div", { style: { width: "300px", padding: "10px", borderRight: "1px solid #ccc" } }, /* @__PURE__ */ React.createElement("h3", null, "Tree View"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", null, "📄 ", page.title), /* @__PURE__ */ React.createElement("div", { style: { marginLeft: "20px" } }, page.groups.map((group, i) => /* @__PURE__ */ React.createElement("div", { key: i }, "📁 ", group.groupId, /* @__PURE__ */ React.createElement("div", { style: { marginLeft: "20px" } }, group.elements.map((element, j2) => /* @__PURE__ */ React.createElement("div", { key: j2 }, typeof element === "string" ? `📝 ${element.slice(0, 30)}${element.length > 30 ? "..." : ""}` : `🎨 ${element.type}`)))))))), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, padding: "10px" } }, /* @__PURE__ */ React.createElement("h3", null, "Document Preview"), /* @__PURE__ */ React.createElement(DocumentPreview, { page })));
+    const [history, setHistory] = React.useState([initialPage]);
+    const [historyIndex, setHistoryIndex] = React.useState(0);
+    const [currentPage, setCurrentPage] = React.useState(initialPage);
+    const editorContainerRef = React.useRef(null);
+    const [isEditorReady, setIsEditorReady] = React.useState(false);
+    const undo = () => {
+      if (historyIndex > 0) {
+        const newIndex = historyIndex - 1;
+        setHistoryIndex(newIndex);
+        const page = history[newIndex];
+        setCurrentPage(page);
+        sendPageToEditor(page);
+      }
+    };
+    const redo = () => {
+      if (historyIndex < history.length - 1) {
+        const newIndex = historyIndex + 1;
+        setHistoryIndex(newIndex);
+        const page = history[newIndex];
+        setCurrentPage(page);
+        sendPageToEditor(page);
+      }
+    };
+    const sendPageToEditor = (page, skipReadyCheck = false) => {
+      if (!skipReadyCheck && !isEditorReady) {
+        console.log("Editor not ready, page will be sent when ready");
+        return;
+      }
+      const pageMessage = {
+        type: "page",
+        page,
+        sender: "app"
+      };
+      window.postMessage(pageMessage, "*");
+    };
+    React.useEffect(() => {
+      const handleMessage = (event) => {
+        if (event.data && event.data.sender === "editor") {
+          if (event.data.type === "ready") {
+            event.data;
+            console.log("Editor is ready");
+            setIsEditorReady(true);
+            sendPageToEditor(currentPage);
+          } else if (event.data.type === "page" && event.data.page) {
+            const pageMessage = event.data;
+            const totalElements = pageMessage.page.groups.reduce((total, group) => total + group.elements.length, 0);
+            console.log("Received edit from editor:", pageMessage.page.title, "Total elements:", totalElements, "Groups:", pageMessage.page.groups.length);
+            setHistoryIndex((prevIndex) => {
+              setHistory((prevHistory) => {
+                console.log("Current history length:", prevHistory.length, "current index:", prevIndex);
+                const newHistory = prevHistory.slice(0, prevIndex + 1);
+                newHistory.push(pageMessage.page);
+                console.log("New history length will be:", newHistory.length);
+                return newHistory;
+              });
+              setCurrentPage(pageMessage.page);
+              sendPageToEditor(pageMessage.page, true);
+              return prevIndex + 1;
+            });
+          }
+        }
+      };
+      window.addEventListener("message", handleMessage);
+      return () => {
+        window.removeEventListener("message", handleMessage);
+      };
+    }, []);
+    React.useEffect(() => {
+      if (isEditorReady) {
+        sendPageToEditor(currentPage);
+      }
+    }, [isEditorReady]);
+    React.useEffect(() => {
+    }, []);
+    return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", height: "100vh" } }, /* @__PURE__ */ React.createElement("div", { style: {
+      padding: "10px",
+      backgroundColor: "#f5f5f5",
+      borderBottom: "1px solid #ccc",
+      display: "flex",
+      gap: "10px",
+      alignItems: "center"
+    } }, /* @__PURE__ */ React.createElement("h2", { style: { margin: 0 } }, "Document Editor"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: "5px", alignItems: "center" } }, /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: undo,
+        disabled: historyIndex <= 0,
+        style: {
+          padding: "5px 10px",
+          backgroundColor: historyIndex <= 0 ? "#ccc" : "#007acc",
+          color: "white",
+          border: "none",
+          borderRadius: "3px",
+          cursor: historyIndex <= 0 ? "not-allowed" : "pointer"
+        }
+      },
+      "↶ Undo"
+    ), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        onClick: redo,
+        disabled: historyIndex >= history.length - 1,
+        style: {
+          padding: "5px 10px",
+          backgroundColor: historyIndex >= history.length - 1 ? "#ccc" : "#007acc",
+          color: "white",
+          border: "none",
+          borderRadius: "3px",
+          cursor: historyIndex >= history.length - 1 ? "not-allowed" : "pointer"
+        }
+      },
+      "↷ Redo"
+    ), /* @__PURE__ */ React.createElement("span", { style: { marginLeft: "10px", fontSize: "12px", color: "#666" } }, "History: ", historyIndex + 1, " / ", history.length))), /* @__PURE__ */ React.createElement("div", { ref: editorContainerRef, style: { flex: 1 } }, /* @__PURE__ */ React.createElement(Editor, null)));
   }
+  exports2.App = App;
   exports2.Editor = Editor;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });
