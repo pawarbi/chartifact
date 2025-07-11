@@ -60,6 +60,30 @@ export class EditManager {
 				this.getFileContentAndRender(fileUri, uriFsPath);
 				break;
 			}
+			case 'page': {
+				// Handle page updates from the editor
+				this.handlePageUpdate(message, fileUri, uriFsPath);
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Handles page update messages from the webview editor
+	 */
+	private async handlePageUpdate(message: PageMessage, fileUri: vscode.Uri, uriFsPath: string) {
+		try {
+			// Convert the page data to JSON string
+			const jsonContent = JSON.stringify(message.page, null, 2);
+			
+			// Write the updated content back to the file
+			const uint8Array = new TextEncoder().encode(jsonContent);
+			await vscode.workspace.fs.writeFile(fileUri, uint8Array);
+			
+			// Show a brief status message
+			vscode.window.setStatusBarMessage('Document saved', 2000);
+		} catch (error) {
+			vscode.window.showErrorMessage(`Failed to save document: ${error}`);
 		}
 	}
 
