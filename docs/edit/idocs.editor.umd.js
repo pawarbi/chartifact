@@ -2117,7 +2117,16 @@ ${content}
       };
       sendEditToApp(newPage);
     };
-    return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", height: "100vh" } }, /* @__PURE__ */ React.createElement("div", { style: { width: "300px", padding: "10px", borderRight: "1px solid #ccc" } }, /* @__PURE__ */ React.createElement("h3", null, "Tree View"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", null, "📄 ", page.title), /* @__PURE__ */ React.createElement("div", { style: { marginLeft: "20px" } }, page.groups.map((group, groupIndex) => /* @__PURE__ */ React.createElement("div", { key: groupIndex, style: { marginBottom: "10px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: "5px" } }, "📁 ", group.groupId, /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement("div", { style: {
+      display: "grid",
+      gridTemplateColumns: "320px 1fr",
+      height: "100vh",
+      overflow: "hidden"
+    } }, /* @__PURE__ */ React.createElement("div", { style: {
+      padding: "10px",
+      borderRight: "1px solid #ccc",
+      overflowY: "auto"
+    } }, /* @__PURE__ */ React.createElement("h3", null, "Tree View"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", null, "📄 ", page.title), /* @__PURE__ */ React.createElement("div", { style: { marginLeft: "20px" } }, page.groups.map((group, groupIndex) => /* @__PURE__ */ React.createElement("div", { key: groupIndex, style: { marginBottom: "10px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: "5px" } }, "📁 ", group.groupId, /* @__PURE__ */ React.createElement(
       "button",
       {
         onClick: () => deleteGroup(groupIndex),
@@ -2149,7 +2158,10 @@ ${content}
         title: "Delete element"
       },
       "✕"
-    ))))))))), /* @__PURE__ */ React.createElement("div", { style: { flex: 1, padding: "10px" } }, /* @__PURE__ */ React.createElement("h3", null, "Document Preview"), /* @__PURE__ */ React.createElement(DocumentPreview, { page })));
+    ))))))))), /* @__PURE__ */ React.createElement("div", { style: {
+      padding: "10px",
+      overflowY: "auto"
+    } }, /* @__PURE__ */ React.createElement("h3", null, "Document Preview"), /* @__PURE__ */ React.createElement(DocumentPreview, { page })));
   }
   function App(props) {
     const initialPage = {
