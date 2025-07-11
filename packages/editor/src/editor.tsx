@@ -120,8 +120,17 @@ export function EditorView(props: EditorViewProps) {
     };
 
     return (
-        <div style={{ display: 'flex', height: '100vh' }}>
-            <div style={{ width: '300px', padding: '10px', borderRight: '1px solid #ccc' }}>
+        <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '320px 1fr',
+            height: '100vh',
+            overflow: 'hidden'
+        }}>
+            <div style={{ 
+                padding: '10px', 
+                borderRight: '1px solid #ccc',
+                overflowY: 'auto'
+            }}>
                 <h3>Tree View</h3>
                 <div>
                     <div>📄 {page.title}</div>
@@ -178,7 +187,10 @@ export function EditorView(props: EditorViewProps) {
                     </div>
                 </div>
             </div>
-            <div style={{ flex: 1, padding: '10px' }}>
+            <div style={{ 
+                padding: '10px',
+                overflowY: 'auto'
+            }}>
                 <h3>Document Preview</h3>
                 <DocumentPreview page={page} />
             </div>
