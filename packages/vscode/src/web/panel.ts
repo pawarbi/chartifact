@@ -7,12 +7,12 @@ export interface WebViewWithUri {
     uriFsPath: string;
 }
 
-export function newPanel(context: vscode.ExtensionContext, uriFsPath: string, uriTabName?: string) {
+export function newPanel(context: vscode.ExtensionContext, uriFsPath: string, uriTabName?: string, viewColumn?: vscode.ViewColumn) {
     const webViewWithUri: WebViewWithUri = {
         panel: vscode.window.createWebviewPanel(
             'idocsPreview',
             `Interactive Document Preview: ${(uriTabName || uriFsPath).split(/[/\\]/).pop() || 'Document'}`,
-            vscode.ViewColumn.One,
+            viewColumn || vscode.ViewColumn.One,
             {
                 enableScripts: true,
                 // Only allow the webview to access resources in our extension's media directory

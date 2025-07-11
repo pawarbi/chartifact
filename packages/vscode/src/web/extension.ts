@@ -44,6 +44,13 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(previewDisposable);
 
+	// Register the split preview command for .idoc.md and .idoc.json files
+	const previewSplitDisposable = vscode.commands.registerCommand('interactive-documents-vscode.previewIdocSplit', (fileUri: vscode.Uri) => {
+		previewManager.showPreviewSplit(fileUri);
+	});
+
+	context.subscriptions.push(previewSplitDisposable);
+
 	// Register the edit command for .idoc.md and .idoc.json files
 	const editDisposable = vscode.commands.registerCommand('interactive-documents-vscode.editIdoc', (fileUri: vscode.Uri) => {
 		editManager.showPreview(fileUri);

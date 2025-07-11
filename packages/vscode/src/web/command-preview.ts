@@ -17,7 +17,22 @@ export class PreviewManager {
 	 * Shows the preview for the given file URI
 	 */
 	showPreview(fileUri: vscode.Uri) {
-		const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
+		this.showPreviewInternal(fileUri, false);
+	}
+
+	/**
+	 * Shows the preview for the given file URI in split view
+	 */
+	showPreviewSplit(fileUri: vscode.Uri) {
+		this.showPreviewInternal(fileUri, true);
+	}
+
+	/**
+	 * Internal method to show the preview with optional split view
+	 */
+	private showPreviewInternal(fileUri: vscode.Uri, splitView: boolean) {
+		const columnToShowIn = splitView ? vscode.ViewColumn.Beside : 
+			(vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined);
 		const uriFsPath = fileUri.fsPath;
 
 		// Only allow one viewer at a time
@@ -31,7 +46,7 @@ export class PreviewManager {
 			this.current.panel.reveal(columnToShowIn);
 		} else {
 			// Otherwise, create a new panel
-			this.current = newPanel(this.context, uriFsPath);
+			this.current = newPanel(this.context, uriFsPath, undefined, columnToShowIn);
 			const { panel } = this.current;
 
 			panel.webview.html = getWebviewContent(panel.webview, this.context);
