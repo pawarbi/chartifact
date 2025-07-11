@@ -1,0 +1,27 @@
+{
+  "name": "editor",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/esnext/index.js",
+  "types": "dist/esnext/index.d.ts",
+  "scripts": {
+    "clean": "rimraf dist",
+    "dev": "vite --config vite.config.js",
+    "tsc": "tsc -p .",
+    "bundle": "vite build --config vite.bundle.config.js",
+    "build": "npm run tsc && npm run bundle"
+  },
+  "author": "Dan Marshall",
+  "license": "MIT",
+  "description": "",
+  "dependencies": {
+    "@fluentui/react-components": "^9.66.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@msrvida/chart-types": "^1.1.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1"
+  }
+}

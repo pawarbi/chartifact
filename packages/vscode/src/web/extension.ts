@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { createNewDocument } from './command-new';
 import { PreviewManager } from './command-preview';
+import { EditManager } from './command-edit';
 import { convertToHtml } from './command-convert-html';
 import { initializeResources } from './resources';
 
@@ -10,6 +11,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// Create preview manager
 	const previewManager = new PreviewManager(context);
+
+	// Create edit manager
+	const editManager = new EditManager(context);
 
 	// Register the new Interactive Document command
 	const newDocumentDisposable = vscode.commands.registerCommand('interactive-documents-vscode.newIdocMarkdown', async (uri?: vscode.Uri) => {
@@ -40,6 +44,20 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(previewDisposable);
 
+	// Register the split preview command for .idoc.md and .idoc.json files
+	const previewSplitDisposable = vscode.commands.registerCommand('interactive-documents-vscode.previewIdocSplit', (fileUri: vscode.Uri) => {
+		previewManager.showPreviewSplit(fileUri);
+	});
+
+	context.subscriptions.push(previewSplitDisposable);
+
+	// Register the edit command for .idoc.md and .idoc.json files
+	const editDisposable = vscode.commands.registerCommand('interactive-documents-vscode.editIdoc', (fileUri: vscode.Uri) => {
+		editManager.showPreview(fileUri);
+	});
+
+	context.subscriptions.push(editDisposable);
+
 	// Register the convert to HTML command for .idoc.md files
 	const convertToHtmlDisposable = vscode.commands.registerCommand('interactive-documents-vscode.convertToHtml', async (fileUri: vscode.Uri) => {
 		try {
@@ -66,6 +84,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	// Ensure preview manager is disposed when extension deactivates
 	context.subscriptions.push({
 		dispose: () => previewManager.dispose()
+	});
+
+	// Ensure edit manager is disposed when extension deactivates
+	context.subscriptions.push({
+		dispose: () => editManager.dispose()
 	});
 }
 

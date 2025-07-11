@@ -2433,15 +2433,19 @@ ${content}
       if (interactiveDocument) {
         if (this.textarea) {
           this.textarea.value = JSON.stringify(interactiveDocument, null, 2);
+          this.hideLoadingAndHelp();
           bindTextarea(this.textarea, this.appDiv);
+        } else {
+          this.renderInteractiveDocument(interactiveDocument);
         }
-        this.renderInteractiveDocument(interactiveDocument);
       } else if (markdown) {
         if (this.textarea) {
           this.textarea.value = markdown;
+          this.hideLoadingAndHelp();
           bindTextarea$1(this.textarea, this.appDiv);
+        } else {
+          this.renderMarkdown(markdown);
         }
-        this.renderMarkdown(markdown);
       } else {
         this.errorHandler(new Error("No content provided"), "Please provide either markdown or an interactive document to render.");
       }
@@ -2453,9 +2457,12 @@ ${content}
       const markdown = targetMarkdown(content);
       this.renderMarkdown(markdown);
     }
-    renderMarkdown(content) {
+    hideLoadingAndHelp() {
       show(this.loadingDiv, false);
       show(this.helpDiv, false);
+    }
+    renderMarkdown(content) {
+      this.hideLoadingAndHelp();
       if (!this.renderer) {
         this.errorHandler(new Error("Renderer not initialized"), "Please wait for the application to load.");
         return;

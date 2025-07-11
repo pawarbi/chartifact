@@ -4,24 +4,15 @@
   "description": "ost page to render interactive documents",
   "main": "dist/esnext/index.js",
   "type": "module",
-  "exports": {
-    ".": {
-      "import": "./dist/esnext/index.js"
-    },
-    "./types": {
-      "types": "./dist/esnext/types.d.ts",
-      "import": "./dist/esnext/types.js"
-    }
-  },
   "files": [
     "dist"
   ],
   "scripts": {
     "clean": "rimraf dist",
     "dev": "vite",
-    "build-typescript": "tsc -p .",
+    "tsc": "tsc -p .",
     "bundle": "vite build --config vite.bundle.config.js",
-    "build": "npm run build-typescript && npm run bundle",
+    "build": "npm run tsc && npm run bundle",
     "build:03": "npm run build",
     "preview": "vite preview",
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -1,4 +1,4 @@
-import { InteractiveDocumentWithSchema } from './dsl';
+import { InteractiveDocumentWithSchema } from './schema';
 
 export const sampleMarkdown = `# Seattle Weather
 

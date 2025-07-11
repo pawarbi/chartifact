@@ -5,7 +5,7 @@ import { setupDragDropHandling } from './dragdrop.js';
 import { setupFileUpload } from './upload.js';
 import { checkUrlForFile } from './url.js';
 import { setupPostMessageHandling } from './post-receive.js';
-import { InteractiveDocument } from 'dsl';
+import { InteractiveDocument } from 'schema';
 import { postStatus } from './post-send.js';
 import { ListenOptions } from './types.js';
 
@@ -112,16 +112,20 @@ export class Listener {
     if (interactiveDocument) {
       if (this.textarea) {
         this.textarea.value = JSON.stringify(interactiveDocument, null, 2);
+        this.hideLoadingAndHelp();
         c_bind(this.textarea, this.appDiv);
+      } else {
+        this.renderInteractiveDocument(interactiveDocument);
       }
-      this.renderInteractiveDocument(interactiveDocument);
 
     } else if (markdown) {
       if (this.textarea) {
         this.textarea.value = markdown;
+        this.hideLoadingAndHelp();
         r_bind(this.textarea, this.appDiv);
+      } else {
+        this.renderMarkdown(markdown);
       }
-      this.renderMarkdown(markdown);
     } else {
       this.errorHandler(new Error('No content provided'), 'Please provide either markdown or an interactive document to render.');
     }
@@ -136,9 +140,13 @@ export class Listener {
     this.renderMarkdown(markdown);
   }
 
-  private renderMarkdown(content: string) {
+  private hideLoadingAndHelp() {
     show(this.loadingDiv, false);
     show(this.helpDiv, false);
+  }
+
+  private renderMarkdown(content: string) {
+    this.hideLoadingAndHelp();
 
     if (!this.renderer) {
       this.errorHandler(new Error('Renderer not initialized'), 'Please wait for the application to load.');

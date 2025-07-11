@@ -1,7 +1,7 @@
 // Pure type definitions without DOM dependencies
 // This module can be safely imported by VS Code extensions
 
-import { InteractiveDocument } from "dsl";
+import { InteractiveDocument } from "schema";
 
 export interface ListenOptions {
   clipboard?: boolean;

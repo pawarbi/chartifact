@@ -1,28 +1,32 @@
 import { defineConfig } from 'vite';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import react from '@vitejs/plugin-react';
 
 const commonOutputConfig = {
   format: 'umd',
-  name: 'IDocs.host',
+  name: 'IDocs.editor',
   globals: {
-    'markdown-it': 'markdownit',
+    'react': 'React',
+    'react-dom': 'ReactDOM',
     'vega': 'vega',
     'vega-lite': 'vegaLite',
   },
-  entryFileNames: 'idocs.host.umd.js',
+  entryFileNames: 'idocs.editor.umd.js',
 };
 
 export default defineConfig({
+  plugins: [react({
+    jsxRuntime: 'classic'
+  })],
   build: {
     lib: {
       entry: './src/index.ts',
     },
     minify: false,
-    emptyOutDir: false,
     rollupOptions: {
       // External dependencies that the library expects consumers to provide
-      external: ['markdown-it', 'vega', 'vega-lite', 'tabulator-tables'],
+      external: ['react', 'react-dom', 'vega', 'vega-lite'],
       output: [
         {
           ...commonOutputConfig,
@@ -30,7 +34,7 @@ export default defineConfig({
         },
         {
           ...commonOutputConfig,
-          dir: '../../docs/view',
+          dir: '../../docs/edit',
         },
       ],
       plugins: [

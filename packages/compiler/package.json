@@ -6,10 +6,10 @@
   "scripts": {
     "clean": "rimraf dist",
     "deploy": "node ./scripts/deploy.js",
-    "watch-typescript": "tsc -p . -w",
-    "build-typescript": "tsc -p .",
+    "dev": "tsc -p . -w",
+    "tsc": "tsc -p .",
     "bundle": "vite build --config vite.bundle.config.js",
-    "build": "npm run build-typescript && npm run bundle",
+    "build": "npm run tsc && npm run bundle",
     "build:02": "npm run build"
   },
   "repository": {

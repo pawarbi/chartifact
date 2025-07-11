@@ -1,6 +1,6 @@
 import { Spec as VegaSpec } from 'vega-typings';
 import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
-import { ChartFull, DataSource, ElementGroup, extendedElements, InteractiveDocument, Variable } from 'dsl';
+import { ChartFull, DataSource, ElementGroup, extendedElements, InteractiveDocument, Variable } from 'schema';
 import { getChartType } from './util.js';
 import { addDynamicDataLoaderToSpec, addStaticDataLoaderToSpec, createSpecWithVariables, VegaScope } from './loader.js';
 import { common, Plugins } from '@microsoft/interactive-document-markdown';

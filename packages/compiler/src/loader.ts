@@ -1,5 +1,5 @@
 import { Spec as VegaSpec } from 'vega-typings';
-import { DataSourceByDynamicURL, DataLoader, MappedNameValuePairs, UrlRef, Variable, DataSourceByFile, DataSourceByJSON } from 'dsl';
+import { DataSourceByDynamicURL, DataLoader, MappedNameValuePairs, UrlRef, Variable, DataSourceByFile, DataSourceByJSON } from 'schema';
 import { NewSignal, Signal, SignalRef, SourceData, ValuesData } from 'vega';
 import { safeVariableName } from './util.js';
 import { common } from '@microsoft/interactive-document-markdown';

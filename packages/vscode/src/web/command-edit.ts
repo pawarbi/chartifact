@@ -2,12 +2,12 @@ import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
 import { link, script } from './html';
 import { getResource } from './resources';
-import type { ListenOptions, RenderRequestMessage } from '@microsoft/interactive-document-host' with { 'resolution-mode': 'import' };
+import type { ReadyMessage, PageMessage, EditorMessage } from 'editor' with { 'resolution-mode': 'import' };
 
 /**
- * Manages the preview functionality for Interactive Documents
+ * Manages the edit functionality for Interactive Documents
  */
-export class PreviewManager {
+export class EditManager {
 	private current: WebViewWithUri | undefined = undefined;
 	private fileWatcher: vscode.FileSystemWatcher | undefined = undefined;
 
@@ -17,22 +17,7 @@ export class PreviewManager {
 	 * Shows the preview for the given file URI
 	 */
 	showPreview(fileUri: vscode.Uri) {
-		this.showPreviewInternal(fileUri, false);
-	}
-
-	/**
-	 * Shows the preview for the given file URI in split view
-	 */
-	showPreviewSplit(fileUri: vscode.Uri) {
-		this.showPreviewInternal(fileUri, true);
-	}
-
-	/**
-	 * Internal method to show the preview with optional split view
-	 */
-	private showPreviewInternal(fileUri: vscode.Uri, splitView: boolean) {
-		const columnToShowIn = splitView ? vscode.ViewColumn.Beside : 
-			(vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined);
+		const columnToShowIn = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
 		const uriFsPath = fileUri.fsPath;
 
 		// Only allow one viewer at a time
@@ -46,7 +31,7 @@ export class PreviewManager {
 			this.current.panel.reveal(columnToShowIn);
 		} else {
 			// Otherwise, create a new panel
-			this.current = newPanel(this.context, uriFsPath, undefined, columnToShowIn, "Interactive Document Preview");
+			this.current = newPanel(this.context, uriFsPath, undefined, columnToShowIn, "Interactive Document Editor");
 			const { panel } = this.current;
 
 			panel.webview.html = getWebviewContent(panel.webview, this.context);
@@ -69,12 +54,36 @@ export class PreviewManager {
 	/**
 	 * Handles messages from the webview
 	 */
-	private handleWebviewMessage(message: any, fileUri: vscode.Uri, uriFsPath: string) {
-		switch (message.status) {
+	private handleWebviewMessage(message: EditorMessage, fileUri: vscode.Uri, uriFsPath: string) {
+		switch (message.type) {
 			case 'ready': {
 				this.getFileContentAndRender(fileUri, uriFsPath);
 				break;
 			}
+			case 'page': {
+				// Handle page updates from the editor
+				this.handlePageUpdate(message, fileUri, uriFsPath);
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Handles page update messages from the webview editor
+	 */
+	private async handlePageUpdate(message: PageMessage, fileUri: vscode.Uri, uriFsPath: string) {
+		try {
+			// Convert the page data to JSON string
+			const jsonContent = JSON.stringify(message.page, null, 2);
+			
+			// Write the updated content back to the file
+			const uint8Array = new TextEncoder().encode(jsonContent);
+			await vscode.workspace.fs.writeFile(fileUri, uint8Array);
+			
+			// Show a brief status message
+			vscode.window.setStatusBarMessage('Document saved', 2000);
+		} catch (error) {
+			vscode.window.showErrorMessage(`Failed to save document: ${error}`);
 		}
 	}
 
@@ -84,13 +93,20 @@ export class PreviewManager {
 			// If the file is a markdown file, we can send the markdown content
 			if (uriFsPath.endsWith('.idoc.md')) {
 				const markdown = new TextDecoder().decode(uint8array);
-				this.render({ markdown });
+
+				//TODO: we need to decompile??
+
+				//this.render({ markdown });
 			} else if (uriFsPath.endsWith('.idoc.json')) {
 				// If the file is a JSON file, we can send the JSON content
 				const jsonContent = new TextDecoder().decode(uint8array);
 				try {
 					const interactiveDocument = JSON.parse(jsonContent);
-					this.render({ interactiveDocument });
+					this.render({
+						page: interactiveDocument,
+						type: 'page',
+						sender: 'app'
+					});
 				} catch (error) {
 					vscode.window.showErrorMessage(`Failed to parse JSON: ${error}`);
 				}
@@ -99,7 +115,7 @@ export class PreviewManager {
 		});
 	}
 
-	public render(renderRequestMessage: RenderRequestMessage) {
+	public render(renderRequestMessage: PageMessage) {
 		if (this.current && this.current.panel.visible) {
 			this.current.panel.webview.postMessage(renderRequestMessage);
 		}
@@ -165,13 +181,6 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 		return webView.asWebviewUri(onDiskPath);
 	}
 
-	const hostOptions: ListenOptions = {
-		clipboard: false,
-		dragDrop: false,
-		fileUpload: false,
-		url: false,
-	};
-
 	// Build the resource links block
 	const resourceLinks = [
 		link(resourceUrl('tabulator.min.css')),
@@ -179,14 +188,14 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 		script(resourceUrl('vega.min.js')),
 		script(resourceUrl('vega-lite.min.js')),
 		script(resourceUrl('tabulator.min.js')),
+		script(resourceUrl('react.production.min.js')),
+		script(resourceUrl('react-dom.production.min.js')),
+		script(resourceUrl('idocs.editor.umd.js')),
 	].join('\n    ');
 
-	const hostScript = script(resourceUrl('idocs.host.umd.js'));
-	
-	const template = getResource('preview.html');
-	
+	const template = getResource('edit.html');
+
 	return template
 		.replace('{{RESOURCE_LINKS}}', () => resourceLinks)
-		.replace('{{HOST_SCRIPT}}', () => hostScript)
-		.replace('{{HOST_OPTIONS}}', () => `<script>const hostOptions = ${JSON.stringify(hostOptions)};</script>`);
+		.replace('{{EDITOR_OPTIONS}}', () => `<script>const editorOptions = ${JSON.stringify({})};</script>`);
 }
