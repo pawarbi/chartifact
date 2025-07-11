@@ -90,11 +90,6 @@
         },
         {
           "command": "interactive-documents-vscode.editIdoc",
-          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc\\.md$/",
-          "group": "interactive-documents"
-        },
-        {
-          "command": "interactive-documents-vscode.editIdoc",
           "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc\\.json$/",
           "group": "interactive-documents"
         }

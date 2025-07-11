@@ -1,5 +1,6 @@
 import { InteractiveDocument } from "schema";
-import { Editor, EditorMessage, PageMessage, ReadyMessage } from './editor.js';
+import { Editor } from './editor.js';
+import { PageMessage, EditorMessage, ReadyMessage } from "./types.js";
 
 export interface AppProps {
 }

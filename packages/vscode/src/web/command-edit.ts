@@ -2,12 +2,7 @@ import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
 import { link, script } from './html';
 import { getResource } from './resources';
-
-//TODO share this with editor
-interface RenderRequestMessage {
-	markdown?: string;
-	interactiveDocument?: any;
-}
+import type { ReadyMessage, PageMessage, EditorMessage } from 'editor' with { 'resolution-mode': 'import' };
 
 /**
  * Manages the edit functionality for Interactive Documents
@@ -59,8 +54,8 @@ export class EditManager {
 	/**
 	 * Handles messages from the webview
 	 */
-	private handleWebviewMessage(message: any, fileUri: vscode.Uri, uriFsPath: string) {
-		switch (message.status) {
+	private handleWebviewMessage(message: EditorMessage, fileUri: vscode.Uri, uriFsPath: string) {
+		switch (message.type) {
 			case 'ready': {
 				this.getFileContentAndRender(fileUri, uriFsPath);
 				break;
@@ -74,13 +69,20 @@ export class EditManager {
 			// If the file is a markdown file, we can send the markdown content
 			if (uriFsPath.endsWith('.idoc.md')) {
 				const markdown = new TextDecoder().decode(uint8array);
-				this.render({ markdown });
+
+				//TODO: we need to decompile??
+
+				//this.render({ markdown });
 			} else if (uriFsPath.endsWith('.idoc.json')) {
 				// If the file is a JSON file, we can send the JSON content
 				const jsonContent = new TextDecoder().decode(uint8array);
 				try {
 					const interactiveDocument = JSON.parse(jsonContent);
-					this.render({ interactiveDocument });
+					this.render({
+						page: interactiveDocument,
+						type: 'page',
+						sender: 'app'
+					});
 				} catch (error) {
 					vscode.window.showErrorMessage(`Failed to parse JSON: ${error}`);
 				}
@@ -89,7 +91,7 @@ export class EditManager {
 		});
 	}
 
-	public render(renderRequestMessage: RenderRequestMessage) {
+	public render(renderRequestMessage: PageMessage) {
 		if (this.current && this.current.panel.visible) {
 			this.current.panel.webview.postMessage(renderRequestMessage);
 		}
@@ -164,13 +166,12 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 		script(resourceUrl('tabulator.min.js')),
 		script(resourceUrl('react.production.min.js')),
 		script(resourceUrl('react-dom.production.min.js')),
+		script(resourceUrl('idocs.editor.umd.js')),
 	].join('\n    ');
 
-	const hostScript = script(resourceUrl('idocs.editor.umd.js'));
-	
 	const template = getResource('edit.html');
-	
+
 	return template
 		.replace('{{RESOURCE_LINKS}}', () => resourceLinks)
-		.replace('{{HOST_SCRIPT}}', () => hostScript);
+		.replace('{{EDITOR_OPTIONS}}', () => `<script>const editorOptions = ${JSON.stringify({})};</script>`);
 }

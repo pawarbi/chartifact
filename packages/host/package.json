@@ -4,15 +4,6 @@
   "description": "ost page to render interactive documents",
   "main": "dist/esnext/index.js",
   "type": "module",
-  "exports": {
-    ".": {
-      "import": "./dist/esnext/index.js"
-    },
-    "./types": {
-      "types": "./dist/esnext/types.d.ts",
-      "import": "./dist/esnext/types.js"
-    }
-  },
   "files": [
     "dist"
   ],

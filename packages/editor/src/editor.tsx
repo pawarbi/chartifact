@@ -1,25 +1,13 @@
 import { InteractiveDocument } from "schema";
 import { DocumentPreview } from './preview.js';
+import { EditorMessage, PageMessage, ReadyMessage } from "./types.js";
 
 export interface Props {
+    postMessageTarget?: Window;
 }
-
-export interface BaseMessage {
-    sender: 'app' | 'editor';
-}
-
-export interface PageMessage extends BaseMessage {
-    type: 'page';
-    page: InteractiveDocument;
-}
-
-export interface ReadyMessage extends BaseMessage {
-    type: 'ready';
-}
-
-export type EditorMessage = PageMessage | ReadyMessage;
 
 export function Editor(props: Props) {
+    const postMessageTarget = props.postMessageTarget || window.parent;
     const [page, setPage] = React.useState<InteractiveDocument>(() => ({
         title: "Initializing...",
         layout: {
@@ -74,18 +62,19 @@ export function Editor(props: Props) {
             type: 'ready',
             sender: 'editor'
         };
-        window.parent.postMessage(readyMessage, '*');
+        postMessageTarget.postMessage(readyMessage, '*');
     }, []);
 
-    return <EditorView page={page} />;
+    return <EditorView page={page} postMessageTarget={postMessageTarget} />;
 }
 
 export interface EditorViewProps {
     page: InteractiveDocument;
+    postMessageTarget: Window;
 }
 
 export function EditorView(props: EditorViewProps) {
-    const { page } = props;
+    const { page, postMessageTarget } = props;
 
     const sendEditToApp = (newPage: InteractiveDocument) => {
         const pageMessage: PageMessage = {
@@ -93,7 +82,7 @@ export function EditorView(props: EditorViewProps) {
             page: newPage,
             sender: 'editor'
         };
-        window.parent.postMessage(pageMessage, '*');
+        postMessageTarget.postMessage(pageMessage, '*');
     };
 
     const deleteElement = (groupIndex: number, elementIndex: number) => {

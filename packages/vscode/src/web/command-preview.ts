@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
 import { link, script } from './html';
 import { getResource } from './resources';
-import type { ListenOptions, RenderRequestMessage } from '@microsoft/interactive-document-host/types' with { 'resolution-mode': 'import' };
+import type { ListenOptions, RenderRequestMessage } from '@microsoft/interactive-document-host' with { 'resolution-mode': 'import' };
 
 /**
  * Manages the preview functionality for Interactive Documents

@@ -2028,6 +2028,7 @@ ${content}
     return /* @__PURE__ */ React.createElement("div", { ref: containerRef });
   }
   function Editor(props) {
+    const postMessageTarget = props.postMessageTarget || window.parent;
     const [page, setPage] = React.useState(() => ({
       title: "Initializing...",
       layout: {
@@ -2073,19 +2074,19 @@ ${content}
         type: "ready",
         sender: "editor"
       };
-      window.parent.postMessage(readyMessage, "*");
+      postMessageTarget.postMessage(readyMessage, "*");
     }, []);
-    return /* @__PURE__ */ React.createElement(EditorView, { page });
+    return /* @__PURE__ */ React.createElement(EditorView, { page, postMessageTarget });
   }
   function EditorView(props) {
-    const { page } = props;
+    const { page, postMessageTarget } = props;
     const sendEditToApp = (newPage) => {
       const pageMessage = {
         type: "page",
         page: newPage,
         sender: "editor"
       };
-      window.parent.postMessage(pageMessage, "*");
+      postMessageTarget.postMessage(pageMessage, "*");
     };
     const deleteElement = (groupIndex, elementIndex) => {
       const newPage = {
