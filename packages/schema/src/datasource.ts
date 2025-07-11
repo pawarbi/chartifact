@@ -1,7 +1,7 @@
 import { DataSourceBase, VariableType, UrlRef } from './common.js';
 
 export interface ReturnType {
-  type: VariableType | 'image';
+  type: VariableType;
 
   /** in our system, a pandas dataframe is an array of objects */
   isArray?: boolean;

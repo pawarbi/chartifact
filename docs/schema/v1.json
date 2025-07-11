@@ -1762,10 +1762,8 @@
         }
       },
       "required": [
-        "dataLoaders",
         "groups",
-        "title",
-        "variables"
+        "title"
       ],
       "type": "object"
     },
@@ -2618,15 +2616,7 @@
           "type": "boolean"
         },
         "type": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/VariableType"
-            },
-            {
-              "const": "image",
-              "type": "string"
-            }
-          ]
+          "$ref": "#/definitions/VariableType"
         }
       },
       "required": [

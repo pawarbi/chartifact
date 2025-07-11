@@ -2,8 +2,10 @@ import { Spec as VegaSpec } from 'vega-typings';
 import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
 import { ChartFull, DataSource, ElementGroup, extendedElements, InteractiveDocument, Variable } from 'schema';
 import { getChartType } from './util.js';
-import { addDynamicDataLoaderToSpec, addStaticDataLoaderToSpec, createSpecWithVariables, VegaScope } from './loader.js';
+import { addDynamicDataLoaderToSpec, addStaticDataLoaderToSpec } from './loader.js';
 import { common, Plugins } from '@microsoft/interactive-document-markdown';
+import { VegaScope } from './scope.js';
+import { createSpecWithVariables } from './spec.js';
 
 function mdWrap(type: string, content: string) {
     return `\`\`\`json ${type}\n${content}\n\`\`\``;
@@ -24,15 +26,17 @@ const $schema = "https://vega.github.io/schema/vega/v5.json";
 
 export function targetMarkdown(page: InteractiveDocument<extendedElements>) {
     const mdSections: string[] = [];
+    const dataLoaders = page.dataLoaders || [];
+    const variables = page.variables || [];
 
-    const vegaScope = dataLoaderMarkdown(page.dataLoaders.filter(dl => dl.type !== 'spec'), page.variables);
+    const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables);
 
-    for (const dataLoader of page.dataLoaders.filter(dl => dl.type === 'spec')) {
+    for (const dataLoader of dataLoaders.filter(dl => dl.type === 'spec')) {
         mdSections.push(chartWrap(dataLoader.spec));
     }
 
     for (const group of page.groups) {
-        mdSections.push(mdContainerWrap(group.groupId, groupMarkdown(group, page.variables, vegaScope)));
+        mdSections.push(mdContainerWrap(group.groupId, groupMarkdown(group, variables, vegaScope)));
     }
 
     //spec is at the top of the markdown file

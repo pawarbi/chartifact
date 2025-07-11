@@ -22,9 +22,9 @@ export interface InteractiveDocument<T = never> {
    * Note: 'image' is not a valid type for a variable, do not provide a dataLoader if returnType.type = 'image', 
    * (ImageElements can load images from URLs directly without a DataLoader.)
    */
-  dataLoaders: DataLoader[];
+  dataLoaders?: DataLoader[];
 
-  variables: Variable[];
+  variables?: Variable[];
 
   /** Assistant should not populate these during the initial create phase. */
   layout?: Layout;
