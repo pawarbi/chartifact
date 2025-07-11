@@ -25,7 +25,7 @@ export function DocumentPreview({ page, options }: DocumentPreviewProps) {
     React.useEffect(() => {
         if (rendererRef.current && page) {
             try {
-                const md = targetMarkdown(page);
+                const md = targetMarkdown(page, rendererRef.current.options);
                 rendererRef.current.render(md);
             } catch (error) {
                 console.error('Error rendering document:', error);

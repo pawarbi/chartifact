@@ -3,7 +3,7 @@ import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
 import { ChartFull, DataSource, ElementGroup, extendedElements, InteractiveDocument, Variable } from 'schema';
 import { getChartType } from './util.js';
 import { addDynamicDataLoaderToSpec, addStaticDataLoaderToSpec } from './loader.js';
-import { common, Plugins } from '@microsoft/interactive-document-markdown';
+import { Plugins, RendererOptions } from '@microsoft/interactive-document-markdown';
 import { VegaScope } from './scope.js';
 import { createSpecWithVariables } from './spec.js';
 
@@ -24,12 +24,12 @@ ${content}
 
 const $schema = "https://vega.github.io/schema/vega/v5.json";
 
-export function targetMarkdown(page: InteractiveDocument<extendedElements>) {
+export function targetMarkdown(page: InteractiveDocument<extendedElements>, rendererOptions: RendererOptions) {
     const mdSections: string[] = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
 
-    const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables);
+    const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables, rendererOptions);
 
     for (const dataLoader of dataLoaders.filter(dl => dl.type === 'spec')) {
         mdSections.push(chartWrap(dataLoader.spec));
@@ -46,10 +46,10 @@ export function targetMarkdown(page: InteractiveDocument<extendedElements>) {
     return markdown;
 }
 
-function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[]) {
+function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], rendererOptions: RendererOptions) {
 
     //create a Vega spec with all variables
-    const spec = createSpecWithVariables(variables);
+    const spec = createSpecWithVariables(rendererOptions.dataNameSelectedSuffix, variables);
     const vegaScope = new VegaScope(spec);
 
     for (const dataSource of dataSources) {
@@ -76,7 +76,7 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[]) {
             spec.data = [];
         }
         spec.data.unshift({
-            name: dataSource.dataSourceName + common.dataNameSelectedSuffix,
+            name: dataSource.dataSourceName + rendererOptions.dataNameSelectedSuffix,
         });
     }
 

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { targetMarkdown } from '@microsoft/interactive-document-compiler';
 import { InteractiveDocument } from 'schema';
 import { findAvailableFileName } from './file.js';
+import type { RendererOptions } from '@microsoft/interactive-document-markdown' with { 'resolution-mode': 'import' };
 
 /**
  * Handles the conversion of .idoc.json files to markdown
@@ -21,8 +22,12 @@ export async function convertToMarkdown(fileUri: vscode.Uri) {
 			return;
 		}
 
+		const renderOptions: RendererOptions = {
+			dataNameSelectedSuffix: '_selected', // Default suffix for selected data
+		};
+
 		// Convert to markdown using the compiler
-		const markdownContent = targetMarkdown(interactiveDocument);
+		const markdownContent = targetMarkdown(interactiveDocument, renderOptions);
 
 		// Generate the output filename with conflict resolution
 		const outputUri = await findAvailableFileName(fileUri, '.idoc.md', '.idoc.json');

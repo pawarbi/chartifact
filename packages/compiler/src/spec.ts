@@ -2,11 +2,10 @@ import { Spec as VegaSpec } from 'vega-typings';
 import { Variable, DataLoader } from "schema";
 import { SourceData, ValuesData, Signal } from "vega";
 import { topologicalSort } from "./sort.js";
-import { common } from '@microsoft/interactive-document-markdown';
 
 export const $schema = "https://vega.github.io/schema/vega/v5.json";
 
-export function createSpecWithVariables(variables: Variable[], stubDataLoaders?: DataLoader[]) {
+export function createSpecWithVariables(dataNameSelectedSuffix: string, variables: Variable[], stubDataLoaders?: DataLoader[]) {
 
     //preload with variables as signals
     const spec: VegaSpec = {
@@ -30,7 +29,7 @@ export function createSpecWithVariables(variables: Variable[], stubDataLoaders?:
 
             //add a special "-selected" data item
             spec.data!.push({
-                name: dl.dataSourceName + common.dataNameSelectedSuffix,
+                name: dl.dataSourceName + dataNameSelectedSuffix,
                 values: [],
             });
         });

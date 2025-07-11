@@ -7,7 +7,6 @@ import { definePlugin, Plugin, plugins, registerMarkdownPlugin } from './factory
 import { Renderer, RendererOptions } from './renderer.js';
 import { registerNativePlugins } from './plugins/index.js';
 import { sanitizedHTML } from './sanitize.js';
-import * as common from './plugins/common.js';
 import { bindTextarea } from './edit.js';
 
 registerNativePlugins();
@@ -21,7 +20,6 @@ export {
     Renderer,
     RendererOptions,
     sanitizedHTML,
-    common,
 };
 
 export * as Plugins from './plugins/interfaces.js';

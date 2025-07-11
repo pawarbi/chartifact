@@ -14,6 +14,7 @@ export interface ErrorHandler {
 
 export interface RendererOptions {
     vegaRenderer?: Renderers;
+    dataNameSelectedSuffix?: string;
     dataSignalPrefix?: string;
     signalBus?: SignalBus;
     classList?: string[];
@@ -21,6 +22,7 @@ export interface RendererOptions {
 
 const defaultRendererOptions: RendererOptions = {
     vegaRenderer: 'canvas',
+    dataNameSelectedSuffix: '_selected',
     dataSignalPrefix: 'data-signal:',
     classList: ['markdown-block'],
 };

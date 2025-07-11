@@ -136,7 +136,7 @@ export class Listener {
 
   private renderInteractiveDocument(content: InteractiveDocument) {
     postStatus(this.options.postMessageTarget, { status: 'compiling', details: 'Starting interactive document compilation' });
-    const markdown = targetMarkdown(content);
+    const markdown = targetMarkdown(content, this.renderer.options);
     this.renderMarkdown(markdown);
   }
 

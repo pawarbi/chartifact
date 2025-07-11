@@ -517,6 +517,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   */
   const defaultRendererOptions = {
     vegaRenderer: "canvas",
+    dataNameSelectedSuffix: "_selected",
     dataSignalPrefix: "data-signal:",
     classList: ["markdown-block"]
   };
@@ -1111,11 +1112,6 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       }
     }
   }
-  const dataNameSelectedSuffix = "_selected";
-  const common = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
-    __proto__: null,
-    dataNameSelectedSuffix
-  }, Symbol.toStringTag, { value: "Module" }));
   /*!
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
@@ -1160,6 +1156,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           continue;
         }
       }
+      const dataNameSelectedSuffix = renderer.options.dataNameSelectedSuffix;
       const instances = tabulatorInstances.map((tabulatorInstance, index2) => {
         var _a;
         const initialSignals = [{
@@ -1329,7 +1326,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         if (!vegaInstance.spec.data)
           continue;
         for (const data of vegaInstance.spec.data) {
-          const dataSignal = dataSignals.find((signal) => signal.name === data.name || `${signal.name}${dataNameSelectedSuffix}` === data.name);
+          const dataSignal = dataSignals.find((signal) => signal.name === data.name || `${signal.name}${renderer.options.dataNameSelectedSuffix}` === data.name);
           if (dataSignal) {
             vegaInstance.initialSignals.push({
               name: data.name,
@@ -1663,7 +1660,6 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     Plugins: interfaces,
     Renderer,
     bindTextarea: bindTextarea$1,
-    common,
     definePlugin,
     plugins,
     registerMarkdownPlugin,
@@ -1848,7 +1844,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     }
     return sorted;
   }
-  function createSpecWithVariables(variables, stubDataLoaders) {
+  function createSpecWithVariables(dataNameSelectedSuffix, variables, stubDataLoaders) {
     const spec = {
       $schema: "https://vega.github.io/schema/vega/v5.json",
       signals: [],
@@ -1899,11 +1895,11 @@ ${content}
 :::`;
   }
   const $schema = "https://vega.github.io/schema/vega/v5.json";
-  function targetMarkdown(page) {
+  function targetMarkdown(page, rendererOptions) {
     const mdSections = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
-    const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables);
+    const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables, rendererOptions);
     for (const dataLoader of dataLoaders.filter((dl) => dl.type === "spec")) {
       mdSections.push(chartWrap(dataLoader.spec));
     }
@@ -1914,8 +1910,8 @@ ${content}
     const markdown = mdSections.join("\n\n");
     return markdown;
   }
-  function dataLoaderMarkdown(dataSources, variables) {
-    const spec = createSpecWithVariables(variables);
+  function dataLoaderMarkdown(dataSources, variables, rendererOptions) {
+    const spec = createSpecWithVariables(rendererOptions.dataNameSelectedSuffix, variables);
     const vegaScope = new VegaScope(spec);
     for (const dataSource of dataSources) {
       switch (dataSource.type) {
@@ -1936,7 +1932,7 @@ ${content}
         spec.data = [];
       }
       spec.data.unshift({
-        name: dataSource.dataSourceName + dataNameSelectedSuffix
+        name: dataSource.dataSourceName + rendererOptions.dataNameSelectedSuffix
       });
     }
     return vegaScope;
@@ -2078,7 +2074,7 @@ ${content}
           showError(new Error("Invalid JSON format"));
           return;
         }
-        const md = targetMarkdown(page);
+        const md = targetMarkdown(page, renderer.options);
         renderer.render(md);
       } catch (error) {
         showError(error);
@@ -2456,7 +2452,7 @@ ${content}
     }
     renderInteractiveDocument(content) {
       postStatus(this.options.postMessageTarget, { status: "compiling", details: "Starting interactive document compilation" });
-      const markdown = targetMarkdown(content);
+      const markdown = targetMarkdown(content, this.renderer.options);
       this.renderMarkdown(markdown);
     }
     hideLoadingAndHelp() {

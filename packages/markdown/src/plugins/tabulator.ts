@@ -6,7 +6,6 @@
 import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { Tabulator as TabulatorType, Options as TabulatorOptions } from 'tabulator-tables';
-import { dataNameSelectedSuffix } from './common.js';
 
 interface TabulatorInstance {
     id: string;
@@ -66,6 +65,7 @@ export const tabulatorPlugin: Plugin = {
                 continue;
             }
         }
+        const dataNameSelectedSuffix = renderer.options.dataNameSelectedSuffix;
         const instances: IInstance[] = tabulatorInstances.map((tabulatorInstance, index) => {
             const initialSignals = [{
                 name: tabulatorInstance.spec.dataSignalName,

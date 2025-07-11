@@ -20,7 +20,7 @@ export function bindTextarea(textarea: HTMLTextAreaElement, outputElement: HTMLE
                 showError(new Error('Invalid JSON format'));
                 return;
             }
-            const md = targetMarkdown(page);
+            const md = targetMarkdown(page, renderer.options);
             renderer.render(md);
         } catch (error) {
             showError(error);
