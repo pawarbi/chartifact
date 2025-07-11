@@ -1,8 +1,6 @@
 {
   "$schema": "../../../schema/v1.json",
   "title": "Seattle Weather",
-  "dataLoaders": [],
-  "variables": [],
   "groups": [
     {
       "groupId": "main",
