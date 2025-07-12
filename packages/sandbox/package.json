@@ -4,9 +4,10 @@
   "description": "Secure sandbox for interactive documents renderer",
   "main": "index.js",
   "scripts": {
-    "clean": "rimraf dist",
+    "clean": "rimraf dist && rimraf src/resources",
     "dev": "vite",
-    "prebuild": "node scripts/resources.js",
+    "resources": "node scripts/resources.js",
+    "prebuild": "npm run resources",
     "tsc": "tsc -p .",
     "bundle": "vite build --config vite.bundle.config.js",
     "build": "npm run tsc && npm run bundle",
