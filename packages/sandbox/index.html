@@ -12,12 +12,16 @@
             padding: 0;
             overflow: hidden;
         }
+        body {
+            display: grid;
+            grid-template-rows: auto;
+        }
     </style>
 </head>
 
 <body>
 
-    <textarea id="md" placeholder="Enter your markdown here..." style="display: none;">
+    <textarea id="md" placeholder="Enter your markdown here..." style="display: none;resize: vertical; width: 100%; box-sizing: border-box;">
 # Seattle Weather
 
 ```css
