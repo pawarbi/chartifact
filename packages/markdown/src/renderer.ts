@@ -19,7 +19,6 @@ export interface RendererOptions {
     signalBus?: SignalBus;
     classList?: string[];
     errorHandler?: ErrorHandler;
-    useShadowDom?: boolean;
 }
 
 const defaultRendererOptions: RendererOptions = {
@@ -27,7 +26,6 @@ const defaultRendererOptions: RendererOptions = {
     dataNameSelectedSuffix: '_selected',
     dataSignalPrefix: 'data-signal:',
     classList: ['markdown-block'],
-    useShadowDom: false,
     errorHandler: (error, pluginName, instanceIndex, phase) => {
         console.error(`Error in plugin ${pluginName} instance ${instanceIndex} phase ${phase}`, error);
     },
@@ -44,22 +42,12 @@ export class Renderer {
     public instances: { [key: string]: IInstance[] };
     public signalBus: SignalBus;
     public options: RendererOptions;
-    public shadowRoot?: ShadowRoot;
-    public element: Element | ShadowRoot;
 
-    constructor(_element: HTMLElement, options?: RendererOptions) {
+    constructor(public element: HTMLElement, options?: RendererOptions) {
         this.options = { ...defaultRendererOptions, ...options };
         this.md = create({ classList: this.options.classList });
         this.signalBus = this.options.signalBus || new SignalBus(this.options.dataSignalPrefix!);
         this.instances = {};
-
-        // Create shadow DOM or use regular DOM
-        if (this.options.useShadowDom) {
-            this.shadowRoot = _element.attachShadow({ mode: 'open' });
-            this.element = this.shadowRoot;
-        } else {
-            this.element = _element;
-        }
     }
 
     async render(markdown: string, styles?: string) {
@@ -78,11 +66,6 @@ export class Renderer {
         
         // Add markdown content
         content += parsedHTML;
-        
-        // Wrap in body div for shadow DOM
-        if (this.options.useShadowDom) {
-            content = `<div class="body">${content}</div>`;
-        }
         
         // Set all content at once
         this.element.innerHTML = content;
