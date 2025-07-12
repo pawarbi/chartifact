@@ -1,8 +1,13 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configuration object: key becomes the filename and export name, value is the source path
 const resources = {
+  compilerUmdJs: path.resolve(__dirname, '../../compiler/dist/umd/idocs.compiler.umd.js'),
   rendererUmdJs: path.resolve(__dirname, '../../markdown/dist/umd/idocs.markdown.umd.js'),
   rendererHtml: path.resolve(__dirname, '../templates/markdown.html')
 };

@@ -1,5 +1,6 @@
-import { rendererHtml } from "./resources/rendererHtml";
-import { rendererUmdJs } from "./resources/rendererUmdJs";
+import { rendererHtml } from './resources/rendererHtml.js';
+import { rendererUmdJs } from './resources/rendererUmdJs.js';
+import { RenderRequestMessage } from './types.js';
 
 interface SandboxOptions {
     onReady?: () => void;
@@ -21,21 +22,21 @@ export class Sandbox {
         });
 
         this.iframe.addEventListener('error', (error) => {
-            console.error("Error loading iframe:", error);
+            console.error('Error loading iframe:', error);
             URL.revokeObjectURL(blobUrl);
             options?.onError?.(error);
         });
     }
 
-    send(markdown: string): void {
-        this.iframe.contentWindow?.postMessage({ markdown }, '*');
+    send(message: RenderRequestMessage): void {
+        this.iframe.contentWindow?.postMessage(message, '*');
     }
 }
 
 export function createIframe(markdown?: string) {
     const title = 'Interactive Document Sandbox';
     const html = rendererHtml
-        .replace('{{MARKDOWN_CONTENT}}', () => markdown || '')
+        .replace('{{MARKDOWN_SCRIPT}}', () => `<script>const markdown = ${JSON.stringify(markdown || '')};</script>`)
         .replace('{{TITLE}}', () => title)
         .replace('{{RENDERER_SCRIPT}}', () => `<script>${rendererUmdJs}</script>`);
 
