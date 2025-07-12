@@ -194,7 +194,9 @@ export function EditorView(props: EditorViewProps) {
                 <h3>Document Preview</h3>
                 <DocumentPreview
                     page={page}
-                    options={{}}
+                    options={{
+                        useShadowDom: true,
+                    }}
                 />
             </div>
         </div>
