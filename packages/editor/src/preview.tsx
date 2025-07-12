@@ -26,7 +26,7 @@ export function DocumentPreview({ page, options }: DocumentPreviewProps) {
         if (rendererRef.current && page) {
             try {
                 const md = targetMarkdown(page, rendererRef.current.options);
-                rendererRef.current.render(md);
+                rendererRef.current.render(md, page.layout?.css);
             } catch (error) {
                 console.error('Error rendering document:', error);
                 if (containerRef.current) {
