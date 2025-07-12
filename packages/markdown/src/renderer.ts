@@ -18,6 +18,8 @@ export interface RendererOptions {
     dataSignalPrefix?: string;
     signalBus?: SignalBus;
     classList?: string[];
+    errorHandler?: ErrorHandler;
+    useShadowDom?: boolean;
 }
 
 const defaultRendererOptions: RendererOptions = {
@@ -25,6 +27,10 @@ const defaultRendererOptions: RendererOptions = {
     dataNameSelectedSuffix: '_selected',
     dataSignalPrefix: 'data-signal:',
     classList: ['markdown-block'],
+    useShadowDom: false,
+    errorHandler: (error, pluginName, instanceIndex, phase) => {
+        console.error(`Error in plugin ${pluginName} instance ${instanceIndex} phase ${phase}`, error);
+    },
 };
 
 interface Hydration {
@@ -38,26 +44,48 @@ export class Renderer {
     public instances: { [key: string]: IInstance[] };
     public signalBus: SignalBus;
     public options: RendererOptions;
+    public shadowRoot?: ShadowRoot;
+    public container: Element | ShadowRoot;
 
     constructor(public element: HTMLElement, options?: RendererOptions) {
         this.options = { ...defaultRendererOptions, ...options };
         this.md = create({ classList: this.options.classList });
         this.signalBus = this.options.signalBus || new SignalBus(this.options.dataSignalPrefix!);
         this.instances = {};
+
+        // Create shadow DOM or use regular DOM
+        if (this.options.useShadowDom) {
+            this.shadowRoot = this.element.attachShadow({ mode: 'open' });
+            this.container = this.shadowRoot;
+        } else {
+            this.container = this.element;
+        }
     }
 
-    async render(markdown: string, errorHandler?: ErrorHandler) {
-        if (!errorHandler) {
-            errorHandler = (error, pluginName, instanceIndex, phase) => {
-                console.error(`Error in plugin ${pluginName} instance ${instanceIndex} phase ${phase}`, error);
-            };
-        }
-
+    async render(markdown: string, styles?: string) {
         //loop through all the destroy handlers and call them. have the key there to help us debug
         await this.destroy();
 
         const parsedHTML = this.md.render(markdown);
-        this.element.innerHTML = parsedHTML;
+
+        // Build content as string
+        let content = '';
+        
+        // Add styles if provided
+        if (styles) {
+            content += `<style>${styles}</style>`;
+        }
+        
+        // Add markdown content
+        content += parsedHTML;
+        
+        // Wrap in body div for shadow DOM
+        if (this.options.useShadowDom) {
+            content = `<div class="body">${content}</div>`;
+        }
+        
+        // Set all content at once
+        this.container.innerHTML = content;
 
         //loop through all the plugins and render them
         this.signalBus.log('Renderer', 'rendering DOM');
@@ -66,7 +94,7 @@ export class Renderer {
             const plugin = plugins[i];
             if (plugin.hydrateComponent) {
                 //make a new promise that returns IInstances but adds the plugin name
-                hydrationPromises.push(plugin.hydrateComponent(this, errorHandler).then(instances => {
+                hydrationPromises.push(plugin.hydrateComponent(this, this.options.errorHandler).then(instances => {
                     return {
                         pluginName: plugin.name,
                         instances,
@@ -101,6 +129,9 @@ export class Renderer {
             }
         }
         this.instances = {};
+
+        // Clear container content including styles
+        this.container.innerHTML = '';
     }
 
 }

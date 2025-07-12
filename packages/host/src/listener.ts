@@ -74,7 +74,17 @@ export class Listener {
     show(this.helpDiv, false);
 
     // Initialize renderer
-    this.renderer = new Renderer(this.appDiv, {});
+    this.renderer = new Renderer(this.appDiv, {
+      errorHandler: (error, pluginName, instanceIndex, phase, container, detail) => {
+        const msg = `<strong>Error in ${pluginName}:</strong> ${error.message}<br>
+          <strong>Instance:</strong> ${instanceIndex}<br>
+          <strong>Phase:</strong> ${phase}<br>
+          <strong>Container:</strong> ${container.tagName}<br>
+          ${detail ? `<strong>Detail:</strong> ${detail}` : ''}`;
+        this.errorHandler(error, msg);
+        postStatus(this.options.postMessageTarget, { status: 'error', details: `Rendering error in ${pluginName}: ${error.message}` });
+      }
+    });
 
     // Setup clipboard, drag-drop, upload, and postMessage handling based on options
     if (this.options.clipboard) {
@@ -100,11 +110,11 @@ export class Listener {
     }
   }
 
-  public errorHandler(error, details) {
+  public errorHandler(error: Error, detailsHtml: string) {
     show(this.loadingDiv, false);
     this.appDiv.innerHTML = `<div style="color: red; padding: 20px;">
     <strong>Error:</strong> ${error.message}<br>
-      ${details}
+      ${detailsHtml}
     </div>`;
   }
 
@@ -157,18 +167,7 @@ export class Listener {
       postStatus(this.options.postMessageTarget, { status: 'rendering', details: 'Starting markdown rendering' });
       this.renderer.destroy(); // Clean up previous renderer instance
       // Use your renderer to process the markdown
-      this.renderer.render(
-        content,
-        (error: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string) => {
-          const msg = `<strong>Error in ${pluginName}:</strong> ${error.message}<br>
-          <strong>Instance:</strong> ${instanceIndex}<br>
-          <strong>Phase:</strong> ${phase}<br>
-          <strong>Container:</strong> ${container.tagName}<br>
-          ${detail ? `<strong>Detail:</strong> ${detail}` : ''}`;
-          this.errorHandler(error, msg);
-          postStatus(this.options.postMessageTarget, { status: 'error', details: `Rendering error in ${pluginName}: ${error.message}` });
-        }
-      );
+      this.renderer.render(content);
       postStatus(this.options.postMessageTarget, { status: 'rendered', details: 'Markdown rendering completed successfully' });
     } catch (error) {
       this.errorHandler(
