@@ -46,7 +46,7 @@ export function createIframe(markdown?: string) {
     iframe.sandbox = 'allow-scripts';
     iframe.src = blobUrl;
     iframe.style.width = '100%';
-    iframe.style.height = '800px';
+    iframe.style.height = '100%';
     iframe.style.border = 'none';
     iframe.title = title;
 
