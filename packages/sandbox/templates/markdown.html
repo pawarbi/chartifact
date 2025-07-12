@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITLE}}</title>
+    <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
+    <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
+
+{{RENDERER_SCRIPT}}
+
+</head>
+
+<body>
+
+    <textarea id="markdown-input" style="display:none;min-height:300px;width:100%;" placeholder="Type your Interactive Document markdown here...">{{MARKDOWN_CONTENT}}</textarea>
+
+    <div id="content"></div>
+
+    <script>
+        IDocs.markdown.bindTextarea(document.getElementById('markdown-input'), document.getElementById('content'));
+    </script>
+
+</body>
+
+</html>
