@@ -45,9 +45,9 @@ export class Renderer {
     public signalBus: SignalBus;
     public options: RendererOptions;
     public shadowRoot?: ShadowRoot;
-    public container: Element | ShadowRoot;
+    public element: Element | ShadowRoot;
 
-    constructor(public element: HTMLElement, options?: RendererOptions) {
+    constructor(_element: HTMLElement, options?: RendererOptions) {
         this.options = { ...defaultRendererOptions, ...options };
         this.md = create({ classList: this.options.classList });
         this.signalBus = this.options.signalBus || new SignalBus(this.options.dataSignalPrefix!);
@@ -55,10 +55,10 @@ export class Renderer {
 
         // Create shadow DOM or use regular DOM
         if (this.options.useShadowDom) {
-            this.shadowRoot = this.element.attachShadow({ mode: 'open' });
-            this.container = this.shadowRoot;
+            this.shadowRoot = _element.attachShadow({ mode: 'open' });
+            this.element = this.shadowRoot;
         } else {
-            this.container = this.element;
+            this.element = _element;
         }
     }
 
@@ -85,7 +85,7 @@ export class Renderer {
         }
         
         // Set all content at once
-        this.container.innerHTML = content;
+        this.element.innerHTML = content;
 
         //loop through all the plugins and render them
         this.signalBus.log('Renderer', 'rendering DOM');
@@ -131,7 +131,7 @@ export class Renderer {
         this.instances = {};
 
         // Clear container content including styles
-        this.container.innerHTML = '';
+        this.element.innerHTML = '';
     }
 
 }
