@@ -5,6 +5,7 @@
 
 import { registerMarkdownPlugin } from '../factory.js';
 
+import { cssPlugin } from './css.js';
 import { dropdownPlugin } from './dropdown.js';
 import { imagePlugin } from './image.js';
 import { placeholdersPlugin } from './placeholders.js';
@@ -14,6 +15,7 @@ import { vegaLitePlugin } from './vega-lite.js';
 import { vegaPlugin } from './vega.js';
 
 export function registerNativePlugins() {
+    registerMarkdownPlugin(cssPlugin);
     registerMarkdownPlugin(dropdownPlugin);
     registerMarkdownPlugin(imagePlugin);
     registerMarkdownPlugin(placeholdersPlugin);
