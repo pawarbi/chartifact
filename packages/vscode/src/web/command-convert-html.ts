@@ -54,11 +54,11 @@ export async function convertToHtml(fileUri: vscode.Uri) {
 
 function htmlMarkdownWrapper(markdown: string, fileUri: vscode.Uri) {
 	const template = getResource('markdown.html');
-	const rendererScript = getResource('idocs.markdown.umd.js');
+	const sandboxUmdJs = getResource('idocs.sandbox.umd.js');
 
 	const result = template
 		.replace('{{TITLE}}', () => escapeHtml(getFileNameWithoutExtension(fileUri)))
-		.replace('{{RENDERER_SCRIPT}}', () => `<script>\n${rendererScript}\n</script>`)
+		.replace('{{SANDBOX_UMD_JS}}', () => `<script>\n${sandboxUmdJs}\n</script>`)
 		.replace('{{MARKDOWN_CONTENT}}', () => escapeTextareaContent(markdown));
 
 	return result;
@@ -66,12 +66,13 @@ function htmlMarkdownWrapper(markdown: string, fileUri: vscode.Uri) {
 
 function htmlJsonWrapper(json: string, fileUri: vscode.Uri) {
 	const template = getResource('json.html');
-	const rendererScript = getResource('idocs.markdown.umd.js');
-	const compilerScript = getResource('idocs.compiler.umd.js');
+	const sandboxUmdJs = getResource('idocs.sandbox.umd.js');
+	const compilerUmdJs = getResource('idocs.compiler.umd.js');
 
 	const result = template
 		.replace('{{TITLE}}', () => escapeHtml(getFileNameWithoutExtension(fileUri)))
-		.replace('{{RENDERER_SCRIPT}}', () => `<script>\n${rendererScript}\n${compilerScript}\n</script>`)
+		.replace('{{SANDBOX_UMD_JS}}', () => `<script>\n${sandboxUmdJs}\n</script>`)
+		.replace('{{COMPILER_UMD_JS}}', () => `<script>\n${compilerUmdJs}\n</script>`)
 		.replace('{{JSON_CONTENT}}', () => escapeTextareaContent(json));
 
 	return result;
