@@ -22,12 +22,19 @@ ${content}
 :::`;
 }
 
+const defaultRendererOptions: RendererOptions = {
+  dataNameSelectedSuffix: '_selected',
+};
+
+
 const $schema = "https://vega.github.io/schema/vega/v5.json";
 
-export function targetMarkdown(page: InteractiveDocument<extendedElements>, rendererOptions: RendererOptions) {
+export function targetMarkdown(page: InteractiveDocument<extendedElements>, options: RendererOptions) {
     const mdSections: string[] = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
+
+    const rendererOptions = { ...defaultRendererOptions, ...options };
 
     const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables, rendererOptions);
 
@@ -102,19 +109,12 @@ function groupMarkdown(group: ElementGroup<extendedElements>, variables: Variabl
                     break;
                 }
                 case 'checkbox': {
-                    const spec: VegaSpec = {
-                        $schema,
-                        signals: [
-                            {
-                                name: element.variableId,
-                                value: variables.find(v => v.variableId === element.variableId)?.initialValue,
-                                bind: {
-                                    input: "checkbox",
-                                }
-                            }
-                        ]
+                    const cbSpec: Plugins.CheckboxSpec = {
+                        name: element.variableId,
+                        value: variables.find(v => v.variableId === element.variableId)?.initialValue as boolean,
+                        label: element.label,
                     };
-                    mdElements.push(chartWrap(spec));
+                    mdElements.push(mdWrap('checkbox', JSON.stringify(cbSpec, null, 2)));
                     break;
                 }
                 case 'dropdown': {

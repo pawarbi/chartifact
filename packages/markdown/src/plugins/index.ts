@@ -5,6 +5,7 @@
 
 import { registerMarkdownPlugin } from '../factory.js';
 
+import { checkboxPlugin } from './checkbox.js';
 import { cssPlugin } from './css.js';
 import { dropdownPlugin } from './dropdown.js';
 import { imagePlugin } from './image.js';
@@ -15,6 +16,7 @@ import { vegaLitePlugin } from './vega-lite.js';
 import { vegaPlugin } from './vega.js';
 
 export function registerNativePlugins() {
+    registerMarkdownPlugin(checkboxPlugin);
     registerMarkdownPlugin(cssPlugin);
     registerMarkdownPlugin(dropdownPlugin);
     registerMarkdownPlugin(imagePlugin);
