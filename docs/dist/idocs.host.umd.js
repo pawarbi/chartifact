@@ -1886,16 +1886,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this.iframe = iframe;
       let element;
       if (typeof elementOrSelector === "string") {
-        const element2 = document.querySelector(elementOrSelector);
-        if (!element2) {
+        element = document.querySelector(elementOrSelector);
+        if (!element) {
           throw new Error(`Element not found: ${elementOrSelector}`);
         }
       } else if (elementOrSelector instanceof HTMLElement) {
         element = elementOrSelector;
-        element.appendChild(this.iframe);
       } else {
         throw new Error("Invalid element type, must be a string selector or HTMLElement");
       }
+      element.appendChild(this.iframe);
       this.iframe.addEventListener("load", () => {
         var _a;
         URL.revokeObjectURL(blobUrl);

@@ -1,369 +1,60 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory((global.IDocs = global.IDocs || {}, global.IDocs.editor = {}), global.vega, global.vegaLite));
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory((global.IDocs = global.IDocs || {}, global.IDocs.sandbox = {})));
+})(this, function(exports2) {
+  "use strict";var __defProp = Object.defineProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+
+  const defaultDependencies = `
+    <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"><\/script>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"><\/script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"><\/script>
+    <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"><\/script>
+`;
+  const rendererHtml = `<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITLE}}</title>
+
+    {{DEPENDENCIES}}
+
+    {{RENDERER_SCRIPT}}
+
+    {{RENDERER_OPTIONS}}
+
+    {{MARKDOWN_SCRIPT}}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const renderer = new IDocs.markdown.Renderer(document.body, rendererOptions);
+            renderer.render(markdown);
+
+            //add listener for postMessage
+            window.addEventListener('message', (event) => {
+                if (event.data && event.data.markdown) {
+                    renderer.render(event.data.markdown);
+                }
+            });
+
+        });
+    <\/script>
+
+</head>
+
+<body></body>
+
+</html>`;
+  const rendererUmdJs = `(function(global, factory) {
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory((global.IDocs = global.IDocs || {}, global.IDocs.markdown = {}), global.vega, global.vegaLite));
 })(this, function(exports2, vega, vegaLite) {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
-  function safeVariableName(name) {
-    return name.replace(/[^a-zA-Z0-9_]/g, "_");
-  }
-  function getChartType(spec) {
-    const $schema2 = spec == null ? void 0 : spec.$schema;
-    if (!$schema2) {
-      return "vega-lite";
-    }
-    return $schema2.includes("vega-lite") ? "vega-lite" : "vega";
-  }
-  function addStaticDataLoaderToSpec(vegaScope, dataSource) {
-    const { spec } = vegaScope;
-    const { dataSourceName } = dataSource;
-    if (!spec.signals) {
-      spec.signals = [];
-    }
-    spec.signals.push({
-      name: dataSourceName,
-      update: `data('${dataSourceName}')`
-    });
-    if (!spec.data) {
-      spec.data = [];
-    }
-    const newData = {
-      name: dataSourceName,
-      values: []
-    };
-    if (dataSource.type === "json") {
-      newData.values = dataSource.content;
-    } else if (dataSource.type === "file") {
-      newData.format = {
-        type: dataSource.format
-      };
-      newData.values = [dataSource.content];
-    }
-    spec.data.push(newData);
-  }
-  function addDynamicDataLoaderToSpec(vegaScope, dataSource) {
-    const { spec } = vegaScope;
-    const { dataSourceName } = dataSource;
-    const urlSignal = vegaScope.createUrlSignal(dataSource.urlRef);
-    const url = { signal: urlSignal.name };
-    if (!spec.signals) {
-      spec.signals = [];
-    }
-    spec.signals.push({
-      name: dataSourceName,
-      update: `data('${dataSourceName}')`
-    });
-    if (!spec.data) {
-      spec.data = [];
-    }
-    spec.data.unshift({
-      name: dataSourceName,
-      url,
-      format: { type: dataSource.format || "json" },
-      transform: dataSource.dataFrameTransformations || []
-    });
-  }
-  class VegaScope {
-    constructor(spec) {
-      __publicField(this, "spec");
-      __publicField(this, "urlCount", 0);
-      this.spec = spec;
-    }
-    addOrigin(origin) {
-      if (!this.spec.signals) {
-        this.spec.signals = [];
-      }
-      let origins = this.spec.signals.find((d2) => d2.name === "origins");
-      if (!origins) {
-        origins = {
-          name: "origins",
-          value: {}
-        };
-        this.spec.signals.unshift(origins);
-      }
-      origins.value[origin] = origin;
-    }
-    createUrlSignal(urlRef) {
-      const { origin, urlPath, mappedParams } = urlRef;
-      const name = `url:${this.urlCount++}:${safeVariableName(origin + urlPath)}`;
-      const signal = { name };
-      this.addOrigin(origin);
-      signal.update = `origins[${JSON.stringify(origin)}]+'${urlPath}'`;
-      if (mappedParams && mappedParams.length > 0) {
-        signal.update += ` + '?' + ${mappedParams.map((p) => `urlParam('${p.name}', ${variableValueExpression(p)})`).join(` + '&' + `)}`;
-      }
-      if (!this.spec.signals) {
-        this.spec.signals = [];
-      }
-      this.spec.signals.push(signal);
-      return signal;
-    }
-  }
-  function variableValueExpression(param) {
-    if (param.variableId) {
-      return param.variableId;
-    } else if (param.calculation) {
-      return "(" + param.calculation.vegaExpression + ")";
-    } else {
-      return JSON.stringify(param.value);
-    }
-  }
-  function topologicalSort(list) {
-    var _a;
-    const nameToObject = /* @__PURE__ */ new Map();
-    const inDegree = /* @__PURE__ */ new Map();
-    const graph = /* @__PURE__ */ new Map();
-    for (const obj of list) {
-      nameToObject.set(obj.variableId, obj);
-      inDegree.set(obj.variableId, 0);
-      graph.set(obj.variableId, []);
-    }
-    for (const obj of list) {
-      const sources = ((_a = obj.calculation) == null ? void 0 : _a.dependsOn) || [];
-      for (const dep of sources) {
-        if (!graph.has(dep)) {
-          continue;
-        }
-        graph.get(dep).push(obj.variableId);
-        inDegree.set(obj.variableId, inDegree.get(obj.variableId) + 1);
-      }
-    }
-    const queue = [];
-    for (const [name, degree] of inDegree.entries()) {
-      if (degree === 0)
-        queue.push(name);
-    }
-    const sorted = [];
-    while (queue.length) {
-      const current = queue.shift();
-      sorted.push(nameToObject.get(current));
-      for (const neighbor of graph.get(current)) {
-        inDegree.set(neighbor, inDegree.get(neighbor) - 1);
-        if (inDegree.get(neighbor) === 0) {
-          queue.push(neighbor);
-        }
-      }
-    }
-    if (sorted.length !== list.length) {
-      throw new Error("Cycle or missing dependency detected");
-    }
-    return sorted;
-  }
-  function createSpecWithVariables(dataNameSelectedSuffix, variables, stubDataLoaders) {
-    const spec = {
-      $schema: "https://vega.github.io/schema/vega/v5.json",
-      signals: [],
-      data: []
-    };
-    topologicalSort(variables).forEach((v2) => {
-      if (isDataframePipeline(v2)) {
-        const { dataFrameTransformations } = v2.calculation;
-        const data = {
-          name: v2.variableId,
-          source: v2.calculation.dependsOn || [],
-          transform: dataFrameTransformations
-        };
-        spec.data.push(data);
-        if (!spec.signals) {
-          spec.signals = [];
-        }
-        spec.signals.push({
-          name: v2.variableId,
-          update: `data('${v2.variableId}')`
-        });
-      } else {
-        const signal = { name: v2.variableId, value: v2.initialValue };
-        if (v2.calculation) {
-          signal.update = v2.calculation.vegaExpression;
-        }
-        spec.signals.push(signal);
-      }
-    });
-    return spec;
-  }
-  function isDataframePipeline(variable) {
-    var _a, _b;
-    return variable.type === "object" && !!variable.isArray && (((_a = variable.calculation) == null ? void 0 : _a.dependsOn) !== void 0 && variable.calculation.dependsOn.length > 0 || ((_b = variable.calculation) == null ? void 0 : _b.dataFrameTransformations) !== void 0 && variable.calculation.dataFrameTransformations.length > 0);
-  }
-  function mdWrap(type, content) {
-    return `\`\`\`json ${type}
-${content}
-\`\`\``;
-  }
-  function chartWrap(spec) {
-    const chartType = getChartType(spec);
-    return mdWrap(chartType, JSON.stringify(spec, null, 4));
-  }
-  function mdContainerWrap(id, content) {
-    return `::: markdown-block {#${id}}
-${content}
-:::`;
-  }
-  const $schema = "https://vega.github.io/schema/vega/v5.json";
-  function targetMarkdown(page, rendererOptions) {
-    const mdSections = [];
-    const dataLoaders = page.dataLoaders || [];
-    const variables = page.variables || [];
-    const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables, rendererOptions);
-    for (const dataLoader of dataLoaders.filter((dl) => dl.type === "spec")) {
-      mdSections.push(chartWrap(dataLoader.spec));
-    }
-    for (const group of page.groups) {
-      mdSections.push(mdContainerWrap(group.groupId, groupMarkdown(group, variables, vegaScope)));
-    }
-    mdSections.unshift(chartWrap(vegaScope.spec));
-    const markdown = mdSections.join("\n\n");
-    return markdown;
-  }
-  function dataLoaderMarkdown(dataSources, variables, rendererOptions) {
-    const spec = createSpecWithVariables(rendererOptions.dataNameSelectedSuffix, variables);
-    const vegaScope = new VegaScope(spec);
-    for (const dataSource of dataSources) {
-      switch (dataSource.type) {
-        case "json": {
-          addStaticDataLoaderToSpec(vegaScope, dataSource);
-          break;
-        }
-        case "file": {
-          addStaticDataLoaderToSpec(vegaScope, dataSource);
-          break;
-        }
-        case "url": {
-          addDynamicDataLoaderToSpec(vegaScope, dataSource);
-          break;
-        }
-      }
-      if (!spec.data) {
-        spec.data = [];
-      }
-      spec.data.unshift({
-        name: dataSource.dataSourceName + rendererOptions.dataNameSelectedSuffix
-      });
-    }
-    return vegaScope;
-  }
-  function groupMarkdown(group, variables, vegaScope) {
-    var _a, _b, _c, _d;
-    const mdElements = [];
-    for (const element of group.elements) {
-      if (typeof element === "string") {
-        mdElements.push(element);
-      } else if (typeof element === "object") {
-        switch (element.type) {
-          case "chart": {
-            const chartFull = element.chart;
-            if (!chartFull.spec) {
-              mdElements.push("![Chart Spinner](/img/chart-spinner.gif)");
-            } else {
-              mdElements.push(chartWrap(chartFull.spec));
-            }
-            break;
-          }
-          case "checkbox": {
-            const spec = {
-              $schema,
-              signals: [
-                {
-                  name: element.variableId,
-                  value: (_a = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _a.initialValue,
-                  bind: {
-                    input: "checkbox"
-                  }
-                }
-              ]
-            };
-            mdElements.push(chartWrap(spec));
-            break;
-          }
-          case "dropdown": {
-            const ddSpec = {
-              name: element.variableId,
-              value: (_b = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _b.initialValue,
-              label: element.label
-            };
-            if (element.dynamicOptions) {
-              ddSpec.dynamicOptions = {
-                dataSignalName: element.dynamicOptions.dataSourceName,
-                fieldName: element.dynamicOptions.fieldName
-              };
-            } else {
-              ddSpec.options = element.options;
-            }
-            if (element.multiple) {
-              ddSpec.multiple = element.multiple;
-              ddSpec.size = element.size || 1;
-            }
-            mdElements.push(mdWrap("dropdown", JSON.stringify(ddSpec, null, 2)));
-            break;
-          }
-          case "image": {
-            const urlSignal = vegaScope.createUrlSignal(element.urlRef);
-            const imageSpec = {
-              srcSignalName: urlSignal.name,
-              alt: element.alt,
-              width: element.width,
-              height: element.height
-            };
-            mdElements.push(mdWrap("image", JSON.stringify(imageSpec, null, 2)));
-            break;
-          }
-          case "presets": {
-            const presetsSpec = element.presets;
-            mdElements.push(mdWrap("presets", JSON.stringify(presetsSpec, null, 2)));
-            break;
-          }
-          case "slider": {
-            const spec = {
-              $schema,
-              signals: [
-                {
-                  name: element.variableId,
-                  value: (_c = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _c.initialValue,
-                  bind: {
-                    input: "range",
-                    min: element.min,
-                    max: element.max,
-                    step: element.step,
-                    debounce: 100
-                  }
-                }
-              ]
-            };
-            mdElements.push(chartWrap(spec));
-            break;
-          }
-          case "table": {
-            const tableSpec = {
-              dataSignalName: element.dataSourceName,
-              options: element.options
-            };
-            mdElements.push(mdWrap("tabulator", JSON.stringify(tableSpec, null, 2)));
-            break;
-          }
-          case "textbox": {
-            const spec = {
-              $schema,
-              signals: [
-                {
-                  name: element.variableId,
-                  value: (_d = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _d.initialValue,
-                  bind: {
-                    input: "text",
-                    debounce: 100
-                  }
-                }
-              ]
-            };
-            mdElements.push(chartWrap(spec));
-            break;
-          }
-        }
-      }
-    }
-    const markdown = mdElements.join("\n\n");
-    return markdown;
-  }
   const u = (e, t) => {
     t && e.forEach(([s, n]) => {
       switch (s) {
@@ -377,7 +68,7 @@ ${content}
           t.attrPush([s, n]);
       }
     });
-  }, _ = ".", x = "#", v = /[^\t\n\f />"'=]/, O = " ", E = "=", d = (e, t, { left: s, right: n, allowed: o }) => {
+  }, _ = ".", x = "#", v = /[^\\t\\n\\f />"'=]/, O = " ", E = "=", d = (e, t, { left: s, right: n, allowed: o }) => {
     let i = "", l = "", r = true, c = false;
     const f = [];
     for (let h = t + s.length; h < e.length; h++) {
@@ -421,7 +112,7 @@ ${content}
     }
     return o.length ? f.filter(([h]) => o.some((a) => a instanceof RegExp ? a.test(h) : a === h)) : f;
   }, y = ({ left: e, right: t }, s) => {
-    if (!["start", "end", "only"].includes(s)) throw new Error(`Invalid 'where' parameter: ${s}. Expected 'start', 'end', or 'only'.`);
+    if (!["start", "end", "only"].includes(s)) throw new Error(\`Invalid 'where' parameter: \${s}. Expected 'start', 'end', or 'only'.\`);
     return (n) => {
       const o = e.length, i = t.length, l = o + 1 + i, r = o + 1;
       if (!n || typeof n != "string" || n.length < l) return false;
@@ -441,8 +132,8 @@ ${content}
     }
     /* istanbul ignore next -- @preserve */
     return null;
-  }, b = (e) => e.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&"), w = (e, t, s) => {
-    const n = b(t), o = b(s), i = e.search(new RegExp(`[ \\n]?${n}[^${n}${o}]+${o}$`));
+  }, b = (e) => e.replace(/[-/\\\\^$*+?.()|[\\]{}]/g, "\\\\$&"), w = (e, t, s) => {
+    const n = b(t), o = b(s), i = e.search(new RegExp(\`[ \\\\n]?\${n}[^\${n}\${o}]+\${o}$\`));
     return i !== -1 ? e.slice(0, i) : e;
   }, $ = (e, t) => t >= 0 ? e[t] : e[e.length + t], C = (e) => Array.isArray(e) && !!e.length && e.every((t) => typeof t == "function"), I = (e) => Array.isArray(e) && !!e.length && e.every((t) => typeof t == "object"), k = (e, t, s) => {
     var _a, _b;
@@ -486,7 +177,7 @@ ${content}
             if (!r.every((c) => c(i[l]))) return n;
             break;
           }
-          throw new Error(`Unknown type of pattern test (key: ${l}). Test should be of type boolean, number, string, function or array of functions.`);
+          throw new Error(\`Unknown type of pattern test (key: \${l}). Test should be of type boolean, number, string, function or array of functions.\`);
         }
       }
     }
@@ -502,12 +193,12 @@ ${content}
   } }), T = (e) => ({ name: "code-block", tests: [{ shift: 0, block: true, info: y(e, "end") }], transform: (t, s) => {
     const n = t[s];
     let o = "";
-    const i = /{(?:[\d,-]+)}/.exec(n.info);
+    const i = /{(?:[\\d,-]+)}/.exec(n.info);
     i && (n.info = n.info.replace(i[0], ""), o = i[0]);
     const l = n.info.lastIndexOf(e.left), r = d(n.info, l, e);
     u(r, n);
     const c = w(n.info, e.left, e.right);
-    n.info = `${c} ${o}`.trim();
+    n.info = \`\${c} \${o}\`.trim();
   } }), D = (e) => [{ name: "inline nesting self-close", tests: [{ shift: 0, type: "inline", children: [{ shift: -1, type: (t) => t === "image" || t === "code_inline" }, { shift: 0, type: "text", content: y(e, "start") }] }], transform: (t, s, n) => {
     const o = e.right.length, i = t[s].children[n], l = i.content.indexOf(e.right), r = t[s].children[n - 1], c = d(i.content, 0, e);
     u(c, r), i.content.length === l + o ? t[s].children.splice(n, 1) : i.content = i.content.slice(l + o);
@@ -529,14 +220,14 @@ ${content}
     u(r, t[s - 2]);
     const c = i.slice(0, l), f = c[c.length - 1] === " ";
     o.content = f ? c.slice(0, -1) : c;
-  } }], L = (e) => ({ name: `
-{.a} softbreak then curly in start`, tests: [{ shift: 0, type: "inline", children: [{ position: -2, type: "softbreak" }, { position: -1, type: "text", content: y(e, "only") }] }], transform: (t, s, n) => {
+  } }], L = (e) => ({ name: \`
+{.a} softbreak then curly in start\`, tests: [{ shift: 0, type: "inline", children: [{ position: -2, type: "softbreak" }, { position: -1, type: "text", content: y(e, "only") }] }], transform: (t, s, n) => {
     const o = t[s].children[n], i = d(o.content, 0, e);
     let l = s + 1;
     for (; t[l + 1] && t[l + 1].nesting === -1; ) l++;
     const r = g(t, l);
     u(i, r), t[s].children = t[s].children.slice(0, -2);
-  } }), M = (e) => ({ name: "horizontal rule", tests: [{ shift: 0, type: "paragraph_open" }, { shift: 1, type: "inline", children: (t) => t.length === 1, content: (t) => new RegExp(`^ {0,3}[-*_]{3,} ?${b(e.left)}[^${b(e.right)}]`).test(t) }, { shift: 2, type: "paragraph_close" }], transform: (t, s) => {
+  } }), M = (e) => ({ name: "horizontal rule", tests: [{ shift: 0, type: "paragraph_open" }, { shift: 1, type: "inline", children: (t) => t.length === 1, content: (t) => new RegExp(\`^ {0,3}[-*_]{3,} ?\${b(e.left)}[^\${b(e.right)}]\`).test(t) }, { shift: 2, type: "paragraph_close" }], transform: (t, s) => {
     const n = t[s];
     n.type = "hr", n.tag = "hr", n.nesting = 0;
     const o = t[s + 1], { content: i } = o, l = i.lastIndexOf(e.left), r = d(i, l, e);
@@ -652,12 +343,12 @@ ${content}
       }
       const S2 = e.parentType, v2 = e.lineMax, w2 = e.blkIndent;
       e.parentType = "container", e.lineMax = s, e.blkIndent = d2;
-      const f = e.push(`container_${c}_open`, "div", 1);
+      const f = e.push(\`container_\${c}_open\`, "div", 1);
       f.markup = _2, f.block = true, f.info = T2, f.map = [t, s], e.md.block.tokenize(e, t + 1, s);
-      const y2 = e.push(`container_${c}_close`, "div", -1);
+      const y2 = e.push(\`container_\${c}_close\`, "div", -1);
       return y2.markup = e.src.slice(o, r), y2.block = true, e.parentType = S2, e.lineMax = v2, e.blkIndent = w2, e.line = s + (x2 ? 1 : 0), true;
     };
-    p.block.ruler.before("fence", `container_${c}`, I2, { alt: ["paragraph", "reference", "blockquote", "list"] }), p.renderer.rules[`container_${c}_open`] = g2, p.renderer.rules[`container_${c}_close`] = C2;
+    p.block.ruler.before("fence", \`container_\${c}\`, I2, { alt: ["paragraph", "reference", "blockquote", "list"] }), p.renderer.rules[\`container_\${c}_open\`] = g2, p.renderer.rules[\`container_\${c}_close\`] = C2;
   };
   /*!
   * Copyright (c) Microsoft Corporation.
@@ -699,17 +390,17 @@ ${content}
     return md;
   }
   function definePlugin(md, pluginName) {
-    md.block.ruler.before("fence", `${pluginName}_block`, function(state, startLine, endLine) {
+    md.block.ruler.before("fence", \`\${pluginName}_block\`, function(state, startLine, endLine) {
       const start = state.bMarks[startLine] + state.tShift[startLine];
       const max = state.eMarks[startLine];
-      const marker = `json ${pluginName}`;
-      if (!state.src.slice(start, max).trim().startsWith("```" + marker)) {
+      const marker = \`json \${pluginName}\`;
+      if (!state.src.slice(start, max).trim().startsWith("\`\`\`" + marker)) {
         return false;
       }
       let nextLine = startLine;
       while (nextLine < endLine) {
         nextLine++;
-        if (state.src.slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine]).trim() === "```") {
+        if (state.src.slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine]).trim() === "\`\`\`") {
           break;
         }
       }
@@ -751,7 +442,7 @@ ${content}
         return;
       if (this.logWatchIds.length > 0 && !this.logWatchIds.includes(id))
         return;
-      console.log(`[Signal Bus][${id}] ${message}`, ...optionalParams);
+      console.log(\`[Signal Bus][\${id}] \${message}\`, ...optionalParams);
     }
     async broadcast(originId, batch) {
       if (this.broadcastingStack.includes(originId)) {
@@ -878,36 +569,49 @@ ${content}
     vegaRenderer: "canvas",
     dataNameSelectedSuffix: "_selected",
     dataSignalPrefix: "data-signal:",
-    classList: ["markdown-block"]
+    classList: ["markdown-block"],
+    useShadowDom: false,
+    errorHandler: (error, pluginName, instanceIndex, phase) => {
+      console.error(\`Error in plugin \${pluginName} instance \${instanceIndex} phase \${phase}\`, error);
+    }
   };
   class Renderer {
-    constructor(element, options) {
-      __publicField(this, "element");
+    constructor(_element, options) {
       __publicField(this, "md");
       __publicField(this, "instances");
       __publicField(this, "signalBus");
       __publicField(this, "options");
-      this.element = element;
+      __publicField(this, "shadowRoot");
+      __publicField(this, "element");
       this.options = { ...defaultRendererOptions, ...options };
       this.md = create({ classList: this.options.classList });
       this.signalBus = this.options.signalBus || new SignalBus(this.options.dataSignalPrefix);
       this.instances = {};
-    }
-    async render(markdown, errorHandler) {
-      if (!errorHandler) {
-        errorHandler = (error, pluginName, instanceIndex, phase) => {
-          console.error(`Error in plugin ${pluginName} instance ${instanceIndex} phase ${phase}`, error);
-        };
+      if (this.options.useShadowDom) {
+        this.shadowRoot = _element.attachShadow({ mode: "open" });
+        this.element = this.shadowRoot;
+      } else {
+        this.element = _element;
       }
+    }
+    async render(markdown, styles) {
       await this.destroy();
       const parsedHTML = this.md.render(markdown);
-      this.element.innerHTML = parsedHTML;
+      let content = "";
+      if (styles) {
+        content += \`<style>\${styles}</style>\`;
+      }
+      content += parsedHTML;
+      if (this.options.useShadowDom) {
+        content = \`<div class="body">\${content}</div>\`;
+      }
+      this.element.innerHTML = content;
       this.signalBus.log("Renderer", "rendering DOM");
       const hydrationPromises = [];
       for (let i = 0; i < plugins.length; i++) {
         const plugin = plugins[i];
         if (plugin.hydrateComponent) {
-          hydrationPromises.push(plugin.hydrateComponent(this, errorHandler).then((instances) => {
+          hydrationPromises.push(plugin.hydrateComponent(this, this.options.errorHandler).then((instances) => {
             return {
               pluginName: plugin.name,
               instances
@@ -939,6 +643,7 @@ ${content}
         }
       }
       this.instances = {};
+      this.element.innerHTML = "";
     }
   }
   /*!
@@ -957,11 +662,170 @@ ${content}
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
+  const checkboxPlugin = {
+    name: "checkbox",
+    initializePlugin: (md) => definePlugin(md, "checkbox"),
+    fence: (token, idx) => {
+      const CheckboxId = \`Checkbox-\${idx}\`;
+      return sanitizedHTML("div", { id: CheckboxId, class: "checkbox" }, token.content.trim());
+    },
+    hydrateComponent: async (renderer, errorHandler) => {
+      const checkboxInstances = [];
+      const containers = renderer.element.querySelectorAll(".checkbox");
+      for (const [index, container] of Array.from(containers).entries()) {
+        if (!container.textContent)
+          continue;
+        try {
+          const spec = JSON.parse(container.textContent);
+          const html = \`<form class="vega-bindings">
+                    <div class="vega-bind">
+                        <label>
+                            <span class="vega-bind-name">\${spec.label || spec.name}</span>
+                            <input type="checkbox" class="vega-bind-checkbox" id="\${spec.name}" name="\${spec.name}" \${spec.value ? "checked" : ""}>
+                        </label>
+                    </div>
+                </form>\`;
+          container.innerHTML = html;
+          const element = container.querySelector('input[type="checkbox"]');
+          const checkboxInstance = { id: container.id, spec, element };
+          checkboxInstances.push(checkboxInstance);
+        } catch (e) {
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
+          errorHandler(e, "Checkbox", index, "parse", container);
+          continue;
+        }
+      }
+      const instances = checkboxInstances.map((checkboxInstance) => {
+        const { element, spec } = checkboxInstance;
+        const initialSignals = [{
+          name: spec.name,
+          value: spec.value || false,
+          priority: 1,
+          isData: false
+        }];
+        return {
+          ...checkboxInstance,
+          initialSignals,
+          recieveBatch: async (batch) => {
+            if (batch[spec.name]) {
+              const value = batch[spec.name].value;
+              element.checked = value;
+            }
+          },
+          beginListening() {
+            element.addEventListener("change", (e) => {
+              const value = e.target.checked;
+              const batch = {
+                [spec.name]: {
+                  value,
+                  isData: false
+                }
+              };
+              renderer.signalBus.broadcast(checkboxInstance.id, batch);
+            });
+          },
+          getCurrentSignalValue: () => {
+            return element.checked;
+          },
+          destroy: async () => {
+            element.removeEventListener("change", checkboxInstance.element.onchange);
+          }
+        };
+      });
+      return instances;
+    }
+  };
+  /*!
+  * Copyright (c) Microsoft Corporation.
+  * Licensed under the MIT License.
+  */
+  const cssPlugin = {
+    name: "css",
+    initializePlugin: (md) => {
+      definePlugin(md, "css");
+      md.block.ruler.before("fence", "css_block", function(state, startLine, endLine) {
+        const start = state.bMarks[startLine] + state.tShift[startLine];
+        const max = state.eMarks[startLine];
+        if (!state.src.slice(start, max).trim().startsWith("\`\`\`css")) {
+          return false;
+        }
+        let nextLine = startLine;
+        while (nextLine < endLine) {
+          nextLine++;
+          if (state.src.slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine]).trim() === "\`\`\`") {
+            break;
+          }
+        }
+        state.line = nextLine + 1;
+        const token = state.push("fence", "code", 0);
+        token.info = "css";
+        token.content = state.getLines(startLine + 1, nextLine, state.blkIndent, true);
+        token.map = [startLine, state.line];
+        return true;
+      });
+      const originalFence = md.renderer.rules.fence;
+      md.renderer.rules.fence = function(tokens, idx, options, env, slf) {
+        const token = tokens[idx];
+        const info = token.info.trim();
+        if (info === "css") {
+          const cssId = \`css-\${idx}\`;
+          return sanitizedHTML("div", { id: cssId, class: "css-component" }, token.content.trim());
+        }
+        if (originalFence) {
+          return originalFence(tokens, idx, options, env, slf);
+        } else {
+          return "";
+        }
+      };
+    },
+    hydrateComponent: async (renderer, errorHandler) => {
+      const cssInstances = [];
+      const containers = renderer.element.querySelectorAll(".css-component");
+      for (const [index, container] of Array.from(containers).entries()) {
+        if (!container.textContent)
+          continue;
+        try {
+          const cssContent = container.textContent.trim();
+          const styleElement = document.createElement("style");
+          styleElement.type = "text/css";
+          styleElement.id = \`idocs-css-\${container.id}\`;
+          styleElement.textContent = cssContent;
+          document.head.appendChild(styleElement);
+          container.innerHTML = \`<!-- CSS styles applied to document -->\`;
+          cssInstances.push({
+            id: container.id,
+            element: styleElement
+          });
+        } catch (e) {
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
+          errorHandler(e, "CSS", index, "parse", container);
+          continue;
+        }
+      }
+      const instances = cssInstances.map((cssInstance) => {
+        return {
+          id: cssInstance.id,
+          initialSignals: [],
+          // CSS doesn't need signals
+          destroy: async () => {
+            if (cssInstance.element && cssInstance.element.parentNode) {
+              cssInstance.element.parentNode.removeChild(cssInstance.element);
+            }
+          }
+        };
+      });
+      return instances;
+    }
+  };
+  /*!
+  * Copyright (c) Microsoft Corporation.
+  * Licensed under the MIT License.
+  */
   const dropdownPlugin = {
     name: "dropdown",
     initializePlugin: (md) => definePlugin(md, "dropdown"),
     fence: (token, idx) => {
-      const DropdownId = `Dropdown-${idx}`;
+      const DropdownId = \`Dropdown-\${idx}\`;
       return sanitizedHTML("div", { id: DropdownId, class: "dropdown" }, token.content.trim());
     },
     hydrateComponent: async (renderer, errorHandler) => {
@@ -972,22 +836,22 @@ ${content}
           continue;
         try {
           const spec = JSON.parse(container.textContent);
-          const html = `<form class="vega-bindings">
+          const html = \`<form class="vega-bindings">
                     <div class="vega-bind">
                         <label>
-                            <span class="vega-bind-name">${spec.label || spec.name}</span>
-                            <select class="vega-bind-select" id="${spec.name}" name="${spec.name}" ${spec.multiple ? "multiple" : ""} size="${spec.size || 1}">
-${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""))}
+                            <span class="vega-bind-name">\${spec.label || spec.name}</span>
+                            <select class="vega-bind-select" id="\${spec.name}" name="\${spec.name}" \${spec.multiple ? "multiple" : ""} size="\${spec.size || 1}">
+\${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""))}
                             </select>
                         </label>
                     </div>
-                </form>`;
+                </form>\`;
           container.innerHTML = html;
           const element = container.querySelector("select");
           const dropdownInstance = { id: container.id, spec, element };
           dropdownInstances.push(dropdownInstance);
         } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
           errorHandler(e, "Dropdown", index, "parse", container);
           continue;
         }
@@ -1033,7 +897,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                     element.value = ((_b = batch[spec.name]) == null ? void 0 : _b.value) || options[0];
                   }
                 } else {
-                  element.innerHTML = `<option value="">Field "${dynamicOptions.fieldName}" not found</option>`;
+                  element.innerHTML = \`<option value="">Field "\${dynamicOptions.fieldName}" not found</option>\`;
                   element.value = "";
                 }
               }
@@ -1101,8 +965,8 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       } else {
         attr = selected === option ? "selected" : "";
       }
-      return `<option value="${option}" ${attr}>${option}</option>`;
-    }).join("\n");
+      return \`<option value="\${option}" \${attr}>\${option}</option>\`;
+    }).join("\\n");
   }
   /*!
   * Copyright (c) Microsoft Corporation.
@@ -1118,7 +982,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     name: "image",
     initializePlugin: (md) => definePlugin(md, "image"),
     fence: (token, idx) => {
-      const ImageId = `Image-${idx}`;
+      const ImageId = \`Image-\${idx}\`;
       return sanitizedHTML("div", { id: ImageId, class: "image" }, token.content.trim());
     },
     hydrateComponent: async (renderer, errorHandler) => {
@@ -1131,12 +995,12 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           const spec = JSON.parse(container.textContent);
           const element = document.createElement("img");
           const spinner = document.createElement("div");
-          spinner.innerHTML = `
+          spinner.innerHTML = \`
                     <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="12" r="10" stroke="gray" stroke-width="2" fill="none" stroke-dasharray="31.4" stroke-dashoffset="0">
                             <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
                         </circle>
-                    </svg>`;
+                    </svg>\`;
           if (spec.alt)
             element.alt = spec.alt;
           if (spec.width)
@@ -1160,7 +1024,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           const imageInstance = { id: container.id, spec, element, spinner };
           imageInstances.push(imageInstance);
         } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
           errorHandler(e, "Image", index, "parse", container);
         }
       }
@@ -1261,7 +1125,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         });
         md2.renderer.rules["dynamic_placeholder"] = function(tokens, idx) {
           const key = tokens[idx].content.trim();
-          return `<span class="dynamic-placeholder" data-key="${key}">{${key}}</span>`;
+          return \`<span class="dynamic-placeholder" data-key="\${key}">{\${key}}</span>\`;
         };
       });
       md.renderer.rules["link_open"] = function(tokens, idx, options, env, slf) {
@@ -1353,10 +1217,10 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     }
   };
   function isMarkdownInline(markdown) {
-    if (!markdown.includes("\n")) {
+    if (!markdown.includes("\\n")) {
       return true;
     }
-    const blockElements = ["#", "-", "*", ">", "```", "~~~"];
+    const blockElements = ["#", "-", "*", ">", "\`\`\`", "~~~"];
     for (const element of blockElements) {
       if (markdown.trim().startsWith(element)) {
         return false;
@@ -1373,7 +1237,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     initializePlugin: (md) => definePlugin(md, "presets"),
     fence: (token, idx) => {
       const spec = JSON.parse(token.content.trim());
-      const pluginId = `preset-${idx}`;
+      const pluginId = \`preset-\${idx}\`;
       return sanitizedHTML("div", { id: pluginId, class: "presets" }, JSON.stringify(spec));
     },
     hydrateComponent: async (renderer, errorHandler) => {
@@ -1382,12 +1246,12 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       for (const [index, container] of Array.from(containers).entries()) {
         if (!container.textContent)
           continue;
-        const id = `presets${index}`;
+        const id = \`presets\${index}\`;
         let presets;
         try {
           presets = JSON.parse(container.textContent);
         } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
           errorHandler(e, "presets", index, "parse", container);
           continue;
         }
@@ -1479,7 +1343,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     name: "tabulator",
     initializePlugin: (md) => definePlugin(md, "tabulator"),
     fence: (token, idx) => {
-      const tabulatorId = `tabulator-${idx}`;
+      const tabulatorId = \`tabulator-\${idx}\`;
       return sanitizedHTML("div", { id: tabulatorId, class: "tabulator", style: "box-sizing: border-box;" }, token.content.trim());
     },
     hydrateComponent: async (renderer, errorHandler) => {
@@ -1510,7 +1374,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           });
           tabulatorInstances.push(tabulatorInstance);
         } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
           errorHandler(e, "tabulator", index, "parse", container);
           continue;
         }
@@ -1526,7 +1390,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         }];
         if ((_a = tabulatorInstance.spec.options) == null ? void 0 : _a.selectableRows) {
           initialSignals.push({
-            name: `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`,
+            name: \`\${tabulatorInstance.spec.dataSignalName}\${dataNameSelectedSuffix}\`,
             value: [],
             priority: -1,
             isData: true
@@ -1556,12 +1420,12 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
             if ((_a2 = tabulatorInstance.spec.options) == null ? void 0 : _a2.selectableRows) {
               for (const { isData, signalName } of sharedSignals) {
                 if (isData) {
-                  const matchData = signalName === `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`;
+                  const matchData = signalName === \`\${tabulatorInstance.spec.dataSignalName}\${dataNameSelectedSuffix}\`;
                   if (matchData) {
                     tabulatorInstance.table.on("rowSelectionChanged", (e, rows) => {
                       const selectedData = tabulatorInstance.table.getSelectedData();
                       const batch = {
-                        [`${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`]: {
+                        [\`\${tabulatorInstance.spec.dataSignalName}\${dataNameSelectedSuffix}\`]: {
                           value: selectedData,
                           isData: true
                         }
@@ -1593,7 +1457,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     name: "vega-lite",
     initializePlugin: (md) => definePlugin(md, "vega-lite"),
     fence: (token, idx) => {
-      const vegaLiteId = `vega-lite-${idx}`;
+      const vegaLiteId = \`vega-lite-\${idx}\`;
       return sanitizedHTML("div", { id: vegaLiteId, class: "vega-chart" }, token.content.trim());
     }
   };
@@ -1603,7 +1467,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       if (typeof either === "object") {
         return resolveToVega(either);
       } else {
-        return { error: new Error(`Spec must be either a JSON object or a string url, found type ${typeof either}`) };
+        return { error: new Error(\`Spec must be either a JSON object or a string url, found type \${typeof either}\`) };
       }
     } catch (error) {
       if (textContent.startsWith("http://") || textContent.startsWith("https://") || textContent.startsWith("//")) {
@@ -1613,7 +1477,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           if (typeof either === "object") {
             return resolveToVega(either);
           } else {
-            return { error: new Error(`Expected a JSON object, found type ${typeof either}`) };
+            return { error: new Error(\`Expected a JSON object, found type \${typeof either}\`) };
           }
         } catch (error2) {
           return { error: error2 };
@@ -1646,9 +1510,9 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     if (value === void 0 || value === null)
       return "";
     if (Array.isArray(value)) {
-      return value.map((vn) => `${urlParamName}[]=${encodeURIComponent(vn)}`).join("&");
+      return value.map((vn) => \`\${urlParamName}[]=\${encodeURIComponent(vn)}\`).join("&");
     } else {
-      return `${urlParamName}=${encodeURIComponent(value)}`;
+      return \`\${urlParamName}=\${encodeURIComponent(value)}\`;
     }
   }
   /*!
@@ -1660,7 +1524,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     name: "vega",
     initializePlugin: (md) => definePlugin(md, "vega"),
     fence: (token, idx) => {
-      const vegaId = `vega-${idx}`;
+      const vegaId = \`vega-\${idx}\`;
       return sanitizedHTML("div", { id: vegaId, class: "vega-chart" }, token.content.trim());
     },
     hydrateComponent: async (renderer, errorHandler) => {
@@ -1685,7 +1549,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         if (!vegaInstance.spec.data)
           continue;
         for (const data of vegaInstance.spec.data) {
-          const dataSignal = dataSignals.find((signal) => signal.name === data.name || `${signal.name}${renderer.options.dataNameSelectedSuffix}` === data.name);
+          const dataSignal = dataSignals.find((signal) => signal.name === data.name || \`\${signal.name}\${renderer.options.dataNameSelectedSuffix}\` === data.name);
           if (dataSignal) {
             vegaInstance.initialSignals.push({
               name: data.name,
@@ -1748,7 +1612,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                 if (matchData && vegaInstance.dataSignals.includes(matchData.name)) {
                   renderer.signalBus.log(vegaInstance.id, "listening to data", signalName);
                   view.addDataListener(signalName, async (name, value) => {
-                    startBatch(`data:${signalName}`);
+                    startBatch(\`data:\${signalName}\`);
                     vegaInstance.batch[name] = { value, isData };
                   });
                 }
@@ -1761,7 +1625,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                 if (isChangeSource) {
                   renderer.signalBus.log(vegaInstance.id, "listening to signal", signalName);
                   view.addSignalListener(signalName, async (name, value) => {
-                    startBatch(`signal:${signalName}`);
+                    startBatch(\`signal:\${signalName}\`);
                     vegaInstance.batch[name] = { value, isData };
                   });
                 }
@@ -1811,7 +1675,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
             hasAnyChange = true;
           }
         }
-        doLog && renderer.signalBus.log(vegaInstance.id, `(isData) ${logReason2}`, signalName, batchItem.value);
+        doLog && renderer.signalBus.log(vegaInstance.id, \`(isData) \${logReason2}\`, signalName, batchItem.value);
       }
       let logReason = "";
       const matchSignal = (_b = spec.signals) == null ? void 0 : _b.find((signal) => signal.name === signalName);
@@ -1849,12 +1713,12 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     try {
       result = await resolveSpec(container.textContent);
     } catch (e) {
-      container.innerHTML = `<div class="error">${e.toString()}</div>`;
+      container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
       errorHandler(e, "vega", index, "resolve", container);
       return;
     }
     if (result.error) {
-      container.innerHTML = `<div class="error">${result.error.toString()}</div>`;
+      container.innerHTML = \`<div class="error">\${result.error.toString()}</div>\`;
       errorHandler(result.error, "vega", index, "resolve", container);
       return;
     }
@@ -1882,13 +1746,13 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
   }
   async function createVegaInstance(specInit, renderer, errorHandler) {
     const { container, index, initialSignals, spec } = specInit;
-    const id = `vega-${index}`;
+    const id = \`vega-\${index}\`;
     let runtime;
     let view;
     try {
       runtime = vega.parse(spec);
     } catch (e) {
-      container.innerHTML = `<div class="error">${e.toString()}</div>`;
+      container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
       errorHandler(e, "vega", index, "parse", container);
       return;
     }
@@ -1911,7 +1775,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         }
       }
     } catch (e) {
-      container.innerHTML = `<div class="error">${e.toString()}</div>`;
+      container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
       errorHandler(e, "vega", index, "view", container);
       return;
     }
@@ -1923,7 +1787,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     return instance;
   }
   function isSignalDataBridge(signal) {
-    return signal.update === `data('${signal.name}')`;
+    return signal.update === \`data('\${signal.name}')\`;
   }
   function prioritizeSignalValues(specInits) {
     var _a;
@@ -1988,6 +1852,8 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
   * Licensed under the MIT License.
   */
   function registerNativePlugins() {
+    registerMarkdownPlugin(checkboxPlugin);
+    registerMarkdownPlugin(cssPlugin);
     registerMarkdownPlugin(dropdownPlugin);
     registerMarkdownPlugin(imagePlugin);
     registerMarkdownPlugin(placeholdersPlugin);
@@ -1996,309 +1862,71 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     registerMarkdownPlugin(vegaLitePlugin);
     registerMarkdownPlugin(vegaPlugin);
   }
+  const interfaces = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+    __proto__: null
+  }, Symbol.toStringTag, { value: "Module" }));
   /*!
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
   registerNativePlugins();
-  function DocumentPreview({ page, options }) {
-    const containerRef = React.useRef(null);
-    const rendererRef = React.useRef(null);
-    React.useEffect(() => {
-      if (containerRef.current && !rendererRef.current) {
-        try {
-          rendererRef.current = new Renderer(containerRef.current, options);
-        } catch (error) {
-          console.error("Failed to create renderer:", error);
+  exports2.Plugins = interfaces;
+  exports2.Renderer = Renderer;
+  exports2.definePlugin = definePlugin;
+  exports2.plugins = plugins;
+  exports2.registerMarkdownPlugin = registerMarkdownPlugin;
+  exports2.sanitizedHTML = sanitizedHTML;
+  Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
+});
+`;
+  class Sandbox {
+    constructor(elementOrSelector, options) {
+      __publicField(this, "iframe");
+      const { iframe, blobUrl } = createIframe(options == null ? void 0 : options.markdown, options == null ? void 0 : options.dependencies, options == null ? void 0 : options.rendererOptions);
+      this.iframe = iframe;
+      let element;
+      if (typeof elementOrSelector === "string") {
+        element = document.querySelector(elementOrSelector);
+        if (!element) {
+          throw new Error(`Element not found: ${elementOrSelector}`);
         }
+      } else if (elementOrSelector instanceof HTMLElement) {
+        element = elementOrSelector;
+      } else {
+        throw new Error("Invalid element type, must be a string selector or HTMLElement");
       }
-    }, [options]);
-    React.useEffect(() => {
-      if (rendererRef.current && page) {
-        try {
-          const md = targetMarkdown(page, rendererRef.current.options);
-          rendererRef.current.render(md);
-        } catch (error) {
-          console.error("Error rendering document:", error);
-          if (containerRef.current) {
-            containerRef.current.innerHTML = `<div style="color: red; padding: 10px; border: 1px solid red; background-color: #ffe6e6; border-radius: 4px;">
-                        <strong>Error:</strong> ${error instanceof Error ? error.message : String(error)}
-                    </div>`;
-          }
-        }
-      }
-    }, [page]);
-    return /* @__PURE__ */ React.createElement("div", { ref: containerRef });
-  }
-  function Editor(props) {
-    const postMessageTarget = props.postMessageTarget || window.parent;
-    const [page, setPage] = React.useState(() => ({
-      title: "Initializing...",
-      layout: {
-        css: ""
-      },
-      dataLoaders: [],
-      groups: [
-        {
-          groupId: "init",
-          elements: [
-            "# 🔄 Editor Initializing",
-            "Please wait while the editor loads...",
-            "",
-            "The editor is ready and waiting for content from the host application.",
-            "",
-            "📡 **Status**: Ready to receive documents"
-          ]
-        }
-      ],
-      variables: []
-    }));
-    React.useEffect(() => {
-      const handleMessage = (event) => {
-        if (event.data && event.data.sender !== "editor") {
-          if (event.data.type === "page" && event.data.page) {
-            const totalElements = event.data.page.groups.reduce((total, group) => total + group.elements.length, 0);
-            console.log("Editor received page from app:", {
-              title: event.data.page.title,
-              totalElements,
-              groups: event.data.page.groups.length
-            });
-            setPage(event.data.page);
-          }
-        }
-      };
-      window.addEventListener("message", handleMessage);
-      return () => {
-        window.removeEventListener("message", handleMessage);
-      };
-    }, []);
-    React.useEffect(() => {
-      const readyMessage = {
-        type: "ready",
-        sender: "editor"
-      };
-      postMessageTarget.postMessage(readyMessage, "*");
-    }, []);
-    return /* @__PURE__ */ React.createElement(EditorView, { page, postMessageTarget });
-  }
-  function EditorView(props) {
-    const { page, postMessageTarget } = props;
-    const sendEditToApp = (newPage) => {
-      const pageMessage = {
-        type: "page",
-        page: newPage,
-        sender: "editor"
-      };
-      postMessageTarget.postMessage(pageMessage, "*");
-    };
-    const deleteElement = (groupIndex, elementIndex) => {
-      const newPage = {
-        ...page,
-        groups: page.groups.map((group, gIdx) => {
-          if (gIdx === groupIndex) {
-            return {
-              ...group,
-              elements: group.elements.filter((_2, eIdx) => eIdx !== elementIndex)
-            };
-          }
-          return group;
-        })
-      };
-      const totalElements = newPage.groups.reduce((total, group) => total + group.elements.length, 0);
-      console.log("Editor sending delete result:", {
-        title: newPage.title,
-        totalElements,
-        groups: newPage.groups.length,
-        deletedFrom: { groupIndex, elementIndex }
+      element.appendChild(this.iframe);
+      this.iframe.addEventListener("load", () => {
+        var _a;
+        URL.revokeObjectURL(blobUrl);
+        (_a = options == null ? void 0 : options.onReady) == null ? void 0 : _a.call(options);
       });
-      sendEditToApp(newPage);
-    };
-    const deleteGroup = (groupIndex) => {
-      const newPage = {
-        ...page,
-        groups: page.groups.filter((_2, gIdx) => gIdx !== groupIndex)
-      };
-      sendEditToApp(newPage);
-    };
-    return /* @__PURE__ */ React.createElement("div", { style: {
-      display: "grid",
-      gridTemplateColumns: "320px 1fr",
-      height: "100vh",
-      overflow: "hidden"
-    } }, /* @__PURE__ */ React.createElement("div", { style: {
-      padding: "10px",
-      borderRight: "1px solid #ccc",
-      overflowY: "auto"
-    } }, /* @__PURE__ */ React.createElement("h3", null, "Tree View"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", null, "📄 ", page.title), /* @__PURE__ */ React.createElement("div", { style: { marginLeft: "20px" } }, page.groups.map((group, groupIndex) => /* @__PURE__ */ React.createElement("div", { key: groupIndex, style: { marginBottom: "10px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: "5px" } }, "📁 ", group.groupId, /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: () => deleteGroup(groupIndex),
-        style: {
-          background: "#ff4444",
-          color: "white",
-          border: "none",
-          borderRadius: "3px",
-          padding: "2px 6px",
-          fontSize: "10px",
-          cursor: "pointer"
-        },
-        title: "Delete group"
-      },
-      "✕"
-    )), /* @__PURE__ */ React.createElement("div", { style: { marginLeft: "20px" } }, group.elements.map((element, elementIndex) => /* @__PURE__ */ React.createElement("div", { key: elementIndex, style: { display: "flex", alignItems: "center", gap: "5px", marginBottom: "2px" } }, /* @__PURE__ */ React.createElement("span", null, typeof element === "string" ? `📝 ${element.slice(0, 30)}${element.length > 30 ? "..." : ""}` : `🎨 ${element.type}`), /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: () => deleteElement(groupIndex, elementIndex),
-        style: {
-          background: "#ff4444",
-          color: "white",
-          border: "none",
-          borderRadius: "3px",
-          padding: "2px 6px",
-          fontSize: "10px",
-          cursor: "pointer"
-        },
-        title: "Delete element"
-      },
-      "✕"
-    ))))))))), /* @__PURE__ */ React.createElement("div", { style: {
-      padding: "10px",
-      overflowY: "auto"
-    } }, /* @__PURE__ */ React.createElement("h3", null, "Document Preview"), /* @__PURE__ */ React.createElement(DocumentPreview, { page })));
+      this.iframe.addEventListener("error", (error) => {
+        var _a;
+        console.error("Error loading iframe:", error);
+        URL.revokeObjectURL(blobUrl);
+        (_a = options == null ? void 0 : options.onError) == null ? void 0 : _a.call(options, error);
+      });
+    }
+    send(message) {
+      var _a;
+      (_a = this.iframe.contentWindow) == null ? void 0 : _a.postMessage(message, "*");
+    }
   }
-  function App(props) {
-    const initialPage = {
-      title: "Sample Page",
-      layout: { css: "" },
-      dataLoaders: [],
-      groups: [
-        {
-          groupId: "main",
-          elements: [
-            "# Welcome to Interactive Documents",
-            "1 This is a sample page loaded via postMessage.",
-            "2 This is a sample page loaded via postMessage.",
-            "3 This is a sample page loaded via postMessage.",
-            "The App component controls what content is displayed."
-          ]
-        }
-      ],
-      variables: []
-    };
-    const [history, setHistory] = React.useState([initialPage]);
-    const [historyIndex, setHistoryIndex] = React.useState(0);
-    const [currentPage, setCurrentPage] = React.useState(initialPage);
-    const editorContainerRef = React.useRef(null);
-    const [isEditorReady, setIsEditorReady] = React.useState(false);
-    const undo = () => {
-      if (historyIndex > 0) {
-        const newIndex = historyIndex - 1;
-        setHistoryIndex(newIndex);
-        const page = history[newIndex];
-        setCurrentPage(page);
-        sendPageToEditor(page);
-      }
-    };
-    const redo = () => {
-      if (historyIndex < history.length - 1) {
-        const newIndex = historyIndex + 1;
-        setHistoryIndex(newIndex);
-        const page = history[newIndex];
-        setCurrentPage(page);
-        sendPageToEditor(page);
-      }
-    };
-    const sendPageToEditor = (page, skipReadyCheck = false) => {
-      if (!skipReadyCheck && !isEditorReady) {
-        console.log("Editor not ready, page will be sent when ready");
-        return;
-      }
-      const pageMessage = {
-        type: "page",
-        page,
-        sender: "app"
-      };
-      window.postMessage(pageMessage, "*");
-    };
-    React.useEffect(() => {
-      const handleMessage = (event) => {
-        if (event.data && event.data.sender === "editor") {
-          if (event.data.type === "ready") {
-            event.data;
-            console.log("Editor is ready");
-            setIsEditorReady(true);
-            sendPageToEditor(currentPage);
-          } else if (event.data.type === "page" && event.data.page) {
-            const pageMessage = event.data;
-            const totalElements = pageMessage.page.groups.reduce((total, group) => total + group.elements.length, 0);
-            console.log("Received edit from editor:", pageMessage.page.title, "Total elements:", totalElements, "Groups:", pageMessage.page.groups.length);
-            setHistoryIndex((prevIndex) => {
-              setHistory((prevHistory) => {
-                console.log("Current history length:", prevHistory.length, "current index:", prevIndex);
-                const newHistory = prevHistory.slice(0, prevIndex + 1);
-                newHistory.push(pageMessage.page);
-                console.log("New history length will be:", newHistory.length);
-                return newHistory;
-              });
-              setCurrentPage(pageMessage.page);
-              sendPageToEditor(pageMessage.page, true);
-              return prevIndex + 1;
-            });
-          }
-        }
-      };
-      window.addEventListener("message", handleMessage);
-      return () => {
-        window.removeEventListener("message", handleMessage);
-      };
-    }, []);
-    React.useEffect(() => {
-      if (isEditorReady) {
-        sendPageToEditor(currentPage);
-      }
-    }, [isEditorReady]);
-    React.useEffect(() => {
-    }, []);
-    return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", height: "100vh" } }, /* @__PURE__ */ React.createElement("div", { style: {
-      padding: "10px",
-      backgroundColor: "#f5f5f5",
-      borderBottom: "1px solid #ccc",
-      display: "flex",
-      gap: "10px",
-      alignItems: "center"
-    } }, /* @__PURE__ */ React.createElement("h2", { style: { margin: 0 } }, "Document Editor"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: "5px", alignItems: "center" } }, /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: undo,
-        disabled: historyIndex <= 0,
-        style: {
-          padding: "5px 10px",
-          backgroundColor: historyIndex <= 0 ? "#ccc" : "#007acc",
-          color: "white",
-          border: "none",
-          borderRadius: "3px",
-          cursor: historyIndex <= 0 ? "not-allowed" : "pointer"
-        }
-      },
-      "↶ Undo"
-    ), /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: redo,
-        disabled: historyIndex >= history.length - 1,
-        style: {
-          padding: "5px 10px",
-          backgroundColor: historyIndex >= history.length - 1 ? "#ccc" : "#007acc",
-          color: "white",
-          border: "none",
-          borderRadius: "3px",
-          cursor: historyIndex >= history.length - 1 ? "not-allowed" : "pointer"
-        }
-      },
-      "↷ Redo"
-    ), /* @__PURE__ */ React.createElement("span", { style: { marginLeft: "10px", fontSize: "12px", color: "#666" } }, "History: ", historyIndex + 1, " / ", history.length))), /* @__PURE__ */ React.createElement("div", { ref: editorContainerRef, style: { flex: 1 } }, /* @__PURE__ */ React.createElement(Editor, null)));
+  function createIframe(markdown, dependencies = defaultDependencies, rendererOptions = {}) {
+    const title = "Interactive Document Sandbox";
+    const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDERER_OPTIONS}}", () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};<\/script>`).replace("{{MARKDOWN_SCRIPT}}", () => `<script>const markdown = ${JSON.stringify(markdown || "")};<\/script>`);
+    const htmlBlob = new Blob([html], { type: "text/html" });
+    const blobUrl = URL.createObjectURL(htmlBlob);
+    const iframe = document.createElement("iframe");
+    iframe.sandbox = "allow-scripts";
+    iframe.src = blobUrl;
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.style.border = "none";
+    iframe.title = title;
+    return { iframe, blobUrl };
   }
-  exports2.App = App;
-  exports2.Editor = Editor;
+  exports2.Sandbox = Sandbox;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });

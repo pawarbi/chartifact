@@ -27,6 +27,10 @@ export default defineConfig({
           ...commonOutputConfig,
           dir: './dist/umd',
         },
+        {
+          ...commonOutputConfig,
+          dir: '../../docs/dist',
+        },
       ],
       plugins: [
         resolve(),   // Resolves Node modules

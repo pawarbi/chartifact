@@ -34,7 +34,7 @@ export default defineConfig({
         },
         {
           ...commonOutputConfig,
-          dir: '../../docs/edit',
+          dir: '../../docs/dist',
         },
       ],
       plugins: [
