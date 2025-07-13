@@ -1,18 +1,22 @@
+import { defaultDependencies } from './dependencies.js';
 import { rendererHtml } from './resources/rendererHtml.js';
 import { rendererUmdJs } from './resources/rendererUmdJs.js';
 import { RenderRequestMessage } from './types.js';
+import { RendererOptions } from '@microsoft/interactive-document-markdown';
 
 interface SandboxOptions {
     onReady?: () => void;
     onError?: (error: Event) => void;
+    rendererOptions?: RendererOptions;
     markdown?: string;
+    dependencies?: string;
 }
 
 export class Sandbox {
     private iframe: HTMLIFrameElement;
 
     constructor(element: HTMLElement, options?: SandboxOptions) {
-        const { iframe, blobUrl } = createIframe(options?.markdown);
+        const { iframe, blobUrl } = createIframe(options?.markdown, options?.dependencies, options?.rendererOptions);
         this.iframe = iframe;
         element.appendChild(this.iframe);
 
@@ -33,12 +37,15 @@ export class Sandbox {
     }
 }
 
-export function createIframe(markdown?: string) {
+function createIframe(markdown?: string, dependencies: string = defaultDependencies, rendererOptions: RendererOptions = {}) {
     const title = 'Interactive Document Sandbox';
     const html = rendererHtml
-        .replace('{{MARKDOWN_SCRIPT}}', () => `<script>const markdown = ${JSON.stringify(markdown || '')};</script>`)
         .replace('{{TITLE}}', () => title)
-        .replace('{{RENDERER_SCRIPT}}', () => `<script>${rendererUmdJs}</script>`);
+        .replace('{{DEPENDENCIES}}', () => dependencies)
+        .replace('{{RENDERER_SCRIPT}}', () => `<script>${rendererUmdJs}</script>`)
+        .replace('{{RENDERER_OPTIONS}}', () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};</script>`)
+        .replace('{{MARKDOWN_SCRIPT}}', () => `<script>const markdown = ${JSON.stringify(markdown || '')};</script>`)
+        ;
 
     const htmlBlob = new Blob([html], { type: 'text/html' });
     const blobUrl = URL.createObjectURL(htmlBlob);
