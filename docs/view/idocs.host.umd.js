@@ -1880,11 +1880,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
 });
 `;
   class Sandbox {
-    constructor(element, options) {
+    constructor(elementOrSelector, options) {
       __publicField(this, "iframe");
       const { iframe, blobUrl } = createIframe(options == null ? void 0 : options.markdown, options == null ? void 0 : options.dependencies, options == null ? void 0 : options.rendererOptions);
       this.iframe = iframe;
-      element.appendChild(this.iframe);
+      let element;
+      if (typeof elementOrSelector === "string") {
+        const element2 = document.querySelector(elementOrSelector);
+        if (!element2) {
+          throw new Error(`Element not found: ${elementOrSelector}`);
+        }
+      } else if (elementOrSelector instanceof HTMLElement) {
+        element = elementOrSelector;
+        element.appendChild(this.iframe);
+      } else {
+        throw new Error("Invalid element type, must be a string selector or HTMLElement");
+      }
       this.iframe.addEventListener("load", () => {
         var _a;
         URL.revokeObjectURL(blobUrl);
