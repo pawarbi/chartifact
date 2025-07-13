@@ -81,6 +81,9 @@ export class Listener {
     const sandbox = new Sandbox(this.appDiv, {
       onReady: () => {
         this.sandbox = sandbox;
+
+        // Send ready message to parent window (if embedded)
+        postStatus(this.options.postMessageTarget, { status: 'ready' });
       },
       onError: () => {
         this.errorHandler(new Error('Sandbox initialization failed'), 'Sandbox could not be initialized');
@@ -105,9 +108,6 @@ export class Listener {
     if (!this.options.url || (this.options.url && !checkUrlForFile(this))) {
       show(this.loadingDiv, false);
       show(this.helpDiv, true);
-
-      // Send ready message to parent window (if embedded)
-      postStatus(this.options.postMessageTarget, { status: 'ready' });
     }
   }
 

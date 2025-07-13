@@ -1,5 +1,55 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory((global.IDocs = global.IDocs || {}, global.IDocs.host = {}), global.vega, global.vegaLite));
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory((global.IDocs = global.IDocs || {}, global.IDocs.host = {})));
+})(this, function(exports2) {
+  "use strict";var __defProp = Object.defineProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+
+  const defaultDependencies = `
+    <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"><\/script>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"><\/script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"><\/script>
+    <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"><\/script>
+`;
+  const rendererHtml = `<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITLE}}</title>
+
+    {{DEPENDENCIES}}
+
+    {{RENDERER_SCRIPT}}
+
+    {{RENDERER_OPTIONS}}
+
+    {{MARKDOWN_SCRIPT}}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const renderer = new IDocs.markdown.Renderer(document.body, rendererOptions);
+            renderer.render(markdown);
+
+            //add listener for postMessage
+            window.addEventListener('message', (event) => {
+                if (event.data && event.data.markdown) {
+                    renderer.render(event.data.markdown);
+                }
+            });
+
+        });
+    <\/script>
+
+</head>
+
+<body></body>
+
+</html>`;
+  const rendererUmdJs = `(function(global, factory) {
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory((global.IDocs = global.IDocs || {}, global.IDocs.markdown = {}), global.vega, global.vegaLite));
 })(this, function(exports2, vega, vegaLite) {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
@@ -18,7 +68,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           t.attrPush([s, n]);
       }
     });
-  }, _ = ".", x = "#", v = /[^\t\n\f />"'=]/, O = " ", E = "=", d = (e, t, { left: s, right: n, allowed: o }) => {
+  }, _ = ".", x = "#", v = /[^\\t\\n\\f />"'=]/, O = " ", E = "=", d = (e, t, { left: s, right: n, allowed: o }) => {
     let i = "", l = "", r = true, c = false;
     const f = [];
     for (let h = t + s.length; h < e.length; h++) {
@@ -62,7 +112,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     return o.length ? f.filter(([h]) => o.some((a) => a instanceof RegExp ? a.test(h) : a === h)) : f;
   }, y = ({ left: e, right: t }, s) => {
-    if (!["start", "end", "only"].includes(s)) throw new Error(`Invalid 'where' parameter: ${s}. Expected 'start', 'end', or 'only'.`);
+    if (!["start", "end", "only"].includes(s)) throw new Error(\`Invalid 'where' parameter: \${s}. Expected 'start', 'end', or 'only'.\`);
     return (n) => {
       const o = e.length, i = t.length, l = o + 1 + i, r = o + 1;
       if (!n || typeof n != "string" || n.length < l) return false;
@@ -82,8 +132,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     /* istanbul ignore next -- @preserve */
     return null;
-  }, b = (e) => e.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&"), w = (e, t, s) => {
-    const n = b(t), o = b(s), i = e.search(new RegExp(`[ \\n]?${n}[^${n}${o}]+${o}$`));
+  }, b = (e) => e.replace(/[-/\\\\^$*+?.()|[\\]{}]/g, "\\\\$&"), w = (e, t, s) => {
+    const n = b(t), o = b(s), i = e.search(new RegExp(\`[ \\\\n]?\${n}[^\${n}\${o}]+\${o}$\`));
     return i !== -1 ? e.slice(0, i) : e;
   }, $ = (e, t) => t >= 0 ? e[t] : e[e.length + t], C = (e) => Array.isArray(e) && !!e.length && e.every((t) => typeof t == "function"), I = (e) => Array.isArray(e) && !!e.length && e.every((t) => typeof t == "object"), k = (e, t, s) => {
     var _a, _b;
@@ -127,7 +177,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             if (!r.every((c) => c(i[l]))) return n;
             break;
           }
-          throw new Error(`Unknown type of pattern test (key: ${l}). Test should be of type boolean, number, string, function or array of functions.`);
+          throw new Error(\`Unknown type of pattern test (key: \${l}). Test should be of type boolean, number, string, function or array of functions.\`);
         }
       }
     }
@@ -143,12 +193,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   } }), T = (e) => ({ name: "code-block", tests: [{ shift: 0, block: true, info: y(e, "end") }], transform: (t, s) => {
     const n = t[s];
     let o = "";
-    const i = /{(?:[\d,-]+)}/.exec(n.info);
+    const i = /{(?:[\\d,-]+)}/.exec(n.info);
     i && (n.info = n.info.replace(i[0], ""), o = i[0]);
     const l = n.info.lastIndexOf(e.left), r = d(n.info, l, e);
     u(r, n);
     const c = w(n.info, e.left, e.right);
-    n.info = `${c} ${o}`.trim();
+    n.info = \`\${c} \${o}\`.trim();
   } }), D = (e) => [{ name: "inline nesting self-close", tests: [{ shift: 0, type: "inline", children: [{ shift: -1, type: (t) => t === "image" || t === "code_inline" }, { shift: 0, type: "text", content: y(e, "start") }] }], transform: (t, s, n) => {
     const o = e.right.length, i = t[s].children[n], l = i.content.indexOf(e.right), r = t[s].children[n - 1], c = d(i.content, 0, e);
     u(c, r), i.content.length === l + o ? t[s].children.splice(n, 1) : i.content = i.content.slice(l + o);
@@ -170,14 +220,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     u(r, t[s - 2]);
     const c = i.slice(0, l), f = c[c.length - 1] === " ";
     o.content = f ? c.slice(0, -1) : c;
-  } }], L = (e) => ({ name: `
-{.a} softbreak then curly in start`, tests: [{ shift: 0, type: "inline", children: [{ position: -2, type: "softbreak" }, { position: -1, type: "text", content: y(e, "only") }] }], transform: (t, s, n) => {
+  } }], L = (e) => ({ name: \`
+{.a} softbreak then curly in start\`, tests: [{ shift: 0, type: "inline", children: [{ position: -2, type: "softbreak" }, { position: -1, type: "text", content: y(e, "only") }] }], transform: (t, s, n) => {
     const o = t[s].children[n], i = d(o.content, 0, e);
     let l = s + 1;
     for (; t[l + 1] && t[l + 1].nesting === -1; ) l++;
     const r = g(t, l);
     u(i, r), t[s].children = t[s].children.slice(0, -2);
-  } }), M = (e) => ({ name: "horizontal rule", tests: [{ shift: 0, type: "paragraph_open" }, { shift: 1, type: "inline", children: (t) => t.length === 1, content: (t) => new RegExp(`^ {0,3}[-*_]{3,} ?${b(e.left)}[^${b(e.right)}]`).test(t) }, { shift: 2, type: "paragraph_close" }], transform: (t, s) => {
+  } }), M = (e) => ({ name: "horizontal rule", tests: [{ shift: 0, type: "paragraph_open" }, { shift: 1, type: "inline", children: (t) => t.length === 1, content: (t) => new RegExp(\`^ {0,3}[-*_]{3,} ?\${b(e.left)}[^\${b(e.right)}]\`).test(t) }, { shift: 2, type: "paragraph_close" }], transform: (t, s) => {
     const n = t[s];
     n.type = "hr", n.tag = "hr", n.nesting = 0;
     const o = t[s + 1], { content: i } = o, l = i.lastIndexOf(e.left), r = d(i, l, e);
@@ -293,12 +343,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
       const S2 = e.parentType, v2 = e.lineMax, w2 = e.blkIndent;
       e.parentType = "container", e.lineMax = s, e.blkIndent = d2;
-      const f = e.push(`container_${c}_open`, "div", 1);
+      const f = e.push(\`container_\${c}_open\`, "div", 1);
       f.markup = _2, f.block = true, f.info = T2, f.map = [t, s], e.md.block.tokenize(e, t + 1, s);
-      const y2 = e.push(`container_${c}_close`, "div", -1);
+      const y2 = e.push(\`container_\${c}_close\`, "div", -1);
       return y2.markup = e.src.slice(o, r), y2.block = true, e.parentType = S2, e.lineMax = v2, e.blkIndent = w2, e.line = s + (x2 ? 1 : 0), true;
     };
-    p.block.ruler.before("fence", `container_${c}`, I2, { alt: ["paragraph", "reference", "blockquote", "list"] }), p.renderer.rules[`container_${c}_open`] = g2, p.renderer.rules[`container_${c}_close`] = C2;
+    p.block.ruler.before("fence", \`container_\${c}\`, I2, { alt: ["paragraph", "reference", "blockquote", "list"] }), p.renderer.rules[\`container_\${c}_open\`] = g2, p.renderer.rules[\`container_\${c}_close\`] = C2;
   };
   /*!
   * Copyright (c) Microsoft Corporation.
@@ -340,17 +390,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return md;
   }
   function definePlugin(md, pluginName) {
-    md.block.ruler.before("fence", `${pluginName}_block`, function(state, startLine, endLine) {
+    md.block.ruler.before("fence", \`\${pluginName}_block\`, function(state, startLine, endLine) {
       const start = state.bMarks[startLine] + state.tShift[startLine];
       const max = state.eMarks[startLine];
-      const marker = `json ${pluginName}`;
-      if (!state.src.slice(start, max).trim().startsWith("```" + marker)) {
+      const marker = \`json \${pluginName}\`;
+      if (!state.src.slice(start, max).trim().startsWith("\`\`\`" + marker)) {
         return false;
       }
       let nextLine = startLine;
       while (nextLine < endLine) {
         nextLine++;
-        if (state.src.slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine]).trim() === "```") {
+        if (state.src.slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine]).trim() === "\`\`\`") {
           break;
         }
       }
@@ -392,7 +442,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return;
       if (this.logWatchIds.length > 0 && !this.logWatchIds.includes(id))
         return;
-      console.log(`[Signal Bus][${id}] ${message}`, ...optionalParams);
+      console.log(\`[Signal Bus][\${id}] \${message}\`, ...optionalParams);
     }
     async broadcast(originId, batch) {
       if (this.broadcastingStack.includes(originId)) {
@@ -519,36 +569,49 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     vegaRenderer: "canvas",
     dataNameSelectedSuffix: "_selected",
     dataSignalPrefix: "data-signal:",
-    classList: ["markdown-block"]
+    classList: ["markdown-block"],
+    useShadowDom: false,
+    errorHandler: (error, pluginName, instanceIndex, phase) => {
+      console.error(\`Error in plugin \${pluginName} instance \${instanceIndex} phase \${phase}\`, error);
+    }
   };
   class Renderer {
-    constructor(element, options) {
-      __publicField(this, "element");
+    constructor(_element, options) {
       __publicField(this, "md");
       __publicField(this, "instances");
       __publicField(this, "signalBus");
       __publicField(this, "options");
-      this.element = element;
+      __publicField(this, "shadowRoot");
+      __publicField(this, "element");
       this.options = { ...defaultRendererOptions, ...options };
       this.md = create({ classList: this.options.classList });
       this.signalBus = this.options.signalBus || new SignalBus(this.options.dataSignalPrefix);
       this.instances = {};
-    }
-    async render(markdown, errorHandler) {
-      if (!errorHandler) {
-        errorHandler = (error, pluginName, instanceIndex, phase) => {
-          console.error(`Error in plugin ${pluginName} instance ${instanceIndex} phase ${phase}`, error);
-        };
+      if (this.options.useShadowDom) {
+        this.shadowRoot = _element.attachShadow({ mode: "open" });
+        this.element = this.shadowRoot;
+      } else {
+        this.element = _element;
       }
+    }
+    async render(markdown, styles) {
       await this.destroy();
       const parsedHTML = this.md.render(markdown);
-      this.element.innerHTML = parsedHTML;
+      let content = "";
+      if (styles) {
+        content += \`<style>\${styles}</style>\`;
+      }
+      content += parsedHTML;
+      if (this.options.useShadowDom) {
+        content = \`<div class="body">\${content}</div>\`;
+      }
+      this.element.innerHTML = content;
       this.signalBus.log("Renderer", "rendering DOM");
       const hydrationPromises = [];
       for (let i = 0; i < plugins.length; i++) {
         const plugin = plugins[i];
         if (plugin.hydrateComponent) {
-          hydrationPromises.push(plugin.hydrateComponent(this, errorHandler).then((instances) => {
+          hydrationPromises.push(plugin.hydrateComponent(this, this.options.errorHandler).then((instances) => {
             return {
               pluginName: plugin.name,
               instances
@@ -580,6 +643,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
       this.instances = {};
+      this.element.innerHTML = "";
     }
   }
   /*!
@@ -598,42 +662,201 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
+  const checkboxPlugin = {
+    name: "checkbox",
+    initializePlugin: (md) => definePlugin(md, "checkbox"),
+    fence: (token, idx) => {
+      const CheckboxId = \`Checkbox-\${idx}\`;
+      return sanitizedHTML("div", { id: CheckboxId, class: "checkbox" }, token.content.trim());
+    },
+    hydrateComponent: async (renderer, errorHandler) => {
+      const checkboxInstances = [];
+      const containers = renderer.element.querySelectorAll(".checkbox");
+      for (const [index, container] of Array.from(containers).entries()) {
+        if (!container.textContent)
+          continue;
+        try {
+          const spec = JSON.parse(container.textContent);
+          const html = \`<form class="vega-bindings">
+                    <div class="vega-bind">
+                        <label>
+                            <span class="vega-bind-name">\${spec.label || spec.name}</span>
+                            <input type="checkbox" class="vega-bind-checkbox" id="\${spec.name}" name="\${spec.name}" \${spec.value ? "checked" : ""}>
+                        </label>
+                    </div>
+                </form>\`;
+          container.innerHTML = html;
+          const element = container.querySelector('input[type="checkbox"]');
+          const checkboxInstance = { id: container.id, spec, element };
+          checkboxInstances.push(checkboxInstance);
+        } catch (e) {
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
+          errorHandler(e, "Checkbox", index, "parse", container);
+          continue;
+        }
+      }
+      const instances = checkboxInstances.map((checkboxInstance) => {
+        const { element, spec } = checkboxInstance;
+        const initialSignals = [{
+          name: spec.name,
+          value: spec.value || false,
+          priority: 1,
+          isData: false
+        }];
+        return {
+          ...checkboxInstance,
+          initialSignals,
+          recieveBatch: async (batch) => {
+            if (batch[spec.name]) {
+              const value = batch[spec.name].value;
+              element.checked = value;
+            }
+          },
+          beginListening() {
+            element.addEventListener("change", (e) => {
+              const value = e.target.checked;
+              const batch = {
+                [spec.name]: {
+                  value,
+                  isData: false
+                }
+              };
+              renderer.signalBus.broadcast(checkboxInstance.id, batch);
+            });
+          },
+          getCurrentSignalValue: () => {
+            return element.checked;
+          },
+          destroy: async () => {
+            element.removeEventListener("change", checkboxInstance.element.onchange);
+          }
+        };
+      });
+      return instances;
+    }
+  };
+  /*!
+  * Copyright (c) Microsoft Corporation.
+  * Licensed under the MIT License.
+  */
+  const cssPlugin = {
+    name: "css",
+    initializePlugin: (md) => {
+      definePlugin(md, "css");
+      md.block.ruler.before("fence", "css_block", function(state, startLine, endLine) {
+        const start = state.bMarks[startLine] + state.tShift[startLine];
+        const max = state.eMarks[startLine];
+        if (!state.src.slice(start, max).trim().startsWith("\`\`\`css")) {
+          return false;
+        }
+        let nextLine = startLine;
+        while (nextLine < endLine) {
+          nextLine++;
+          if (state.src.slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine]).trim() === "\`\`\`") {
+            break;
+          }
+        }
+        state.line = nextLine + 1;
+        const token = state.push("fence", "code", 0);
+        token.info = "css";
+        token.content = state.getLines(startLine + 1, nextLine, state.blkIndent, true);
+        token.map = [startLine, state.line];
+        return true;
+      });
+      const originalFence = md.renderer.rules.fence;
+      md.renderer.rules.fence = function(tokens, idx, options, env, slf) {
+        const token = tokens[idx];
+        const info = token.info.trim();
+        if (info === "css") {
+          const cssId = \`css-\${idx}\`;
+          return sanitizedHTML("div", { id: cssId, class: "css-component" }, token.content.trim());
+        }
+        if (originalFence) {
+          return originalFence(tokens, idx, options, env, slf);
+        } else {
+          return "";
+        }
+      };
+    },
+    hydrateComponent: async (renderer, errorHandler) => {
+      const cssInstances = [];
+      const containers = renderer.element.querySelectorAll(".css-component");
+      for (const [index, container] of Array.from(containers).entries()) {
+        if (!container.textContent)
+          continue;
+        try {
+          const cssContent = container.textContent.trim();
+          const styleElement = document.createElement("style");
+          styleElement.type = "text/css";
+          styleElement.id = \`idocs-css-\${container.id}\`;
+          styleElement.textContent = cssContent;
+          document.head.appendChild(styleElement);
+          container.innerHTML = \`<!-- CSS styles applied to document -->\`;
+          cssInstances.push({
+            id: container.id,
+            element: styleElement
+          });
+        } catch (e) {
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
+          errorHandler(e, "CSS", index, "parse", container);
+          continue;
+        }
+      }
+      const instances = cssInstances.map((cssInstance) => {
+        return {
+          id: cssInstance.id,
+          initialSignals: [],
+          // CSS doesn't need signals
+          destroy: async () => {
+            if (cssInstance.element && cssInstance.element.parentNode) {
+              cssInstance.element.parentNode.removeChild(cssInstance.element);
+            }
+          }
+        };
+      });
+      return instances;
+    }
+  };
+  /*!
+  * Copyright (c) Microsoft Corporation.
+  * Licensed under the MIT License.
+  */
   const dropdownPlugin = {
     name: "dropdown",
     initializePlugin: (md) => definePlugin(md, "dropdown"),
     fence: (token, idx) => {
-      const DropdownId = `Dropdown-${idx}`;
+      const DropdownId = \`Dropdown-\${idx}\`;
       return sanitizedHTML("div", { id: DropdownId, class: "dropdown" }, token.content.trim());
     },
     hydrateComponent: async (renderer, errorHandler) => {
       const dropdownInstances = [];
       const containers = renderer.element.querySelectorAll(".dropdown");
-      for (const [index2, container] of Array.from(containers).entries()) {
+      for (const [index, container] of Array.from(containers).entries()) {
         if (!container.textContent)
           continue;
         try {
           const spec = JSON.parse(container.textContent);
-          const html = `<form class="vega-bindings">
+          const html = \`<form class="vega-bindings">
                     <div class="vega-bind">
                         <label>
-                            <span class="vega-bind-name">${spec.label || spec.name}</span>
-                            <select class="vega-bind-select" id="${spec.name}" name="${spec.name}" ${spec.multiple ? "multiple" : ""} size="${spec.size || 1}">
-${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""))}
+                            <span class="vega-bind-name">\${spec.label || spec.name}</span>
+                            <select class="vega-bind-select" id="\${spec.name}" name="\${spec.name}" \${spec.multiple ? "multiple" : ""} size="\${spec.size || 1}">
+\${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""))}
                             </select>
                         </label>
                     </div>
-                </form>`;
+                </form>\`;
           container.innerHTML = html;
           const element = container.querySelector("select");
           const dropdownInstance = { id: container.id, spec, element };
           dropdownInstances.push(dropdownInstance);
         } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler(e, "Dropdown", index2, "parse", container);
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
+          errorHandler(e, "Dropdown", index, "parse", container);
           continue;
         }
       }
-      const instances = dropdownInstances.map((dropdownInstance, index2) => {
+      const instances = dropdownInstances.map((dropdownInstance, index) => {
         const { element, spec } = dropdownInstance;
         const initialSignals = [{
           name: spec.name,
@@ -674,7 +897,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                     element.value = ((_b = batch[spec.name]) == null ? void 0 : _b.value) || options[0];
                   }
                 } else {
-                  element.innerHTML = `<option value="">Field "${dynamicOptions.fieldName}" not found</option>`;
+                  element.innerHTML = \`<option value="">Field "\${dynamicOptions.fieldName}" not found</option>\`;
                   element.value = "";
                 }
               }
@@ -742,8 +965,8 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       } else {
         attr = selected === option ? "selected" : "";
       }
-      return `<option value="${option}" ${attr}>${option}</option>`;
-    }).join("\n");
+      return \`<option value="\${option}" \${attr}>\${option}</option>\`;
+    }).join("\\n");
   }
   /*!
   * Copyright (c) Microsoft Corporation.
@@ -759,25 +982,25 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     name: "image",
     initializePlugin: (md) => definePlugin(md, "image"),
     fence: (token, idx) => {
-      const ImageId = `Image-${idx}`;
+      const ImageId = \`Image-\${idx}\`;
       return sanitizedHTML("div", { id: ImageId, class: "image" }, token.content.trim());
     },
     hydrateComponent: async (renderer, errorHandler) => {
       const imageInstances = [];
       const containers = renderer.element.querySelectorAll(".image");
-      for (const [index2, container] of Array.from(containers).entries()) {
+      for (const [index, container] of Array.from(containers).entries()) {
         if (!container.textContent)
           continue;
         try {
           const spec = JSON.parse(container.textContent);
           const element = document.createElement("img");
           const spinner = document.createElement("div");
-          spinner.innerHTML = `
+          spinner.innerHTML = \`
                     <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="12" r="10" stroke="gray" stroke-width="2" fill="none" stroke-dasharray="31.4" stroke-dashoffset="0">
                             <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
                         </circle>
-                    </svg>`;
+                    </svg>\`;
           if (spec.alt)
             element.alt = spec.alt;
           if (spec.width)
@@ -791,7 +1014,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           element.onerror = () => {
             spinner.style.display = "none";
             element.style.opacity = ImageOpacity.error;
-            errorHandler(new Error("Image failed to load"), "image", index2, "load", container, element.src);
+            errorHandler(new Error("Image failed to load"), "image", index, "load", container, element.src);
           };
           container.style.position = "relative";
           spinner.style.position = "absolute";
@@ -801,11 +1024,11 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           const imageInstance = { id: container.id, spec, element, spinner };
           imageInstances.push(imageInstance);
         } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler(e, "Image", index2, "parse", container);
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
+          errorHandler(e, "Image", index, "parse", container);
         }
       }
-      const instances = imageInstances.map((imageInstance, index2) => {
+      const instances = imageInstances.map((imageInstance, index) => {
         const { element, spinner, id, spec } = imageInstance;
         return {
           id,
@@ -902,7 +1125,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         });
         md2.renderer.rules["dynamic_placeholder"] = function(tokens, idx) {
           const key = tokens[idx].content.trim();
-          return `<span class="dynamic-placeholder" data-key="${key}">{${key}}</span>`;
+          return \`<span class="dynamic-placeholder" data-key="\${key}">{\${key}}</span>\`;
         };
       });
       md.renderer.rules["link_open"] = function(tokens, idx, options, env, slf) {
@@ -994,10 +1217,10 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     }
   };
   function isMarkdownInline(markdown) {
-    if (!markdown.includes("\n")) {
+    if (!markdown.includes("\\n")) {
       return true;
     }
-    const blockElements = ["#", "-", "*", ">", "```", "~~~"];
+    const blockElements = ["#", "-", "*", ">", "\`\`\`", "~~~"];
     for (const element of blockElements) {
       if (markdown.trim().startsWith(element)) {
         return false;
@@ -1014,22 +1237,22 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     initializePlugin: (md) => definePlugin(md, "presets"),
     fence: (token, idx) => {
       const spec = JSON.parse(token.content.trim());
-      const pluginId = `preset-${idx}`;
+      const pluginId = \`preset-\${idx}\`;
       return sanitizedHTML("div", { id: pluginId, class: "presets" }, JSON.stringify(spec));
     },
     hydrateComponent: async (renderer, errorHandler) => {
       const presetsInstances = [];
       const containers = renderer.element.querySelectorAll(".presets");
-      for (const [index2, container] of Array.from(containers).entries()) {
+      for (const [index, container] of Array.from(containers).entries()) {
         if (!container.textContent)
           continue;
-        const id = `presets${index2}`;
+        const id = \`presets\${index}\`;
         let presets;
         try {
           presets = JSON.parse(container.textContent);
         } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler(e, "presets", index2, "parse", container);
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
+          errorHandler(e, "presets", index, "parse", container);
           continue;
         }
         if (!Array.isArray(presets)) {
@@ -1067,7 +1290,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         }
         presetsInstances.push(presetsInstance);
       }
-      const instances = presetsInstances.map((presetsInstance, index2) => {
+      const instances = presetsInstances.map((presetsInstance, index) => {
         const initialSignals = presetsInstance.presets.flatMap((preset) => {
           return Object.keys(preset.state).map((signalName) => {
             return {
@@ -1120,17 +1343,17 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     name: "tabulator",
     initializePlugin: (md) => definePlugin(md, "tabulator"),
     fence: (token, idx) => {
-      const tabulatorId = `tabulator-${idx}`;
+      const tabulatorId = \`tabulator-\${idx}\`;
       return sanitizedHTML("div", { id: tabulatorId, class: "tabulator", style: "box-sizing: border-box;" }, token.content.trim());
     },
     hydrateComponent: async (renderer, errorHandler) => {
       const tabulatorInstances = [];
       const containers = renderer.element.querySelectorAll(".tabulator");
-      for (const [index2, container] of Array.from(containers).entries()) {
+      for (const [index, container] of Array.from(containers).entries()) {
         if (!container.textContent)
           continue;
         if (!Tabulator) {
-          errorHandler(new Error("Tabulator not found"), "tabulator", index2, "init", container);
+          errorHandler(new Error("Tabulator not found"), "tabulator", index, "init", container);
           continue;
         }
         try {
@@ -1151,13 +1374,13 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           });
           tabulatorInstances.push(tabulatorInstance);
         } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler(e, "tabulator", index2, "parse", container);
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
+          errorHandler(e, "tabulator", index, "parse", container);
           continue;
         }
       }
       const dataNameSelectedSuffix = renderer.options.dataNameSelectedSuffix;
-      const instances = tabulatorInstances.map((tabulatorInstance, index2) => {
+      const instances = tabulatorInstances.map((tabulatorInstance, index) => {
         var _a;
         const initialSignals = [{
           name: tabulatorInstance.spec.dataSignalName,
@@ -1167,7 +1390,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         }];
         if ((_a = tabulatorInstance.spec.options) == null ? void 0 : _a.selectableRows) {
           initialSignals.push({
-            name: `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`,
+            name: \`\${tabulatorInstance.spec.dataSignalName}\${dataNameSelectedSuffix}\`,
             value: [],
             priority: -1,
             isData: true
@@ -1197,12 +1420,12 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
             if ((_a2 = tabulatorInstance.spec.options) == null ? void 0 : _a2.selectableRows) {
               for (const { isData, signalName } of sharedSignals) {
                 if (isData) {
-                  const matchData = signalName === `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`;
+                  const matchData = signalName === \`\${tabulatorInstance.spec.dataSignalName}\${dataNameSelectedSuffix}\`;
                   if (matchData) {
                     tabulatorInstance.table.on("rowSelectionChanged", (e, rows) => {
                       const selectedData = tabulatorInstance.table.getSelectedData();
                       const batch = {
-                        [`${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`]: {
+                        [\`\${tabulatorInstance.spec.dataSignalName}\${dataNameSelectedSuffix}\`]: {
                           value: selectedData,
                           isData: true
                         }
@@ -1234,7 +1457,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     name: "vega-lite",
     initializePlugin: (md) => definePlugin(md, "vega-lite"),
     fence: (token, idx) => {
-      const vegaLiteId = `vega-lite-${idx}`;
+      const vegaLiteId = \`vega-lite-\${idx}\`;
       return sanitizedHTML("div", { id: vegaLiteId, class: "vega-chart" }, token.content.trim());
     }
   };
@@ -1244,7 +1467,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       if (typeof either === "object") {
         return resolveToVega(either);
       } else {
-        return { error: new Error(`Spec must be either a JSON object or a string url, found type ${typeof either}`) };
+        return { error: new Error(\`Spec must be either a JSON object or a string url, found type \${typeof either}\`) };
       }
     } catch (error) {
       if (textContent.startsWith("http://") || textContent.startsWith("https://") || textContent.startsWith("//")) {
@@ -1254,7 +1477,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           if (typeof either === "object") {
             return resolveToVega(either);
           } else {
-            return { error: new Error(`Expected a JSON object, found type ${typeof either}`) };
+            return { error: new Error(\`Expected a JSON object, found type \${typeof either}\`) };
           }
         } catch (error2) {
           return { error: error2 };
@@ -1287,9 +1510,9 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     if (value === void 0 || value === null)
       return "";
     if (Array.isArray(value)) {
-      return value.map((vn) => `${urlParamName}[]=${encodeURIComponent(vn)}`).join("&");
+      return value.map((vn) => \`\${urlParamName}[]=\${encodeURIComponent(vn)}\`).join("&");
     } else {
-      return `${urlParamName}=${encodeURIComponent(value)}`;
+      return \`\${urlParamName}=\${encodeURIComponent(value)}\`;
     }
   }
   /*!
@@ -1301,15 +1524,15 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     name: "vega",
     initializePlugin: (md) => definePlugin(md, "vega"),
     fence: (token, idx) => {
-      const vegaId = `vega-${idx}`;
+      const vegaId = \`vega-\${idx}\`;
       return sanitizedHTML("div", { id: vegaId, class: "vega-chart" }, token.content.trim());
     },
     hydrateComponent: async (renderer, errorHandler) => {
       const vegaInstances = [];
       const containers = renderer.element.querySelectorAll(".vega-chart");
       const specInits = [];
-      for (const [index2, container] of Array.from(containers).entries()) {
-        const specInit = await createSpecInit(container, index2, renderer, errorHandler);
+      for (const [index, container] of Array.from(containers).entries()) {
+        const specInit = await createSpecInit(container, index, renderer, errorHandler);
         if (specInit) {
           specInits.push(specInit);
         }
@@ -1326,7 +1549,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         if (!vegaInstance.spec.data)
           continue;
         for (const data of vegaInstance.spec.data) {
-          const dataSignal = dataSignals.find((signal) => signal.name === data.name || `${signal.name}${renderer.options.dataNameSelectedSuffix}` === data.name);
+          const dataSignal = dataSignals.find((signal) => signal.name === data.name || \`\${signal.name}\${renderer.options.dataNameSelectedSuffix}\` === data.name);
           if (dataSignal) {
             vegaInstance.initialSignals.push({
               name: data.name,
@@ -1389,7 +1612,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                 if (matchData && vegaInstance.dataSignals.includes(matchData.name)) {
                   renderer.signalBus.log(vegaInstance.id, "listening to data", signalName);
                   view.addDataListener(signalName, async (name, value) => {
-                    startBatch(`data:${signalName}`);
+                    startBatch(\`data:\${signalName}\`);
                     vegaInstance.batch[name] = { value, isData };
                   });
                 }
@@ -1402,7 +1625,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                 if (isChangeSource) {
                   renderer.signalBus.log(vegaInstance.id, "listening to signal", signalName);
                   view.addSignalListener(signalName, async (name, value) => {
-                    startBatch(`signal:${signalName}`);
+                    startBatch(\`signal:\${signalName}\`);
                     vegaInstance.batch[name] = { value, isData };
                   });
                 }
@@ -1452,7 +1675,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
             hasAnyChange = true;
           }
         }
-        doLog && renderer.signalBus.log(vegaInstance.id, `(isData) ${logReason2}`, signalName, batchItem.value);
+        doLog && renderer.signalBus.log(vegaInstance.id, \`(isData) \${logReason2}\`, signalName, batchItem.value);
       }
       let logReason = "";
       const matchSignal = (_b = spec.signals) == null ? void 0 : _b.find((signal) => signal.name === signalName);
@@ -1480,7 +1703,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     }
     return hasAnyChange;
   }
-  async function createSpecInit(container, index2, renderer, errorHandler) {
+  async function createSpecInit(container, index, renderer, errorHandler) {
     var _a;
     if (!container.textContent) {
       container.innerHTML = '<div class="error">Expected a spec object or a url</div>';
@@ -1490,13 +1713,13 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     try {
       result = await resolveSpec(container.textContent);
     } catch (e) {
-      container.innerHTML = `<div class="error">${e.toString()}</div>`;
-      errorHandler(e, "vega", index2, "resolve", container);
+      container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
+      errorHandler(e, "vega", index, "resolve", container);
       return;
     }
     if (result.error) {
-      container.innerHTML = `<div class="error">${result.error.toString()}</div>`;
-      errorHandler(result.error, "vega", index2, "resolve", container);
+      container.innerHTML = \`<div class="error">\${result.error.toString()}</div>\`;
+      errorHandler(result.error, "vega", index, "resolve", container);
       return;
     }
     if (!result.spec) {
@@ -1518,19 +1741,19 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         isData
       };
     }).filter(Boolean)) || [];
-    const specInit = { container, index: index2, initialSignals, spec };
+    const specInit = { container, index, initialSignals, spec };
     return specInit;
   }
   async function createVegaInstance(specInit, renderer, errorHandler) {
-    const { container, index: index2, initialSignals, spec } = specInit;
-    const id = `vega-${index2}`;
+    const { container, index, initialSignals, spec } = specInit;
+    const id = \`vega-\${index}\`;
     let runtime;
     let view;
     try {
       runtime = vega.parse(spec);
     } catch (e) {
-      container.innerHTML = `<div class="error">${e.toString()}</div>`;
-      errorHandler(e, "vega", index2, "parse", container);
+      container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
+      errorHandler(e, "vega", index, "parse", container);
       return;
     }
     try {
@@ -1538,7 +1761,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         container,
         renderer: renderer.options.vegaRenderer,
         logger: new VegaLogger((error) => {
-          errorHandler(error, "vega", index2, "view", container);
+          errorHandler(error, "vega", index, "view", container);
         })
       });
       view.run();
@@ -1552,8 +1775,8 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         }
       }
     } catch (e) {
-      container.innerHTML = `<div class="error">${e.toString()}</div>`;
-      errorHandler(e, "vega", index2, "view", container);
+      container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
+      errorHandler(e, "vega", index, "view", container);
       return;
     }
     const dataSignals = initialSignals.filter((signal) => {
@@ -1564,7 +1787,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     return instance;
   }
   function isSignalDataBridge(signal) {
-    return signal.update === `data('${signal.name}')`;
+    return signal.update === \`data('\${signal.name}')\`;
   }
   function prioritizeSignalValues(specInits) {
     var _a;
@@ -1629,6 +1852,8 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
   * Licensed under the MIT License.
   */
   function registerNativePlugins() {
+    registerMarkdownPlugin(checkboxPlugin);
+    registerMarkdownPlugin(cssPlugin);
     registerMarkdownPlugin(dropdownPlugin);
     registerMarkdownPlugin(imagePlugin);
     registerMarkdownPlugin(placeholdersPlugin);
@@ -1636,16 +1861,6 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     registerMarkdownPlugin(tabulatorPlugin);
     registerMarkdownPlugin(vegaLitePlugin);
     registerMarkdownPlugin(vegaPlugin);
-  }
-  function bindTextarea$1(textarea, outputElement, options) {
-    const renderer = new Renderer(outputElement, options);
-    const render = () => {
-      const content = textarea.value;
-      renderer.render(content);
-    };
-    textarea.addEventListener("input", render);
-    render();
-    return renderer;
   }
   const interfaces = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null
@@ -1655,15 +1870,55 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
   * Licensed under the MIT License.
   */
   registerNativePlugins();
+  exports2.Plugins = interfaces;
+  exports2.Renderer = Renderer;
+  exports2.definePlugin = definePlugin;
+  exports2.plugins = plugins;
+  exports2.registerMarkdownPlugin = registerMarkdownPlugin;
+  exports2.sanitizedHTML = sanitizedHTML;
+  Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
+});
+`;
+  class Sandbox {
+    constructor(element, options) {
+      __publicField(this, "iframe");
+      const { iframe, blobUrl } = createIframe(options == null ? void 0 : options.markdown, options == null ? void 0 : options.dependencies, options == null ? void 0 : options.rendererOptions);
+      this.iframe = iframe;
+      element.appendChild(this.iframe);
+      this.iframe.addEventListener("load", () => {
+        var _a;
+        URL.revokeObjectURL(blobUrl);
+        (_a = options == null ? void 0 : options.onReady) == null ? void 0 : _a.call(options);
+      });
+      this.iframe.addEventListener("error", (error) => {
+        var _a;
+        console.error("Error loading iframe:", error);
+        URL.revokeObjectURL(blobUrl);
+        (_a = options == null ? void 0 : options.onError) == null ? void 0 : _a.call(options, error);
+      });
+    }
+    send(message) {
+      var _a;
+      (_a = this.iframe.contentWindow) == null ? void 0 : _a.postMessage(message, "*");
+    }
+  }
+  function createIframe(markdown, dependencies = defaultDependencies, rendererOptions = {}) {
+    const title = "Interactive Document Sandbox";
+    const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDERER_OPTIONS}}", () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};<\/script>`).replace("{{MARKDOWN_SCRIPT}}", () => `<script>const markdown = ${JSON.stringify(markdown || "")};<\/script>`);
+    const htmlBlob = new Blob([html], { type: "text/html" });
+    const blobUrl = URL.createObjectURL(htmlBlob);
+    const iframe = document.createElement("iframe");
+    iframe.sandbox = "allow-scripts";
+    iframe.src = blobUrl;
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.style.border = "none";
+    iframe.title = title;
+    return { iframe, blobUrl };
+  }
   const index$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
-    Plugins: interfaces,
-    Renderer,
-    bindTextarea: bindTextarea$1,
-    definePlugin,
-    plugins,
-    registerMarkdownPlugin,
-    sanitizedHTML
+    Sandbox
   }, Symbol.toStringTag, { value: "Module" }));
   function safeVariableName(name) {
     return name.replace(/[^a-zA-Z0-9_]/g, "_");
@@ -1768,7 +2023,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       if (!this.spec.signals) {
         this.spec.signals = [];
       }
-      let origins = this.spec.signals.find((d2) => d2.name === "origins");
+      let origins = this.spec.signals.find((d) => d.name === "origins");
       if (!origins) {
         origins = {
           name: "origins",
@@ -1850,12 +2105,12 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       signals: [],
       data: []
     };
-    topologicalSort(variables).forEach((v2) => {
-      if (isDataframePipeline(v2)) {
-        const { dataFrameTransformations } = v2.calculation;
+    topologicalSort(variables).forEach((v) => {
+      if (isDataframePipeline(v)) {
+        const { dataFrameTransformations } = v.calculation;
         const data = {
-          name: v2.variableId,
-          source: v2.calculation.dependsOn || [],
+          name: v.variableId,
+          source: v.calculation.dependsOn || [],
           transform: dataFrameTransformations
         };
         spec.data.push(data);
@@ -1863,13 +2118,13 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           spec.signals = [];
         }
         spec.signals.push({
-          name: v2.variableId,
-          update: `data('${v2.variableId}')`
+          name: v.variableId,
+          update: `data('${v.variableId}')`
         });
       } else {
-        const signal = { name: v2.variableId, value: v2.initialValue };
-        if (v2.calculation) {
-          signal.update = v2.calculation.vegaExpression;
+        const signal = { name: v.variableId, value: v.initialValue };
+        if (v.calculation) {
+          signal.update = v.calculation.vegaExpression;
         }
         spec.signals.push(signal);
       }
@@ -1894,11 +2149,15 @@ ${content}
 ${content}
 :::`;
   }
+  const defaultRendererOptions = {
+    dataNameSelectedSuffix: "_selected"
+  };
   const $schema = "https://vega.github.io/schema/vega/v5.json";
-  function targetMarkdown(page, rendererOptions) {
+  function targetMarkdown(page, options) {
     const mdSections = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
+    const rendererOptions = { ...defaultRendererOptions, ...options };
     const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables, rendererOptions);
     for (const dataLoader of dataLoaders.filter((dl) => dl.type === "spec")) {
       mdSections.push(chartWrap(dataLoader.spec));
@@ -1955,25 +2214,18 @@ ${content}
             break;
           }
           case "checkbox": {
-            const spec = {
-              $schema,
-              signals: [
-                {
-                  name: element.variableId,
-                  value: (_a = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _a.initialValue,
-                  bind: {
-                    input: "checkbox"
-                  }
-                }
-              ]
+            const cbSpec = {
+              name: element.variableId,
+              value: (_a = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _a.initialValue,
+              label: element.label
             };
-            mdElements.push(chartWrap(spec));
+            mdElements.push(mdWrap("checkbox", JSON.stringify(cbSpec, null, 2)));
             break;
           }
           case "dropdown": {
             const ddSpec = {
               name: element.variableId,
-              value: (_b = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _b.initialValue,
+              value: (_b = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _b.initialValue,
               label: element.label
             };
             if (element.dynamicOptions) {
@@ -2013,7 +2265,7 @@ ${content}
               signals: [
                 {
                   name: element.variableId,
-                  value: (_c = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _c.initialValue,
+                  value: (_c = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _c.initialValue,
                   bind: {
                     input: "range",
                     min: element.min,
@@ -2041,7 +2293,7 @@ ${content}
               signals: [
                 {
                   name: element.variableId,
-                  value: (_d = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _d.initialValue,
+                  value: (_d = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _d.initialValue,
                   bind: {
                     input: "text",
                     debounce: 100
@@ -2058,35 +2310,8 @@ ${content}
     const markdown = mdElements.join("\n\n");
     return markdown;
   }
-  function bindTextarea(textarea, outputElement, options) {
-    const renderer = new Renderer(outputElement, options);
-    const showError = (error) => {
-      console.error("Error parsing JSON:", error);
-      outputElement.innerHTML = `<div style="color: red; padding: 10px; border: 1px solid red; background-color: #ffe6e6; border-radius: 4px;">
-            <strong>Error:</strong> ${error instanceof Error ? error.message : String(error)}
-        </div>`;
-    };
-    const render = () => {
-      const json = textarea.value;
-      try {
-        const page = JSON.parse(json);
-        if (typeof page !== "object") {
-          showError(new Error("Invalid JSON format"));
-          return;
-        }
-        const md = targetMarkdown(page, renderer.options);
-        renderer.render(md);
-      } catch (error) {
-        showError(error);
-      }
-    };
-    textarea.addEventListener("input", render);
-    render();
-    return renderer;
-  }
   const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
-    bindTextarea,
     changePageOrigin,
     targetMarkdown
   }, Symbol.toStringTag, { value: "Module" }));
@@ -2386,9 +2611,11 @@ ${content}
       __publicField(this, "uploadButton");
       __publicField(this, "fileInput");
       __publicField(this, "textarea");
-      __publicField(this, "renderer");
+      __publicField(this, "sandbox");
+      __publicField(this, "rendererOptions");
       __publicField(this, "removeInteractionHandlers");
-      this.options = { ...defaultOptions, ...options.options };
+      this.options = { ...defaultOptions, ...options == null ? void 0 : options.options };
+      this.rendererOptions = { ...options == null ? void 0 : options.rendererOptions };
       this.removeInteractionHandlers = [];
       this.appDiv = getElement(options.app);
       this.loadingDiv = getElement(options.loading);
@@ -2401,7 +2628,15 @@ ${content}
       }
       show(this.loadingDiv, true);
       show(this.helpDiv, false);
-      this.renderer = new Renderer(this.appDiv, {});
+      const sandbox = new Sandbox(this.appDiv, {
+        onReady: () => {
+          this.sandbox = sandbox;
+          postStatus(this.options.postMessageTarget, { status: "ready" });
+        },
+        onError: () => {
+          this.errorHandler(new Error("Sandbox initialization failed"), "Sandbox could not be initialized");
+        }
+      });
       if (this.options.clipboard) {
         this.removeInteractionHandlers.push(setupClipboardHandling(this));
       }
@@ -2417,22 +2652,46 @@ ${content}
       if (!this.options.url || this.options.url && !checkUrlForFile(this)) {
         show(this.loadingDiv, false);
         show(this.helpDiv, true);
-        postStatus(this.options.postMessageTarget, { status: "ready" });
       }
     }
-    errorHandler(error, details) {
+    errorHandler(error, detailsHtml) {
       show(this.loadingDiv, false);
       this.appDiv.innerHTML = `<div style="color: red; padding: 20px;">
     <strong>Error:</strong> ${error.message}<br>
-      ${details}
+      ${detailsHtml}
     </div>`;
+    }
+    bindTextareaToCompiler() {
+      const render = () => {
+        const json = this.textarea.value;
+        try {
+          const interactiveDocument = JSON.parse(json);
+          if (typeof interactiveDocument !== "object") {
+            this.errorHandler(new Error("Invalid JSON format"), "Please provide a valid Interactive Document JSON.");
+            return;
+          }
+          this.renderInteractiveDocument(interactiveDocument);
+        } catch (error) {
+          this.errorHandler(error, "Failed to parse Interactive Document JSON");
+        }
+      };
+      this.textarea.addEventListener("input", render);
+      render();
+    }
+    bindTextareaToMarkdown() {
+      const render = () => {
+        const markdown = this.textarea.value;
+        this.renderMarkdown(markdown);
+      };
+      this.textarea.addEventListener("input", render);
+      render();
     }
     render(markdown, interactiveDocument) {
       if (interactiveDocument) {
         if (this.textarea) {
           this.textarea.value = JSON.stringify(interactiveDocument, null, 2);
           this.hideLoadingAndHelp();
-          bindTextarea(this.textarea, this.appDiv);
+          this.bindTextareaToCompiler();
         } else {
           this.renderInteractiveDocument(interactiveDocument);
         }
@@ -2440,7 +2699,7 @@ ${content}
         if (this.textarea) {
           this.textarea.value = markdown;
           this.hideLoadingAndHelp();
-          bindTextarea$1(this.textarea, this.appDiv);
+          this.bindTextareaToMarkdown();
         } else {
           this.renderMarkdown(markdown);
         }
@@ -2452,34 +2711,22 @@ ${content}
     }
     renderInteractiveDocument(content) {
       postStatus(this.options.postMessageTarget, { status: "compiling", details: "Starting interactive document compilation" });
-      const markdown = targetMarkdown(content, this.renderer.options);
+      const markdown = targetMarkdown(content, this.rendererOptions);
       this.renderMarkdown(markdown);
     }
     hideLoadingAndHelp() {
       show(this.loadingDiv, false);
       show(this.helpDiv, false);
     }
-    renderMarkdown(content) {
+    renderMarkdown(markdown) {
       this.hideLoadingAndHelp();
-      if (!this.renderer) {
-        this.errorHandler(new Error("Renderer not initialized"), "Please wait for the application to load.");
+      if (!this.sandbox) {
+        this.errorHandler(new Error("Sandbox is not initialized"), "Please wait for the application to load.");
         return;
       }
       try {
         postStatus(this.options.postMessageTarget, { status: "rendering", details: "Starting markdown rendering" });
-        this.renderer.destroy();
-        this.renderer.render(
-          content,
-          (error, pluginName, instanceIndex, phase, container, detail) => {
-            const msg = `<strong>Error in ${pluginName}:</strong> ${error.message}<br>
-          <strong>Instance:</strong> ${instanceIndex}<br>
-          <strong>Phase:</strong> ${phase}<br>
-          <strong>Container:</strong> ${container.tagName}<br>
-          ${detail ? `<strong>Detail:</strong> ${detail}` : ""}`;
-            this.errorHandler(error, msg);
-            postStatus(this.options.postMessageTarget, { status: "error", details: `Rendering error in ${pluginName}: ${error.message}` });
-          }
-        );
+        this.sandbox.send({ markdown });
         postStatus(this.options.postMessageTarget, { status: "rendered", details: "Markdown rendering completed successfully" });
       } catch (error) {
         this.errorHandler(
@@ -2492,6 +2739,6 @@ ${content}
   }
   exports2.Listener = Listener;
   exports2.compiler = index;
-  exports2.markdown = index$1;
+  exports2.sandbox = index$1;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });
