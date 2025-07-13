@@ -10,7 +10,7 @@ const resources = [
     '../../node_modules/tabulator-tables/dist/js/tabulator.min.js',
     '../../node_modules/tabulator-tables/dist/css/tabulator.min.css',
     '../../packages/host/dist/umd/idocs.host.umd.js',
-    '../../packages/markdown/dist/umd/idocs.markdown.umd.js',
+    '../../packages/sandbox/dist/umd/idocs.sandbox.umd.js',
     '../../packages/compiler/dist/umd/idocs.compiler.umd.js',
     '../../packages/editor/dist/umd/idocs.editor.umd.js',
 ];
