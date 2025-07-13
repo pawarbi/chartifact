@@ -1,3 +1,5 @@
+//TODO generate this from dependencies in package.json for the markdown project
+
 export const defaultDependencies = `
     <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
