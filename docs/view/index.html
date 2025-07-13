@@ -7,48 +7,43 @@
     <title>Interactive Document Host</title>
     <script src="idocs.host.umd.js"></script>
     <style>
-        html, body {
-            height: 100%;
-        }
         body {
-            display: grid;
-            grid-template-rows: auto 1fr auto;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
             margin: 0;
-            padding: 0;
-        }
-
-        header {
-            background-color: #f1f1f1;
-            padding: 2px;
-            text-align: center;
         }
 
         main {
-            display: grid;
+            display: flex;
+            flex: 1;
         }
 
-        #help {
-            padding: 20px;
+        textarea {
+            flex: 1;
+            resize: none;
+        }
+
+        iframe {
+            flex: 2;
         }
 
         footer {
-            background-color: #f1f1f1;
-            padding: 2px;
-            text-align: center;
+            font-size: small;
+            padding: 3px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     </style>
 </head>
 
 <body>
-    <header>
-        Chartifact Interactive Document Host
-        <button>edit a copy</button>
-    </header>
 
     <main>
 
-        <textarea id="textarea" style="width: 100%; height: 300px; display: none;"
+        <textarea id="textarea" style="display: none;"
             placeholder="Enter your markdown here..."></textarea>
 
         <div id="loading" style="text-align: center; padding: 50px;">
@@ -85,24 +80,24 @@
 
         </div>
 
-        <div id="app"></div>
-
-        <script>
-            const host = new IDocs.host.Listener({
-                app: '#app',
-                loading: '#loading',
-                help: '#help',
-                uploadButton: '#upload-btn',
-                fileInput: '#file-input',
-                textarea: '#textarea',
-            });
-        </script>
-
     </main>
 
     <footer>
         Powered by <a href="https://github.com/chartifact/chartifact">Chartifact</a>
+        <button>edit a copy</button>
     </footer>
+
+    <script>
+        const host = new IDocs.host.Listener({
+            app: 'main',
+            loading: '#loading',
+            help: '#help',
+            uploadButton: '#upload-btn',
+            fileInput: '#file-input',
+            textarea: '#textarea',
+        });
+    </script>
+
 </body>
 
 </html>
