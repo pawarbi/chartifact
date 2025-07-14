@@ -2,12 +2,12 @@ import { InteractiveDocument } from "schema";
 import { targetMarkdown } from '@microsoft/interactive-document-compiler';
 import { Renderer, RendererOptions } from '@microsoft/interactive-document-markdown';
 
-export interface DocumentPreviewProps {
+export interface DevDocumentPreviewProps {
     page: InteractiveDocument;
     options?: RendererOptions;
 }
 
-export function DocumentPreview({ page, options }: DocumentPreviewProps) {
+export function DevDocumentPreview({ page, options }: DevDocumentPreviewProps) {
     const containerRef = React.useRef<HTMLDivElement>(null);
     const rendererRef = React.useRef<Renderer | null>(null);
 

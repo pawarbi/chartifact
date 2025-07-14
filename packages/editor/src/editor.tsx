@@ -1,10 +1,13 @@
 import { InteractiveDocument } from "schema";
-import { DocumentPreview } from './preview.js';
+import { DevDocumentPreview } from './preview.js';
 import { EditorMessage, PageMessage, ReadyMessage } from "./types.js";
+import { SandboxDocumentPreview } from "./sandbox.js";
 
 export interface Props {
     postMessageTarget?: Window;
 }
+
+const devmode = false; // Set to true to use DevDocumentPreview, false for SandboxDocumentPreview
 
 export function Editor(props: Props) {
     const postMessageTarget = props.postMessageTarget || window.parent;
@@ -188,16 +191,25 @@ export function EditorView(props: EditorViewProps) {
                 </div>
             </div>
             <div style={{
+                display: 'grid',
+                gridTemplateRows: 'auto 1fr',
                 padding: '10px',
                 overflowY: 'auto'
             }}>
                 <h3>Document Preview</h3>
-                <DocumentPreview
+                {devmode ? (<DevDocumentPreview
                     page={page}
                     options={{
                         useShadowDom: true,
                     }}
-                />
+                />) : (
+                    <SandboxDocumentPreview
+                        page={page}
+                        options={{
+                            useShadowDom: true,
+                        }}
+                    />
+                )}
             </div>
         </div>
     );
