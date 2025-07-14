@@ -18,6 +18,42 @@ export function App(props: AppProps) {
                     "# Welcome to Interactive Documents",
                     "1 This is a sample page loaded via postMessage.",
                     "2 This is a sample page loaded via postMessage.",
+                    {
+                        type: "chart",
+                        chart: {
+                            chartIntent: "bar chart",
+                            chartTemplateKey: "default-bar-chart",
+                            dataSourceBase: {
+                                dataSourceName: "seattle-weather",
+                            },
+                            spec: {
+                                "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+                                "data": { "url": "https://vega.github.io/editor/data/seattle-weather.csv" },
+                                "mark": "bar",
+                                "encoding": {
+                                    "x": {
+                                        "timeUnit": "month",
+                                        "field": "date",
+                                        "type": "ordinal",
+                                        "title": "Month of the year"
+                                    },
+                                    "y": {
+                                        "aggregate": "count",
+                                        "type": "quantitative"
+                                    },
+                                    "color": {
+                                        "field": "weather",
+                                        "type": "nominal",
+                                        "scale": {
+                                            "domain": ["sun", "fog", "drizzle", "rain", "snow"],
+                                            "range": ["#e7ba52", "#c7c7c7", "#aec7e8", "#1f77b4", "#9467bd"]
+                                        },
+                                        "title": "Weather type"
+                                    }
+                                }
+                            }
+                        },
+                    },
                     "3 This is a sample page loaded via postMessage.",
                     "The App component controls what content is displayed."
                 ]
@@ -84,7 +120,7 @@ export function App(props: AppProps) {
                     const pageMessage = event.data as PageMessage;
                     const totalElements = pageMessage.page.groups.reduce((total, group) => total + group.elements.length, 0);
                     console.log('Received edit from editor:', pageMessage.page.title, 'Total elements:', totalElements, 'Groups:', pageMessage.page.groups.length);
-                    
+
                     // Use functional updates to avoid closure issues
                     setHistoryIndex(prevIndex => {
                         setHistory(prevHistory => {
@@ -95,7 +131,7 @@ export function App(props: AppProps) {
                             console.log('New history length will be:', newHistory.length);
                             return newHistory;
                         });
-                        
+
                         setCurrentPage(pageMessage.page);
                         // Send the updated page back to the editor (skip ready check since editor just sent us a message)
                         sendPageToEditor(pageMessage.page, true);
