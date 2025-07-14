@@ -22,16 +22,16 @@ export class Sandbox {
         let element: HTMLElement;
 
         if (typeof elementOrSelector === 'string') {
-            const element = document.querySelector(elementOrSelector);
+            element = document.querySelector(elementOrSelector);
             if (!element) {
                 throw new Error(`Element not found: ${elementOrSelector}`);
             }
         } else if (elementOrSelector instanceof HTMLElement) {
             element = elementOrSelector;
-            element.appendChild(this.iframe);
         } else {
             throw new Error('Invalid element type, must be a string selector or HTMLElement');
         }
+        element.appendChild(this.iframe);
 
         this.iframe.addEventListener('load', () => {
             URL.revokeObjectURL(blobUrl);
