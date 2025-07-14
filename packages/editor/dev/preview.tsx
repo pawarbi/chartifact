@@ -1,13 +1,11 @@
-import { InteractiveDocument } from "schema";
+/// <reference path="../src/globals.d.ts" />
+
 import { targetMarkdown } from '@microsoft/interactive-document-compiler';
-import { Renderer, RendererOptions } from '@microsoft/interactive-document-markdown';
+import { Renderer } from '@microsoft/interactive-document-markdown';
+import {SandboxDocumentPreviewProps} from '../src/sandbox.js';
 
-export interface DevDocumentPreviewProps {
-    page: InteractiveDocument;
-    options?: RendererOptions;
-}
 
-export function DevDocumentPreview({ page, options }: DevDocumentPreviewProps) {
+export function DevDocumentPreview({ page, options }: SandboxDocumentPreviewProps) {
     const containerRef = React.useRef<HTMLDivElement>(null);
     const rendererRef = React.useRef<Renderer | null>(null);
 
@@ -15,7 +13,7 @@ export function DevDocumentPreview({ page, options }: DevDocumentPreviewProps) {
         if (containerRef.current && !rendererRef.current) {
             try {
                 // Create persistent renderer instance
-                rendererRef.current = new Renderer(containerRef.current, options);
+                rendererRef.current = new Renderer(containerRef.current, { ...options, useShadowDom: false });
             } catch (error) {
                 console.error('Failed to create renderer:', error);
             }

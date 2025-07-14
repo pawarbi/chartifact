@@ -18,9 +18,12 @@
     <div id="app"></div>
 
     <script type="module">
-        import { App } from '/src/index.ts';
+        // use only for dev mode / local
+        import { DevDocumentPreview } from './dev/preview.js';
+
+        import { App } from './src/app.js';
         const root = ReactDOM.createRoot(document.getElementById("app"));
-        root.render(React.createElement(App));
+        root.render(React.createElement(App, { DocumentPreview: DevDocumentPreview }));
     </script>
 
 </body>

@@ -1,66 +1,17 @@
 import { InteractiveDocument } from "schema";
 import { Editor } from './editor.js';
 import { PageMessage, EditorMessage, ReadyMessage } from "./types.js";
+import { SandboxDocumentPreview, SandboxDocumentPreviewProps } from "./sandbox.js";
+import { ComponentType } from "react";
 
 export interface AppProps {
+    DocumentPreview?: ComponentType<SandboxDocumentPreviewProps>;
 }
 
 // Alternative implementation using same-origin communication
 export function App(props: AppProps) {
-    const initialPage: InteractiveDocument = {
-        title: "Sample Page",
-        layout: { css: "" },
-        dataLoaders: [],
-        groups: [
-            {
-                groupId: "main",
-                elements: [
-                    "# Welcome to Interactive Documents",
-                    "1 This is a sample page loaded via postMessage.",
-                    "2 This is a sample page loaded via postMessage.",
-                    {
-                        type: "chart",
-                        chart: {
-                            chartIntent: "bar chart",
-                            chartTemplateKey: "default-bar-chart",
-                            dataSourceBase: {
-                                dataSourceName: "seattle-weather",
-                            },
-                            spec: {
-                                "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-                                "data": { "url": "https://vega.github.io/editor/data/seattle-weather.csv" },
-                                "mark": "bar",
-                                "encoding": {
-                                    "x": {
-                                        "timeUnit": "month",
-                                        "field": "date",
-                                        "type": "ordinal",
-                                        "title": "Month of the year"
-                                    },
-                                    "y": {
-                                        "aggregate": "count",
-                                        "type": "quantitative"
-                                    },
-                                    "color": {
-                                        "field": "weather",
-                                        "type": "nominal",
-                                        "scale": {
-                                            "domain": ["sun", "fog", "drizzle", "rain", "snow"],
-                                            "range": ["#e7ba52", "#c7c7c7", "#aec7e8", "#1f77b4", "#9467bd"]
-                                        },
-                                        "title": "Weather type"
-                                    }
-                                }
-                            }
-                        },
-                    },
-                    "3 This is a sample page loaded via postMessage.",
-                    "The App component controls what content is displayed."
-                ]
-            }
-        ],
-        variables: []
-    };
+
+    const DocumentPreview = props.DocumentPreview || SandboxDocumentPreview;
 
     const [history, setHistory] = React.useState<InteractiveDocument[]>([initialPage]);
     const [historyIndex, setHistoryIndex] = React.useState(0);
@@ -92,7 +43,6 @@ export function App(props: AppProps) {
     const sendPageToEditor = (page: InteractiveDocument, skipReadyCheck = false) => {
         // Only send page if editor is ready (unless we're skipping the check)
         if (!skipReadyCheck && !isEditorReady) {
-            console.log('Editor not ready, page will be sent when ready');
             return;
         }
 
@@ -111,24 +61,17 @@ export function App(props: AppProps) {
             // Only process messages from editor, ignore our own messages
             if (event.data && event.data.sender === 'editor') {
                 if (event.data.type === 'ready') {
-                    const readyMessage = event.data as ReadyMessage;
-                    console.log('Editor is ready');
                     setIsEditorReady(true);
                     // Send initial page when editor is ready
                     sendPageToEditor(currentPage);
                 } else if (event.data.type === 'page' && event.data.page) {
                     const pageMessage = event.data as PageMessage;
-                    const totalElements = pageMessage.page.groups.reduce((total, group) => total + group.elements.length, 0);
-                    console.log('Received edit from editor:', pageMessage.page.title, 'Total elements:', totalElements, 'Groups:', pageMessage.page.groups.length);
-
                     // Use functional updates to avoid closure issues
                     setHistoryIndex(prevIndex => {
                         setHistory(prevHistory => {
-                            console.log('Current history length:', prevHistory.length, 'current index:', prevIndex);
                             // Truncate history after current index and add new page
                             const newHistory = prevHistory.slice(0, prevIndex + 1);
                             newHistory.push(pageMessage.page);
-                            console.log('New history length will be:', newHistory.length);
                             return newHistory;
                         });
 
@@ -155,11 +98,6 @@ export function App(props: AppProps) {
             sendPageToEditor(currentPage);
         }
     }, [isEditorReady]);
-
-    React.useEffect(() => {
-        // Remove the old effect that sent initial page immediately
-        // Now we wait for the ready message
-    }, []);
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -210,9 +148,63 @@ export function App(props: AppProps) {
 
             {/* Editor */}
             <div ref={editorContainerRef} style={{ flex: 1 }}>
-                <Editor />
+                <Editor
+                    DocumentPreview={DocumentPreview} // Forward the prop
+                />
             </div>
         </div>
     );
 }
+
+const initialPage: InteractiveDocument = {
+    title: "Sample Page",
+    groups: [
+        {
+            groupId: "main",
+            elements: [
+                "# Welcome to Interactive Documents",
+                "1 This is a sample page loaded via postMessage.",
+                "2 This is a sample page loaded via postMessage.",
+                {
+                    type: "chart",
+                    chart: {
+                        chartIntent: "bar chart",
+                        chartTemplateKey: "default-bar-chart",
+                        dataSourceBase: {
+                            dataSourceName: "seattle-weather",
+                        },
+                        spec: {
+                            "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+                            "data": { "url": "https://vega.github.io/editor/data/seattle-weather.csv" },
+                            "mark": "bar",
+                            "encoding": {
+                                "x": {
+                                    "timeUnit": "month",
+                                    "field": "date",
+                                    "type": "ordinal",
+                                    "title": "Month of the year"
+                                },
+                                "y": {
+                                    "aggregate": "count",
+                                    "type": "quantitative"
+                                },
+                                "color": {
+                                    "field": "weather",
+                                    "type": "nominal",
+                                    "scale": {
+                                        "domain": ["sun", "fog", "drizzle", "rain", "snow"],
+                                        "range": ["#e7ba52", "#c7c7c7", "#aec7e8", "#1f77b4", "#9467bd"]
+                                    },
+                                    "title": "Weather type"
+                                }
+                            }
+                        }
+                    },
+                },
+                "3 This is a sample page loaded via postMessage.",
+                "The App component controls what content is displayed."
+            ]
+        }
+    ]
+};
 
