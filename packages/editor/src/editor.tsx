@@ -1,6 +1,6 @@
 import { InteractiveDocument } from "schema";
 import { EditorMessage, PageMessage, ReadyMessage } from "./types.js";
-import { SandboxDocumentPreviewProps } from "./sandbox.js";
+import { SandboxDocumentPreview, SandboxDocumentPreviewProps } from "./sandbox.js";
 import { ComponentType } from "react";
 
 export interface Props {
@@ -11,13 +11,8 @@ export interface Props {
 const devmode = false; // Set to true to use DevDocumentPreview, false for SandboxDocumentPreview
 
 export function Editor(props: Props) {
-
-    // Use the passed DocumentPreview prop directly without defaulting to SandboxDocumentPreview
-    const { DocumentPreview } = props;
-
-    if (!DocumentPreview) {
-        console.error('DocumentPreview is undefined. Ensure it is passed correctly.');
-    }
+    // Default to SandboxDocumentPreview if DocumentPreview is not provided
+    const DocumentPreview = props.DocumentPreview || SandboxDocumentPreview;
 
     const postMessageTarget = props.postMessageTarget || window.parent;
     const [page, setPage] = React.useState<InteractiveDocument>(() => ({

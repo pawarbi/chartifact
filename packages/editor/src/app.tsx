@@ -1,7 +1,7 @@
 import { InteractiveDocument } from "schema";
 import { Editor } from './editor.js';
-import { PageMessage, EditorMessage, ReadyMessage } from "./types.js";
-import { SandboxDocumentPreview, SandboxDocumentPreviewProps } from "./sandbox.js";
+import { PageMessage, EditorMessage } from "./types.js";
+import { SandboxDocumentPreviewProps } from "./sandbox.js";
 import { ComponentType } from "react";
 
 export interface AppProps {
@@ -10,8 +10,7 @@ export interface AppProps {
 
 // Alternative implementation using same-origin communication
 export function App(props: AppProps) {
-
-    const DocumentPreview = props.DocumentPreview || SandboxDocumentPreview;
+    const { DocumentPreview } = props;
 
     const [history, setHistory] = React.useState<InteractiveDocument[]>([initialPage]);
     const [historyIndex, setHistoryIndex] = React.useState(0);
