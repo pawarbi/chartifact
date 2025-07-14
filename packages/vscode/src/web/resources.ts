@@ -6,8 +6,14 @@ const cachedResources: Record<string, string | Error> = {};
 // Initialize resource contents (call this during extension activation)
 export const initializeResources = async (context: vscode.ExtensionContext): Promise<void> => {
   const resourcesToLoad: [string, string][] = [
+
+    //TODO: remove these when CDN is ready
     ['resources', 'idocs.sandbox.umd.js'],
     ['resources', 'idocs.compiler.umd.js'],
+
+    ['resources', '1.idoc.md'],
+    ['resources', 'grocery-list.idoc.json'],
+    
     ['html', 'json.html'],
     ['html', 'markdown.html'],
     ['html', 'preview.html'],

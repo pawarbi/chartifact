@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { sampleMarkdown, sampleInteractiveDocumentWithSchema } from './templates';
 import { findAvailableFileName } from './file';
+import { getResource } from './resources';
 
 /**
  * Generic function to create new Interactive Documents
@@ -17,7 +17,6 @@ export async function createNewDocument(uri: vscode.Uri | undefined, format: 'ma
 
 async function createFileInFolder(uri: vscode.Uri, format: 'markdown' | 'json') {
 	let targetFolder: vscode.Uri;
-	
 	const stat = await vscode.workspace.fs.stat(uri);
 	if (stat.type === vscode.FileType.Directory) {
 		targetFolder = uri;
@@ -30,11 +29,12 @@ async function createFileInFolder(uri: vscode.Uri, format: 'markdown' | 'json') 
 	const extension = format === 'json' ? '.idoc.json' : '.idoc.md';
 	const baseFileUri = vscode.Uri.joinPath(targetFolder, `untitled${extension}`);
 	const fileUri = await findAvailableFileName(baseFileUri, extension, extension);
+	const { sampleInteractiveDocumentWithSchema, sampleMarkdown } = getSamples();
 
 	// Create the file with the appropriate sample content
 	let content: Uint8Array;
 	if (format === 'json') {
-		content = new TextEncoder().encode(JSON.stringify(sampleInteractiveDocumentWithSchema, null, 2));
+		content = new TextEncoder().encode(sampleInteractiveDocumentWithSchema);
 	} else {
 		content = new TextEncoder().encode(sampleMarkdown);
 	}
@@ -47,11 +47,13 @@ async function createFileInFolder(uri: vscode.Uri, format: 'markdown' | 'json') 
 }
 
 async function createUntitledDocument(format: 'markdown' | 'json') {
+	const { sampleInteractiveDocumentWithSchema, sampleMarkdown } = getSamples();
+
 	let content: string;
 	let language: string;
 
 	if (format === 'json') {
-		content = JSON.stringify(sampleInteractiveDocumentWithSchema, null, 2);
+		content = sampleInteractiveDocumentWithSchema;
 		language = 'json';
 	} else {
 		content = sampleMarkdown;
@@ -65,4 +67,10 @@ async function createUntitledDocument(format: 'markdown' | 'json') {
 
 	// Show the document in the editor
 	await vscode.window.showTextDocument(document);
+}
+
+function getSamples() {
+	const sampleInteractiveDocumentWithSchema = getResource('grocery-list.idoc.json');
+	const sampleMarkdown = getResource('1.idoc.md');
+	return { sampleInteractiveDocumentWithSchema, sampleMarkdown };
 }

@@ -13,6 +13,8 @@ const resources = [
     '../../packages/sandbox/dist/umd/idocs.sandbox.umd.js',
     '../../packages/compiler/dist/umd/idocs.compiler.umd.js',
     '../../packages/editor/dist/umd/idocs.editor.umd.js',
+    '../../docs/assets/examples/grocery-list.idoc.json',
+    '../../docs/assets/examples/seattle-weather/1.idoc.md',
 ];
 
 const errors = [];

@@ -54,6 +54,8 @@ export async function convertToHtml(fileUri: vscode.Uri) {
 
 function htmlMarkdownWrapper(markdown: string, fileUri: vscode.Uri) {
 	const template = getResource('markdown.html');
+
+	//TODO: get this from CDN
 	const sandboxUmdJs = getResource('idocs.sandbox.umd.js');
 
 	const result = template
@@ -66,6 +68,8 @@ function htmlMarkdownWrapper(markdown: string, fileUri: vscode.Uri) {
 
 function htmlJsonWrapper(json: string, fileUri: vscode.Uri) {
 	const template = getResource('json.html');
+
+	//TODO: get these from CDN
 	const sandboxUmdJs = getResource('idocs.sandbox.umd.js');
 	const compilerUmdJs = getResource('idocs.compiler.umd.js');
 
