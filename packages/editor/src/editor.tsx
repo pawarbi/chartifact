@@ -197,19 +197,25 @@ export function EditorView(props: EditorViewProps) {
                 overflowY: 'auto'
             }}>
                 <h3>Document Preview</h3>
-                {devmode ? (<DevDocumentPreview
-                    page={page}
-                    options={{
-                        useShadowDom: true,
-                    }}
-                />) : (
-                    <SandboxDocumentPreview
-                        page={page}
-                        options={{
-                            useShadowDom: true,
-                        }}
-                    />
-                )}
+                {devmode ?
+                    (
+                        <DevDocumentPreview
+                            page={page}
+                            options={{
+                                useShadowDom: true,
+                            }}
+                        />
+                    )
+                    :
+                    (
+                        <SandboxDocumentPreview
+                            page={page}
+                            options={{
+                                useShadowDom: true,
+                            }}
+                        />
+                    )
+                }
             </div>
         </div>
     );
