@@ -4,7 +4,7 @@ import { rendererUmdJs } from './resources/rendererUmdJs.js';
 import { RenderRequestMessage } from './types.js';
 import { RendererOptions } from '@microsoft/interactive-document-markdown';
 
-interface SandboxOptions {
+export interface SandboxOptions {
     onReady?: () => void;
     onError?: (error: Event) => void;
     rendererOptions?: RendererOptions;
