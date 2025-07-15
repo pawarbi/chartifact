@@ -1,16 +1,15 @@
 import { InteractiveDocument } from "schema";
 import { Editor } from './editor.js';
 import { PageMessage, EditorMessage } from "./types.js";
-import { SandboxDocumentPreviewProps } from "./sandbox.js";
-import { ComponentType } from "react";
+import { Previewer } from "sandbox";
 
 export interface AppProps {
-    DocumentPreview?: ComponentType<SandboxDocumentPreviewProps>;
+    previewer: typeof Previewer;
 }
 
 // Alternative implementation using same-origin communication
 export function App(props: AppProps) {
-    const { DocumentPreview } = props;
+    const { previewer } = props;
 
     const [history, setHistory] = React.useState<InteractiveDocument[]>([initialPage]);
     const [historyIndex, setHistoryIndex] = React.useState(0);
@@ -148,7 +147,7 @@ export function App(props: AppProps) {
             {/* Editor */}
             <div ref={editorContainerRef} style={{ flex: 1 }}>
                 <Editor
-                    DocumentPreview={DocumentPreview} // Forward the prop
+                    previewer={previewer}
                 />
             </div>
         </div>
@@ -157,6 +156,9 @@ export function App(props: AppProps) {
 
 const initialPage: InteractiveDocument = {
     title: "Sample Page",
+    layout: {
+        css: "body, .body { background: beige; padding: 8px; margin: 0; }",
+    },
     groups: [
         {
             groupId: "main",

@@ -1,19 +1,16 @@
 import { InteractiveDocument } from "schema";
 import { EditorMessage, PageMessage, ReadyMessage } from "./types.js";
-import { SandboxDocumentPreview, SandboxDocumentPreviewProps } from "./sandbox.js";
-import { ComponentType } from "react";
+import { SandboxDocumentPreview } from "./sandbox.js";
+import { Previewer } from "sandbox";
 
 export interface Props {
     postMessageTarget?: Window;
-    DocumentPreview?: ComponentType<SandboxDocumentPreviewProps>;
+    previewer: typeof Previewer;
 }
 
 const devmode = false; // Set to true to use DevDocumentPreview, false for SandboxDocumentPreview
 
 export function Editor(props: Props) {
-    // Default to SandboxDocumentPreview if DocumentPreview is not provided
-    const DocumentPreview = props.DocumentPreview || SandboxDocumentPreview;
-
     const postMessageTarget = props.postMessageTarget || window.parent;
     const [page, setPage] = React.useState<InteractiveDocument>(() => ({
         title: "Initializing...",
@@ -66,17 +63,17 @@ export function Editor(props: Props) {
         postMessageTarget.postMessage(readyMessage, '*');
     }, []);
 
-    return <EditorView page={page} postMessageTarget={postMessageTarget} DocumentPreview={DocumentPreview} />;
+    return <EditorView page={page} postMessageTarget={postMessageTarget} previewer={props.previewer} />;
 }
 
 export interface EditorViewProps {
     page: InteractiveDocument;
     postMessageTarget: Window;
-    DocumentPreview: ComponentType<SandboxDocumentPreviewProps>;
+    previewer: typeof Previewer;
 }
 
 export function EditorView(props: EditorViewProps) {
-    const { page, postMessageTarget, DocumentPreview } = props;
+    const { page, postMessageTarget, previewer } = props;
 
     const sendEditToApp = (newPage: InteractiveDocument) => {
         const pageMessage: PageMessage = {
@@ -188,11 +185,9 @@ export function EditorView(props: EditorViewProps) {
                 overflowY: 'auto'
             }}>
                 <h3>Document Preview</h3>
-                <DocumentPreview
+                <SandboxDocumentPreview
                     page={page}
-                    options={{
-                        useShadowDom: true,
-                    }}
+                    previewer={previewer}
                 />
             </div>
         </div>

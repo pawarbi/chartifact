@@ -2,16 +2,17 @@ import React from 'react';
 import { InteractiveDocument } from "schema";
 import { targetMarkdown } from '@microsoft/interactive-document-compiler';
 import { RendererOptions } from '@microsoft/interactive-document-markdown';
-import { Sandbox } from 'sandbox';
+import { Previewer, Sandbox } from 'sandbox';
 
 export interface SandboxDocumentPreviewProps {
     page: InteractiveDocument;
     options?: RendererOptions;
+    previewer?: typeof Previewer;
 }
 
 export class SandboxDocumentPreview extends React.Component<SandboxDocumentPreviewProps> {
     containerRef: React.RefObject<HTMLDivElement>;
-    sandboxRef: Sandbox | null;
+    sandboxRef: Previewer | null;
     isSandboxReady: boolean;
     pendingUpdate: InteractiveDocument;
 
@@ -28,12 +29,9 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
             try {
                 const markdown = targetMarkdown(this.props.page, this.props.options);
 
-                console.log(`[init] Markdown ${markdown.includes('editor') ? 'contains' : 'does not contain'} "editor"`);
-
                 // Initialize sandbox instance
-                this.sandboxRef = new Sandbox(this.containerRef.current, {
+                this.sandboxRef = new (this.props.previewer || Sandbox)(this.containerRef.current, {
                     onReady: () => {
-                        console.log('Sandbox ready');
                         this.isSandboxReady = true;
 
                         // Process pending update
@@ -66,13 +64,8 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
         if (this.sandboxRef) {
             try {
                 const markdown = targetMarkdown(page, this.props.options);
-
-                console.log(`[send] Markdown ${markdown.includes('editor') ? 'contains' : 'does not contain'} "editor"`);
-
-                console.log('Rendering sandbox');
                 this.sandboxRef.send({ markdown });
             } catch (error) {
-                console.error('Error rendering document:', error);
                 if (this.containerRef.current) {
                     this.containerRef.current.innerHTML = `<div style="color: red; padding: 10px; border: 1px solid red; background-color: #ffe6e6; border-radius: 4px;">
                         <strong>Error:</strong> ${error instanceof Error ? error.message : String(error)}
