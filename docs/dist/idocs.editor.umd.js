@@ -1,6 +1,6 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory((global.IDocs = global.IDocs || {}, global.IDocs.editor = {}), global.vega, global.vegaLite));
-})(this, function(exports2, vega, vegaLite) {
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("react")) : typeof define === "function" && define.amd ? define(["exports", "react"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory((global.IDocs = global.IDocs || {}, global.IDocs.editor = {}), global.React));
+})(this, function(exports2, React$1) {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
@@ -74,7 +74,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (!this.spec.signals) {
         this.spec.signals = [];
       }
-      let origins = this.spec.signals.find((d2) => d2.name === "origins");
+      let origins = this.spec.signals.find((d) => d.name === "origins");
       if (!origins) {
         origins = {
           name: "origins",
@@ -156,12 +156,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       signals: [],
       data: []
     };
-    topologicalSort(variables).forEach((v2) => {
-      if (isDataframePipeline(v2)) {
-        const { dataFrameTransformations } = v2.calculation;
+    topologicalSort(variables).forEach((v) => {
+      if (isDataframePipeline(v)) {
+        const { dataFrameTransformations } = v.calculation;
         const data = {
-          name: v2.variableId,
-          source: v2.calculation.dependsOn || [],
+          name: v.variableId,
+          source: v.calculation.dependsOn || [],
           transform: dataFrameTransformations
         };
         spec.data.push(data);
@@ -169,13 +169,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           spec.signals = [];
         }
         spec.signals.push({
-          name: v2.variableId,
-          update: `data('${v2.variableId}')`
+          name: v.variableId,
+          update: `data('${v.variableId}')`
         });
       } else {
-        const signal = { name: v2.variableId, value: v2.initialValue };
-        if (v2.calculation) {
-          signal.update = v2.calculation.vegaExpression;
+        const signal = { name: v.variableId, value: v.initialValue };
+        if (v.calculation) {
+          signal.update = v.calculation.vegaExpression;
         }
         spec.signals.push(signal);
       }
@@ -186,29 +186,36 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     var _a, _b;
     return variable.type === "object" && !!variable.isArray && (((_a = variable.calculation) == null ? void 0 : _a.dependsOn) !== void 0 && variable.calculation.dependsOn.length > 0 || ((_b = variable.calculation) == null ? void 0 : _b.dataFrameTransformations) !== void 0 && variable.calculation.dataFrameTransformations.length > 0);
   }
-  function mdWrap(type, content) {
-    return `\`\`\`json ${type}
+  function tickWrap(tick, content) {
+    return `\`\`\`${tick}
 ${content}
 \`\`\``;
   }
+  function jsonWrap(type, content) {
+    return tickWrap("json " + type, content);
+  }
   function chartWrap(spec) {
     const chartType = getChartType(spec);
-    return mdWrap(chartType, JSON.stringify(spec, null, 4));
+    return jsonWrap(chartType, JSON.stringify(spec, null, 4));
   }
   function mdContainerWrap(id, content) {
     return `::: markdown-block {#${id}}
 ${content}
 :::`;
   }
-  const defaultRendererOptions$1 = {
+  const defaultRendererOptions = {
     dataNameSelectedSuffix: "_selected"
   };
   const $schema = "https://vega.github.io/schema/vega/v5.json";
   function targetMarkdown(page, options) {
+    var _a;
     const mdSections = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
-    const rendererOptions = { ...defaultRendererOptions$1, ...options };
+    if ((_a = page.layout) == null ? void 0 : _a.css) {
+      mdSections.push(tickWrap("css", page.layout.css));
+    }
+    const rendererOptions = { ...defaultRendererOptions, ...options };
     const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables, rendererOptions);
     for (const dataLoader of dataLoaders.filter((dl) => dl.type === "spec")) {
       mdSections.push(chartWrap(dataLoader.spec));
@@ -267,16 +274,16 @@ ${content}
           case "checkbox": {
             const cbSpec = {
               name: element.variableId,
-              value: (_a = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _a.initialValue,
+              value: (_a = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _a.initialValue,
               label: element.label
             };
-            mdElements.push(mdWrap("checkbox", JSON.stringify(cbSpec, null, 2)));
+            mdElements.push(jsonWrap("checkbox", JSON.stringify(cbSpec, null, 2)));
             break;
           }
           case "dropdown": {
             const ddSpec = {
               name: element.variableId,
-              value: (_b = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _b.initialValue,
+              value: (_b = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _b.initialValue,
               label: element.label
             };
             if (element.dynamicOptions) {
@@ -291,7 +298,7 @@ ${content}
               ddSpec.multiple = element.multiple;
               ddSpec.size = element.size || 1;
             }
-            mdElements.push(mdWrap("dropdown", JSON.stringify(ddSpec, null, 2)));
+            mdElements.push(jsonWrap("dropdown", JSON.stringify(ddSpec, null, 2)));
             break;
           }
           case "image": {
@@ -302,12 +309,12 @@ ${content}
               width: element.width,
               height: element.height
             };
-            mdElements.push(mdWrap("image", JSON.stringify(imageSpec, null, 2)));
+            mdElements.push(jsonWrap("image", JSON.stringify(imageSpec, null, 2)));
             break;
           }
           case "presets": {
             const presetsSpec = element.presets;
-            mdElements.push(mdWrap("presets", JSON.stringify(presetsSpec, null, 2)));
+            mdElements.push(jsonWrap("presets", JSON.stringify(presetsSpec, null, 2)));
             break;
           }
           case "slider": {
@@ -316,7 +323,7 @@ ${content}
               signals: [
                 {
                   name: element.variableId,
-                  value: (_c = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _c.initialValue,
+                  value: (_c = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _c.initialValue,
                   bind: {
                     input: "range",
                     min: element.min,
@@ -335,7 +342,7 @@ ${content}
               dataSignalName: element.dataSourceName,
               options: element.options
             };
-            mdElements.push(mdWrap("tabulator", JSON.stringify(tableSpec, null, 2)));
+            mdElements.push(jsonWrap("tabulator", JSON.stringify(tableSpec, null, 2)));
             break;
           }
           case "textbox": {
@@ -344,7 +351,7 @@ ${content}
               signals: [
                 {
                   name: element.variableId,
-                  value: (_d = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _d.initialValue,
+                  value: (_d = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _d.initialValue,
                   bind: {
                     input: "text",
                     debounce: 100
@@ -361,6 +368,69 @@ ${content}
     const markdown = mdElements.join("\n\n");
     return markdown;
   }
+  class Previewer {
+    constructor(elementOrSelector, options) {
+      __publicField(this, "options");
+      __publicField(this, "element");
+      this.options = options;
+      if (typeof elementOrSelector === "string") {
+        this.element = document.querySelector(elementOrSelector);
+        if (!this.element) {
+          throw new Error(`Element not found: ${elementOrSelector}`);
+        }
+      } else if (elementOrSelector instanceof HTMLElement) {
+        this.element = elementOrSelector;
+      } else {
+        throw new Error("Invalid element type, must be a string selector or HTMLElement");
+      }
+    }
+    send(message) {
+      throw new Error("Method not implemented.");
+    }
+  }
+  const rendererHtml = `<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITLE}}</title>
+
+    {{DEPENDENCIES}}
+
+    {{RENDERER_SCRIPT}}
+
+    {{RENDERER_OPTIONS}}
+
+    {{MARKDOWN_SCRIPT}}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const renderer = new IDocs.markdown.Renderer(document.body, rendererOptions);
+            renderer.render(markdown);
+
+            //add listener for postMessage
+            window.addEventListener('message', (event) => {
+                if (event.data && event.data.markdown) {
+                    renderer.render(event.data.markdown);
+                }
+            });
+
+        });
+    <\/script>
+
+</head>
+
+<body></body>
+
+</html>`;
+  const rendererUmdJs = `(function(global, factory) {
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory((global.IDocs = global.IDocs || {}, global.IDocs.markdown = {}), global.vega, global.vegaLite));
+})(this, function(exports2, vega, vegaLite) {
+  "use strict";var __defProp = Object.defineProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+
   const u = (e, t) => {
     t && e.forEach(([s, n]) => {
       switch (s) {
@@ -374,7 +444,7 @@ ${content}
           t.attrPush([s, n]);
       }
     });
-  }, _ = ".", x = "#", v = /[^\t\n\f />"'=]/, O = " ", E = "=", d = (e, t, { left: s, right: n, allowed: o }) => {
+  }, _ = ".", x = "#", v = /[^\\t\\n\\f />"'=]/, O = " ", E = "=", d = (e, t, { left: s, right: n, allowed: o }) => {
     let i = "", l = "", r = true, c = false;
     const f = [];
     for (let h = t + s.length; h < e.length; h++) {
@@ -418,7 +488,7 @@ ${content}
     }
     return o.length ? f.filter(([h]) => o.some((a) => a instanceof RegExp ? a.test(h) : a === h)) : f;
   }, y = ({ left: e, right: t }, s) => {
-    if (!["start", "end", "only"].includes(s)) throw new Error(`Invalid 'where' parameter: ${s}. Expected 'start', 'end', or 'only'.`);
+    if (!["start", "end", "only"].includes(s)) throw new Error(\`Invalid 'where' parameter: \${s}. Expected 'start', 'end', or 'only'.\`);
     return (n) => {
       const o = e.length, i = t.length, l = o + 1 + i, r = o + 1;
       if (!n || typeof n != "string" || n.length < l) return false;
@@ -438,8 +508,8 @@ ${content}
     }
     /* istanbul ignore next -- @preserve */
     return null;
-  }, b = (e) => e.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&"), w = (e, t, s) => {
-    const n = b(t), o = b(s), i = e.search(new RegExp(`[ \\n]?${n}[^${n}${o}]+${o}$`));
+  }, b = (e) => e.replace(/[-/\\\\^$*+?.()|[\\]{}]/g, "\\\\$&"), w = (e, t, s) => {
+    const n = b(t), o = b(s), i = e.search(new RegExp(\`[ \\\\n]?\${n}[^\${n}\${o}]+\${o}$\`));
     return i !== -1 ? e.slice(0, i) : e;
   }, $ = (e, t) => t >= 0 ? e[t] : e[e.length + t], C = (e) => Array.isArray(e) && !!e.length && e.every((t) => typeof t == "function"), I = (e) => Array.isArray(e) && !!e.length && e.every((t) => typeof t == "object"), k = (e, t, s) => {
     var _a, _b;
@@ -483,7 +553,7 @@ ${content}
             if (!r.every((c) => c(i[l]))) return n;
             break;
           }
-          throw new Error(`Unknown type of pattern test (key: ${l}). Test should be of type boolean, number, string, function or array of functions.`);
+          throw new Error(\`Unknown type of pattern test (key: \${l}). Test should be of type boolean, number, string, function or array of functions.\`);
         }
       }
     }
@@ -499,12 +569,12 @@ ${content}
   } }), T = (e) => ({ name: "code-block", tests: [{ shift: 0, block: true, info: y(e, "end") }], transform: (t, s) => {
     const n = t[s];
     let o = "";
-    const i = /{(?:[\d,-]+)}/.exec(n.info);
+    const i = /{(?:[\\d,-]+)}/.exec(n.info);
     i && (n.info = n.info.replace(i[0], ""), o = i[0]);
     const l = n.info.lastIndexOf(e.left), r = d(n.info, l, e);
     u(r, n);
     const c = w(n.info, e.left, e.right);
-    n.info = `${c} ${o}`.trim();
+    n.info = \`\${c} \${o}\`.trim();
   } }), D = (e) => [{ name: "inline nesting self-close", tests: [{ shift: 0, type: "inline", children: [{ shift: -1, type: (t) => t === "image" || t === "code_inline" }, { shift: 0, type: "text", content: y(e, "start") }] }], transform: (t, s, n) => {
     const o = e.right.length, i = t[s].children[n], l = i.content.indexOf(e.right), r = t[s].children[n - 1], c = d(i.content, 0, e);
     u(c, r), i.content.length === l + o ? t[s].children.splice(n, 1) : i.content = i.content.slice(l + o);
@@ -526,14 +596,14 @@ ${content}
     u(r, t[s - 2]);
     const c = i.slice(0, l), f = c[c.length - 1] === " ";
     o.content = f ? c.slice(0, -1) : c;
-  } }], L = (e) => ({ name: `
-{.a} softbreak then curly in start`, tests: [{ shift: 0, type: "inline", children: [{ position: -2, type: "softbreak" }, { position: -1, type: "text", content: y(e, "only") }] }], transform: (t, s, n) => {
+  } }], L = (e) => ({ name: \`
+{.a} softbreak then curly in start\`, tests: [{ shift: 0, type: "inline", children: [{ position: -2, type: "softbreak" }, { position: -1, type: "text", content: y(e, "only") }] }], transform: (t, s, n) => {
     const o = t[s].children[n], i = d(o.content, 0, e);
     let l = s + 1;
     for (; t[l + 1] && t[l + 1].nesting === -1; ) l++;
     const r = g(t, l);
     u(i, r), t[s].children = t[s].children.slice(0, -2);
-  } }), M = (e) => ({ name: "horizontal rule", tests: [{ shift: 0, type: "paragraph_open" }, { shift: 1, type: "inline", children: (t) => t.length === 1, content: (t) => new RegExp(`^ {0,3}[-*_]{3,} ?${b(e.left)}[^${b(e.right)}]`).test(t) }, { shift: 2, type: "paragraph_close" }], transform: (t, s) => {
+  } }), M = (e) => ({ name: "horizontal rule", tests: [{ shift: 0, type: "paragraph_open" }, { shift: 1, type: "inline", children: (t) => t.length === 1, content: (t) => new RegExp(\`^ {0,3}[-*_]{3,} ?\${b(e.left)}[^\${b(e.right)}]\`).test(t) }, { shift: 2, type: "paragraph_close" }], transform: (t, s) => {
     const n = t[s];
     n.type = "hr", n.tag = "hr", n.nesting = 0;
     const o = t[s + 1], { content: i } = o, l = i.lastIndexOf(e.left), r = d(i, l, e);
@@ -649,12 +719,12 @@ ${content}
       }
       const S2 = e.parentType, v2 = e.lineMax, w2 = e.blkIndent;
       e.parentType = "container", e.lineMax = s, e.blkIndent = d2;
-      const f = e.push(`container_${c}_open`, "div", 1);
+      const f = e.push(\`container_\${c}_open\`, "div", 1);
       f.markup = _2, f.block = true, f.info = T2, f.map = [t, s], e.md.block.tokenize(e, t + 1, s);
-      const y2 = e.push(`container_${c}_close`, "div", -1);
+      const y2 = e.push(\`container_\${c}_close\`, "div", -1);
       return y2.markup = e.src.slice(o, r), y2.block = true, e.parentType = S2, e.lineMax = v2, e.blkIndent = w2, e.line = s + (x2 ? 1 : 0), true;
     };
-    p.block.ruler.before("fence", `container_${c}`, I2, { alt: ["paragraph", "reference", "blockquote", "list"] }), p.renderer.rules[`container_${c}_open`] = g2, p.renderer.rules[`container_${c}_close`] = C2;
+    p.block.ruler.before("fence", \`container_\${c}\`, I2, { alt: ["paragraph", "reference", "blockquote", "list"] }), p.renderer.rules[\`container_\${c}_open\`] = g2, p.renderer.rules[\`container_\${c}_close\`] = C2;
   };
   /*!
   * Copyright (c) Microsoft Corporation.
@@ -696,17 +766,17 @@ ${content}
     return md;
   }
   function definePlugin(md, pluginName) {
-    md.block.ruler.before("fence", `${pluginName}_block`, function(state, startLine, endLine) {
+    md.block.ruler.before("fence", \`\${pluginName}_block\`, function(state, startLine, endLine) {
       const start = state.bMarks[startLine] + state.tShift[startLine];
       const max = state.eMarks[startLine];
-      const marker = `json ${pluginName}`;
-      if (!state.src.slice(start, max).trim().startsWith("```" + marker)) {
+      const marker = \`json \${pluginName}\`;
+      if (!state.src.slice(start, max).trim().startsWith("\`\`\`" + marker)) {
         return false;
       }
       let nextLine = startLine;
       while (nextLine < endLine) {
         nextLine++;
-        if (state.src.slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine]).trim() === "```") {
+        if (state.src.slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine]).trim() === "\`\`\`") {
           break;
         }
       }
@@ -748,7 +818,7 @@ ${content}
         return;
       if (this.logWatchIds.length > 0 && !this.logWatchIds.includes(id))
         return;
-      console.log(`[Signal Bus][${id}] ${message}`, ...optionalParams);
+      console.log(\`[Signal Bus][\${id}] \${message}\`, ...optionalParams);
     }
     async broadcast(originId, batch) {
       if (this.broadcastingStack.includes(originId)) {
@@ -878,7 +948,7 @@ ${content}
     classList: ["markdown-block"],
     useShadowDom: false,
     errorHandler: (error, pluginName, instanceIndex, phase) => {
-      console.error(`Error in plugin ${pluginName} instance ${instanceIndex} phase ${phase}`, error);
+      console.error(\`Error in plugin \${pluginName} instance \${instanceIndex} phase \${phase}\`, error);
     }
   };
   class Renderer {
@@ -900,16 +970,12 @@ ${content}
         this.element = _element;
       }
     }
-    async render(markdown, styles) {
+    async render(markdown) {
       await this.destroy();
       const parsedHTML = this.md.render(markdown);
-      let content = "";
-      if (styles) {
-        content += `<style>${styles}</style>`;
-      }
-      content += parsedHTML;
+      let content = parsedHTML;
       if (this.options.useShadowDom) {
-        content = `<div class="body">${content}</div>`;
+        content = \`<div class="body">\${content}</div>\`;
       }
       this.element.innerHTML = content;
       this.signalBus.log("Renderer", "rendering DOM");
@@ -972,7 +1038,7 @@ ${content}
     name: "checkbox",
     initializePlugin: (md) => definePlugin(md, "checkbox"),
     fence: (token, idx) => {
-      const CheckboxId = `Checkbox-${idx}`;
+      const CheckboxId = \`Checkbox-\${idx}\`;
       return sanitizedHTML("div", { id: CheckboxId, class: "checkbox" }, token.content.trim());
     },
     hydrateComponent: async (renderer, errorHandler) => {
@@ -983,20 +1049,20 @@ ${content}
           continue;
         try {
           const spec = JSON.parse(container.textContent);
-          const html = `<form class="vega-bindings">
+          const html = \`<form class="vega-bindings">
                     <div class="vega-bind">
                         <label>
-                            <span class="vega-bind-name">${spec.label || spec.name}</span>
-                            <input type="checkbox" class="vega-bind-checkbox" id="${spec.name}" name="${spec.name}" ${spec.value ? "checked" : ""}>
+                            <span class="vega-bind-name">\${spec.label || spec.name}</span>
+                            <input type="checkbox" class="vega-bind-checkbox" id="\${spec.name}" name="\${spec.name}" \${spec.value ? "checked" : ""}>
                         </label>
                     </div>
-                </form>`;
+                </form>\`;
           container.innerHTML = html;
           const element = container.querySelector('input[type="checkbox"]');
           const checkboxInstance = { id: container.id, spec, element };
           checkboxInstances.push(checkboxInstance);
         } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
           errorHandler(e, "Checkbox", index, "parse", container);
           continue;
         }
@@ -1052,13 +1118,13 @@ ${content}
       md.block.ruler.before("fence", "css_block", function(state, startLine, endLine) {
         const start = state.bMarks[startLine] + state.tShift[startLine];
         const max = state.eMarks[startLine];
-        if (!state.src.slice(start, max).trim().startsWith("```css")) {
+        if (!state.src.slice(start, max).trim().startsWith("\`\`\`css")) {
           return false;
         }
         let nextLine = startLine;
         while (nextLine < endLine) {
           nextLine++;
-          if (state.src.slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine]).trim() === "```") {
+          if (state.src.slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine]).trim() === "\`\`\`") {
             break;
           }
         }
@@ -1074,7 +1140,7 @@ ${content}
         const token = tokens[idx];
         const info = token.info.trim();
         if (info === "css") {
-          const cssId = `css-${idx}`;
+          const cssId = \`css-\${idx}\`;
           return sanitizedHTML("div", { id: cssId, class: "css-component" }, token.content.trim());
         }
         if (originalFence) {
@@ -1094,16 +1160,16 @@ ${content}
           const cssContent = container.textContent.trim();
           const styleElement = document.createElement("style");
           styleElement.type = "text/css";
-          styleElement.id = `idocs-css-${container.id}`;
+          styleElement.id = \`idocs-css-\${container.id}\`;
           styleElement.textContent = cssContent;
-          document.head.appendChild(styleElement);
-          container.innerHTML = `<!-- CSS styles applied to document -->`;
+          renderer.element.appendChild(styleElement);
+          container.innerHTML = \`<!-- CSS styles applied to document -->\`;
           cssInstances.push({
             id: container.id,
             element: styleElement
           });
         } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
           errorHandler(e, "CSS", index, "parse", container);
           continue;
         }
@@ -1131,7 +1197,7 @@ ${content}
     name: "dropdown",
     initializePlugin: (md) => definePlugin(md, "dropdown"),
     fence: (token, idx) => {
-      const DropdownId = `Dropdown-${idx}`;
+      const DropdownId = \`Dropdown-\${idx}\`;
       return sanitizedHTML("div", { id: DropdownId, class: "dropdown" }, token.content.trim());
     },
     hydrateComponent: async (renderer, errorHandler) => {
@@ -1142,22 +1208,22 @@ ${content}
           continue;
         try {
           const spec = JSON.parse(container.textContent);
-          const html = `<form class="vega-bindings">
+          const html = \`<form class="vega-bindings">
                     <div class="vega-bind">
                         <label>
-                            <span class="vega-bind-name">${spec.label || spec.name}</span>
-                            <select class="vega-bind-select" id="${spec.name}" name="${spec.name}" ${spec.multiple ? "multiple" : ""} size="${spec.size || 1}">
-${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""))}
+                            <span class="vega-bind-name">\${spec.label || spec.name}</span>
+                            <select class="vega-bind-select" id="\${spec.name}" name="\${spec.name}" \${spec.multiple ? "multiple" : ""} size="\${spec.size || 1}">
+\${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""))}
                             </select>
                         </label>
                     </div>
-                </form>`;
+                </form>\`;
           container.innerHTML = html;
           const element = container.querySelector("select");
           const dropdownInstance = { id: container.id, spec, element };
           dropdownInstances.push(dropdownInstance);
         } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
           errorHandler(e, "Dropdown", index, "parse", container);
           continue;
         }
@@ -1203,7 +1269,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                     element.value = ((_b = batch[spec.name]) == null ? void 0 : _b.value) || options[0];
                   }
                 } else {
-                  element.innerHTML = `<option value="">Field "${dynamicOptions.fieldName}" not found</option>`;
+                  element.innerHTML = \`<option value="">Field "\${dynamicOptions.fieldName}" not found</option>\`;
                   element.value = "";
                 }
               }
@@ -1271,8 +1337,8 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       } else {
         attr = selected === option ? "selected" : "";
       }
-      return `<option value="${option}" ${attr}>${option}</option>`;
-    }).join("\n");
+      return \`<option value="\${option}" \${attr}>\${option}</option>\`;
+    }).join("\\n");
   }
   /*!
   * Copyright (c) Microsoft Corporation.
@@ -1288,7 +1354,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     name: "image",
     initializePlugin: (md) => definePlugin(md, "image"),
     fence: (token, idx) => {
-      const ImageId = `Image-${idx}`;
+      const ImageId = \`Image-\${idx}\`;
       return sanitizedHTML("div", { id: ImageId, class: "image" }, token.content.trim());
     },
     hydrateComponent: async (renderer, errorHandler) => {
@@ -1301,12 +1367,12 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           const spec = JSON.parse(container.textContent);
           const element = document.createElement("img");
           const spinner = document.createElement("div");
-          spinner.innerHTML = `
+          spinner.innerHTML = \`
                     <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="12" r="10" stroke="gray" stroke-width="2" fill="none" stroke-dasharray="31.4" stroke-dashoffset="0">
                             <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
                         </circle>
-                    </svg>`;
+                    </svg>\`;
           if (spec.alt)
             element.alt = spec.alt;
           if (spec.width)
@@ -1330,7 +1396,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           const imageInstance = { id: container.id, spec, element, spinner };
           imageInstances.push(imageInstance);
         } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
           errorHandler(e, "Image", index, "parse", container);
         }
       }
@@ -1431,7 +1497,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         });
         md2.renderer.rules["dynamic_placeholder"] = function(tokens, idx) {
           const key = tokens[idx].content.trim();
-          return `<span class="dynamic-placeholder" data-key="${key}">{${key}}</span>`;
+          return \`<span class="dynamic-placeholder" data-key="\${key}">{\${key}}</span>\`;
         };
       });
       md.renderer.rules["link_open"] = function(tokens, idx, options, env, slf) {
@@ -1523,10 +1589,10 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     }
   };
   function isMarkdownInline(markdown) {
-    if (!markdown.includes("\n")) {
+    if (!markdown.includes("\\n")) {
       return true;
     }
-    const blockElements = ["#", "-", "*", ">", "```", "~~~"];
+    const blockElements = ["#", "-", "*", ">", "\`\`\`", "~~~"];
     for (const element of blockElements) {
       if (markdown.trim().startsWith(element)) {
         return false;
@@ -1543,7 +1609,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     initializePlugin: (md) => definePlugin(md, "presets"),
     fence: (token, idx) => {
       const spec = JSON.parse(token.content.trim());
-      const pluginId = `preset-${idx}`;
+      const pluginId = \`preset-\${idx}\`;
       return sanitizedHTML("div", { id: pluginId, class: "presets" }, JSON.stringify(spec));
     },
     hydrateComponent: async (renderer, errorHandler) => {
@@ -1552,12 +1618,12 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       for (const [index, container] of Array.from(containers).entries()) {
         if (!container.textContent)
           continue;
-        const id = `presets${index}`;
+        const id = \`presets\${index}\`;
         let presets;
         try {
           presets = JSON.parse(container.textContent);
         } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
           errorHandler(e, "presets", index, "parse", container);
           continue;
         }
@@ -1649,7 +1715,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     name: "tabulator",
     initializePlugin: (md) => definePlugin(md, "tabulator"),
     fence: (token, idx) => {
-      const tabulatorId = `tabulator-${idx}`;
+      const tabulatorId = \`tabulator-\${idx}\`;
       return sanitizedHTML("div", { id: tabulatorId, class: "tabulator", style: "box-sizing: border-box;" }, token.content.trim());
     },
     hydrateComponent: async (renderer, errorHandler) => {
@@ -1680,7 +1746,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           });
           tabulatorInstances.push(tabulatorInstance);
         } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
+          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
           errorHandler(e, "tabulator", index, "parse", container);
           continue;
         }
@@ -1696,7 +1762,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         }];
         if ((_a = tabulatorInstance.spec.options) == null ? void 0 : _a.selectableRows) {
           initialSignals.push({
-            name: `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`,
+            name: \`\${tabulatorInstance.spec.dataSignalName}\${dataNameSelectedSuffix}\`,
             value: [],
             priority: -1,
             isData: true
@@ -1726,12 +1792,12 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
             if ((_a2 = tabulatorInstance.spec.options) == null ? void 0 : _a2.selectableRows) {
               for (const { isData, signalName } of sharedSignals) {
                 if (isData) {
-                  const matchData = signalName === `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`;
+                  const matchData = signalName === \`\${tabulatorInstance.spec.dataSignalName}\${dataNameSelectedSuffix}\`;
                   if (matchData) {
                     tabulatorInstance.table.on("rowSelectionChanged", (e, rows) => {
                       const selectedData = tabulatorInstance.table.getSelectedData();
                       const batch = {
-                        [`${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`]: {
+                        [\`\${tabulatorInstance.spec.dataSignalName}\${dataNameSelectedSuffix}\`]: {
                           value: selectedData,
                           isData: true
                         }
@@ -1763,7 +1829,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     name: "vega-lite",
     initializePlugin: (md) => definePlugin(md, "vega-lite"),
     fence: (token, idx) => {
-      const vegaLiteId = `vega-lite-${idx}`;
+      const vegaLiteId = \`vega-lite-\${idx}\`;
       return sanitizedHTML("div", { id: vegaLiteId, class: "vega-chart" }, token.content.trim());
     }
   };
@@ -1773,7 +1839,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       if (typeof either === "object") {
         return resolveToVega(either);
       } else {
-        return { error: new Error(`Spec must be either a JSON object or a string url, found type ${typeof either}`) };
+        return { error: new Error(\`Spec must be either a JSON object or a string url, found type \${typeof either}\`) };
       }
     } catch (error) {
       if (textContent.startsWith("http://") || textContent.startsWith("https://") || textContent.startsWith("//")) {
@@ -1783,7 +1849,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           if (typeof either === "object") {
             return resolveToVega(either);
           } else {
-            return { error: new Error(`Expected a JSON object, found type ${typeof either}`) };
+            return { error: new Error(\`Expected a JSON object, found type \${typeof either}\`) };
           }
         } catch (error2) {
           return { error: error2 };
@@ -1816,9 +1882,9 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     if (value === void 0 || value === null)
       return "";
     if (Array.isArray(value)) {
-      return value.map((vn) => `${urlParamName}[]=${encodeURIComponent(vn)}`).join("&");
+      return value.map((vn) => \`\${urlParamName}[]=\${encodeURIComponent(vn)}\`).join("&");
     } else {
-      return `${urlParamName}=${encodeURIComponent(value)}`;
+      return \`\${urlParamName}=\${encodeURIComponent(value)}\`;
     }
   }
   /*!
@@ -1830,7 +1896,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     name: "vega",
     initializePlugin: (md) => definePlugin(md, "vega"),
     fence: (token, idx) => {
-      const vegaId = `vega-${idx}`;
+      const vegaId = \`vega-\${idx}\`;
       return sanitizedHTML("div", { id: vegaId, class: "vega-chart" }, token.content.trim());
     },
     hydrateComponent: async (renderer, errorHandler) => {
@@ -1855,7 +1921,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         if (!vegaInstance.spec.data)
           continue;
         for (const data of vegaInstance.spec.data) {
-          const dataSignal = dataSignals.find((signal) => signal.name === data.name || `${signal.name}${renderer.options.dataNameSelectedSuffix}` === data.name);
+          const dataSignal = dataSignals.find((signal) => signal.name === data.name || \`\${signal.name}\${renderer.options.dataNameSelectedSuffix}\` === data.name);
           if (dataSignal) {
             vegaInstance.initialSignals.push({
               name: data.name,
@@ -1918,7 +1984,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                 if (matchData && vegaInstance.dataSignals.includes(matchData.name)) {
                   renderer.signalBus.log(vegaInstance.id, "listening to data", signalName);
                   view.addDataListener(signalName, async (name, value) => {
-                    startBatch(`data:${signalName}`);
+                    startBatch(\`data:\${signalName}\`);
                     vegaInstance.batch[name] = { value, isData };
                   });
                 }
@@ -1931,7 +1997,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                 if (isChangeSource) {
                   renderer.signalBus.log(vegaInstance.id, "listening to signal", signalName);
                   view.addSignalListener(signalName, async (name, value) => {
-                    startBatch(`signal:${signalName}`);
+                    startBatch(\`signal:\${signalName}\`);
                     vegaInstance.batch[name] = { value, isData };
                   });
                 }
@@ -1981,7 +2047,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
             hasAnyChange = true;
           }
         }
-        doLog && renderer.signalBus.log(vegaInstance.id, `(isData) ${logReason2}`, signalName, batchItem.value);
+        doLog && renderer.signalBus.log(vegaInstance.id, \`(isData) \${logReason2}\`, signalName, batchItem.value);
       }
       let logReason = "";
       const matchSignal = (_b = spec.signals) == null ? void 0 : _b.find((signal) => signal.name === signalName);
@@ -2019,12 +2085,12 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     try {
       result = await resolveSpec(container.textContent);
     } catch (e) {
-      container.innerHTML = `<div class="error">${e.toString()}</div>`;
+      container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
       errorHandler(e, "vega", index, "resolve", container);
       return;
     }
     if (result.error) {
-      container.innerHTML = `<div class="error">${result.error.toString()}</div>`;
+      container.innerHTML = \`<div class="error">\${result.error.toString()}</div>\`;
       errorHandler(result.error, "vega", index, "resolve", container);
       return;
     }
@@ -2052,13 +2118,13 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
   }
   async function createVegaInstance(specInit, renderer, errorHandler) {
     const { container, index, initialSignals, spec } = specInit;
-    const id = `vega-${index}`;
+    const id = \`vega-\${index}\`;
     let runtime;
     let view;
     try {
       runtime = vega.parse(spec);
     } catch (e) {
-      container.innerHTML = `<div class="error">${e.toString()}</div>`;
+      container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
       errorHandler(e, "vega", index, "parse", container);
       return;
     }
@@ -2081,7 +2147,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         }
       }
     } catch (e) {
-      container.innerHTML = `<div class="error">${e.toString()}</div>`;
+      container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
       errorHandler(e, "vega", index, "view", container);
       return;
     }
@@ -2093,7 +2159,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     return instance;
   }
   function isSignalDataBridge(signal) {
-    return signal.update === `data('${signal.name}')`;
+    return signal.update === \`data('\${signal.name}')\`;
   }
   function prioritizeSignalValues(specInits) {
     var _a;
@@ -2168,40 +2234,144 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     registerMarkdownPlugin(vegaLitePlugin);
     registerMarkdownPlugin(vegaPlugin);
   }
+  const interfaces = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+    __proto__: null
+  }, Symbol.toStringTag, { value: "Module" }));
   /*!
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
   registerNativePlugins();
-  function DocumentPreview({ page, options }) {
-    const containerRef = React.useRef(null);
-    const rendererRef = React.useRef(null);
-    React.useEffect(() => {
-      if (containerRef.current && !rendererRef.current) {
+  exports2.Plugins = interfaces;
+  exports2.Renderer = Renderer;
+  exports2.definePlugin = definePlugin;
+  exports2.plugins = plugins;
+  exports2.registerMarkdownPlugin = registerMarkdownPlugin;
+  exports2.sanitizedHTML = sanitizedHTML;
+  Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
+});
+`;
+  class Sandbox extends Previewer {
+    constructor(elementOrSelector, options) {
+      super(elementOrSelector, options);
+      __publicField(this, "iframe");
+      const { iframe, blobUrl } = createIframe(this.getDependencies(), options == null ? void 0 : options.markdown, options == null ? void 0 : options.rendererOptions);
+      this.iframe = iframe;
+      this.element.appendChild(this.iframe);
+      this.iframe.addEventListener("load", () => {
+        var _a;
+        URL.revokeObjectURL(blobUrl);
+        (_a = options == null ? void 0 : options.onReady) == null ? void 0 : _a.call(options);
+      });
+      this.iframe.addEventListener("error", (error) => {
+        var _a;
+        console.error("Error loading iframe:", error);
+        URL.revokeObjectURL(blobUrl);
+        (_a = options == null ? void 0 : options.onError) == null ? void 0 : _a.call(options, new Error("Failed to load iframe"));
+      });
+    }
+    send(message) {
+      var _a;
+      (_a = this.iframe.contentWindow) == null ? void 0 : _a.postMessage(message, "*");
+    }
+    getDependencies() {
+      return `
+<link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"><\/script>
+<script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"><\/script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"><\/script>
+<script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"><\/script>
+`;
+    }
+  }
+  function createIframe(dependencies, markdown = "", rendererOptions = {}) {
+    const title = "Interactive Document Sandbox";
+    const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDERER_OPTIONS}}", () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};<\/script>`).replace("{{MARKDOWN_SCRIPT}}", () => `<script>const markdown = ${JSON.stringify(markdown)};<\/script>`);
+    const htmlBlob = new Blob([html], { type: "text/html" });
+    const blobUrl = URL.createObjectURL(htmlBlob);
+    const iframe = document.createElement("iframe");
+    iframe.sandbox = "allow-scripts";
+    iframe.src = blobUrl;
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.style.border = "none";
+    iframe.title = title;
+    return { iframe, blobUrl };
+  }
+  const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+    __proto__: null,
+    Previewer,
+    Sandbox
+  }, Symbol.toStringTag, { value: "Module" }));
+  class SandboxDocumentPreview extends React$1.Component {
+    constructor(props) {
+      super(props);
+      __publicField(this, "containerRef");
+      __publicField(this, "sandboxRef");
+      __publicField(this, "isSandboxReady");
+      __publicField(this, "pendingUpdate");
+      this.containerRef = React$1.createRef();
+      this.sandboxRef = null;
+      this.isSandboxReady = false;
+      this.pendingUpdate = null;
+    }
+    componentDidMount() {
+      if (this.containerRef.current && !this.sandboxRef) {
         try {
-          rendererRef.current = new Renderer(containerRef.current, options);
+          const markdown = targetMarkdown(this.props.page, this.props.options);
+          this.sandboxRef = new (this.props.previewer || Sandbox)(this.containerRef.current, {
+            onReady: () => {
+              this.isSandboxReady = true;
+              if (this.pendingUpdate) {
+                this.processUpdate(this.pendingUpdate);
+                this.pendingUpdate = null;
+              }
+            },
+            onError: (error) => console.error("Sandbox initialization failed:", error),
+            markdown
+          });
         } catch (error) {
-          console.error("Failed to create renderer:", error);
+          console.error("Failed to initialize sandbox:", error);
         }
       }
-    }, [options]);
-    React.useEffect(() => {
-      var _a;
-      if (rendererRef.current && page) {
+    }
+    componentDidUpdate(prevProps) {
+      if (this.props.page !== prevProps.page) {
+        if (this.isSandboxReady) {
+          this.processUpdate(this.props.page);
+        } else {
+          this.pendingUpdate = this.props.page;
+        }
+      }
+    }
+    processUpdate(page) {
+      if (this.sandboxRef) {
         try {
-          const md = targetMarkdown(page, rendererRef.current.options);
-          rendererRef.current.render(md, (_a = page.layout) == null ? void 0 : _a.css);
+          const markdown = targetMarkdown(page, this.props.options);
+          this.sandboxRef.send({ markdown });
         } catch (error) {
-          console.error("Error rendering document:", error);
-          if (containerRef.current) {
-            containerRef.current.innerHTML = `<div style="color: red; padding: 10px; border: 1px solid red; background-color: #ffe6e6; border-radius: 4px;">
+          if (this.containerRef.current) {
+            this.containerRef.current.innerHTML = `<div style="color: red; padding: 10px; border: 1px solid red; background-color: #ffe6e6; border-radius: 4px;">
                         <strong>Error:</strong> ${error instanceof Error ? error.message : String(error)}
                     </div>`;
           }
         }
       }
-    }, [page]);
-    return /* @__PURE__ */ React.createElement("div", { ref: containerRef });
+    }
+    componentWillUnmount() {
+      if (this.sandboxRef) {
+        this.sandboxRef = null;
+      }
+    }
+    render() {
+      return /* @__PURE__ */ React$1.createElement(
+        "div",
+        {
+          style: { display: "grid" },
+          ref: this.containerRef
+        }
+      );
+    }
   }
   function Editor(props) {
     const postMessageTarget = props.postMessageTarget || window.parent;
@@ -2230,12 +2400,6 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       const handleMessage = (event) => {
         if (event.data && event.data.sender !== "editor") {
           if (event.data.type === "page" && event.data.page) {
-            const totalElements = event.data.page.groups.reduce((total, group) => total + group.elements.length, 0);
-            console.log("Editor received page from app:", {
-              title: event.data.page.title,
-              totalElements,
-              groups: event.data.page.groups.length
-            });
             setPage(event.data.page);
           }
         }
@@ -2252,10 +2416,10 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       };
       postMessageTarget.postMessage(readyMessage, "*");
     }, []);
-    return /* @__PURE__ */ React.createElement(EditorView, { page, postMessageTarget });
+    return /* @__PURE__ */ React.createElement(EditorView, { page, postMessageTarget, previewer: props.previewer });
   }
   function EditorView(props) {
-    const { page, postMessageTarget } = props;
+    const { page, postMessageTarget, previewer } = props;
     const sendEditToApp = (newPage) => {
       const pageMessage = {
         type: "page",
@@ -2271,25 +2435,18 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           if (gIdx === groupIndex) {
             return {
               ...group,
-              elements: group.elements.filter((_2, eIdx) => eIdx !== elementIndex)
+              elements: group.elements.filter((_, eIdx) => eIdx !== elementIndex)
             };
           }
           return group;
         })
       };
-      const totalElements = newPage.groups.reduce((total, group) => total + group.elements.length, 0);
-      console.log("Editor sending delete result:", {
-        title: newPage.title,
-        totalElements,
-        groups: newPage.groups.length,
-        deletedFrom: { groupIndex, elementIndex }
-      });
       sendEditToApp(newPage);
     };
     const deleteGroup = (groupIndex) => {
       const newPage = {
         ...page,
-        groups: page.groups.filter((_2, gIdx) => gIdx !== groupIndex)
+        groups: page.groups.filter((_, gIdx) => gIdx !== groupIndex)
       };
       sendEditToApp(newPage);
     };
@@ -2335,37 +2492,20 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       },
       "✕"
     ))))))))), /* @__PURE__ */ React.createElement("div", { style: {
+      display: "grid",
+      gridTemplateRows: "auto 1fr",
       padding: "10px",
       overflowY: "auto"
     } }, /* @__PURE__ */ React.createElement("h3", null, "Document Preview"), /* @__PURE__ */ React.createElement(
-      DocumentPreview,
+      SandboxDocumentPreview,
       {
         page,
-        options: {
-          useShadowDom: true
-        }
+        previewer
       }
     )));
   }
   function App(props) {
-    const initialPage = {
-      title: "Sample Page",
-      layout: { css: "" },
-      dataLoaders: [],
-      groups: [
-        {
-          groupId: "main",
-          elements: [
-            "# Welcome to Interactive Documents",
-            "1 This is a sample page loaded via postMessage.",
-            "2 This is a sample page loaded via postMessage.",
-            "3 This is a sample page loaded via postMessage.",
-            "The App component controls what content is displayed."
-          ]
-        }
-      ],
-      variables: []
-    };
+    const { previewer } = props;
     const [history, setHistory] = React.useState([initialPage]);
     const [historyIndex, setHistoryIndex] = React.useState(0);
     const [currentPage, setCurrentPage] = React.useState(initialPage);
@@ -2391,7 +2531,6 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     };
     const sendPageToEditor = (page, skipReadyCheck = false) => {
       if (!skipReadyCheck && !isEditorReady) {
-        console.log("Editor not ready, page will be sent when ready");
         return;
       }
       const pageMessage = {
@@ -2405,20 +2544,14 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       const handleMessage = (event) => {
         if (event.data && event.data.sender === "editor") {
           if (event.data.type === "ready") {
-            event.data;
-            console.log("Editor is ready");
             setIsEditorReady(true);
             sendPageToEditor(currentPage);
           } else if (event.data.type === "page" && event.data.page) {
             const pageMessage = event.data;
-            const totalElements = pageMessage.page.groups.reduce((total, group) => total + group.elements.length, 0);
-            console.log("Received edit from editor:", pageMessage.page.title, "Total elements:", totalElements, "Groups:", pageMessage.page.groups.length);
             setHistoryIndex((prevIndex) => {
               setHistory((prevHistory) => {
-                console.log("Current history length:", prevHistory.length, "current index:", prevIndex);
                 const newHistory = prevHistory.slice(0, prevIndex + 1);
                 newHistory.push(pageMessage.page);
-                console.log("New history length will be:", newHistory.length);
                 return newHistory;
               });
               setCurrentPage(pageMessage.page);
@@ -2438,8 +2571,6 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         sendPageToEditor(currentPage);
       }
     }, [isEditorReady]);
-    React.useEffect(() => {
-    }, []);
     return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", height: "100vh" } }, /* @__PURE__ */ React.createElement("div", { style: {
       padding: "10px",
       backgroundColor: "#f5f5f5",
@@ -2477,9 +2608,69 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         }
       },
       "↷ Redo"
-    ), /* @__PURE__ */ React.createElement("span", { style: { marginLeft: "10px", fontSize: "12px", color: "#666" } }, "History: ", historyIndex + 1, " / ", history.length))), /* @__PURE__ */ React.createElement("div", { ref: editorContainerRef, style: { flex: 1 } }, /* @__PURE__ */ React.createElement(Editor, null)));
+    ), /* @__PURE__ */ React.createElement("span", { style: { marginLeft: "10px", fontSize: "12px", color: "#666" } }, "History: ", historyIndex + 1, " / ", history.length))), /* @__PURE__ */ React.createElement("div", { ref: editorContainerRef, style: { flex: 1 } }, /* @__PURE__ */ React.createElement(
+      Editor,
+      {
+        previewer
+      }
+    )));
   }
+  const initialPage = {
+    title: "Sample Page",
+    layout: {
+      css: "body, .body { background: beige; padding: 8px; margin: 0; }"
+    },
+    groups: [
+      {
+        groupId: "main",
+        elements: [
+          "# Welcome to Interactive Documents",
+          "1 This is a sample page loaded via postMessage.",
+          "2 This is a sample page loaded via postMessage.",
+          {
+            type: "chart",
+            chart: {
+              chartIntent: "bar chart",
+              chartTemplateKey: "default-bar-chart",
+              dataSourceBase: {
+                dataSourceName: "seattle-weather"
+              },
+              spec: {
+                "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+                "data": { "url": "https://vega.github.io/editor/data/seattle-weather.csv" },
+                "mark": "bar",
+                "encoding": {
+                  "x": {
+                    "timeUnit": "month",
+                    "field": "date",
+                    "type": "ordinal",
+                    "title": "Month of the year"
+                  },
+                  "y": {
+                    "aggregate": "count",
+                    "type": "quantitative"
+                  },
+                  "color": {
+                    "field": "weather",
+                    "type": "nominal",
+                    "scale": {
+                      "domain": ["sun", "fog", "drizzle", "rain", "snow"],
+                      "range": ["#e7ba52", "#c7c7c7", "#aec7e8", "#1f77b4", "#9467bd"]
+                    },
+                    "title": "Weather type"
+                  }
+                }
+              }
+            }
+          },
+          "3 This is a sample page loaded via postMessage.",
+          "The App component controls what content is displayed."
+        ]
+      }
+    ]
+  };
   exports2.App = App;
   exports2.Editor = Editor;
+  exports2.sandbox = index;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });

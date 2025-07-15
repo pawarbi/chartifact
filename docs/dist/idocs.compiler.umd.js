@@ -220,14 +220,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     var _a, _b;
     return variable.type === "object" && !!variable.isArray && (((_a = variable.calculation) == null ? void 0 : _a.dependsOn) !== void 0 && variable.calculation.dependsOn.length > 0 || ((_b = variable.calculation) == null ? void 0 : _b.dataFrameTransformations) !== void 0 && variable.calculation.dataFrameTransformations.length > 0);
   }
-  function mdWrap(type, content) {
-    return `\`\`\`json ${type}
+  function tickWrap(tick, content) {
+    return `\`\`\`${tick}
 ${content}
 \`\`\``;
   }
+  function jsonWrap(type, content) {
+    return tickWrap("json " + type, content);
+  }
   function chartWrap(spec) {
     const chartType = getChartType(spec);
-    return mdWrap(chartType, JSON.stringify(spec, null, 4));
+    return jsonWrap(chartType, JSON.stringify(spec, null, 4));
   }
   function mdContainerWrap(id, content) {
     return `::: markdown-block {#${id}}
@@ -239,9 +242,13 @@ ${content}
   };
   const $schema = "https://vega.github.io/schema/vega/v5.json";
   function targetMarkdown(page, options) {
+    var _a;
     const mdSections = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
+    if ((_a = page.layout) == null ? void 0 : _a.css) {
+      mdSections.push(tickWrap("css", page.layout.css));
+    }
     const rendererOptions = { ...defaultRendererOptions, ...options };
     const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables, rendererOptions);
     for (const dataLoader of dataLoaders.filter((dl) => dl.type === "spec")) {
@@ -304,7 +311,7 @@ ${content}
               value: (_a = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _a.initialValue,
               label: element.label
             };
-            mdElements.push(mdWrap("checkbox", JSON.stringify(cbSpec, null, 2)));
+            mdElements.push(jsonWrap("checkbox", JSON.stringify(cbSpec, null, 2)));
             break;
           }
           case "dropdown": {
@@ -325,7 +332,7 @@ ${content}
               ddSpec.multiple = element.multiple;
               ddSpec.size = element.size || 1;
             }
-            mdElements.push(mdWrap("dropdown", JSON.stringify(ddSpec, null, 2)));
+            mdElements.push(jsonWrap("dropdown", JSON.stringify(ddSpec, null, 2)));
             break;
           }
           case "image": {
@@ -336,12 +343,12 @@ ${content}
               width: element.width,
               height: element.height
             };
-            mdElements.push(mdWrap("image", JSON.stringify(imageSpec, null, 2)));
+            mdElements.push(jsonWrap("image", JSON.stringify(imageSpec, null, 2)));
             break;
           }
           case "presets": {
             const presetsSpec = element.presets;
-            mdElements.push(mdWrap("presets", JSON.stringify(presetsSpec, null, 2)));
+            mdElements.push(jsonWrap("presets", JSON.stringify(presetsSpec, null, 2)));
             break;
           }
           case "slider": {
@@ -369,7 +376,7 @@ ${content}
               dataSignalName: element.dataSourceName,
               options: element.options
             };
-            mdElements.push(mdWrap("tabulator", JSON.stringify(tableSpec, null, 2)));
+            mdElements.push(jsonWrap("tabulator", JSON.stringify(tableSpec, null, 2)));
             break;
           }
           case "textbox": {

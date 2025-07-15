@@ -5,13 +5,25 @@
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
-  const defaultDependencies = `
-    <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"><\/script>
-    <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"><\/script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"><\/script>
-    <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"><\/script>
-`;
+  class Previewer {
+    constructor(elementOrSelector, options) {
+      __publicField(this, "element");
+      this.options = options;
+      if (typeof elementOrSelector === "string") {
+        this.element = document.querySelector(elementOrSelector);
+        if (!this.element) {
+          throw new Error(`Element not found: ${elementOrSelector}`);
+        }
+      } else if (elementOrSelector instanceof HTMLElement) {
+        this.element = elementOrSelector;
+      } else {
+        throw new Error("Invalid element type, must be a string selector or HTMLElement");
+      }
+    }
+    send(message) {
+      throw new Error("Method not implemented.");
+    }
+  }
   const rendererHtml = `<!DOCTYPE html>
 <html lang="en">
 
@@ -594,14 +606,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         this.element = _element;
       }
     }
-    async render(markdown, styles) {
+    async render(markdown) {
       await this.destroy();
       const parsedHTML = this.md.render(markdown);
-      let content = "";
-      if (styles) {
-        content += \`<style>\${styles}</style>\`;
-      }
-      content += parsedHTML;
+      let content = parsedHTML;
       if (this.options.useShadowDom) {
         content = \`<div class="body">\${content}</div>\`;
       }
@@ -790,7 +798,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           styleElement.type = "text/css";
           styleElement.id = \`idocs-css-\${container.id}\`;
           styleElement.textContent = cssContent;
-          document.head.appendChild(styleElement);
+          renderer.element.appendChild(styleElement);
           container.innerHTML = \`<!-- CSS styles applied to document -->\`;
           cssInstances.push({
             id: container.id,
@@ -1879,23 +1887,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });
 `;
-  class Sandbox {
+  class Sandbox extends Previewer {
     constructor(elementOrSelector, options) {
+      super(elementOrSelector, options);
       __publicField(this, "iframe");
-      const { iframe, blobUrl } = createIframe(options == null ? void 0 : options.markdown, options == null ? void 0 : options.dependencies, options == null ? void 0 : options.rendererOptions);
+      const { iframe, blobUrl } = createIframe(this.getDependencies(), options == null ? void 0 : options.markdown, options == null ? void 0 : options.rendererOptions);
       this.iframe = iframe;
-      let element;
-      if (typeof elementOrSelector === "string") {
-        element = document.querySelector(elementOrSelector);
-        if (!element) {
-          throw new Error(`Element not found: ${elementOrSelector}`);
-        }
-      } else if (elementOrSelector instanceof HTMLElement) {
-        element = elementOrSelector;
-      } else {
-        throw new Error("Invalid element type, must be a string selector or HTMLElement");
-      }
-      element.appendChild(this.iframe);
+      this.element.appendChild(this.iframe);
       this.iframe.addEventListener("load", () => {
         var _a;
         URL.revokeObjectURL(blobUrl);
@@ -1905,17 +1903,26 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         var _a;
         console.error("Error loading iframe:", error);
         URL.revokeObjectURL(blobUrl);
-        (_a = options == null ? void 0 : options.onError) == null ? void 0 : _a.call(options, error);
+        (_a = options == null ? void 0 : options.onError) == null ? void 0 : _a.call(options, new Error("Failed to load iframe"));
       });
     }
     send(message) {
       var _a;
       (_a = this.iframe.contentWindow) == null ? void 0 : _a.postMessage(message, "*");
     }
+    getDependencies() {
+      return `
+<link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"><\/script>
+<script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"><\/script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"><\/script>
+<script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"><\/script>
+`;
+    }
   }
-  function createIframe(markdown, dependencies = defaultDependencies, rendererOptions = {}) {
+  function createIframe(dependencies, markdown = "", rendererOptions = {}) {
     const title = "Interactive Document Sandbox";
-    const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDERER_OPTIONS}}", () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};<\/script>`).replace("{{MARKDOWN_SCRIPT}}", () => `<script>const markdown = ${JSON.stringify(markdown || "")};<\/script>`);
+    const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDERER_OPTIONS}}", () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};<\/script>`).replace("{{MARKDOWN_SCRIPT}}", () => `<script>const markdown = ${JSON.stringify(markdown)};<\/script>`);
     const htmlBlob = new Blob([html], { type: "text/html" });
     const blobUrl = URL.createObjectURL(htmlBlob);
     const iframe = document.createElement("iframe");
@@ -1927,6 +1934,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     iframe.title = title;
     return { iframe, blobUrl };
   }
+  exports2.Previewer = Previewer;
   exports2.Sandbox = Sandbox;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });
