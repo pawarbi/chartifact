@@ -7,9 +7,11 @@ const cachedResources: Record<string, string | Error> = {};
 export const initializeResources = async (context: vscode.ExtensionContext): Promise<void> => {
   const resourcesToLoad: [string, string][] = [
 
-    //offline copies
+    //TODO - remove these once we have a proper CDN
     ['resources', 'idocs.sandbox.umd.js'],
     ['resources', 'idocs.compiler.umd.js'],
+
+    //offline copies for editor sandbox (which can't access via vscode resources url)
     ['resources', 'tabulator.min.css'],
     ['resources', 'markdown-it.min.js'],
     ['resources', 'vega.min.js'],
