@@ -107,19 +107,3 @@ export const cssPlugin: Plugin = {
         return instances;
     },
 };
-
-/**
- * CSS Plugin - Simple CSS injection for styling
- * 
- * Usage:
- * ```css
- * .my-class {
- *     color: red;
- *     font-size: 16px;
- * }
- * ```
- * 
- * Security Note:
- * - CSS content is sanitized by DOMPurify at the renderer level
- * - This plugin focuses on CSS application, not sanitization
- */
