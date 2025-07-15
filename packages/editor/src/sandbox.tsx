@@ -13,7 +13,7 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
     containerRef: React.RefObject<HTMLDivElement>;
     sandboxRef: Sandbox | null;
     isSandboxReady: boolean;
-    pendingUpdate: { page: InteractiveDocument; options?: RendererOptions } | null;
+    pendingUpdate: InteractiveDocument;
 
     constructor(props: SandboxDocumentPreviewProps) {
         super(props);
@@ -38,7 +38,7 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
 
                         // Process pending update
                         if (this.pendingUpdate) {
-                            this.processUpdate(this.pendingUpdate.page, this.pendingUpdate.options);
+                            this.processUpdate(this.pendingUpdate);
                             this.pendingUpdate = null; // Clear the pending update
                         }
                     },
@@ -52,20 +52,20 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
     }
 
     componentDidUpdate(prevProps: SandboxDocumentPreviewProps) {
-        if (this.props.page !== prevProps.page || this.props.options !== prevProps.options) {
+        if (this.props.page !== prevProps.page) {
             if (this.isSandboxReady) {
-                this.processUpdate(this.props.page, this.props.options);
+                this.processUpdate(this.props.page);
             } else {
                 // Store the latest update if sandbox is not ready
-                this.pendingUpdate = { page: this.props.page, options: this.props.options };
+                this.pendingUpdate = this.props.page;
             }
         }
     }
 
-    processUpdate(page: InteractiveDocument, options?: RendererOptions) {
+    processUpdate(page: InteractiveDocument) {
         if (this.sandboxRef) {
             try {
-                const markdown = targetMarkdown(page, options);
+                const markdown = targetMarkdown(page, this.props.options);
 
                 console.log(`[send] Markdown ${markdown.includes('editor') ? 'contains' : 'does not contain'} "editor"`);
 
