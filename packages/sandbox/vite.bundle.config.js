@@ -1,32 +1,27 @@
 import { defineConfig } from 'vite';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import react from '@vitejs/plugin-react';
 
 const commonOutputConfig = {
   format: 'umd',
-  name: 'IDocs.editor',
+  name: 'IDocs.sandbox',
   globals: {
-    'react': 'React',
-    'react-dom': 'ReactDOM',
     'vega': 'vega',
     'vega-lite': 'vegaLite',
   },
-  entryFileNames: 'idocs.editor.umd.js',
+  entryFileNames: 'idocs.sandbox.umd.js',
 };
 
 export default defineConfig({
-  plugins: [react({
-    jsxRuntime: 'classic'
-  })],
   build: {
     lib: {
       entry: './src/index.ts',
     },
     minify: false,
+    emptyOutDir: false,
     rollupOptions: {
       // External dependencies that the library expects consumers to provide
-      external: ['react', 'react-dom', 'vega', 'vega-lite'],
+      external: ['vega', 'vega-lite'],
       output: [
         {
           ...commonOutputConfig,

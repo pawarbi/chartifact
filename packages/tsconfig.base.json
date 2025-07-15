@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "declaration": true,
+        "module": "node16",
+        "moduleResolution": "node16",
+        "skipLibCheck": true,
+        "target": "esnext",
+        "allowSyntheticDefaultImports": true,
+        "lib": [
+            "esnext",
+            "dom"
+        ]
+    },
+    "include": [
+        "src"
+    ]
+}

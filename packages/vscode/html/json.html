@@ -5,26 +5,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{TITLE}}</title>
-    <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+        }
 
-    <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
-    <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
+        main {
+            display: flex;
+            flex: 1;
+        }
 
-<!-- TODO: use CDN version -->
-{{RENDERER_SCRIPT}}
+        textarea {
+            flex: 1;
+            resize: none;
+        }
+
+        iframe {
+            flex: 2;
+        }
+
+        footer {
+            font-size: small;
+            padding: 3px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+
+    <!-- TODO: get this from CDN -->
+    {{SANDBOX_UMD_JS}}
+
+    <!-- TODO: get this from CDN -->
+    {{COMPILER_UMD_JS}}
 
 </head>
 
 <body>
+    <main>
+        <textarea id="markdown-input"
+            placeholder="Type your Interactive Document json here...">{{JSON_CONTENT}}</textarea>
+    </main>
 
-    <textarea id="markdown-input" style="display:none;min-height:300px;width:100%;" placeholder="Type your Interactive Document json here...">{{JSON_CONTENT}}</textarea>
-
-    <div id="content"></div>
+    <footer>
+        <button onclick="textarea.style.display = (textarea.style.display === 'none' ? '' : 'none')">tweak</button>
+        Powered by <a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a>
+    </footer>
 
     <script>
-        IDocs.compiler.bindTextarea(document.getElementById('markdown-input'), document.getElementById('content'));
+        const textarea = document.getElementById('markdown-input');
+        let sandbox;
+        const render = () => {
+            const json = textarea.value;
+            let markdown;
+            try {
+                const interactiveDocument = JSON.parse(json);
+                if (typeof interactiveDocument !== 'object') {
+                    markdown = 'Invalid Interactive Document JSON';
+                } else {
+                    markdown = IDocs.compiler.targetMarkdown(interactiveDocument);
+                }
+            } catch (error) {
+                markdown = 'Failed to parse Interactive Document JSON';
+            }
+            if (!sandbox) {
+                sandbox = new IDocs.sandbox.Sandbox('main', { markdown });
+            } else {
+                sandbox.send({ markdown });
+            }
+        };
+        textarea.addEventListener('input', render);
+        render();
+
+        // Bot-friendly content hiding strategy:
+        // 1. Bots that don't execute JS will see the textarea content in full
+        // 2. Bots that execute JS but have short timeouts will see content for 300ms
+        // 3. Human users see no visual flash due to flex:0 + removed padding/border
+        textarea.style.flex = '0';        // Collapse to zero width, no visual space
+        textarea.style.padding = '0';     // Remove default padding that creates pixel shift
+        textarea.style.border = '0';      // Remove default border that creates pixel shift
+        setTimeout(() => {
+            // After 300ms (longer than most bot JS timeouts), restore defaults and hide
+            textarea.style.flex = '';     // Restore original flex value from CSS
+            textarea.style.padding = '';  // Restore original padding from CSS
+            textarea.style.border = '';   // Restore original border from CSS
+            textarea.style.display = 'none'; // Fully hide from users (but they can unhide to edit)
+        }, 300);
     </script>
 
 </body>

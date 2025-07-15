@@ -1,10 +1,14 @@
 import { InteractiveDocument } from "schema";
-import { DocumentPreview } from './preview.js';
 import { EditorMessage, PageMessage, ReadyMessage } from "./types.js";
+import { SandboxDocumentPreview } from "./sandbox.js";
+import { Previewer } from "sandbox";
 
 export interface Props {
     postMessageTarget?: Window;
+    previewer: typeof Previewer;
 }
+
+const devmode = false; // Set to true to use DevDocumentPreview, false for SandboxDocumentPreview
 
 export function Editor(props: Props) {
     const postMessageTarget = props.postMessageTarget || window.parent;
@@ -38,12 +42,6 @@ export function Editor(props: Props) {
             // Only process messages that are not from us (editor)
             if (event.data && event.data.sender !== 'editor') {
                 if (event.data.type === 'page' && event.data.page) {
-                    const totalElements = event.data.page.groups.reduce((total, group) => total + group.elements.length, 0);
-                    console.log('Editor received page from app:', {
-                        title: event.data.page.title,
-                        totalElements,
-                        groups: event.data.page.groups.length
-                    });
                     setPage(event.data.page);
                 }
             }
@@ -65,16 +63,17 @@ export function Editor(props: Props) {
         postMessageTarget.postMessage(readyMessage, '*');
     }, []);
 
-    return <EditorView page={page} postMessageTarget={postMessageTarget} />;
+    return <EditorView page={page} postMessageTarget={postMessageTarget} previewer={props.previewer} />;
 }
 
 export interface EditorViewProps {
     page: InteractiveDocument;
     postMessageTarget: Window;
+    previewer: typeof Previewer;
 }
 
 export function EditorView(props: EditorViewProps) {
-    const { page, postMessageTarget } = props;
+    const { page, postMessageTarget, previewer } = props;
 
     const sendEditToApp = (newPage: InteractiveDocument) => {
         const pageMessage: PageMessage = {
@@ -85,7 +84,7 @@ export function EditorView(props: EditorViewProps) {
         postMessageTarget.postMessage(pageMessage, '*');
     };
 
-    const deleteElement = (groupIndex: number, elementIndex: number) => {
+    const deleteElement = (groupIndex: number, elementIndex) => {
         const newPage = {
             ...page,
             groups: page.groups.map((group, gIdx) => {
@@ -99,18 +98,10 @@ export function EditorView(props: EditorViewProps) {
             })
         };
 
-        const totalElements = newPage.groups.reduce((total, group) => total + group.elements.length, 0);
-        console.log('Editor sending delete result:', {
-            title: newPage.title,
-            totalElements,
-            groups: newPage.groups.length,
-            deletedFrom: { groupIndex, elementIndex }
-        });
-
         sendEditToApp(newPage);
     };
 
-    const deleteGroup = (groupIndex: number) => {
+    const deleteGroup = (groupIndex) => {
         const newPage = {
             ...page,
             groups: page.groups.filter((_, gIdx) => gIdx !== groupIndex)
@@ -120,14 +111,14 @@ export function EditorView(props: EditorViewProps) {
     };
 
     return (
-        <div style={{ 
-            display: 'grid', 
+        <div style={{
+            display: 'grid',
             gridTemplateColumns: '320px 1fr',
             height: '100vh',
             overflow: 'hidden'
         }}>
-            <div style={{ 
-                padding: '10px', 
+            <div style={{
+                padding: '10px',
                 borderRight: '1px solid #ccc',
                 overflowY: 'auto'
             }}>
@@ -187,12 +178,17 @@ export function EditorView(props: EditorViewProps) {
                     </div>
                 </div>
             </div>
-            <div style={{ 
+            <div style={{
+                display: 'grid',
+                gridTemplateRows: 'auto 1fr',
                 padding: '10px',
                 overflowY: 'auto'
             }}>
                 <h3>Document Preview</h3>
-                <DocumentPreview page={page} />
+                <SandboxDocumentPreview
+                    page={page}
+                    previewer={previewer}
+                />
             </div>
         </div>
     );

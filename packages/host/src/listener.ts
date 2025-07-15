@@ -1,13 +1,14 @@
-import { Renderer, bindTextarea as r_bind } from '@microsoft/interactive-document-markdown';
-import { targetMarkdown, bindTextarea as c_bind } from '@microsoft/interactive-document-compiler';
+import { Sandbox } from 'sandbox';
+import { targetMarkdown } from '@microsoft/interactive-document-compiler';
 import { setupClipboardHandling } from './clipboard.js';
 import { setupDragDropHandling } from './dragdrop.js';
 import { setupFileUpload } from './upload.js';
 import { checkUrlForFile } from './url.js';
 import { setupPostMessageHandling } from './post-receive.js';
-import { InteractiveDocument } from 'schema';
+import { InteractiveDocument, InteractiveDocumentWithSchema } from 'schema';
 import { postStatus } from './post-send.js';
 import { ListenOptions } from './types.js';
+import { RendererOptions } from '@microsoft/interactive-document-markdown';
 
 function getElement<T extends HTMLElement = HTMLElement>(elementOrSelector: string | T): T | null {
   if (typeof elementOrSelector === 'string') {
@@ -31,6 +32,7 @@ export interface InitializeOptions {
   fileInput?: string | HTMLElement;
   textarea?: string | HTMLTextAreaElement;
   options?: ListenOptions;
+  rendererOptions?: RendererOptions;
 }
 
 const defaultOptions: ListenOptions = {
@@ -51,12 +53,14 @@ export class Listener {
   public uploadButton: HTMLElement;
   public fileInput: HTMLElement;
   public textarea: HTMLTextAreaElement;
-  public renderer: Renderer;
+  public sandbox: Sandbox;
+  public rendererOptions: RendererOptions;
 
   private removeInteractionHandlers: (() => void)[];
 
   constructor(options: InitializeOptions) {
-    this.options = { ...defaultOptions, ...options.options };
+    this.options = { ...defaultOptions, ...options?.options };
+    this.rendererOptions = { ...options?.rendererOptions };
     this.removeInteractionHandlers = [];
 
     this.appDiv = getElement(options.app);
@@ -73,8 +77,18 @@ export class Listener {
     show(this.loadingDiv, true);
     show(this.helpDiv, false);
 
-    // Initialize renderer
-    this.renderer = new Renderer(this.appDiv, {});
+    // Initialize sandbox
+    const sandbox = new Sandbox(this.appDiv, {
+      onReady: () => {
+        this.sandbox = sandbox;
+
+        // Send ready message to parent window (if embedded)
+        postStatus(this.options.postMessageTarget, { status: 'ready' });
+      },
+      onError: () => {
+        this.errorHandler(new Error('Sandbox initialization failed'), 'Sandbox could not be initialized');
+      }
+    });
 
     // Setup clipboard, drag-drop, upload, and postMessage handling based on options
     if (this.options.clipboard) {
@@ -94,18 +108,46 @@ export class Listener {
     if (!this.options.url || (this.options.url && !checkUrlForFile(this))) {
       show(this.loadingDiv, false);
       show(this.helpDiv, true);
-
-      // Send ready message to parent window (if embedded)
-      postStatus(this.options.postMessageTarget, { status: 'ready' });
     }
   }
 
-  public errorHandler(error, details) {
+  public errorHandler(error: Error, detailsHtml: string) {
     show(this.loadingDiv, false);
     this.appDiv.innerHTML = `<div style="color: red; padding: 20px;">
     <strong>Error:</strong> ${error.message}<br>
-      ${details}
+      ${detailsHtml}
     </div>`;
+  }
+
+  private bindTextareaToCompiler() {
+    const render = () => {
+      const json = this.textarea.value;
+      try {
+        const interactiveDocument = JSON.parse(json) as InteractiveDocumentWithSchema;
+        if (typeof interactiveDocument !== 'object') {
+          this.errorHandler(new Error('Invalid JSON format'), 'Please provide a valid Interactive Document JSON.');
+          return;
+        }
+        this.renderInteractiveDocument(interactiveDocument);
+      } catch (error) {
+        this.errorHandler(error, 'Failed to parse Interactive Document JSON');
+      }
+    };
+
+    this.textarea.addEventListener('input', render);
+
+    render(); // Initial render
+  }
+
+  private bindTextareaToMarkdown() {
+    const render = () => {
+      const markdown = this.textarea.value;
+      this.renderMarkdown(markdown);
+    };
+
+    this.textarea.addEventListener('input', render);
+
+    render(); // Initial render
   }
 
   public render(markdown?: string, interactiveDocument?: InteractiveDocument) {
@@ -113,7 +155,7 @@ export class Listener {
       if (this.textarea) {
         this.textarea.value = JSON.stringify(interactiveDocument, null, 2);
         this.hideLoadingAndHelp();
-        c_bind(this.textarea, this.appDiv);
+        this.bindTextareaToCompiler();
       } else {
         this.renderInteractiveDocument(interactiveDocument);
       }
@@ -122,7 +164,7 @@ export class Listener {
       if (this.textarea) {
         this.textarea.value = markdown;
         this.hideLoadingAndHelp();
-        r_bind(this.textarea, this.appDiv);
+        this.bindTextareaToMarkdown();
       } else {
         this.renderMarkdown(markdown);
       }
@@ -136,7 +178,7 @@ export class Listener {
 
   private renderInteractiveDocument(content: InteractiveDocument) {
     postStatus(this.options.postMessageTarget, { status: 'compiling', details: 'Starting interactive document compilation' });
-    const markdown = targetMarkdown(content, this.renderer.options);
+    const markdown = targetMarkdown(content, this.rendererOptions);
     this.renderMarkdown(markdown);
   }
 
@@ -145,30 +187,18 @@ export class Listener {
     show(this.helpDiv, false);
   }
 
-  private renderMarkdown(content: string) {
+  private renderMarkdown(markdown: string) {
     this.hideLoadingAndHelp();
 
-    if (!this.renderer) {
-      this.errorHandler(new Error('Renderer not initialized'), 'Please wait for the application to load.');
+    if (!this.sandbox) {
+      this.errorHandler(new Error('Sandbox is not initialized'), 'Please wait for the application to load.');
       return;
     }
 
     try {
       postStatus(this.options.postMessageTarget, { status: 'rendering', details: 'Starting markdown rendering' });
-      this.renderer.destroy(); // Clean up previous renderer instance
       // Use your renderer to process the markdown
-      this.renderer.render(
-        content,
-        (error: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string) => {
-          const msg = `<strong>Error in ${pluginName}:</strong> ${error.message}<br>
-          <strong>Instance:</strong> ${instanceIndex}<br>
-          <strong>Phase:</strong> ${phase}<br>
-          <strong>Container:</strong> ${container.tagName}<br>
-          ${detail ? `<strong>Detail:</strong> ${detail}` : ''}`;
-          this.errorHandler(error, msg);
-          postStatus(this.options.postMessageTarget, { status: 'error', details: `Rendering error in ${pluginName}: ${error.message}` });
-        }
-      );
+      this.sandbox.send({ markdown });
       postStatus(this.options.postMessageTarget, { status: 'rendered', details: 'Markdown rendering completed successfully' });
     } catch (error) {
       this.errorHandler(

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITLE}}</title>
+
+    {{DEPENDENCIES}}
+
+    {{RENDERER_SCRIPT}}
+
+    {{RENDERER_OPTIONS}}
+
+    {{MARKDOWN_SCRIPT}}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const renderer = new IDocs.markdown.Renderer(document.body, rendererOptions);
+            renderer.render(markdown);
+
+            //add listener for postMessage
+            window.addEventListener('message', (event) => {
+                if (event.data && event.data.markdown) {
+                    renderer.render(event.data.markdown);
+                }
+            });
+
+        });
+    </script>
+
+</head>
+
+<body></body>
+
+</html>

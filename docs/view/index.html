@@ -5,57 +5,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Document Host</title>
-    <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+    <script src="../dist/idocs.host.umd.js"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+        }
 
-    <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
-    <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
-    <script src="idocs.host.umd.js"></script>
+        main {
+            display: flex;
+            flex: 1;
+        }
+
+        textarea {
+            flex: 1;
+            resize: none;
+        }
+
+        iframe {
+            flex: 2;
+        }
+
+        footer {
+            font-size: small;
+            padding: 3px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
 
 <body>
 
-    <textarea id="textarea" style="width: 100%; height: 300px; display: none;" placeholder="Enter your markdown here..."></textarea>
+    <main>
 
-    <div id="loading" style="text-align: center; padding: 50px;">
-        Loading...
-    </div>
+        <textarea id="textarea" style="display: none;"
+            placeholder="Enter your markdown here..."></textarea>
 
-    <div id="help" style="display: none;">
-        <h1>Interactive Document Host</h1>
+        <div id="loading" style="text-align: center; padding: 50px;">
+            Loading...
+        </div>
 
-        <p>
-            <a href="/docs/">Learn more about interactive documents</a>
-        </p>
+        <div id="help" style="display: none;">
+            <h1>Interactive Document Host</h1>
 
-        You can render interactive documents here via several methods:
-        <ul>
-            <li><b>Clipboard</b>: paste your markdown content directly when this page has focus</li>
-            <li><b>Drag and drop</b>: drop a markdown file onto this page</li>
-            <li><b>URL parameter</b>: add <em>?load=url/to/your/file.md</em> to the url</li>
-            <li><b>File upload</b>: <button type="button" id="upload-btn">Choose File to Upload</button>
-                <input type="file" id="file-input" accept=".md" style="display: none;" />
-            </li>
-            <li><b>PostMessage</b>: send markdown content to this page using the <code>window.postMessage</code> API with the property <code>markdown</code></li>
-            <li><b>Examples</b>: click on an example below to load it
-                <ul>
-                    <li><a href="?load=../assets/examples/seattle-weather/1.idoc.md">Example 1</a></li>
-                    <li><a href="?load=../assets/examples/seattle-weather/2.idoc.md">Example 2</a></li>
-                    <li><a href="?load=../assets/examples/seattle-weather/3.idoc.md">Example 3</a></li>
-                </ul>
-            </li>
-        </ul>
+            <p>
+                <a href="/docs/">Learn more about interactive documents</a>
+            </p>
 
-        Refresh this page to start over.
+            You can render interactive documents here via several methods:
+            <ul>
+                <li><b>Clipboard</b>: paste your markdown content directly when this page has focus</li>
+                <li><b>Drag and drop</b>: drop a markdown file onto this page</li>
+                <li><b>URL parameter</b>: add <em>?load=url/to/your/file.md</em> to the url</li>
+                <li><b>File upload</b>: <button type="button" id="upload-btn">Choose File to Upload</button>
+                    <input type="file" id="file-input" accept=".md" style="display: none;" />
+                </li>
+                <li><b>PostMessage</b>: send markdown content to this page using the <code>window.postMessage</code> API
+                    with the property <code>markdown</code></li>
+                <li><b>Examples</b>: click on an example below to load it
+                    <ul>
+                        <li><a href="?load=../assets/examples/seattle-weather/1.idoc.md">Example 1</a></li>
+                        <li><a href="?load=../assets/examples/seattle-weather/2.idoc.md">Example 2</a></li>
+                        <li><a href="?load=../assets/examples/seattle-weather/3.idoc.md">Example 3</a></li>
+                    </ul>
+                </li>
+            </ul>
 
-    </div>
+            Refresh this page to start over.
 
-    <div id="app"></div>
-    
+        </div>
+
+    </main>
+
+    <footer>
+        Powered by <a href="https://github.com/chartifact/chartifact">Chartifact</a>
+        <button>edit a copy</button>
+    </footer>
+
     <script>
         const host = new IDocs.host.Listener({
-            app: '#app',
+            app: 'main',
             loading: '#loading',
             help: '#help',
             uploadButton: '#upload-btn',
@@ -63,6 +97,7 @@
             textarea: '#textarea',
         });
     </script>
+
 </body>
 
 </html>

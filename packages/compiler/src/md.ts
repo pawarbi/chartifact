@@ -7,13 +7,18 @@ import { Plugins, RendererOptions } from '@microsoft/interactive-document-markdo
 import { VegaScope } from './scope.js';
 import { createSpecWithVariables } from './spec.js';
 
-function mdWrap(type: string, content: string) {
-    return `\`\`\`json ${type}\n${content}\n\`\`\``;
+
+function tickWrap(tick: string, content: string) {
+    return `\`\`\`${tick}\n${content}\n\`\`\``;
+}
+
+function jsonWrap(type: string, content: string) {
+    return tickWrap('json ' + type, content);
 }
 
 function chartWrap(spec: VegaSpec | VegaLiteSpec) {
     const chartType = getChartType(spec);
-    return mdWrap(chartType, JSON.stringify(spec, null, 4));
+    return jsonWrap(chartType, JSON.stringify(spec, null, 4));
 }
 
 function mdContainerWrap(id: string, content: string) {
@@ -22,12 +27,22 @@ ${content}
 :::`;
 }
 
+const defaultRendererOptions: RendererOptions = {
+  dataNameSelectedSuffix: '_selected',
+};
+
 const $schema = "https://vega.github.io/schema/vega/v5.json";
 
-export function targetMarkdown(page: InteractiveDocument<extendedElements>, rendererOptions: RendererOptions) {
+export function targetMarkdown(page: InteractiveDocument<extendedElements>, options: RendererOptions) {
     const mdSections: string[] = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
+
+    if (page.layout?.css) {
+        mdSections.push(tickWrap('css', page.layout.css));
+    }
+
+    const rendererOptions = { ...defaultRendererOptions, ...options };
 
     const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables, rendererOptions);
 
@@ -102,19 +117,12 @@ function groupMarkdown(group: ElementGroup<extendedElements>, variables: Variabl
                     break;
                 }
                 case 'checkbox': {
-                    const spec: VegaSpec = {
-                        $schema,
-                        signals: [
-                            {
-                                name: element.variableId,
-                                value: variables.find(v => v.variableId === element.variableId)?.initialValue,
-                                bind: {
-                                    input: "checkbox",
-                                }
-                            }
-                        ]
+                    const cbSpec: Plugins.CheckboxSpec = {
+                        name: element.variableId,
+                        value: variables.find(v => v.variableId === element.variableId)?.initialValue as boolean,
+                        label: element.label,
                     };
-                    mdElements.push(chartWrap(spec));
+                    mdElements.push(jsonWrap('checkbox', JSON.stringify(cbSpec, null, 2)));
                     break;
                 }
                 case 'dropdown': {
@@ -136,7 +144,7 @@ function groupMarkdown(group: ElementGroup<extendedElements>, variables: Variabl
                         ddSpec.size = element.size || 1;
                     }
 
-                    mdElements.push(mdWrap('dropdown', JSON.stringify(ddSpec, null, 2)));
+                    mdElements.push(jsonWrap('dropdown', JSON.stringify(ddSpec, null, 2)));
                     break;
                 }
                 case 'image': {
@@ -147,12 +155,12 @@ function groupMarkdown(group: ElementGroup<extendedElements>, variables: Variabl
                         width: element.width,
                         height: element.height,
                     };
-                    mdElements.push(mdWrap('image', JSON.stringify(imageSpec, null, 2)));
+                    mdElements.push(jsonWrap('image', JSON.stringify(imageSpec, null, 2)));
                     break;
                 }
                 case 'presets': {
                     const presetsSpec: Plugins.PresetsSpec = element.presets;
-                    mdElements.push(mdWrap('presets', JSON.stringify(presetsSpec, null, 2)));
+                    mdElements.push(jsonWrap('presets', JSON.stringify(presetsSpec, null, 2)));
                     break;
                 }
                 case 'slider': {
@@ -180,7 +188,7 @@ function groupMarkdown(group: ElementGroup<extendedElements>, variables: Variabl
                         dataSignalName: element.dataSourceName,
                         options: element.options,
                     };
-                    mdElements.push(mdWrap('tabulator', JSON.stringify(tableSpec, null, 2)));
+                    mdElements.push(jsonWrap('tabulator', JSON.stringify(tableSpec, null, 2)));
                     break;
                 }
                 case 'textbox': {

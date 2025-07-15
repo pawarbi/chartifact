@@ -1,16 +1,7 @@
 {
+    "extends": "../tsconfig.base.json",
     "compilerOptions": {
-        "declaration": true,
-        "module": "node16",
-        "moduleResolution": "node16",
-        "outDir": "dist/esnext",
-        "skipLibCheck": true,
-        "target": "esnext",
-        "allowSyntheticDefaultImports": true,
-        "lib": [
-            "esnext",
-            "dom"
-        ]
+        "outDir": "dist/esnext"
     },
     "include": [
         "src"

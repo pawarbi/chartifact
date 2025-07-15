@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Document Sandbox</title>
+  <style>
+    body {
+      display: flex;
+      height: 100vh;
+      margin: 0;
+    }
+
+    textarea {
+      flex: 1;
+      resize: none;
+    }
+
+    iframe {
+      flex: 2;
+    }
+  </style>
+</head>
+
+<body>
+
+  <textarea id="md" placeholder="Enter your markdown here...">
+# Hello World
+
+```css
+body {
+    background-color: pink;
+}
+```
+</textarea>
+
+  <script type="module">
+    import { Sandbox } from '/src/index.ts';
+    const textarea = document.getElementById('md');
+    const sandbox = new Sandbox(document.body, { markdown: textarea.value });
+    window.sandbox = sandbox;
+    textarea.addEventListener('input', () => {
+      sandbox.send({ markdown: textarea.value });
+    });
+  </script>
+
+</body>
+
+</html>

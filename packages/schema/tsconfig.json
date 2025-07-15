@@ -2,7 +2,7 @@
     "compilerOptions": {
         "declaration": true,
         "removeComments": false, // Keep comments in declaration files
-        "outDir": "./dist/esnext",
+        "outDir": "dist/esnext",
         "stripInternal": true,
         "target": "esnext",
         "module": "node16",

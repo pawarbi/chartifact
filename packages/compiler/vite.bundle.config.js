@@ -6,7 +6,6 @@ const commonOutputConfig = {
   format: 'umd',
   name: 'IDocs.compiler',
   globals: {
-    'markdown-it': 'markdownit',
     'vega': 'vega',
     'vega-lite': 'vegaLite',
   },
@@ -21,11 +20,15 @@ export default defineConfig({
     minify: false,
     rollupOptions: {
       // External dependencies that the library expects consumers to provide
-      external: ['markdown-it', 'vega', 'vega-lite', 'tabulator-tables'],
+      external: ['vega', 'vega-lite'],
       output: [
         {
           ...commonOutputConfig,
           dir: './dist/umd',
+        },
+        {
+          ...commonOutputConfig,
+          dir: '../../docs/dist',
         },
       ],
       plugins: [

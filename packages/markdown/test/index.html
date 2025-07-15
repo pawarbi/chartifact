@@ -5,12 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mdv test</title>
+    
     <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
-
     <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
     <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
+
     <script src="../dist/umd/idocs.markdown.umd.js"></script>
 
     <style>
@@ -62,6 +63,12 @@ A[Hard] -->|Text| B(Round)
 B --> C{Decision}
 C -->|One| D[Result 1]
 C -->|Two| E[Result 2]
+```
+
+```css
+body {
+ color: steelblue;
+}
 ```
 
 ## Color Picker
@@ -333,8 +340,12 @@ Click the map above to show related data.
     <div id="content"></div>
 
     <script>
-        const mdvr = IDocs.markdown.bindTextarea(document.getElementById('markdown-input'), document.getElementById('content'));
-        console.log('instance', mdvr);
+        const textarea = document.getElementById('markdown-input');
+        const renderer = new IDocs.markdown.Renderer(document.getElementById('content'));
+        textarea.addEventListener('input', () => {
+            renderer.render(textarea.value);
+        });
+        renderer.render(textarea.value);
     </script>
 
 </body>

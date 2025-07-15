@@ -6,8 +6,23 @@ const cachedResources: Record<string, string | Error> = {};
 // Initialize resource contents (call this during extension activation)
 export const initializeResources = async (context: vscode.ExtensionContext): Promise<void> => {
   const resourcesToLoad: [string, string][] = [
-    ['resources', 'idocs.markdown.umd.js'],
+
+    //TODO - remove these once we have a proper CDN
+    ['resources', 'idocs.sandbox.umd.js'],
     ['resources', 'idocs.compiler.umd.js'],
+
+    //offline copies for editor sandbox (which can't access via vscode resources url)
+    ['resources', 'tabulator.min.css'],
+    ['resources', 'markdown-it.min.js'],
+    ['resources', 'vega.min.js'],
+    ['resources', 'vega-lite.min.js'],
+    ['resources', 'tabulator.min.js'],
+    
+    // Example documents
+    ['resources', '1.idoc.md'],
+    ['resources', 'grocery-list.idoc.json'],
+    
+    //html templates
     ['html', 'json.html'],
     ['html', 'markdown.html'],
     ['html', 'preview.html'],
