@@ -187,6 +187,6 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 	
 	return template
 		.replace('{{RESOURCE_LINKS}}', () => resourceLinks)
-		.replace('{{HOST_SCRIPT}}', () => hostScript)
+		.replace('{{HOST_SCRIPT}}', () => hostScript!)
 		.replace('{{HOST_OPTIONS}}', () => `<script>const hostOptions = ${JSON.stringify(hostOptions)};</script>`);
 }

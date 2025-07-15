@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
-import { link, script } from './html';
+import { script, style } from './html';
 import { getResource } from './resources';
 import type { ReadyMessage, PageMessage, EditorMessage } from 'editor' with { 'resolution-mode': 'import' };
 
@@ -54,8 +54,23 @@ export class EditManager {
 	/**
 	 * Handles messages from the webview
 	 */
-	private handleWebviewMessage(message: EditorMessage, fileUri: vscode.Uri, uriFsPath: string) {
+	private handleWebviewMessage(message: EditorMessage | { type: 'getOfflineDeps' }, fileUri: vscode.Uri, uriFsPath: string) {
 		switch (message.type) {
+			case 'getOfflineDeps': {
+				// Send offline dependencies to the webview
+				if (this.current) {
+					this.current.panel.webview.postMessage({
+						type: 'setOfflineDeps',
+						offlineDeps:
+							style(getResource('tabulator.min.css')) +
+							script(getResource('markdown-it.min.js')) +
+							script(getResource('vega.min.js')) +
+							script(getResource('vega-lite.min.js')) +
+							script(getResource('tabulator.min.js'))
+					});
+				}
+				break;
+			}
 			case 'ready': {
 				this.getFileContentAndRender(fileUri, uriFsPath);
 				break;
@@ -75,11 +90,11 @@ export class EditManager {
 		try {
 			// Convert the page data to JSON string
 			const jsonContent = JSON.stringify(message.page, null, 2);
-			
+
 			// Write the updated content back to the file
 			const uint8Array = new TextEncoder().encode(jsonContent);
 			await vscode.workspace.fs.writeFile(fileUri, uint8Array);
-			
+
 			// Show a brief status message
 			vscode.window.setStatusBarMessage('Document saved', 2000);
 		} catch (error) {
@@ -183,19 +198,14 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 
 	// Build the resource links block
 	const resourceLinks = [
-		link(resourceUrl('tabulator.min.css')),
-		script(resourceUrl('markdown-it.min.js')),
-		script(resourceUrl('vega.min.js')),
-		script(resourceUrl('vega-lite.min.js')),
-		script(resourceUrl('tabulator.min.js')),
 		script(resourceUrl('react.production.min.js')),
 		script(resourceUrl('react-dom.production.min.js')),
 		script(resourceUrl('idocs.editor.umd.js')),
+		script(resourceUrl('edit.js')),
 	].join('\n    ');
 
 	const template = getResource('edit.html');
 
 	return template
-		.replace('{{RESOURCE_LINKS}}', () => resourceLinks)
-		.replace('{{EDITOR_OPTIONS}}', () => `<script>const editorOptions = ${JSON.stringify({})};</script>`);
+		.replace('{{RESOURCE_LINKS}}', () => resourceLinks);
 }
