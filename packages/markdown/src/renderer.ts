@@ -62,24 +62,15 @@ export class Renderer {
         }
     }
 
-    async render(markdown: string, styles?: string) {
+    async render(markdown: string) {
         //loop through all the destroy handlers and call them. have the key there to help us debug
         await this.destroy();
 
         const parsedHTML = this.md.render(markdown);
 
-        // Build content as string
-        let content = '';
+        let content = parsedHTML;
         
-        // Add styles if provided
-        if (styles) {
-            content += `<style>${styles}</style>`;
-        }
-        
-        // Add markdown content
-        content += parsedHTML;
-        
-        // Wrap in body div for shadow DOM
+        // Wrap in "body" div for shadow DOM
         if (this.options.useShadowDom) {
             content = `<div class="body">${content}</div>`;
         }

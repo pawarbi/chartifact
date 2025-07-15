@@ -74,8 +74,8 @@ export const cssPlugin: Plugin = {
                 styleElement.id = `idocs-css-${container.id}`;
                 styleElement.textContent = cssContent;
                 
-                // Add the style element to the document head
-                document.head.appendChild(styleElement);
+                // Add the style element to the renderer element
+                renderer.element.appendChild(styleElement);
                 
                 // Clear the container and add a comment indicating CSS was applied
                 container.innerHTML = `<!-- CSS styles applied to document -->`;
