@@ -31,7 +31,6 @@ const defaultRendererOptions: RendererOptions = {
   dataNameSelectedSuffix: '_selected',
 };
 
-
 const $schema = "https://vega.github.io/schema/vega/v5.json";
 
 export function targetMarkdown(page: InteractiveDocument<extendedElements>, options: RendererOptions) {
