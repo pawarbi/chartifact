@@ -1,18 +1,16 @@
 import { RendererOptions } from '@microsoft/interactive-document-markdown';
-import { RenderRequestMessage } from './types.js';
 
 export interface PreviewerOptions {
     onReady?: () => void;
     onError?: (error: Error) => void;
     rendererOptions?: RendererOptions;
-    markdown?: string;
 }
 
 // Previewer class
 export class Previewer {
     public element: HTMLElement;
 
-    constructor(elementOrSelector: string | HTMLElement, public options: PreviewerOptions) {
+    constructor(elementOrSelector: string | HTMLElement, markdown: string, public options: PreviewerOptions) {
         if (typeof elementOrSelector === 'string') {
             this.element = document.querySelector(elementOrSelector);
             if (!this.element) {
@@ -25,7 +23,7 @@ export class Previewer {
         }
     }
 
-    send(message: RenderRequestMessage): void {
+    send(markdown: string): void {
         throw new Error('Method not implemented.');
     }
 }

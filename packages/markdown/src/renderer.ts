@@ -66,17 +66,29 @@ export class Renderer {
         //loop through all the destroy handlers and call them. have the key there to help us debug
         await this.destroy();
 
+        const content = this.renderHtml(markdown);
+
+        // Set all content at once
+        this.element.innerHTML = content;
+
+        await this.hydrate();
+    }
+
+    renderHtml(markdown: string) {
+
         const parsedHTML = this.md.render(markdown);
 
         let content = parsedHTML;
-        
+
         // Wrap in "body" div for shadow DOM
         if (this.options.useShadowDom) {
             content = `<div class="body">${content}</div>`;
         }
-        
-        // Set all content at once
-        this.element.innerHTML = content;
+
+        return content;
+    }
+
+    async hydrate() {
 
         //loop through all the plugins and render them
         this.signalBus.log('Renderer', 'rendering DOM');

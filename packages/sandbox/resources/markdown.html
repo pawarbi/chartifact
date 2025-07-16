@@ -12,18 +12,27 @@
 
     {{RENDERER_OPTIONS}}
 
-    {{MARKDOWN_SCRIPT}}
+    {{RENDER_REQUEST}}
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const renderer = new IDocs.markdown.Renderer(document.body, rendererOptions);
-            renderer.render(markdown);
+
+            function render(request) {
+                if (request.markdown) {
+                    renderer.render(request.markdown);
+                } else if (request.html) {
+                    document.body.innerHTML = request.html;
+                    renderer.hydrate();
+                }
+            }
+
+            render(renderRequest);
 
             //add listener for postMessage
             window.addEventListener('message', (event) => {
-                if (event.data && event.data.markdown) {
-                    renderer.render(event.data.markdown);
-                }
+                if (!event.data) return;
+                render(event.data);
             });
 
         });

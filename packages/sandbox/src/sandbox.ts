@@ -1,16 +1,25 @@
 import { Previewer, PreviewerOptions } from './preview.js';
 import { rendererHtml } from './resources/rendererHtml.js';
 import { rendererUmdJs } from './resources/rendererUmdJs.js';
-import { RenderRequestMessage } from './types.js';
 import { RendererOptions } from '@microsoft/interactive-document-markdown';
+
+interface RenderRequestMessage {
+    markdown?: string;
+    html?: string;
+}
 
 export class Sandbox extends Previewer {
     private iframe: HTMLIFrameElement;
 
-    constructor(elementOrSelector: string | HTMLElement, options?: PreviewerOptions) {
-        super(elementOrSelector, options);
-        
-        const { iframe, blobUrl } = createIframe(this.getDependencies(), options?.markdown, options?.rendererOptions);
+    constructor(elementOrSelector: string | HTMLElement, markdown: string, options?: PreviewerOptions) {
+        super(elementOrSelector, markdown, options);
+
+        const renderRequest: RenderRequestMessage = {
+            //TODO: use html instead of markdown the first pass
+            markdown: markdown,
+        };
+
+        const { iframe, blobUrl } = createIframe(this.getDependencies(), renderRequest, options?.rendererOptions);
         this.iframe = iframe;
         this.element.appendChild(this.iframe);
 
@@ -26,8 +35,9 @@ export class Sandbox extends Previewer {
         });
     }
 
-    send(message: RenderRequestMessage): void {
-        this.iframe.contentWindow?.postMessage(message, '*');
+    send(markdown: string): void {
+        //TODO get html and ensure it is sanitized
+        this.iframe.contentWindow?.postMessage({ markdown }, '*');
     }
 
     getDependencies() {
@@ -41,14 +51,14 @@ export class Sandbox extends Previewer {
     }
 }
 
-function createIframe(dependencies: string, markdown: string = '', rendererOptions: RendererOptions = {}) {
+function createIframe(dependencies: string, renderRequest: RenderRequestMessage, rendererOptions: RendererOptions = {}) {
     const title = 'Interactive Document Sandbox';
     const html = rendererHtml
         .replace('{{TITLE}}', () => title)
         .replace('{{DEPENDENCIES}}', () => dependencies)
         .replace('{{RENDERER_SCRIPT}}', () => `<script>${rendererUmdJs}</script>`)
         .replace('{{RENDERER_OPTIONS}}', () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};</script>`)
-        .replace('{{MARKDOWN_SCRIPT}}', () => `<script>const markdown = ${JSON.stringify(markdown)};</script>`)
+        .replace('{{RENDER_REQUEST}}', () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};</script>`)
         ;
 
     const htmlBlob = new Blob([html], { type: 'text/html' });

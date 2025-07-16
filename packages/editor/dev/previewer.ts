@@ -1,14 +1,14 @@
 import { Renderer } from '@microsoft/interactive-document-markdown';
-import { Previewer, PreviewerOptions, RenderRequestMessage } from 'sandbox';
+import { Previewer, PreviewerOptions } from 'sandbox';
 
 export class DevPreviewer extends Previewer {
-    private renderer: Renderer | null = null;
+    private renderer: Renderer;
 
-    constructor(elementOrSelector: string | HTMLElement, options: PreviewerOptions) {
-        super(elementOrSelector, options);
+    constructor(elementOrSelector: string | HTMLElement, markdown: string, options: PreviewerOptions) {
+        super(elementOrSelector, markdown, options);
         try {
             this.renderer = new Renderer(this.element, { useShadowDom: true });
-            this.renderer.render(options.markdown!);
+            this.render(markdown);
             options.onReady?.();
         } catch (error) {
             this.displayError('Failed to create renderer');
@@ -16,21 +16,25 @@ export class DevPreviewer extends Previewer {
         }
     }
 
-    send(message: RenderRequestMessage): void {
-        if (!this.renderer) {
-            this.displayError('Renderer is not initialized');
-            this.options.onError?.(new Error('Renderer is not initialized'));
-            return;
-        }
+    render(markdown: string) {
+        const html = this.renderer.renderHtml(markdown);
+        this.element.innerHTML = html;
+        this.renderer.hydrate().catch(error => {
+            this.displayError('Failed to hydrate components');
+            this.options.onError?.(error);
+        });
+    }
+
+    send(markdown: string) {
         try {
-            this.renderer.render(message.markdown!);
+            this.render(markdown);
         } catch (error) {
             this.displayError(error);
             this.options.onError?.(error);
         }
     }
 
-    private displayError(error: unknown): void {
+    private displayError(error: unknown) {
         this.element.innerHTML = `<div style="color: red; padding: 10px; border: 1px solid red; background-color: #ffe6e6; border-radius: 4px;">
             <strong>Error:</strong> ${error instanceof Error ? error.message : String(error)}
         </div>`;

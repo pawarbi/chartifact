@@ -38,10 +38,10 @@ body {
   <script type="module">
     import { Sandbox } from '/src/index.ts';
     const textarea = document.getElementById('md');
-    const sandbox = new Sandbox(document.body, { markdown: textarea.value });
+    const sandbox = new Sandbox(document.body, textarea.value);
     window.sandbox = sandbox;
     textarea.addEventListener('input', () => {
-      sandbox.send({ markdown: textarea.value });
+      sandbox.send(textarea.value);
     });
   </script>
 
