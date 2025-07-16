@@ -6,6 +6,7 @@ const commonOutputConfig = {
   format: 'umd',
   name: 'IDocs.sandbox',
   globals: {
+    'markdown-it': 'markdownit',
     'vega': 'vega',
     'vega-lite': 'vegaLite',
   },

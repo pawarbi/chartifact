@@ -1,7 +1,7 @@
 import { Previewer, PreviewerOptions } from './preview.js';
 import { rendererHtml } from './resources/rendererHtml.js';
 import { rendererUmdJs } from './resources/rendererUmdJs.js';
-import { RendererOptions } from '@microsoft/interactive-document-markdown';
+import { Renderer, RendererOptions } from '@microsoft/interactive-document-markdown';
 
 interface RenderRequestMessage {
     markdown?: string;
@@ -10,14 +10,15 @@ interface RenderRequestMessage {
 
 export class Sandbox extends Previewer {
     private iframe: HTMLIFrameElement;
+    private renderer: Renderer;
 
     constructor(elementOrSelector: string | HTMLElement, markdown: string, options?: PreviewerOptions) {
         super(elementOrSelector, markdown, options);
 
-        const renderRequest: RenderRequestMessage = {
-            //TODO: use html instead of markdown the first pass
-            markdown: markdown,
-        };
+        //create a renderer for decompilation, not to render in this DOM context
+        this.renderer = new Renderer(null, { ...options?.rendererOptions, useShadowDom: false });
+
+        const renderRequest = this.createRenderRequest(markdown);
 
         const { iframe, blobUrl } = createIframe(this.getDependencies(), renderRequest, options?.rendererOptions);
         this.iframe = iframe;
@@ -35,9 +36,17 @@ export class Sandbox extends Previewer {
         });
     }
 
+    createRenderRequest(markdown: string): RenderRequestMessage {
+        //render into a document to ensure it is sanitized
+        const html = this.renderer.renderHtml(markdown);
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        //TODO: sanitize the document
+        return { html: doc.body.innerHTML };
+    }
+
     send(markdown: string): void {
         //TODO get html and ensure it is sanitized
-        this.iframe.contentWindow?.postMessage({ markdown }, '*');
+        this.iframe.contentWindow?.postMessage(this.createRenderRequest(markdown), '*');
     }
 
     getDependencies() {

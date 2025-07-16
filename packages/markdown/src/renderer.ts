@@ -49,7 +49,6 @@ export class Renderer {
 
     constructor(_element: HTMLElement, options?: RendererOptions) {
         this.options = { ...defaultRendererOptions, ...options };
-        this.md = create({ classList: this.options.classList });
         this.signalBus = this.options.signalBus || new SignalBus(this.options.dataSignalPrefix!);
         this.instances = {};
 
@@ -59,6 +58,12 @@ export class Renderer {
             this.element = this.shadowRoot;
         } else {
             this.element = _element;
+        }
+    }
+
+    private ensureMd() {
+        if (!this.md) {
+            this.md = create({ classList: this.options.classList });
         }
     }
 
@@ -75,7 +80,7 @@ export class Renderer {
     }
 
     renderHtml(markdown: string) {
-
+        this.ensureMd();
         const parsedHTML = this.md.render(markdown);
 
         let content = parsedHTML;
@@ -89,6 +94,7 @@ export class Renderer {
     }
 
     async hydrate() {
+        this.ensureMd();
 
         //loop through all the plugins and render them
         this.signalBus.log('Renderer', 'rendering DOM');

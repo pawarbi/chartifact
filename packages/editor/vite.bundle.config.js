@@ -9,6 +9,7 @@ const commonOutputConfig = {
   globals: {
     'react': 'React',
     'react-dom': 'ReactDOM',
+    'markdown-it': 'markdownit',
     'vega': 'vega',
     'vega-lite': 'vegaLite',
   },

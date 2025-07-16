@@ -37,6 +37,12 @@ export const vegaPlugin: Plugin = {
         return sanitizedHTML('div', { id: vegaId, class: 'vega-chart' }, token.content.trim());
     },
     hydrateComponent: async (renderer, errorHandler) => {
+        //initialize the expressionFunction only once
+        if (!expressionsInitialized) {
+            expressionFunction('urlParam', urlParam);
+            expressionsInitialized = true;
+        }
+
         const vegaInstances: VegaInstance[] = [];
         const containers = renderer.element.querySelectorAll('.vega-chart');
         const specInits: SpecInit[] = [];
@@ -333,7 +339,7 @@ function prioritizeSignalValues(specInits: SpecInit[]) {
     }
 }
 
-expressionFunction('urlParam', urlParam);
+let expressionsInitialized = false;
 
 class VegaLogger implements LoggerInterface {
     private logLevel: number = 0;

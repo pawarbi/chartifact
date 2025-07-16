@@ -30,19 +30,22 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
                 const markdown = targetMarkdown(this.props.page, this.props.options);
 
                 // Initialize sandbox instance
-                this.sandboxRef = new (this.props.previewer || Sandbox)(this.containerRef.current, {
-                    onReady: () => {
-                        this.isSandboxReady = true;
-
-                        // Process pending update
-                        if (this.pendingUpdate) {
-                            this.processUpdate(this.pendingUpdate);
-                            this.pendingUpdate = null; // Clear the pending update
-                        }
-                    },
-                    onError: (error) => console.error('Sandbox initialization failed:', error),
+                this.sandboxRef = new (this.props.previewer || Sandbox)(
+                    this.containerRef.current,
                     markdown,
-                });
+                    {
+                        onReady: () => {
+                            this.isSandboxReady = true;
+
+                            // Process pending update
+                            if (this.pendingUpdate) {
+                                this.processUpdate(this.pendingUpdate);
+                                this.pendingUpdate = null; // Clear the pending update
+                            }
+                        },
+                        onError: (error) => console.error('Sandbox initialization failed:', error),
+                    }
+                );
             } catch (error) {
                 console.error('Failed to initialize sandbox:', error);
             }
@@ -64,7 +67,7 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
         if (this.sandboxRef) {
             try {
                 const markdown = targetMarkdown(page, this.props.options);
-                this.sandboxRef.send({ markdown });
+                this.sandboxRef.send(markdown);
             } catch (error) {
                 if (this.containerRef.current) {
                     this.containerRef.current.innerHTML = `<div style="color: red; padding: 10px; border: 1px solid red; background-color: #ffe6e6; border-radius: 4px;">
