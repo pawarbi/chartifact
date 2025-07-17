@@ -36,6 +36,13 @@ export class Sandbox extends Previewer {
         });
     }
 
+    destroy() {
+        //remove all iframe listeners
+        this.iframe.removeEventListener('load', () => {});
+        this.iframe.removeEventListener('error', () => {});
+        this.iframe?.remove();
+    }
+
     createRenderRequest(markdown: string): RenderRequestMessage {
         //render into a document to ensure it is sanitized
         const html = this.renderer.renderHtml(markdown);
