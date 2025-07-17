@@ -23,8 +23,8 @@ export const initializeResources = async (context: vscode.ExtensionContext): Pro
     ['resources', 'grocery-list.idoc.json'],
     
     //html templates
-    ['html', 'json.html'],
-    ['html', 'markdown.html'],
+    ['html', 'html-json.html'],
+    ['html', 'html-markdown.html'],
     ['html', 'preview.html'],
     ['html', 'edit.html'],
   ];
