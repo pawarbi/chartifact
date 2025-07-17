@@ -1,7 +1,7 @@
 import { Listener } from "./listener.js";
 
 export function readFile(file: File, host: Listener) {
-    if (file.name.endsWith('.idoc.json') || file.name.endsWith('.idoc.md')) {
+    if (file.name.endsWith('.json') || file.name.endsWith('.md')) {
         const reader = new FileReader();
         reader.onload = (e) => {
             let content = e.target?.result as string;
@@ -20,7 +20,7 @@ export function readFile(file: File, host: Listener) {
                 );
                 return;
             }
-            if (file.name.endsWith('.idoc.json')) {
+            if (file.name.endsWith('.json')) {
                 try {
                     const idoc = JSON.parse(content);
                     host.render(undefined, idoc);
@@ -32,7 +32,7 @@ export function readFile(file: File, host: Listener) {
                     );
                     return;
                 }
-            } else if (file.name.endsWith('.idoc.md')) {
+            } else if (file.name.endsWith('.md')) {
                 host.render(content);
             }
         };
@@ -43,7 +43,7 @@ export function readFile(file: File, host: Listener) {
     } else {
         host.errorHandler(
             new Error('Invalid file type'),
-            'Only markdown (.idoc.md) or JSON (.idoc.json) files are supported.'
+            'Only markdown (.md) or JSON (.json) files are supported.'
         );
     }
 }
