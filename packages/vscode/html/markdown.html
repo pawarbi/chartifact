@@ -37,6 +37,8 @@
         }
     </style>
 
+    <script src="https://unpkg.com/markdown-it/dist/markdown-it.min.js"></script>
+
     <!-- TODO: get this from CDN -->
     {{SANDBOX_UMD_JS}}
 
@@ -54,9 +56,9 @@
 
     <script>
         const textarea = document.getElementById('markdown-input');
-        const sandbox = new IDocs.sandbox.Sandbox('main', { markdown: textarea.value });
+        const sandbox = new IDocs.sandbox.Sandbox('main', textarea.value);
         textarea.addEventListener('input', () => {
-            sandbox.send({ markdown: textarea.value });
+            sandbox.send(textarea.value);
         });
 
         // Bot-friendly content hiding strategy:

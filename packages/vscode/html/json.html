@@ -37,6 +37,8 @@
         }
     </style>
 
+    <script src="https://unpkg.com/markdown-it/dist/markdown-it.min.js"></script>
+
     <!-- TODO: get this from CDN -->
     {{SANDBOX_UMD_JS}}
 
@@ -73,9 +75,9 @@
                 markdown = 'Failed to parse Interactive Document JSON';
             }
             if (!sandbox) {
-                sandbox = new IDocs.sandbox.Sandbox('main', { markdown });
+                sandbox = new IDocs.sandbox.Sandbox('main', markdown);
             } else {
-                sandbox.send({ markdown });
+                sandbox.send(markdown);
             }
         };
         textarea.addEventListener('input', render);

@@ -7,8 +7,8 @@ window.addEventListener('message', (event) => {
     if (event.data.type === 'setOfflineDeps') {
         offlineDeps = event.data.offlineDeps;
         class OfflineSandbox extends IDocs.editor.sandbox.Sandbox {
-            constructor(element, options) {
-                super(element, options);
+            constructor(element, markdown, options) {
+                super(element, markdown, options);
             }
             getDependencies() {
                 return offlineDeps;
