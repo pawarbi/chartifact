@@ -95,7 +95,7 @@ export const cssPlugin: Plugin = {
             return {
                 id: cssInstance.id,
                 initialSignals: [], // CSS doesn't need signals
-                destroy: async () => {
+                destroy: () => {
                     // Remove the style element when the instance is destroyed
                     if (cssInstance.element && cssInstance.element.parentNode) {
                         cssInstance.element.parentNode.removeChild(cssInstance.element);

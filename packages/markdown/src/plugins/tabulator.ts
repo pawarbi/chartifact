@@ -125,7 +125,7 @@ export const tabulatorPlugin: Plugin = {
                 getCurrentSignalValue() {
                     return tabulatorInstance.table.getSelectedData();
                 },
-                destroy: async () => {
+                destroy: () => {
                     tabulatorInstance.table.destroy();
                 },
             };

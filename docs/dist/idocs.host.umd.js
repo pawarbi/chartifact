@@ -49,6 +49,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 if (request.markdown) {
                     renderer.render(request.markdown);
                 } else if (request.html) {
+                    renderer.reset();
                     document.body.innerHTML = request.html;
                     renderer.hydrate();
                 }
@@ -621,7 +622,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
     async render(markdown) {
-      await this.destroy();
+      await this.reset();
       const content = this.renderHtml(markdown);
       this.element.innerHTML = content;
       await this.hydrate();
@@ -665,12 +666,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         console.error("Error in rendering plugins", error);
       }
     }
-    async destroy() {
+    reset() {
       this.signalBus.reset();
       for (const pluginName of Object.keys(this.instances)) {
         const instances = this.instances[pluginName];
         for (const instance of instances) {
-          instance.destroy && await instance.destroy();
+          instance.destroy && instance.destroy();
         }
       }
       this.instances = {};
@@ -758,7 +759,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           getCurrentSignalValue: () => {
             return element.checked;
           },
-          destroy: async () => {
+          destroy: () => {
             element.removeEventListener("change", checkboxInstance.element.onchange);
           }
         };
@@ -838,7 +839,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           id: cssInstance.id,
           initialSignals: [],
           // CSS doesn't need signals
-          destroy: async () => {
+          destroy: () => {
             if (cssInstance.element && cssInstance.element.parentNode) {
               cssInstance.element.parentNode.removeChild(cssInstance.element);
             }
@@ -962,7 +963,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             }
             return element.value;
           },
-          destroy: async () => {
+          destroy: () => {
             element.removeEventListener("change", dropdownInstance.element.onchange);
           }
         };
@@ -1071,7 +1072,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               isData: false
             }
           ],
-          destroy: async () => {
+          destroy: () => {
             if (element) {
               element.remove();
             }
@@ -1472,7 +1473,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           getCurrentSignalValue() {
             return tabulatorInstance.table.getSelectedData();
           },
-          destroy: async () => {
+          destroy: () => {
             tabulatorInstance.table.destroy();
           }
         };
@@ -1676,7 +1677,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               return void 0;
             }
           },
-          destroy: async () => {
+          destroy: () => {
             vegaInstance.view.finalize();
           }
         };
@@ -2458,7 +2459,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
     async render(markdown) {
-      await this.destroy();
+      await this.reset();
       const content = this.renderHtml(markdown);
       this.element.innerHTML = content;
       await this.hydrate();
@@ -2502,12 +2503,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         console.error("Error in rendering plugins", error);
       }
     }
-    async destroy() {
+    reset() {
       this.signalBus.reset();
       for (const pluginName of Object.keys(this.instances)) {
         const instances = this.instances[pluginName];
         for (const instance of instances) {
-          instance.destroy && await instance.destroy();
+          instance.destroy && instance.destroy();
         }
       }
       this.instances = {};
@@ -2595,7 +2596,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           getCurrentSignalValue: () => {
             return element.checked;
           },
-          destroy: async () => {
+          destroy: () => {
             element.removeEventListener("change", checkboxInstance.element.onchange);
           }
         };
@@ -2675,7 +2676,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           id: cssInstance.id,
           initialSignals: [],
           // CSS doesn't need signals
-          destroy: async () => {
+          destroy: () => {
             if (cssInstance.element && cssInstance.element.parentNode) {
               cssInstance.element.parentNode.removeChild(cssInstance.element);
             }
@@ -2799,7 +2800,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
             }
             return element.value;
           },
-          destroy: async () => {
+          destroy: () => {
             element.removeEventListener("change", dropdownInstance.element.onchange);
           }
         };
@@ -2908,7 +2909,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
               isData: false
             }
           ],
-          destroy: async () => {
+          destroy: () => {
             if (element) {
               element.remove();
             }
@@ -3309,7 +3310,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           getCurrentSignalValue() {
             return tabulatorInstance.table.getSelectedData();
           },
-          destroy: async () => {
+          destroy: () => {
             tabulatorInstance.table.destroy();
           }
         };
@@ -3513,7 +3514,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
               return void 0;
             }
           },
-          destroy: async () => {
+          destroy: () => {
             vegaInstance.view.finalize();
           }
         };

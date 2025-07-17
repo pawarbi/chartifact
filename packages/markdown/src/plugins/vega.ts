@@ -170,7 +170,7 @@ export const vegaPlugin: Plugin = {
                         return undefined;
                     }
                 },
-                destroy: async () => {
+                destroy: () => {
                     vegaInstance.view.finalize();
                 },
             };

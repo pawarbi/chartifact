@@ -22,6 +22,7 @@
                 if (request.markdown) {
                     renderer.render(request.markdown);
                 } else if (request.html) {
+                    renderer.reset();
                     document.body.innerHTML = request.html;
                     renderer.hydrate();
                 }

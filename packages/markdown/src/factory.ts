@@ -32,7 +32,7 @@ export interface IInstance {
     recieveBatch?: (batch: Batch, from: string) => Promise<void>;
     beginListening?: (sharedSignals: { signalName: string, isData: boolean }[]) => void;
     broadcastComplete?: () => Promise<void>;
-    destroy?: () => Promise<void>;
+    destroy?: () => void;
     getCurrentSignalValue?: (signalName: string) => unknown;
 }
 

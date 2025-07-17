@@ -146,7 +146,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                     }
                     return element.value;
                 },
-                destroy: async () => {
+                destroy: () => {
                     element.removeEventListener('change', dropdownInstance.element.onchange as EventListener);
                 },
             };

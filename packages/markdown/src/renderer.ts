@@ -69,7 +69,7 @@ export class Renderer {
 
     async render(markdown: string) {
         //loop through all the destroy handlers and call them. have the key there to help us debug
-        await this.destroy();
+        await this.reset();
 
         const content = this.renderHtml(markdown);
 
@@ -129,12 +129,12 @@ export class Renderer {
         }
     }
 
-    async destroy() {
+    reset() {
         this.signalBus.reset();
         for (const pluginName of Object.keys(this.instances)) {
             const instances = this.instances[pluginName];
             for (const instance of instances) {
-                instance.destroy && await instance.destroy();
+                instance.destroy && instance.destroy();
             }
         }
         this.instances = {};

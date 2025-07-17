@@ -87,7 +87,7 @@ export const imagePlugin: Plugin = {
                         isData: false,
                     },
                 ],
-                destroy: async () => {
+                destroy: () => {
                     if (element) {
                         element.remove();
                     }

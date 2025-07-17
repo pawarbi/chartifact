@@ -88,7 +88,7 @@ export const checkboxPlugin: Plugin = {
                 getCurrentSignalValue: () => {
                     return element.checked;
                 },
-                destroy: async () => {
+                destroy: () => {
                     element.removeEventListener('change', checkboxInstance.element.onchange as EventListener);
                 },
             };
