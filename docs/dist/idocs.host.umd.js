@@ -4211,7 +4211,7 @@ ${content}
     targetMarkdown
   }, Symbol.toStringTag, { value: "Module" }));
   function readFile(file, host) {
-    if (file.name.endsWith(".idoc.json") || file.name.endsWith(".idoc.md")) {
+    if (file.name.endsWith(".json") || file.name.endsWith(".md")) {
       const reader = new FileReader();
       reader.onload = (e) => {
         var _a;
@@ -4231,7 +4231,7 @@ ${content}
           );
           return;
         }
-        if (file.name.endsWith(".idoc.json")) {
+        if (file.name.endsWith(".json")) {
           try {
             const idoc = JSON.parse(content);
             host.render(void 0, idoc);
@@ -4243,7 +4243,7 @@ ${content}
             );
             return;
           }
-        } else if (file.name.endsWith(".idoc.md")) {
+        } else if (file.name.endsWith(".md")) {
           host.render(content);
         }
       };
@@ -4254,7 +4254,7 @@ ${content}
     } else {
       host.errorHandler(
         new Error("Invalid file type"),
-        "Only markdown (.idoc.md) or JSON (.idoc.json) files are supported."
+        "Only markdown (.md) or JSON (.json) files are supported."
       );
     }
   }

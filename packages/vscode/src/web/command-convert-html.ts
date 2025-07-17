@@ -17,11 +17,11 @@ export async function convertToHtml(fileUri: vscode.Uri) {
 		let htmlContent: string;
 		let originalExtension: string;
 
-		if (fileName.endsWith('.idoc.json')) {
+		if (fileName.endsWith('.json')) {
 			// Handle JSON files
 			htmlContent = htmlJsonWrapper(fileText, fileUri);
 			originalExtension = '.idoc.json';
-		} else if (fileName.endsWith('.idoc.md')) {
+		} else if (fileName.endsWith('.md')) {
 			// Handle Markdown files
 			htmlContent = htmlMarkdownWrapper(fileText, fileUri);
 			originalExtension = '.idoc.md';

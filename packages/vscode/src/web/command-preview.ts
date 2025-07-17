@@ -82,10 +82,10 @@ export class PreviewManager {
 		vscode.workspace.fs.readFile(fileUri).then(uint8array => {
 
 			// If the file is a markdown file, we can send the markdown content
-			if (uriFsPath.endsWith('.idoc.md')) {
+			if (uriFsPath.endsWith('.md')) {
 				const markdown = new TextDecoder().decode(uint8array);
 				this.render({ markdown });
-			} else if (uriFsPath.endsWith('.idoc.json')) {
+			} else if (uriFsPath.endsWith('.json')) {
 				// If the file is a JSON file, we can send the JSON content
 				const jsonContent = new TextDecoder().decode(uint8array);
 				try {
