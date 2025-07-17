@@ -57,6 +57,7 @@ export class Listener {
   public rendererOptions: RendererOptions;
 
   private removeInteractionHandlers: (() => void)[];
+  private sandboxReady: boolean = false;
 
   constructor(options: InitializeOptions) {
     this.options = { ...defaultOptions, ...options?.options };
@@ -78,17 +79,7 @@ export class Listener {
     show(this.helpDiv, false);
 
     // Initialize sandbox
-    const sandbox = new Sandbox(this.appDiv, {
-      onReady: () => {
-        this.sandbox = sandbox;
-
-        // Send ready message to parent window (if embedded)
-        postStatus(this.options.postMessageTarget, { status: 'ready' });
-      },
-      onError: () => {
-        this.errorHandler(new Error('Sandbox initialization failed'), 'Sandbox could not be initialized');
-      }
-    });
+    this.createSandbox('');
 
     // Setup clipboard, drag-drop, upload, and postMessage handling based on options
     if (this.options.clipboard) {
@@ -109,6 +100,26 @@ export class Listener {
       show(this.loadingDiv, false);
       show(this.helpDiv, true);
     }
+  }
+
+  public createSandbox(markdown: string) {
+    if (this.sandbox) {
+      this.sandbox.destroy();
+    }
+
+    this.sandboxReady = false;
+
+    this.sandbox = new Sandbox(this.appDiv, markdown, {
+      onReady: () => {
+        this.sandboxReady = true;
+
+        // Send ready message to parent window (if embedded)
+        postStatus(this.options.postMessageTarget, { status: 'ready' });
+      },
+      onError: () => {
+        this.errorHandler(new Error('Sandbox initialization failed'), 'Sandbox could not be initialized');
+      }
+    });
   }
 
   public errorHandler(error: Error, detailsHtml: string) {
@@ -190,15 +201,13 @@ export class Listener {
   private renderMarkdown(markdown: string) {
     this.hideLoadingAndHelp();
 
-    if (!this.sandbox) {
-      this.errorHandler(new Error('Sandbox is not initialized'), 'Please wait for the application to load.');
-      return;
-    }
-
     try {
       postStatus(this.options.postMessageTarget, { status: 'rendering', details: 'Starting markdown rendering' });
-      // Use your renderer to process the markdown
-      this.sandbox.send({ markdown });
+      if (!this.sandbox || !this.sandboxReady) {
+        this.createSandbox(markdown);
+      } else {
+        this.sandbox.send(markdown);
+      }
       postStatus(this.options.postMessageTarget, { status: 'rendered', details: 'Markdown rendering completed successfully' });
     } catch (error) {
       this.errorHandler(
