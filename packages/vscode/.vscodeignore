@@ -1,16 +1,15 @@
-.vscode/**
-.vscode-test-web/**
-src/**
-out/**
-node_modules/**
-dist/**/test/**
-.gitignore
-vsc-extension-quickstart.md
-webpack.config.js
-esbuild.js
-.yarnrc
-**/tsconfig.json
-**/eslint.config.mjs
-**/*.map
-**/*.ts
-**/.vscode-test.*
+# Exclude parent directories (critical for monorepos)
+../../**
+../**
+
+# Exclude everything first
+**
+
+# Then include only what we want
+!dist/web/extension.js
+!resources/
+!resources/**
+!README.md
+!LICENSE
+!CHANGELOG.md
+!package.json
