@@ -27,6 +27,10 @@ export const initializeResources = async (context: vscode.ExtensionContext): Pro
     ['html', 'html-markdown.html'],
     ['html', 'preview.html'],
     ['html', 'edit.html'],
+
+    //html scripts
+    ['resources', 'html-json.js'],
+    ['resources', 'html-markdown.js'],
   ];
   
   for (const [folder, filename] of resourcesToLoad) {
