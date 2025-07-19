@@ -1,4 +1,7 @@
 window.addEventListener('DOMContentLoaded', () => {
+    const rendererOptions: IDocs.markdown.RendererOptions = {
+        dataNameSelectedSuffix: '_selected', // Default suffix for selected data
+    };
     const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
     let sandbox: IDocs.sandbox.Sandbox;
     const render = () => {
@@ -9,13 +12,13 @@ window.addEventListener('DOMContentLoaded', () => {
             if (typeof interactiveDocument !== 'object') {
                 markdown = 'Invalid Interactive Document JSON';
             } else {
-                markdown = IDocs.compiler.targetMarkdown(interactiveDocument);
+                markdown = IDocs.compiler.targetMarkdown(interactiveDocument, rendererOptions);
             }
         } catch (error) {
             markdown = 'Failed to parse Interactive Document JSON';
         }
         if (!sandbox) {
-            sandbox = new IDocs.sandbox.Sandbox('main', markdown);
+            sandbox = new IDocs.sandbox.Sandbox('main', markdown, { rendererOptions });
         } else {
             sandbox.send(markdown);
         }
