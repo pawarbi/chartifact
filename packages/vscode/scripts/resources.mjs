@@ -19,6 +19,10 @@ const resources = [
     '../../packages/webview/dist/html-json.js',
     '../../packages/webview/dist/html-markdown.js',
     '../../packages/webview/dist/preview.js',
+    '../../packages/webview/html/preview.html',
+    '../../packages/webview/html/edit.html',
+    '../../packages/webview/html/html-json.html',
+    '../../packages/webview/html/html-markdown.html',
 ];
 
 const errors = [];
