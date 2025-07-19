@@ -7,26 +7,22 @@ import MarkdownIt from 'markdown-it';
 import { Renderers } from 'vega-typings';
 import { create, IInstance, plugins } from './factory.js';
 import { SignalBus } from './signalbus.js';
+import { RendererCommonOptions, defaultCommonOptions } from 'common';
 
 export interface ErrorHandler {
     (error: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string): void;
 }
 
-export interface RendererOptions {
+export interface RendererOptions extends RendererCommonOptions {
     vegaRenderer?: Renderers;
-    dataNameSelectedSuffix?: string;
-    dataSignalPrefix?: string;
     signalBus?: SignalBus;
-    classList?: string[];
     errorHandler?: ErrorHandler;
     useShadowDom?: boolean;
 }
 
 const defaultRendererOptions: RendererOptions = {
+    ...defaultCommonOptions,
     vegaRenderer: 'canvas',
-    dataNameSelectedSuffix: '_selected',
-    dataSignalPrefix: 'data-signal:',
-    classList: ['markdown-block'],
     useShadowDom: false,
     errorHandler: (error, pluginName, instanceIndex, phase) => {
         console.error(`Error in plugin ${pluginName} instance ${instanceIndex} phase ${phase}`, error);
@@ -63,7 +59,7 @@ export class Renderer {
 
     private ensureMd() {
         if (!this.md) {
-            this.md = create({ classList: this.options.classList });
+            this.md = create({ groupClassName: this.options.groupClassName });
         }
     }
 

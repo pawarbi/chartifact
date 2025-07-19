@@ -7,6 +7,7 @@ import MarkdownIt, { Token } from 'markdown-it/index.js';
 import { attrs } from '@mdit/plugin-attrs';
 import { container, MarkdownItContainerOptions } from '@mdit/plugin-container';
 import { ErrorHandler, Renderer } from './renderer.js';
+import { RendererCommonOptions } from 'common';
 
 declare const markdownit: typeof MarkdownIt;
 
@@ -50,11 +51,7 @@ export function registerMarkdownPlugin(plugin: Plugin) {
     return 'register';
 }
 
-export interface CreateOptions {
-    classList?: string[];
-}
-
-export function create(options?: CreateOptions) {
+export function create(options: RendererCommonOptions) {
     const md = new markdownit();
     for (const plugin of plugins) {
         plugin.initializePlugin(md);
@@ -62,10 +59,8 @@ export function create(options?: CreateOptions) {
 
     md.use(attrs);
 
-    options?.classList?.forEach(name => {
-        const containerOptions: MarkdownItContainerOptions = { name };
-        md.use(container, containerOptions);
-    });
+    const containerOptions: MarkdownItContainerOptions = { name: options.groupClassName };
+    md.use(container, containerOptions);
 
     // Default handler to preserve existing functionality
     const originalFence = md.renderer.rules.fence;

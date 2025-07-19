@@ -3,10 +3,10 @@ import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
 import { ChartFull, DataSource, ElementGroup, extendedElements, InteractiveDocument, Variable } from 'schema';
 import { getChartType } from './util.js';
 import { addDynamicDataLoaderToSpec, addStaticDataLoaderToSpec } from './loader.js';
-import { Plugins, RendererOptions } from '@microsoft/interactive-document-markdown';
+import { Plugins } from '@microsoft/interactive-document-markdown';
 import { VegaScope } from './scope.js';
 import { createSpecWithVariables } from './spec.js';
-
+import { RendererCommonOptions, defaultCommonOptions } from 'common';
 
 function tickWrap(tick: string, content: string) {
     return `\`\`\`${tick}\n${content}\n\`\`\``;
@@ -21,19 +21,15 @@ function chartWrap(spec: VegaSpec | VegaLiteSpec) {
     return jsonWrap(chartType, JSON.stringify(spec, null, 4));
 }
 
-function mdContainerWrap(id: string, content: string) {
-    return `::: markdown-block {#${id}}
+function mdContainerWrap(classname: string, id: string, content: string) {
+    return `::: ${classname} {#${id}}
 ${content}
 :::`;
 }
 
-const defaultRendererOptions: RendererOptions = {
-  dataNameSelectedSuffix: '_selected',
-};
-
 const $schema = "https://vega.github.io/schema/vega/v5.json";
 
-export function targetMarkdown(page: InteractiveDocument<extendedElements>, options: RendererOptions) {
+export function targetMarkdown(page: InteractiveDocument<extendedElements>, options?: RendererCommonOptions) {
     const mdSections: string[] = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
@@ -42,7 +38,7 @@ export function targetMarkdown(page: InteractiveDocument<extendedElements>, opti
         mdSections.push(tickWrap('css', page.layout.css));
     }
 
-    const rendererOptions = { ...defaultRendererOptions, ...options };
+    const rendererOptions = { ...defaultCommonOptions, ...options };
 
     const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables, rendererOptions);
 
@@ -51,7 +47,7 @@ export function targetMarkdown(page: InteractiveDocument<extendedElements>, opti
     }
 
     for (const group of page.groups) {
-        mdSections.push(mdContainerWrap(group.groupId, groupMarkdown(group, variables, vegaScope)));
+        mdSections.push(mdContainerWrap(options.groupClassName, group.groupId, groupMarkdown(group, variables, vegaScope)));
     }
 
     //spec is at the top of the markdown file
@@ -61,7 +57,7 @@ export function targetMarkdown(page: InteractiveDocument<extendedElements>, opti
     return markdown;
 }
 
-function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], rendererOptions: RendererOptions) {
+function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], rendererOptions: RendererCommonOptions) {
 
     //create a Vega spec with all variables
     const spec = createSpecWithVariables(rendererOptions.dataNameSelectedSuffix, variables);
