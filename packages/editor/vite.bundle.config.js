@@ -12,6 +12,7 @@ const commonOutputConfig = {
     'markdown-it': 'markdownit',
     'vega': 'vega',
     'vega-lite': 'vegaLite',
+    'sandbox': 'IDocs.sandbox',
   },
   entryFileNames: 'idocs.editor.umd.js',
 };
@@ -27,7 +28,7 @@ export default defineConfig({
     minify: false,
     rollupOptions: {
       // External dependencies that the library expects consumers to provide
-      external: ['react', 'react-dom', 'vega', 'vega-lite'],
+      external: ['react', 'react-dom', 'vega', 'vega-lite', 'sandbox'],
       output: [
         {
           ...commonOutputConfig,

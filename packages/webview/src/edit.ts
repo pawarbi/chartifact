@@ -8,7 +8,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         if (event.data.type === 'setOfflineDeps') {
             offlineDeps = event.data.offlineDeps;
-            class OfflineSandbox extends IDocs.editor.sandbox.Sandbox {
+            class OfflineSandbox extends IDocs.sandbox.Sandbox {
                 constructor(element, markdown, options) {
                     super(element, markdown, options);
                 }
