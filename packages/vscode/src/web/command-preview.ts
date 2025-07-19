@@ -179,6 +179,7 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 		script(resourceUrl('vega.min.js')),
 		script(resourceUrl('vega-lite.min.js')),
 		script(resourceUrl('tabulator.min.js')),
+		script(resourceUrl('idocs.sandbox.umd.js')),
 		script(resourceUrl('idocs.host.umd.js')),
 		script(resourceUrl('preview.js')),
 	].join('\n    ');
