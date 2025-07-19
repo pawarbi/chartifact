@@ -22,8 +22,5 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    window.addEventListener('DOMContentLoaded', () => {
-        vscode.postMessage({ type: 'getOfflineDeps' }, '*');
-    });
-
+    vscode.postMessage({ type: 'getOfflineDeps' }, '*');
 });
