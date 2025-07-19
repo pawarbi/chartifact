@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { getResource } from './resources';
+import { getResourceContent } from './resources';
 import { escapeTextareaContent } from './html';
 import { findAvailableFileName } from './file.js';
 
@@ -53,31 +53,32 @@ export async function convertToHtml(fileUri: vscode.Uri) {
 }
 
 function htmlMarkdownWrapper(markdown: string, fileUri: vscode.Uri) {
-	const template = getResource('html-markdown.html');
-
-	//TODO: get this from CDN
-	const sandboxUmdJs = getResource('idocs.sandbox.umd.js');
+	const template = getResourceContent('html-markdown.html');
 
 	const result = template
 		.replace('{{TITLE}}', () => escapeHtml(getFileNameWithoutExtension(fileUri)))
-		.replace('{{SANDBOX_UMD_JS}}', () => `<script>\n${sandboxUmdJs}\n</script>`)
-		.replace('{{MARKDOWN_CONTENT}}', () => escapeTextareaContent(markdown));
+
+		//TODO: when we have a CDN we don't need this in the code, script can be set in the HTML
+		.replace('{{SANDBOX_UMD_JS}}', () => `<script>\n${getResourceContent('idocs.sandbox.umd.js')}\n</script>`)
+
+		.replace('{{HTML_MARKDOWN_JS}}', () => `<script>\n${getResourceContent('html-markdown.js')}\n</script>`)
+		.replace('{{TEXTAREA_CONTENT}}', () => escapeTextareaContent(markdown));
 
 	return result;
 }
 
 function htmlJsonWrapper(json: string, fileUri: vscode.Uri) {
-	const template = getResource('html-json.html');
-
-	//TODO: get these from CDN
-	const sandboxUmdJs = getResource('idocs.sandbox.umd.js');
-	const compilerUmdJs = getResource('idocs.compiler.umd.js');
+	const template = getResourceContent('html-json.html');
 
 	const result = template
 		.replace('{{TITLE}}', () => escapeHtml(getFileNameWithoutExtension(fileUri)))
-		.replace('{{SANDBOX_UMD_JS}}', () => `<script>\n${sandboxUmdJs}\n</script>`)
-		.replace('{{COMPILER_UMD_JS}}', () => `<script>\n${compilerUmdJs}\n</script>`)
-		.replace('{{JSON_CONTENT}}', () => escapeTextareaContent(json));
+
+		//TODO: when we have a CDN we don't need this in the code, script can be set in the HTML
+		.replace('{{SANDBOX_UMD_JS}}', () => `<script>\n${getResourceContent('idocs.sandbox.umd.js')}\n</script>`)
+		.replace('{{COMPILER_UMD_JS}}', () => `<script>\n${getResourceContent('idocs.compiler.umd.js')}\n</script>`)
+
+		.replace('{{HTML_JSON_JS}}', () => `<script>\n${getResourceContent('html-json.js')}\n</script>`)
+		.replace('{{TEXTAREA_CONTENT}}', () => escapeTextareaContent(json));
 
 	return result;
 }

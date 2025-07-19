@@ -1,0 +1,13 @@
+{
+  "name": "webview",
+  "private": true,
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "tsc": "tsc -p .",
+    "build:05": "npm run tsc"
+  },
+  "author": "Dan Marshall",
+  "license": "MIT",
+  "description": ""
+}

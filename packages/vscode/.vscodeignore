@@ -7,8 +7,6 @@
 
 # Then include only what we want
 !dist/web/extension.js
-!html/
-!html/**
 !resources/
 !resources/**
 !README.md

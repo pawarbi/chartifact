@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
 import { script, style } from './html';
-import { getResource } from './resources';
+import { getResourceContent } from './resources';
 import type { ReadyMessage, PageMessage, EditorMessage } from 'editor' with { 'resolution-mode': 'import' };
 
 /**
@@ -62,11 +62,11 @@ export class EditManager {
 					this.current.panel.webview.postMessage({
 						type: 'setOfflineDeps',
 						offlineDeps:
-							style(getResource('tabulator.min.css')) +
-							script(getResource('markdown-it.min.js')) +
-							script(getResource('vega.min.js')) +
-							script(getResource('vega-lite.min.js')) +
-							script(getResource('tabulator.min.js'))
+							style(getResourceContent('tabulator.min.css')) +
+							script(getResourceContent('markdown-it.min.js')) +
+							script(getResourceContent('vega.min.js')) +
+							script(getResourceContent('vega-lite.min.js')) +
+							script(getResourceContent('tabulator.min.js'))
 					});
 				}
 				break;
@@ -201,11 +201,12 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 		script(resourceUrl('react.production.min.js')),
 		script(resourceUrl('react-dom.production.min.js')),
 		script(resourceUrl('markdown-it.min.js')),
+		script(resourceUrl('idocs.sandbox.umd.js')),
 		script(resourceUrl('idocs.editor.umd.js')),
 		script(resourceUrl('edit.js')),
 	].join('\n    ');
 
-	const template = getResource('edit.html');
+	const template = getResourceContent('edit.html');
 
 	return template
 		.replace('{{RESOURCE_LINKS}}', () => resourceLinks);

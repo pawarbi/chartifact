@@ -5,33 +5,37 @@ const cachedResources: Record<string, string | Error> = {};
 
 // Initialize resource contents (call this during extension activation)
 export const initializeResources = async (context: vscode.ExtensionContext): Promise<void> => {
-  const resourcesToLoad: [string, string][] = [
+  const resourcesToLoad: string[] = [
 
     //TODO - remove these once we have a proper CDN
-    ['resources', 'idocs.sandbox.umd.js'],
-    ['resources', 'idocs.compiler.umd.js'],
+    'idocs.sandbox.umd.js',
+    'idocs.compiler.umd.js',
 
     //offline copies for editor sandbox (which can't access via vscode resources url)
-    ['resources', 'tabulator.min.css'],
-    ['resources', 'markdown-it.min.js'],
-    ['resources', 'vega.min.js'],
-    ['resources', 'vega-lite.min.js'],
-    ['resources', 'tabulator.min.js'],
+    'tabulator.min.css',
+    'markdown-it.min.js',
+    'vega.min.js',
+    'vega-lite.min.js',
+    'tabulator.min.js',
     
     // Example documents
-    ['resources', '1.idoc.md'],
-    ['resources', 'grocery-list.idoc.json'],
+    '1.idoc.md',
+    'grocery-list.idoc.json',
     
     //html templates
-    ['html', 'html-json.html'],
-    ['html', 'html-markdown.html'],
-    ['html', 'preview.html'],
-    ['html', 'edit.html'],
+    'html-json.html',
+    'html-markdown.html',
+    'preview.html',
+    'edit.html',
+
+    //html scripts
+    'html-json.js',
+    'html-markdown.js',
   ];
   
-  for (const [folder, filename] of resourcesToLoad) {
+  for (const filename of resourcesToLoad) {
     try {
-      const resourceUri = vscode.Uri.joinPath(context.extensionUri, folder, filename);
+      const resourceUri = vscode.Uri.joinPath(context.extensionUri, 'resources', filename);
       const fileData = await vscode.workspace.fs.readFile(resourceUri);
       const content = new TextDecoder().decode(fileData);
       
@@ -44,7 +48,7 @@ export const initializeResources = async (context: vscode.ExtensionContext): Pro
 };
 
 // Get a cached resource by name
-export const getResource = (resourceName: string): string => {
+export const getResourceContent = (resourceName: string): string => {
   const resource = cachedResources[resourceName];
   
   if (!resource) {

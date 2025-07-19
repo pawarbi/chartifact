@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{TITLE}}</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+        }
+
+        main {
+            display: flex;
+            flex: 1;
+        }
+
+        textarea {
+            flex: 1;
+            resize: none;
+        }
+
+        iframe {
+            flex: 2;
+        }
+
+        footer {
+            font-size: small;
+            padding: 3px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+
+    <script src="https://unpkg.com/markdown-it/dist/markdown-it.min.js"></script>
+
+    <!-- TODO: get this from CDN -->
+    {{SANDBOX_UMD_JS}}
+
+    <!-- TODO: get this from CDN -->
+    {{COMPILER_UMD_JS}}
+
+</head>
+
+<body>
+    <main>
+        <textarea id="markdown-input"
+            placeholder="Type your Interactive Document json here...">{{TEXTAREA_CONTENT}}</textarea>
+    </main>
+
+    <footer>
+        <button id="toggle-textarea">tweak</button>
+        Powered by <a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a>
+    </footer>
+
+    {{HTML_JSON_JS}}
+
+</body>
+
+</html>

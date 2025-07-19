@@ -21,7 +21,9 @@
     </style>
 
     {{RESOURCE_LINKS}}
-    
+
+    {{HOST_OPTIONS}}
+
 </head>
 <body>
     <div id="loading" style="text-align: center; padding: 50px;">
@@ -30,17 +32,5 @@
 
 	<div id="app"></div>
 
-    {{HOST_SCRIPT}}
-
-    {{HOST_OPTIONS}}
-    
-    <script>
-        const options = { ...hostOptions, ...{ postMessageTarget: acquireVsCodeApi() } };
-        const host = new IDocs.host.Listener({
-            app: '#app',
-            loading: '#loading',
-            options,
-        });
-    </script>
 </body>
 </html>

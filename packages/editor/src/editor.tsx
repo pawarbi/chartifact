@@ -3,14 +3,14 @@ import { EditorMessage, PageMessage, ReadyMessage } from "./types.js";
 import { SandboxDocumentPreview } from "./sandbox.js";
 import { Previewer } from "sandbox";
 
-export interface Props {
+export interface EditorProps {
     postMessageTarget?: Window;
     previewer: typeof Previewer;
 }
 
 const devmode = false; // Set to true to use DevDocumentPreview, false for SandboxDocumentPreview
 
-export function Editor(props: Props) {
+export function Editor(props: EditorProps) {
     const postMessageTarget = props.postMessageTarget || window.parent;
     const [page, setPage] = React.useState<InteractiveDocument>(() => ({
         title: "Initializing...",

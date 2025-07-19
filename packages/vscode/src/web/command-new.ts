@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { findAvailableFileName } from './file';
-import { getResource } from './resources';
+import { getResourceContent } from './resources';
 
 /**
  * Generic function to create new Interactive Documents
@@ -70,7 +70,7 @@ async function createUntitledDocument(format: 'markdown' | 'json') {
 }
 
 function getSamples() {
-	const sampleInteractiveDocumentWithSchema = getResource('grocery-list.idoc.json');
-	const sampleMarkdown = getResource('1.idoc.md');
+	const sampleInteractiveDocumentWithSchema = getResourceContent('grocery-list.idoc.json');
+	const sampleMarkdown = getResourceContent('1.idoc.md');
 	return { sampleInteractiveDocumentWithSchema, sampleMarkdown };
 }

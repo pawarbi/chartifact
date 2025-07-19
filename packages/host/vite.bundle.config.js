@@ -8,6 +8,7 @@ const commonOutputConfig = {
   globals: {
     'vega': 'vega',
     'vega-lite': 'vegaLite',
+    'sandbox': 'IDocs.sandbox',
   },
   entryFileNames: 'idocs.host.umd.js',
 };
@@ -21,7 +22,7 @@ export default defineConfig({
     emptyOutDir: false,
     rollupOptions: {
       // External dependencies that the library expects consumers to provide
-      external: ['vega', 'vega-lite'],
+      external: ['vega', 'vega-lite', 'sandbox'],
       output: [
         {
           ...commonOutputConfig,
