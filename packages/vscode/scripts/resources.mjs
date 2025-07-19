@@ -15,7 +15,10 @@ const resources = [
     '../../packages/editor/dist/umd/idocs.editor.umd.js',
     '../../docs/assets/examples/grocery-list.idoc.json',
     '../../docs/assets/examples/seattle-weather/1.idoc.md',
-    './js/edit.js',
+    '../../packages/webview/dist/edit.js',
+    '../../packages/webview/dist/html-json.js',
+    '../../packages/webview/dist/html-markdown.js',
+    '../../packages/webview/dist/preview.js',
 ];
 
 const errors = [];

@@ -44,7 +44,7 @@ export const initializeResources = async (context: vscode.ExtensionContext): Pro
 };
 
 // Get a cached resource by name
-export const getResource = (resourceName: string): string => {
+export const getResourceContent = (resourceName: string): string => {
   const resource = cachedResources[resourceName];
   
   if (!resource) {

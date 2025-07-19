@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
 import { link, script } from './html';
-import { getResource } from './resources';
+import { getResourceContent } from './resources';
 import type { ListenOptions, RenderRequestMessage } from '@microsoft/interactive-document-host' with { 'resolution-mode': 'import' };
 
 /**
@@ -31,7 +31,7 @@ export class PreviewManager {
 	 * Internal method to show the preview with optional split view
 	 */
 	private showPreviewInternal(fileUri: vscode.Uri, splitView: boolean) {
-		const columnToShowIn = splitView ? vscode.ViewColumn.Beside : 
+		const columnToShowIn = splitView ? vscode.ViewColumn.Beside :
 			(vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined);
 		const uriFsPath = fileUri.fsPath;
 
@@ -179,14 +179,13 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 		script(resourceUrl('vega.min.js')),
 		script(resourceUrl('vega-lite.min.js')),
 		script(resourceUrl('tabulator.min.js')),
+		script(resourceUrl('idocs.host.umd.js')),
+		script(resourceUrl('preview.js')),
 	].join('\n    ');
 
-	const hostScript = script(resourceUrl('idocs.host.umd.js'));
-	
-	const template = getResource('preview.html');
-	
+	const template = getResourceContent('preview.html');
+
 	return template
 		.replace('{{RESOURCE_LINKS}}', () => resourceLinks)
-		.replace('{{HOST_SCRIPT}}', () => hostScript!)
 		.replace('{{HOST_OPTIONS}}', () => `<script>const hostOptions = ${JSON.stringify(hostOptions)};</script>`);
 }
