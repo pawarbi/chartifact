@@ -220,6 +220,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     var _a, _b;
     return variable.type === "object" && !!variable.isArray && (((_a = variable.calculation) == null ? void 0 : _a.dependsOn) !== void 0 && variable.calculation.dependsOn.length > 0 || ((_b = variable.calculation) == null ? void 0 : _b.dataFrameTransformations) !== void 0 && variable.calculation.dataFrameTransformations.length > 0);
   }
+  const defaultCommonOptions = {
+    dataNameSelectedSuffix: "_selected",
+    groupClassName: "group"
+  };
   function tickWrap(tick, content) {
     return `\`\`\`${tick}
 ${content}
@@ -232,16 +236,13 @@ ${content}
     const chartType = getChartType(spec);
     return jsonWrap(chartType, JSON.stringify(spec, null, 4));
   }
-  function mdContainerWrap(id, content) {
-    return `::: markdown-block {#${id}}
+  function mdContainerWrap(classname, id, content) {
+    return `::: ${classname} {#${id}}
 ${content}
 :::`;
   }
-  const defaultRendererOptions = {
-    dataNameSelectedSuffix: "_selected"
-  };
   const $schema = "https://vega.github.io/schema/vega/v5.json";
-  function targetMarkdown(page, options) {
+  function targetMarkdown(page) {
     var _a;
     const mdSections = [];
     const dataLoaders = page.dataLoaders || [];
@@ -249,20 +250,19 @@ ${content}
     if ((_a = page.layout) == null ? void 0 : _a.css) {
       mdSections.push(tickWrap("css", page.layout.css));
     }
-    const rendererOptions = { ...defaultRendererOptions, ...options };
-    const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables, rendererOptions);
+    const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables);
     for (const dataLoader of dataLoaders.filter((dl) => dl.type === "spec")) {
       mdSections.push(chartWrap(dataLoader.spec));
     }
     for (const group of page.groups) {
-      mdSections.push(mdContainerWrap(group.groupId, groupMarkdown(group, variables, vegaScope)));
+      mdSections.push(mdContainerWrap(defaultCommonOptions.groupClassName, group.groupId, groupMarkdown(group, variables, vegaScope)));
     }
     mdSections.unshift(chartWrap(vegaScope.spec));
     const markdown = mdSections.join("\n\n");
     return markdown;
   }
-  function dataLoaderMarkdown(dataSources, variables, rendererOptions) {
-    const spec = createSpecWithVariables(rendererOptions.dataNameSelectedSuffix, variables);
+  function dataLoaderMarkdown(dataSources, variables) {
+    const spec = createSpecWithVariables(defaultCommonOptions.dataNameSelectedSuffix, variables);
     const vegaScope = new VegaScope(spec);
     for (const dataSource of dataSources) {
       switch (dataSource.type) {
@@ -283,7 +283,7 @@ ${content}
         spec.data = [];
       }
       spec.data.unshift({
-        name: dataSource.dataSourceName + rendererOptions.dataNameSelectedSuffix
+        name: dataSource.dataSourceName + defaultCommonOptions.dataNameSelectedSuffix
       });
     }
     return vegaScope;

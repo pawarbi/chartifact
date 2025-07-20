@@ -36,34 +36,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
 
     {{RENDERER_SCRIPT}}
 
-    {{RENDERER_OPTIONS}}
-
     {{RENDER_REQUEST}}
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const renderer = new IDocs.markdown.Renderer(document.body, rendererOptions);
-
-            function render(request) {
-                if (request.markdown) {
-                    renderer.render(request.markdown);
-                } else if (request.html) {
-                    renderer.reset();
-                    document.body.innerHTML = request.html;
-                    renderer.hydrate();
-                }
-            }
-
-            render(renderRequest);
-
-            //add listener for postMessage
-            window.addEventListener('message', (event) => {
-                if (!event.data) return;
-                render(event.data);
-            });
-
-        });
-    <\/script>
+    {{SANDBOX_JS}}
 
 </head>
 
@@ -372,6 +347,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     };
     p.block.ruler.before("fence", \`container_\${c}\`, I2, { alt: ["paragraph", "reference", "blockquote", "list"] }), p.renderer.rules[\`container_\${c}_open\`] = g2, p.renderer.rules[\`container_\${c}_close\`] = C2;
   };
+  const defaultCommonOptions = {
+    dataNameSelectedSuffix: "_selected",
+    dataSignalPrefix: "data_signal:",
+    groupClassName: "group"
+  };
   /*!
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
@@ -381,19 +361,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     plugins.push(plugin);
     return "register";
   }
-  function create(options) {
-    var _a;
+  function create() {
     const md = new markdownit();
     for (const plugin of plugins) {
       plugin.initializePlugin(md);
     }
     md.use(G);
-    (_a = options == null ? void 0 : options.classList) == null ? void 0 : _a.forEach((name) => {
-      const containerOptions = { name };
-      md.use(R, containerOptions);
-    });
+    const containerOptions = { name: defaultCommonOptions.groupClassName };
+    md.use(R, containerOptions);
     const originalFence = md.renderer.rules.fence;
-    md.renderer.rules.fence = function(tokens, idx, options2, env, slf) {
+    md.renderer.rules.fence = function(tokens, idx, options, env, slf) {
       const token = tokens[idx];
       const info = token.info.trim();
       if (info.startsWith("json ")) {
@@ -404,7 +381,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
       if (originalFence) {
-        return originalFence(tokens, idx, options2, env, slf);
+        return originalFence(tokens, idx, options, env, slf);
       } else {
         return "";
       }
@@ -589,9 +566,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   */
   const defaultRendererOptions = {
     vegaRenderer: "canvas",
-    dataNameSelectedSuffix: "_selected",
-    dataSignalPrefix: "data-signal:",
-    classList: ["markdown-block"],
     useShadowDom: false,
     errorHandler: (error, pluginName, instanceIndex, phase) => {
       console.error(\`Error in plugin \${pluginName} instance \${instanceIndex} phase \${phase}\`, error);
@@ -606,7 +580,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       __publicField(this, "shadowRoot");
       __publicField(this, "element");
       this.options = { ...defaultRendererOptions, ...options };
-      this.signalBus = this.options.signalBus || new SignalBus(this.options.dataSignalPrefix);
+      this.signalBus = this.options.signalBus || new SignalBus(defaultCommonOptions.dataSignalPrefix);
       this.instances = {};
       if (this.options.useShadowDom) {
         this.shadowRoot = _element.attachShadow({ mode: "open" });
@@ -617,7 +591,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     ensureMd() {
       if (!this.md) {
-        this.md = create({ classList: this.options.classList });
+        this.md = create();
       }
     }
     async render(markdown) {
@@ -1410,7 +1384,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           continue;
         }
       }
-      const dataNameSelectedSuffix = renderer.options.dataNameSelectedSuffix;
+      const dataNameSelectedSuffix = defaultCommonOptions.dataNameSelectedSuffix;
       const instances = tabulatorInstances.map((tabulatorInstance, index) => {
         var _a;
         const initialSignals = [{
@@ -1584,7 +1558,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (!vegaInstance.spec.data)
           continue;
         for (const data of vegaInstance.spec.data) {
-          const dataSignal = dataSignals.find((signal) => signal.name === data.name || \`\${signal.name}\${renderer.options.dataNameSelectedSuffix}\` === data.name);
+          const dataSignal = dataSignals.find((signal) => signal.name === data.name || \`\${signal.name}\${defaultCommonOptions.dataNameSelectedSuffix}\` === data.name);
           if (dataSignal) {
             vegaInstance.initialSignals.push({
               name: data.name,
@@ -1766,7 +1740,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (ignoredSignals.includes(signal.name))
         return;
       let isData = isSignalDataBridge(signal);
-      if (signal.name.startsWith(renderer.options.dataSignalPrefix)) {
+      if (signal.name.startsWith(defaultCommonOptions.dataSignalPrefix)) {
         isData = true;
       }
       return {
@@ -1912,6 +1886,35 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   exports2.registerMarkdownPlugin = registerMarkdownPlugin;
   exports2.sanitizedHTML = sanitizedHTML;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
+});
+`;
+  const sandboxJs = `document.addEventListener('DOMContentLoaded', () => {
+    const renderer = new IDocs.markdown.Renderer(document.body, {
+        errorHandler: (error, pluginName, instanceIndex, phase, container, detail) => {
+            console.error(\`Error in plugin \${pluginName} at instance \${instanceIndex} during \${phase}:\`, error);
+            if (detail) {
+                console.error('Detail:', detail);
+            }
+            container.innerHTML = \`<div style="color: red;">Error: \${error.message}</div>\`;
+        }
+    });
+    function render(request) {
+        if (request.markdown) {
+            renderer.render(request.markdown);
+        }
+        else if (request.html) {
+            renderer.reset();
+            document.body.innerHTML = request.html;
+            renderer.hydrate();
+        }
+    }
+    render(renderRequest);
+    //add listener for postMessage
+    window.addEventListener('message', (event) => {
+        if (!event.data)
+            return;
+        render(event.data);
+    });
 });
 `;
   const u = (e, t) => {
@@ -2209,6 +2212,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     };
     p.block.ruler.before("fence", `container_${c}`, I2, { alt: ["paragraph", "reference", "blockquote", "list"] }), p.renderer.rules[`container_${c}_open`] = g2, p.renderer.rules[`container_${c}_close`] = C2;
   };
+  const defaultCommonOptions = {
+    dataNameSelectedSuffix: "_selected",
+    dataSignalPrefix: "data_signal:",
+    groupClassName: "group"
+  };
   /*!
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
@@ -2218,19 +2226,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     plugins.push(plugin);
     return "register";
   }
-  function create(options) {
-    var _a;
+  function create() {
     const md = new markdownit();
     for (const plugin of plugins) {
       plugin.initializePlugin(md);
     }
     md.use(G);
-    (_a = options == null ? void 0 : options.classList) == null ? void 0 : _a.forEach((name) => {
-      const containerOptions = { name };
-      md.use(R, containerOptions);
-    });
+    const containerOptions = { name: defaultCommonOptions.groupClassName };
+    md.use(R, containerOptions);
     const originalFence = md.renderer.rules.fence;
-    md.renderer.rules.fence = function(tokens, idx, options2, env, slf) {
+    md.renderer.rules.fence = function(tokens, idx, options, env, slf) {
       const token = tokens[idx];
       const info = token.info.trim();
       if (info.startsWith("json ")) {
@@ -2241,7 +2246,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
       if (originalFence) {
-        return originalFence(tokens, idx, options2, env, slf);
+        return originalFence(tokens, idx, options, env, slf);
       } else {
         return "";
       }
@@ -2426,9 +2431,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   */
   const defaultRendererOptions = {
     vegaRenderer: "canvas",
-    dataNameSelectedSuffix: "_selected",
-    dataSignalPrefix: "data-signal:",
-    classList: ["markdown-block"],
     useShadowDom: false,
     errorHandler: (error, pluginName, instanceIndex, phase) => {
       console.error(`Error in plugin ${pluginName} instance ${instanceIndex} phase ${phase}`, error);
@@ -2443,7 +2445,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       __publicField(this, "shadowRoot");
       __publicField(this, "element");
       this.options = { ...defaultRendererOptions, ...options };
-      this.signalBus = this.options.signalBus || new SignalBus(this.options.dataSignalPrefix);
+      this.signalBus = this.options.signalBus || new SignalBus(defaultCommonOptions.dataSignalPrefix);
       this.instances = {};
       if (this.options.useShadowDom) {
         this.shadowRoot = _element.attachShadow({ mode: "open" });
@@ -2454,7 +2456,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     ensureMd() {
       if (!this.md) {
-        this.md = create({ classList: this.options.classList });
+        this.md = create();
       }
     }
     async render(markdown) {
@@ -3247,7 +3249,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           continue;
         }
       }
-      const dataNameSelectedSuffix = renderer.options.dataNameSelectedSuffix;
+      const dataNameSelectedSuffix = defaultCommonOptions.dataNameSelectedSuffix;
       const instances = tabulatorInstances.map((tabulatorInstance, index) => {
         var _a;
         const initialSignals = [{
@@ -3421,7 +3423,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         if (!vegaInstance.spec.data)
           continue;
         for (const data of vegaInstance.spec.data) {
-          const dataSignal = dataSignals.find((signal) => signal.name === data.name || `${signal.name}${renderer.options.dataNameSelectedSuffix}` === data.name);
+          const dataSignal = dataSignals.find((signal) => signal.name === data.name || `${signal.name}${defaultCommonOptions.dataNameSelectedSuffix}` === data.name);
           if (dataSignal) {
             vegaInstance.initialSignals.push({
               name: data.name,
@@ -3603,7 +3605,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       if (ignoredSignals.includes(signal.name))
         return;
       let isData = isSignalDataBridge(signal);
-      if (signal.name.startsWith(renderer.options.dataSignalPrefix)) {
+      if (signal.name.startsWith(defaultCommonOptions.dataSignalPrefix)) {
         isData = true;
       }
       return {
@@ -3744,20 +3746,18 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       super(elementOrSelector, markdown, options);
       __publicField(this, "iframe");
       __publicField(this, "renderer");
-      this.renderer = new Renderer(null, { ...options == null ? void 0 : options.rendererOptions, useShadowDom: false });
+      this.renderer = new Renderer(null, { useShadowDom: false });
       const renderRequest = this.createRenderRequest(markdown);
-      const { iframe, blobUrl } = createIframe(this.getDependencies(), renderRequest, options == null ? void 0 : options.rendererOptions);
+      const { iframe } = createIframe(this.getDependencies(), renderRequest);
       this.iframe = iframe;
       this.element.appendChild(this.iframe);
       this.iframe.addEventListener("load", () => {
         var _a;
-        URL.revokeObjectURL(blobUrl);
         (_a = options == null ? void 0 : options.onReady) == null ? void 0 : _a.call(options);
       });
       this.iframe.addEventListener("error", (error) => {
         var _a;
         console.error("Error loading iframe:", error);
-        URL.revokeObjectURL(blobUrl);
         (_a = options == null ? void 0 : options.onError) == null ? void 0 : _a.call(options, new Error("Failed to load iframe"));
       });
     }
@@ -3788,9 +3788,9 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
 `;
     }
   }
-  function createIframe(dependencies, renderRequest, rendererOptions = {}) {
+  function createIframe(dependencies, renderRequest) {
     const title = "Interactive Document Sandbox";
-    const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDERER_OPTIONS}}", () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};<\/script>`).replace("{{RENDER_REQUEST}}", () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};<\/script>`);
+    const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDER_REQUEST}}", () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};<\/script>`).replace("{{SANDBOX_JS}}", () => `<script>${sandboxJs}<\/script>`);
     const htmlBlob = new Blob([html], { type: "text/html" });
     const blobUrl = URL.createObjectURL(htmlBlob);
     const iframe = document.createElement("iframe");
