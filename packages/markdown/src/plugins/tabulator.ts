@@ -3,6 +3,7 @@
 * Licensed under the MIT License.
 */
 
+import { defaultCommonOptions } from 'common';
 import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { Tabulator as TabulatorType, Options as TabulatorOptions } from 'tabulator-tables';
@@ -65,7 +66,7 @@ export const tabulatorPlugin: Plugin = {
                 continue;
             }
         }
-        const dataNameSelectedSuffix = renderer.options.dataNameSelectedSuffix;
+        const dataNameSelectedSuffix = defaultCommonOptions.dataNameSelectedSuffix;
         const instances: IInstance[] = tabulatorInstances.map((tabulatorInstance, index) => {
             const initialSignals = [{
                 name: tabulatorInstance.spec.dataSignalName,

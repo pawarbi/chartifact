@@ -1,9 +1,6 @@
-import { RendererOptions } from '@microsoft/interactive-document-markdown';
-
 export interface PreviewerOptions {
     onReady?: () => void;
     onError?: (error: Error) => void;
-    rendererOptions?: RendererOptions;
 }
 
 // Previewer class

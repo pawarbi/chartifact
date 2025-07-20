@@ -11,6 +11,7 @@ import { Resolver, resolveSpec } from '../resolver.js';
 import { ErrorHandler, Renderer } from '../renderer.js';
 import { LogLevel } from '../signalbus.js';
 import { urlParam } from './util.js';
+import { defaultCommonOptions } from 'common';
 
 const ignoredSignals = ['width', 'height', 'padding', 'autosize', 'background', 'style', 'parent', 'datum', 'item', 'event', 'cursor'];
 
@@ -71,7 +72,7 @@ export const vegaPlugin: Plugin = {
                 const dataSignal = dataSignals.find(signal =>
                     (signal.name === data.name)                 //exact match
                     ||
-                    (`${signal.name}${renderer.options.dataNameSelectedSuffix}` === data.name),   //match a selection from Tabulator
+                    (`${signal.name}${defaultCommonOptions.dataNameSelectedSuffix}` === data.name),   //match a selection from Tabulator
                 );
                 if (dataSignal) {
                     //if we find a match, add it to our initialSignals
@@ -261,7 +262,7 @@ async function createSpecInit(container: Element, index: number, renderer: Rende
         if (ignoredSignals.includes(signal.name)) return;
         let isData = isSignalDataBridge(signal as NewSignal);
         //support legacy dataPrefix
-        if (signal.name.startsWith(renderer.options.dataSignalPrefix)) {
+        if (signal.name.startsWith(defaultCommonOptions.dataSignalPrefix)) {
             isData = true;
         }
         return {

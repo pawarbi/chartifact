@@ -18,7 +18,7 @@ export class DevPreviewer extends Previewer {
 
     render(markdown: string) {
         const html = this.renderer.renderHtml(markdown);
-        this.element.innerHTML = html;
+        this.renderer.element.innerHTML = html;
         this.renderer.hydrate().catch(error => {
             this.displayError('Failed to hydrate components');
             this.options.onError?.(error);

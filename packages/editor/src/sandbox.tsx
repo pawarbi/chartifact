@@ -1,12 +1,10 @@
 import React from 'react';
 import { InteractiveDocument } from "schema";
 import { targetMarkdown } from '@microsoft/interactive-document-compiler';
-import { RendererOptions } from '@microsoft/interactive-document-markdown';
 import { Previewer, Sandbox } from 'sandbox';
 
 export interface SandboxDocumentPreviewProps {
     page: InteractiveDocument;
-    options?: RendererOptions;
     previewer?: typeof Previewer;
 }
 
@@ -27,7 +25,7 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
     componentDidMount() {
         if (this.containerRef.current && !this.sandboxRef) {
             try {
-                const markdown = targetMarkdown(this.props.page, this.props.options);
+                const markdown = targetMarkdown(this.props.page);
 
                 // Initialize sandbox instance
                 this.sandboxRef = new (this.props.previewer || Sandbox)(
@@ -66,7 +64,7 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
     processUpdate(page: InteractiveDocument) {
         if (this.sandboxRef) {
             try {
-                const markdown = targetMarkdown(page, this.props.options);
+                const markdown = targetMarkdown(page);
                 this.sandboxRef.send(markdown);
             } catch (error) {
                 if (this.containerRef.current) {
