@@ -8,7 +8,8 @@ const __dirname = path.dirname(__filename);
 // Configuration object: key becomes the filename and export name, value is the source path
 const resources = {
   rendererUmdJs: path.resolve(__dirname, '../../markdown/dist/umd/idocs.markdown.umd.js'),
-  rendererHtml: path.resolve(__dirname, '../resources/markdown.html')
+  rendererHtml: path.resolve(__dirname, '../resources/markdown.html'),
+  sandboxJs: path.resolve(__dirname, '../../webview/dist/sandbox.js'),
 };
 
 const resourcesDir = path.resolve(__dirname, '../src/resources');
