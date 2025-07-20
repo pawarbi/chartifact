@@ -7,7 +7,7 @@ import MarkdownIt, { Token } from 'markdown-it/index.js';
 import { attrs } from '@mdit/plugin-attrs';
 import { container, MarkdownItContainerOptions } from '@mdit/plugin-container';
 import { ErrorHandler, Renderer } from './renderer.js';
-import { RendererCommonOptions } from 'common';
+import { defaultCommonOptions } from 'common';
 
 declare const markdownit: typeof MarkdownIt;
 
@@ -51,7 +51,7 @@ export function registerMarkdownPlugin(plugin: Plugin) {
     return 'register';
 }
 
-export function create(options: RendererCommonOptions) {
+export function create() {
     const md = new markdownit();
     for (const plugin of plugins) {
         plugin.initializePlugin(md);
@@ -59,7 +59,7 @@ export function create(options: RendererCommonOptions) {
 
     md.use(attrs);
 
-    const containerOptions: MarkdownItContainerOptions = { name: options.groupClassName };
+    const containerOptions: MarkdownItContainerOptions = { name: defaultCommonOptions.groupClassName };
     md.use(container, containerOptions);
 
     // Default handler to preserve existing functionality

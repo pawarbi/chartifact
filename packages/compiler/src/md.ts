@@ -6,7 +6,7 @@ import { addDynamicDataLoaderToSpec, addStaticDataLoaderToSpec } from './loader.
 import { Plugins } from '@microsoft/interactive-document-markdown';
 import { VegaScope } from './scope.js';
 import { createSpecWithVariables } from './spec.js';
-import { RendererCommonOptions, defaultCommonOptions } from 'common';
+import { defaultCommonOptions } from 'common';
 
 function tickWrap(tick: string, content: string) {
     return `\`\`\`${tick}\n${content}\n\`\`\``;
@@ -38,16 +38,14 @@ export function targetMarkdown(page: InteractiveDocument<extendedElements>) {
         mdSections.push(tickWrap('css', page.layout.css));
     }
 
-    const rendererOptions = { ...defaultCommonOptions };
-
-    const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables, rendererOptions);
+    const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables);
 
     for (const dataLoader of dataLoaders.filter(dl => dl.type === 'spec')) {
         mdSections.push(chartWrap(dataLoader.spec));
     }
 
     for (const group of page.groups) {
-        mdSections.push(mdContainerWrap(rendererOptions.groupClassName, group.groupId, groupMarkdown(group, variables, vegaScope)));
+        mdSections.push(mdContainerWrap(defaultCommonOptions.groupClassName, group.groupId, groupMarkdown(group, variables, vegaScope)));
     }
 
     //spec is at the top of the markdown file
@@ -57,10 +55,10 @@ export function targetMarkdown(page: InteractiveDocument<extendedElements>) {
     return markdown;
 }
 
-function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], rendererOptions: RendererCommonOptions) {
+function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[]) {
 
     //create a Vega spec with all variables
-    const spec = createSpecWithVariables(rendererOptions.dataNameSelectedSuffix, variables);
+    const spec = createSpecWithVariables(defaultCommonOptions.dataNameSelectedSuffix, variables);
     const vegaScope = new VegaScope(spec);
 
     for (const dataSource of dataSources) {
@@ -87,7 +85,7 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], re
             spec.data = [];
         }
         spec.data.unshift({
-            name: dataSource.dataSourceName + rendererOptions.dataNameSelectedSuffix,
+            name: dataSource.dataSourceName + defaultCommonOptions.dataNameSelectedSuffix,
         });
     }
 

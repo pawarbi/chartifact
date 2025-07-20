@@ -7,13 +7,13 @@ import MarkdownIt from 'markdown-it';
 import { Renderers } from 'vega-typings';
 import { create, IInstance, plugins } from './factory.js';
 import { SignalBus } from './signalbus.js';
-import { RendererCommonOptions, defaultCommonOptions } from 'common';
+import { defaultCommonOptions } from 'common';
 
 export interface ErrorHandler {
     (error: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string): void;
 }
 
-export interface RendererOptions extends RendererCommonOptions {
+export interface RendererOptions {
     vegaRenderer?: Renderers;
     signalBus?: SignalBus;
     errorHandler?: ErrorHandler;
@@ -21,7 +21,6 @@ export interface RendererOptions extends RendererCommonOptions {
 }
 
 const defaultRendererOptions: RendererOptions = {
-    ...defaultCommonOptions,
     vegaRenderer: 'canvas',
     useShadowDom: false,
     errorHandler: (error, pluginName, instanceIndex, phase) => {
@@ -45,7 +44,7 @@ export class Renderer {
 
     constructor(_element: HTMLElement, options?: RendererOptions) {
         this.options = { ...defaultRendererOptions, ...options };
-        this.signalBus = this.options.signalBus || new SignalBus(this.options.dataSignalPrefix!);
+        this.signalBus = this.options.signalBus || new SignalBus(defaultCommonOptions.dataSignalPrefix!);
         this.instances = {};
 
         // Create shadow DOM or use regular DOM
@@ -59,7 +58,7 @@ export class Renderer {
 
     private ensureMd() {
         if (!this.md) {
-            this.md = create({ groupClassName: this.options.groupClassName });
+            this.md = create();
         }
     }
 
