@@ -29,7 +29,7 @@ ${content}
 
 const $schema = "https://vega.github.io/schema/vega/v5.json";
 
-export function targetMarkdown(page: InteractiveDocument<extendedElements>, options?: RendererCommonOptions) {
+export function targetMarkdown(page: InteractiveDocument<extendedElements>) {
     const mdSections: string[] = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
@@ -38,7 +38,7 @@ export function targetMarkdown(page: InteractiveDocument<extendedElements>, opti
         mdSections.push(tickWrap('css', page.layout.css));
     }
 
-    const rendererOptions = { ...defaultCommonOptions, ...options };
+    const rendererOptions = { ...defaultCommonOptions };
 
     const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables, rendererOptions);
 
@@ -47,7 +47,7 @@ export function targetMarkdown(page: InteractiveDocument<extendedElements>, opti
     }
 
     for (const group of page.groups) {
-        mdSections.push(mdContainerWrap(options.groupClassName, group.groupId, groupMarkdown(group, variables, vegaScope)));
+        mdSections.push(mdContainerWrap(rendererOptions.groupClassName, group.groupId, groupMarkdown(group, variables, vegaScope)));
     }
 
     //spec is at the top of the markdown file

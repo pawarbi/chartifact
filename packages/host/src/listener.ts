@@ -8,7 +8,6 @@ import { setupPostMessageHandling } from './post-receive.js';
 import { InteractiveDocument, InteractiveDocumentWithSchema } from 'schema';
 import { postStatus } from './post-send.js';
 import { ListenOptions } from './types.js';
-import { RendererOptions } from '@microsoft/interactive-document-markdown';
 
 function getElement<T extends HTMLElement = HTMLElement>(elementOrSelector: string | T): T | null {
   if (typeof elementOrSelector === 'string') {
@@ -32,7 +31,6 @@ export interface InitializeOptions {
   fileInput?: string | HTMLElement;
   textarea?: string | HTMLTextAreaElement;
   options?: ListenOptions;
-  rendererOptions?: RendererOptions;
 }
 
 const defaultOptions: ListenOptions = {
@@ -54,14 +52,12 @@ export class Listener {
   public fileInput: HTMLElement;
   public textarea: HTMLTextAreaElement;
   public sandbox: Sandbox;
-  public rendererOptions: RendererOptions;
 
   private removeInteractionHandlers: (() => void)[];
   private sandboxReady: boolean = false;
 
   constructor(options: InitializeOptions) {
     this.options = { ...defaultOptions, ...options?.options };
-    this.rendererOptions = { ...options?.rendererOptions };
     this.removeInteractionHandlers = [];
 
     this.appDiv = getElement(options.app);
@@ -189,7 +185,7 @@ export class Listener {
 
   private renderInteractiveDocument(content: InteractiveDocument) {
     postStatus(this.options.postMessageTarget, { status: 'compiling', details: 'Starting interactive document compilation' });
-    const markdown = targetMarkdown(content, this.rendererOptions);
+    const markdown = targetMarkdown(content);
     this.renderMarkdown(markdown);
   }
 
