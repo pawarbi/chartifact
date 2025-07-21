@@ -6,6 +6,7 @@ import react from '@vitejs/plugin-react';
 const commonOutputConfig = {
   format: 'umd',
   name: 'IDocs',
+  extend: true,
   globals: {
     'react': 'React',
     'react-dom': 'ReactDOM',

@@ -5,6 +5,7 @@ import commonjs from '@rollup/plugin-commonjs';
 const commonOutputConfig = {
   format: 'umd',
   name: 'IDocs',
+  extend: true,
   globals: {
     'vega': 'vega',
     'vega-lite': 'vegaLite',
