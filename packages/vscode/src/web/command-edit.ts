@@ -201,7 +201,6 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 		script(resourceUrl('react.production.min.js')),
 		script(resourceUrl('react-dom.production.min.js')),
 		script(resourceUrl('markdown-it.min.js')),
-		script(resourceUrl('idocs.sandbox.umd.js')),
 		script(resourceUrl('idocs.editor.umd.js')),
 		script(resourceUrl('edit.js')),
 	].join('\n    ');
