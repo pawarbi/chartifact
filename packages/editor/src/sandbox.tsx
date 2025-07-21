@@ -1,7 +1,7 @@
 import React from 'react';
 import { InteractiveDocument } from "schema";
 import { targetMarkdown } from '@microsoft/interactive-document-compiler';
-import { Previewer, Sandbox } from 'sandbox';
+import { Previewer, Sandbox } from '@microsoft/chartifact-sandbox';
 
 export interface SandboxDocumentPreviewProps {
     page: InteractiveDocument;

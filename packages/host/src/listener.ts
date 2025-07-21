@@ -1,4 +1,4 @@
-import { Sandbox } from 'sandbox';
+import { Sandbox } from '@microsoft/chartifact-sandbox';
 import { targetMarkdown } from '@microsoft/interactive-document-compiler';
 import { setupClipboardHandling } from './clipboard.js';
 import { setupDragDropHandling } from './dragdrop.js';

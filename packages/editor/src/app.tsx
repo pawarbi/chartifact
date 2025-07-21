@@ -1,7 +1,7 @@
 import { InteractiveDocument } from "schema";
 import { Editor } from './editor.js';
 import { PageMessage, EditorMessage } from "./types.js";
-import { Previewer } from "sandbox";
+import { Previewer } from '@microsoft/chartifact-sandbox';
 
 export interface AppProps {
     previewer: typeof Previewer;
