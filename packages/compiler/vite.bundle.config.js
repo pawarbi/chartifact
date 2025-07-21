@@ -4,7 +4,7 @@ import commonjs from '@rollup/plugin-commonjs';
 
 const commonOutputConfig = {
   format: 'umd',
-  name: 'IDocs.compiler',
+  name: 'IDocs',
   globals: {
     'vega': 'vega',
     'vega-lite': 'vegaLite',
@@ -15,7 +15,7 @@ const commonOutputConfig = {
 export default defineConfig({
   build: {
     lib: {
-      entry: './dist/esnext/index.js',
+      entry: './umd.ts',
     },
     minify: false,
     rollupOptions: {

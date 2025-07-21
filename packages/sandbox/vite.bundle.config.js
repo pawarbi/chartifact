@@ -4,7 +4,7 @@ import commonjs from '@rollup/plugin-commonjs';
 
 const commonOutputConfig = {
   format: 'umd',
-  name: 'IDocs.sandbox',
+  name: 'IDocs',
   globals: {
     'markdown-it': 'markdownit',
     'vega': 'vega',
@@ -16,7 +16,7 @@ const commonOutputConfig = {
 export default defineConfig({
   build: {
     lib: {
-      entry: './src/index.ts',
+      entry: './umd.ts',
     },
     minify: false,
     emptyOutDir: false,

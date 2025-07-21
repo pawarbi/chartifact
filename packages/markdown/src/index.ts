@@ -12,13 +12,13 @@ registerNativePlugins();
 
 export {
     definePlugin,
-    Plugin,
+    type Plugin,
     plugins,
     registerMarkdownPlugin,
     Renderer,
-    RendererOptions,
+    type RendererOptions,
     sanitizedHTML,
 };
 
-export * as Plugins from './plugins/interfaces.js';
-export { Batch, IInstance } from './factory.js';
+export type * as Plugins from './plugins/interfaces.js';
+export type { Batch, IInstance } from './factory.js';
