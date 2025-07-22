@@ -175,6 +175,21 @@ interface ImageElement extends ElementBase {
     urlRef: UrlRef;
 }
 /**
+ * Presets
+ * use for storing and applying preset batches of signal states
+ */
+interface PresetsElement extends ElementBase {
+    type: 'presets';
+    presets: Preset[];
+}
+interface Preset {
+    name: string;
+    description?: string;
+    state: {
+        [signalName: string]: unknown;
+    };
+}
+/**
  * Table
  * use for tabular data
  */
@@ -187,19 +202,19 @@ interface TableElement extends ElementBase {
 /**
  * Union type for all possible interactive elements
  */
-type InteractiveElement = ChartElement | CheckboxElement | DropdownElement | ImageElement | SliderElement | TableElement | TextboxElement;
+type InteractiveElement = ChartElement | CheckboxElement | DropdownElement | ImageElement | PresetsElement | SliderElement | TableElement | TextboxElement;
 interface Layout {
     css: string;
 }
-interface ElementGroup<T = never> {
+interface ElementGroup {
     groupId: string;
-    elements: PageElement<T>[];
+    elements: PageElement[];
 }
 /** Define the basic structure of an interactive document */
-interface InteractiveDocument<T = never> {
+interface InteractiveDocument {
     title: string;
     /** the first groupId should be 'main' */
-    groups: ElementGroup<T>[];
+    groups: ElementGroup[];
     /**
      * DataLoaders populate variables for tables and charts
      * Note: 'image' is not a valid type for a variable, do not provide a dataLoader if returnType.type = 'image',
@@ -216,21 +231,9 @@ interface InteractiveDocument<T = never> {
  */
 type MarkdownElement = string;
 /** Union type for all possible elements */
-type PageElement<T = never> = MarkdownElement | InteractiveElement | T;
-interface Preset {
-    name: string;
-    description?: string;
-    state: {
-        [signalName: string]: unknown;
-    };
-}
-interface PresetsElement extends ElementBase {
-    type: 'presets';
-    presets: Preset[];
-}
-type extendedElements = PresetsElement;
+type PageElement = MarkdownElement | InteractiveElement;
 /** JSON Schema version with $schema property for validation */
 type InteractiveDocumentWithSchema = InteractiveDocument & {
     $schema?: string;
 };
-export type { Calculation, ChartElement, ChartFull, ChartPlaceholder, ChartValue, CheckboxElement, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceByJSON, DropdownElement, DynamicDropdownOptions, ElementBase, ElementGroup, ImageElement, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, Layout, MappedNameValuePairs, MarkdownElement, NameValuePairs, PageElement, Preset, PresetsElement, ReturnType, SliderElement, TableElement, TextboxElement, UrlRef, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive, extendedElements };
+export type { Calculation, ChartElement, ChartFull, ChartPlaceholder, ChartValue, CheckboxElement, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceByJSON, DropdownElement, DynamicDropdownOptions, ElementBase, ElementGroup, ImageElement, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, Layout, MappedNameValuePairs, MarkdownElement, NameValuePairs, PageElement, Preset, PresetsElement, ReturnType, SliderElement, TableElement, TextboxElement, UrlRef, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive };

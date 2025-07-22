@@ -6,16 +6,16 @@ export interface Layout {
   css: string;
 }
 
-export interface ElementGroup<T = never> {
+export interface ElementGroup {
   groupId: string;
-  elements: PageElement<T>[];
+  elements: PageElement[];
 }
 
 /** Define the basic structure of an interactive document */
-export interface InteractiveDocument<T = never> {
+export interface InteractiveDocument {
   title: string;
   /** the first groupId should be 'main' */
-  groups: ElementGroup<T>[];
+  groups: ElementGroup[];
 
   /**
    * DataLoaders populate variables for tables and charts
@@ -37,4 +37,4 @@ export interface InteractiveDocument<T = never> {
 export type MarkdownElement = string;
 
 /** Union type for all possible elements */
-export type PageElement<T = never> = MarkdownElement | InteractiveElement | T;
+export type PageElement = MarkdownElement | InteractiveElement;

@@ -95,6 +95,21 @@ export interface ImageElement extends ElementBase {
 }
 
 /**
+ * Presets
+ * use for storing and applying preset batches of signal states
+ */
+export interface PresetsElement extends ElementBase {
+    type: 'presets';
+    presets: Preset[];
+}
+
+export interface Preset {
+    name: string;
+    description?: string;
+    state: { [signalName: string]: unknown };
+}
+
+/**
  * Table
  * use for tabular data
  */
@@ -155,6 +170,7 @@ export type InteractiveElement =
   | CheckboxElement
   | DropdownElement
   | ImageElement
+  | PresetsElement
   | SliderElement
   | TableElement
   | TextboxElement
