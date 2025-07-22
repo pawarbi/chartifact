@@ -4,11 +4,11 @@ import commonjs from '@rollup/plugin-commonjs';
 
 const commonOutputConfig = {
   format: 'umd',
-  name: 'IDocs.host',
+  name: 'IDocs',
+  extend: true,
   globals: {
     'vega': 'vega',
     'vega-lite': 'vegaLite',
-    'sandbox': 'IDocs.sandbox',
   },
   entryFileNames: 'idocs.host.umd.js',
 };
@@ -16,13 +16,13 @@ const commonOutputConfig = {
 export default defineConfig({
   build: {
     lib: {
-      entry: './src/index.ts',
+      entry: './umd.ts',
     },
     minify: false,
     emptyOutDir: false,
     rollupOptions: {
       // External dependencies that the library expects consumers to provide
-      external: ['vega', 'vega-lite', 'sandbox'],
+      external: ['vega', 'vega-lite'],
       output: [
         {
           ...commonOutputConfig,

@@ -1,7 +1,7 @@
 {
-  "name": "sandbox",
+  "name": "@microsoft/chartifact-sandbox",
   "version": "1.0.0",
-  "description": "Secure sandbox for interactive documents renderer",
+  "description": "Secure sandbox for Chartifact renderer",
   "type": "module",
   "main": "dist/esnext/index.js",
   "scripts": {

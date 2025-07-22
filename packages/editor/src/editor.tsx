@@ -1,7 +1,7 @@
 import { InteractiveDocument } from "schema";
 import { EditorMessage, PageMessage, ReadyMessage } from "./types.js";
 import { SandboxDocumentPreview } from "./sandbox.js";
-import { Previewer } from "sandbox";
+import { Previewer } from '@microsoft/chartifact-sandbox';
 
 export interface EditorProps {
     postMessageTarget?: Window;

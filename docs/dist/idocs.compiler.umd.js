@@ -1,10 +1,19 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory((global.IDocs = global.IDocs || {}, global.IDocs.compiler = {})));
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.IDocs = global.IDocs || {}));
 })(this, function(exports2) {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
+  const defaultCommonOptions = {
+    dataNameSelectedSuffix: "_selected",
+    dataSignalPrefix: "data_signal:",
+    groupClassName: "group"
+  };
+  const index$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+    __proto__: null,
+    defaultCommonOptions
+  }, Symbol.toStringTag, { value: "Module" }));
   function safeVariableName(name) {
     return name.replace(/[^a-zA-Z0-9_]/g, "_");
   }
@@ -55,10 +64,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     if (!spec.signals) {
       spec.signals = [];
     }
-    spec.signals.push({
-      name: dataSourceName,
-      update: `data('${dataSourceName}')`
-    });
+    spec.signals.push(
+      {
+        name: dataSourceName,
+        update: `data('${dataSourceName}')`
+      }
+    );
     if (!spec.data) {
       spec.data = [];
     }
@@ -84,10 +95,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     if (!spec.signals) {
       spec.signals = [];
     }
-    spec.signals.push({
-      name: dataSourceName,
-      update: `data('${dataSourceName}')`
-    });
+    spec.signals.push(
+      {
+        name: dataSourceName,
+        update: `data('${dataSourceName}')`
+      }
+    );
     if (!spec.data) {
       spec.data = [];
     }
@@ -100,7 +113,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   }
   class VegaScope {
     constructor(spec) {
-      __publicField(this, "spec");
       __publicField(this, "urlCount", 0);
       this.spec = spec;
     }
@@ -165,8 +177,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     const queue = [];
     for (const [name, degree] of inDegree.entries()) {
-      if (degree === 0)
-        queue.push(name);
+      if (degree === 0) queue.push(name);
     }
     const sorted = [];
     while (queue.length) {
@@ -220,10 +231,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     var _a, _b;
     return variable.type === "object" && !!variable.isArray && (((_a = variable.calculation) == null ? void 0 : _a.dependsOn) !== void 0 && variable.calculation.dependsOn.length > 0 || ((_b = variable.calculation) == null ? void 0 : _b.dataFrameTransformations) !== void 0 && variable.calculation.dataFrameTransformations.length > 0);
   }
-  const defaultCommonOptions = {
-    dataNameSelectedSuffix: "_selected",
-    groupClassName: "group"
-  };
   function tickWrap(tick, content) {
     return `\`\`\`${tick}
 ${content}
@@ -402,7 +409,12 @@ ${content}
     const markdown = mdElements.join("\n\n");
     return markdown;
   }
-  exports2.changePageOrigin = changePageOrigin;
-  exports2.targetMarkdown = targetMarkdown;
+  const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+    __proto__: null,
+    changePageOrigin,
+    targetMarkdown
+  }, Symbol.toStringTag, { value: "Module" }));
+  exports2.common = index$1;
+  exports2.compiler = index;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });
