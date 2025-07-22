@@ -1,0 +1,61 @@
+{
+    "$schema": "../../../schema/idoc_v1.json",
+    "title": "Feature: Data Sources",
+    "dataLoaders": [
+        {
+            "dataSourceName": "jsonData",
+            "type": "json",
+            "content": [
+                {"item": "Stapler", "category": "Office Tools", "price": 12.99, "inStock": true, "quantity": 25},
+                {"item": "Printer Paper", "category": "Paper", "price": 8.50, "inStock": true, "quantity": 150},
+                {"item": "Blue Pens", "category": "Writing", "price": 3.25, "inStock": false, "quantity": 0},
+                {"item": "Notebooks", "category": "Paper", "price": 5.75, "inStock": true, "quantity": 40},
+                {"item": "Desk Lamp", "category": "Furniture", "price": 29.99, "inStock": true, "quantity": 8},
+                {"item": "Paper Clips", "category": "Office Tools", "price": 2.10, "inStock": true, "quantity": 200},
+                {"item": "Whiteboard Markers", "category": "Writing", "price": 7.80, "inStock": false, "quantity": 0},
+                {"item": "File Folders", "category": "Storage", "price": 4.45, "inStock": true, "quantity": 75},
+                {"item": "Ergonomic Chair", "category": "Furniture", "price": 189.99, "inStock": true, "quantity": 3},
+                {"item": "Post-it Notes", "category": "Paper", "price": 6.25, "inStock": true, "quantity": 120},
+                {"item": "Hole Punch", "category": "Office Tools", "price": 15.50, "inStock": false, "quantity": 0},
+                {"item": "Scissors", "category": "Office Tools", "price": 9.75, "inStock": true, "quantity": 18}
+            ]
+        },
+        {
+            "dataSourceName": "csvData",
+            "type": "url",
+            "format": "csv",
+            "urlRef": {
+                "origin": "https://vega.github.io",
+                "urlPath": "/editor/data/stocks.csv"
+            }
+        }
+    ],
+    "groups": [
+        {
+            "groupId": "main",
+            "elements": [
+                "## Data Sources\nLoad data from JSON, CSV, TSV, or URLs with optional transformations.",
+                "### JSON Data",
+                {
+                    "type": "table",
+                    "dataSourceName": "jsonData",
+                    "options": {
+                        "autoColumns": true,
+                        "layout": "fitColumns",
+                        "maxHeight": "100px"
+                    }
+                },
+                "### CSV from URL",
+                {
+                    "type": "table",
+                    "dataSourceName": "csvData",
+                    "options": {
+                        "autoColumns": true,
+                        "layout": "fitColumns",
+                        "maxHeight": "200px"
+                    }
+                }
+            ]
+        }
+    ]
+}

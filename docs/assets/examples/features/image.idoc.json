@@ -1,0 +1,32 @@
+{
+    "$schema": "../../../schema/idoc_v1.json",
+    "title": "Feature: Image",
+    "groups": [
+        {
+            "groupId": "main",
+            "elements": [
+                "## Image\nUse images for displaying graphics from URLs or server-generated visualizations.",
+                {
+                    "type": "image",
+                    "alt": "Sample visualization",
+                    "width": 400,
+                    "height": 300,
+                    "urlRef": {
+                        "origin": "https://picsum.photos",
+                        "urlPath": "/400/300"
+                    }
+                },
+                "### Server-Generated Images",
+                "Images are particularly powerful for server-side generated visualizations:",
+                "- **Python plots** - matplotlib, seaborn, plotly exports",
+                "- **R visualizations** - ggplot2, base R graphics",
+                "- **Dynamic charts** - generated based on current data",
+                "- **Custom graphics** - any server-side image generation",
+                "",
+                "Example server endpoint: `/api/regressionplot?target={{targetVariable}}&model={{modelType}}&theme={{colorTheme}}`",
+                "",
+                "Images support dynamic URLs with query parameters and can be regenerated in real-time."
+            ]
+        }
+    ]
+}
