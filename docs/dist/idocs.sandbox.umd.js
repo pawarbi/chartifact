@@ -1577,6 +1577,12 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                 const matchData = (_a = spec.data) == null ? void 0 : _a.find((data) => data.name === signalName);
                 if (matchData && vegaInstance.dataSignals.includes(matchData.name)) {
                   renderer.signalBus.log(vegaInstance.id, "listening to data", signalName);
+                  if (renderer.signalBus.signalDeps[signalName].value === void 0 && view.data(signalName).length > 0) {
+                    renderer.signalBus.log(vegaInstance.id, "un-initialized", signalName);
+                    const batch = {};
+                    batch[signalName] = { value: view.data(signalName), isData: true };
+                    renderer.signalBus.broadcast(vegaInstance.id, batch);
+                  }
                   view.addDataListener(signalName, async (name, value) => {
                     startBatch(`data:${signalName}`);
                     vegaInstance.batch[name] = { value, isData };
@@ -3438,6 +3444,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 const matchData = (_a = spec.data) == null ? void 0 : _a.find((data) => data.name === signalName);
                 if (matchData && vegaInstance.dataSignals.includes(matchData.name)) {
                   renderer.signalBus.log(vegaInstance.id, "listening to data", signalName);
+                  if (renderer.signalBus.signalDeps[signalName].value === void 0 && view.data(signalName).length > 0) {
+                    renderer.signalBus.log(vegaInstance.id, "un-initialized", signalName);
+                    const batch = {};
+                    batch[signalName] = { value: view.data(signalName), isData: true };
+                    renderer.signalBus.broadcast(vegaInstance.id, batch);
+                  }
                   view.addDataListener(signalName, async (name, value) => {
                     startBatch(\`data:\${signalName}\`);
                     vegaInstance.batch[name] = { value, isData };

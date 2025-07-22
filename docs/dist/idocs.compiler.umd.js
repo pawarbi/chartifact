@@ -86,7 +86,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       };
       newData.values = [dataSource.content];
     }
-    spec.data.push(newData);
+    spec.data.unshift(newData);
   }
   function addDynamicDataLoaderToSpec(vegaScope, dataSource) {
     const { spec } = vegaScope;

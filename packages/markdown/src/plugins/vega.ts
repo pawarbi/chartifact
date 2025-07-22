@@ -135,6 +135,16 @@ export const vegaPlugin: Plugin = {
                             const matchData = spec.data?.find(data => data.name === signalName);
                             if (matchData && vegaInstance.dataSignals.includes(matchData.name)) {
                                 renderer.signalBus.log(vegaInstance.id, 'listening to data', signalName);
+
+                                //if current signalbus value has not been initialized and we have data, send it through
+                                if (renderer.signalBus.signalDeps[signalName].value === undefined
+                                    && view.data(signalName).length > 0) {
+                                    renderer.signalBus.log(vegaInstance.id, 'un-initialized', signalName);
+                                    const batch: Batch = {};
+                                    batch[signalName] = { value: view.data(signalName), isData: true };
+                                    renderer.signalBus.broadcast(vegaInstance.id, batch);
+                                }
+
                                 view.addDataListener(signalName, async (name, value) => {
                                     startBatch(`data:${signalName}`);
                                     vegaInstance.batch[name] = { value, isData };

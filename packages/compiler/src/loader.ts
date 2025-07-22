@@ -36,7 +36,7 @@ export function addStaticDataLoaderToSpec(vegaScope: VegaScope, dataSource: Data
         newData.values = [dataSource.content];
     }
 
-    spec.data.push(newData);
+    spec.data.unshift(newData);
 }
 
 export function addDynamicDataLoaderToSpec(vegaScope: VegaScope, dataSource: DataSourceByDynamicURL) {
