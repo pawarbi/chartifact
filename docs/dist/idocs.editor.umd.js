@@ -73,7 +73,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     const newData = {
       name: dataSourceName,
-      values: []
+      values: [],
+      transform: dataSource.dataFrameTransformations || []
     };
     if (dataSource.type === "json") {
       newData.values = dataSource.content;
@@ -4506,28 +4507,43 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     )));
   }
   const initialPage = {
-    title: "Sample Page",
-    layout: {
-      css: "body, .body { background: beige; padding: 8px; margin: 0; }"
-    },
-    groups: [
+    "title": "Seattle Weather",
+    "dataLoaders": [
       {
-        groupId: "main",
-        elements: [
-          "# Welcome to Interactive Documents",
-          "1 This is a sample page loaded via postMessage.",
-          "2 This is a sample page loaded via postMessage.",
+        "type": "url",
+        "urlRef": {
+          "origin": "https://vega.github.io",
+          "urlPath": "/editor/data/seattle-weather.csv"
+        },
+        "dataSourceName": "seattle_weather",
+        "format": "csv",
+        "dataFrameTransformations": []
+      }
+    ],
+    "groups": [
+      {
+        "groupId": "main",
+        "elements": [
+          "# Seattle Weather\n\nData table:",
           {
-            type: "chart",
-            chart: {
-              chartIntent: "bar chart",
-              chartTemplateKey: "default-bar-chart",
-              dataSourceBase: {
-                dataSourceName: "seattle-weather"
+            "type": "table",
+            "dataSourceName": "seattle_weather",
+            "options": {}
+          },
+          "Here is a stacked bar chart of Seattle weather:\nEach bar represents the count of weather types for each month.\nThe colors distinguish between different weather conditions such as sun, fog, drizzle, rain, and snow.",
+          {
+            "type": "chart",
+            "chart": {
+              "dataSourceBase": {
+                "dataSourceName": "data"
               },
-              spec: {
+              "chartTemplateKey": "bar",
+              "chartIntent": "A bar chart showing the distribution of weather types over months.",
+              "spec": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-                "data": { "url": "https://vega.github.io/editor/data/seattle-weather.csv" },
+                "data": {
+                  "name": "seattle_weather"
+                },
                 "mark": "bar",
                 "encoding": {
                   "x": {
@@ -4544,8 +4560,20 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                     "field": "weather",
                     "type": "nominal",
                     "scale": {
-                      "domain": ["sun", "fog", "drizzle", "rain", "snow"],
-                      "range": ["#e7ba52", "#c7c7c7", "#aec7e8", "#1f77b4", "#9467bd"]
+                      "domain": [
+                        "sun",
+                        "fog",
+                        "drizzle",
+                        "rain",
+                        "snow"
+                      ],
+                      "range": [
+                        "#e7ba52",
+                        "#c7c7c7",
+                        "#aec7e8",
+                        "#1f77b4",
+                        "#9467bd"
+                      ]
                     },
                     "title": "Weather type"
                   }
@@ -4553,8 +4581,60 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
               }
             }
           },
-          "3 This is a sample page loaded via postMessage.",
-          "The App component controls what content is displayed."
+          "This section introduces a heatmap visualization for the Seattle weather dataset.\nThe heatmap is designed to display the distribution and intensity of weather-related variables,\nsuch as temperature, precipitation, or frequency of weather events, across different time periods or categories.\nIt provides an intuitive way to identify patterns, trends, and anomalies in the dataset.",
+          {
+            "type": "chart",
+            "chart": {
+              "dataSourceBase": {
+                "dataSourceName": "data"
+              },
+              "chartTemplateKey": "heatmap",
+              "chartIntent": "A heatmap showing the distribution of daily maximum temperatures in Seattle.",
+              "spec": {
+                "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+                "data": {
+                  "name": "seattle_weather"
+                },
+                "title": "Daily Max Temperatures (C) in Seattle, WA",
+                "config": {
+                  "view": {
+                    "strokeWidth": 0,
+                    "step": 13
+                  },
+                  "axis": {
+                    "domain": false
+                  }
+                },
+                "mark": "rect",
+                "encoding": {
+                  "x": {
+                    "field": "date",
+                    "timeUnit": "date",
+                    "type": "ordinal",
+                    "title": "Day",
+                    "axis": {
+                      "labelAngle": 0,
+                      "format": "%e"
+                    }
+                  },
+                  "y": {
+                    "field": "date",
+                    "timeUnit": "month",
+                    "type": "ordinal",
+                    "title": "Month"
+                  },
+                  "color": {
+                    "field": "temp_max",
+                    "aggregate": "max",
+                    "type": "quantitative",
+                    "legend": {
+                      "title": null
+                    }
+                  }
+                }
+              }
+            }
+          }
         ]
       }
     ]

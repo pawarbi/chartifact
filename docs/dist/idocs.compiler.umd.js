@@ -75,7 +75,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     const newData = {
       name: dataSourceName,
-      values: []
+      values: [],
+      transform: dataSource.dataFrameTransformations || []
     };
     if (dataSource.type === "json") {
       newData.values = dataSource.content;
