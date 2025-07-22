@@ -1569,7 +1569,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
             }
           },
           beginListening: (sharedSignals) => {
-            var _a, _b;
+            var _a, _b, _c;
             for (const { isData, signalName } of sharedSignals) {
               if (ignoredSignals.includes(signalName))
                 return;
@@ -1577,7 +1577,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                 const matchData = (_a = spec.data) == null ? void 0 : _a.find((data) => data.name === signalName);
                 if (matchData && vegaInstance.dataSignals.includes(matchData.name)) {
                   renderer.signalBus.log(vegaInstance.id, "listening to data", signalName);
-                  if (renderer.signalBus.signalDeps[signalName].value === void 0 && view.data(signalName).length > 0) {
+                  if (renderer.signalBus.signalDeps[signalName].value === void 0 && ((_b = view.data(signalName)) == null ? void 0 : _b.length) > 0) {
                     renderer.signalBus.log(vegaInstance.id, "un-initialized", signalName);
                     const batch = {};
                     batch[signalName] = { value: view.data(signalName), isData: true };
@@ -1589,7 +1589,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                   });
                 }
               }
-              const matchSignal = (_b = spec.signals) == null ? void 0 : _b.find((signal) => signal.name === signalName);
+              const matchSignal = (_c = spec.signals) == null ? void 0 : _c.find((signal) => signal.name === signalName);
               if (matchSignal) {
                 const isChangeSource = matchSignal.on || // event streams
                 matchSignal.bind || // ui elements
@@ -3437,14 +3437,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             }
           },
           beginListening: (sharedSignals) => {
-            var _a, _b;
+            var _a, _b, _c;
             for (const { isData, signalName } of sharedSignals) {
               if (ignoredSignals.includes(signalName)) return;
               if (isData) {
                 const matchData = (_a = spec.data) == null ? void 0 : _a.find((data) => data.name === signalName);
                 if (matchData && vegaInstance.dataSignals.includes(matchData.name)) {
                   renderer.signalBus.log(vegaInstance.id, "listening to data", signalName);
-                  if (renderer.signalBus.signalDeps[signalName].value === void 0 && view.data(signalName).length > 0) {
+                  if (renderer.signalBus.signalDeps[signalName].value === void 0 && ((_b = view.data(signalName)) == null ? void 0 : _b.length) > 0) {
                     renderer.signalBus.log(vegaInstance.id, "un-initialized", signalName);
                     const batch = {};
                     batch[signalName] = { value: view.data(signalName), isData: true };
@@ -3456,7 +3456,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                   });
                 }
               }
-              const matchSignal = (_b = spec.signals) == null ? void 0 : _b.find((signal) => signal.name === signalName);
+              const matchSignal = (_c = spec.signals) == null ? void 0 : _c.find((signal) => signal.name === signalName);
               if (matchSignal) {
                 const isChangeSource = matchSignal.on || // event streams
                 matchSignal.bind || // ui elements

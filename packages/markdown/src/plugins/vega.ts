@@ -138,7 +138,7 @@ export const vegaPlugin: Plugin = {
 
                                 //if current signalbus value has not been initialized and we have data, send it through
                                 if (renderer.signalBus.signalDeps[signalName].value === undefined
-                                    && view.data(signalName).length > 0) {
+                                    && view.data(signalName)?.length > 0) {
                                     renderer.signalBus.log(vegaInstance.id, 'un-initialized', signalName);
                                     const batch: Batch = {};
                                     batch[signalName] = { value: view.data(signalName), isData: true };
