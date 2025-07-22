@@ -10,6 +10,7 @@
     "copy-schema": "node scripts/copy-schema.js",
     "declaration": "rollup -c rollup.config.types.js",
     "strip-blanks": "node scripts/strip-blanks.js",
+    "dev": "tsc -p . -w",
     "tsc": "tsc -p .",
     "build": "npm run tsc && npm run declaration && npm run strip-blanks && npm run schema && npm run copy-schema",
     "build:01": "npm run build"
