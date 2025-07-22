@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../schema/v1.json",
+  "$schema": "../../../schema/idoc_v1.json",
   "title": "Seattle Weather",
   "groups": [
     {
