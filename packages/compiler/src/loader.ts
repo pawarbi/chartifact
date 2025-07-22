@@ -24,6 +24,7 @@ export function addStaticDataLoaderToSpec(vegaScope: VegaScope, dataSource: Data
     const newData: ValuesData = {
         name: dataSourceName,
         values: [],
+        transform: dataSource.dataFrameTransformations || [],
     };
 
     if (dataSource.type === 'json') {
