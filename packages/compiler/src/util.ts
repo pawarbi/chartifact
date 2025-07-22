@@ -1,4 +1,4 @@
-import { DataSourceBaseFormat, DataSourceByDynamicURL, extendedElements, ImageElement, InteractiveElement, InteractiveDocument, PageElement, UrlRef } from "schema";
+import { DataSourceBaseFormat, DataSourceByDynamicURL, ImageElement, InteractiveElement, InteractiveDocument, PageElement, UrlRef } from "schema";
 import { Spec as VegaSpec } from 'vega-typings';
 import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
 
@@ -54,7 +54,7 @@ export function getChartType(spec?: VegaSpec | VegaLiteSpec) {
 
 const interactiveTypes = ['checkbox', 'dropdown', 'slider', 'textbox'];
 
-export function isInteractiveElement(element: PageElement<extendedElements>) {
+export function isInteractiveElement(element: PageElement) {
     if (typeof element === 'string') {
         return false;
     }
@@ -64,7 +64,7 @@ export function isInteractiveElement(element: PageElement<extendedElements>) {
     return interactiveTypes.includes(element.type);
 }
 
-export function getInteractiveElements(page: InteractiveDocument<extendedElements>) {
+export function getInteractiveElements(page: InteractiveDocument) {
     const interactiveElements = page.groups.map(g => g.elements).flat().filter(e => isInteractiveElement(e)) as InteractiveElement[];
     return interactiveElements;
 }
@@ -89,7 +89,7 @@ export function compareUrls(a: string, b: string) {
         ;
 }
 
-export function gatherPageOrigins(page: InteractiveDocument<extendedElements>) {
+export function gatherPageOrigins(page: InteractiveDocument) {
     const origins = new Set<string>();
 
     // Collect origins from dataLoaders
@@ -111,8 +111,8 @@ export function gatherPageOrigins(page: InteractiveDocument<extendedElements>) {
     return Array.from(origins);
 }
 
-export function changePageOrigin(page: InteractiveDocument<extendedElements>, oldOrigin: string, newOriginUrl: URL) {
-    const newPage: InteractiveDocument<extendedElements> = {
+export function changePageOrigin(page: InteractiveDocument, oldOrigin: string, newOriginUrl: URL) {
+    const newPage: InteractiveDocument = {
         ...page,
         dataLoaders: page.dataLoaders.map(loader => {
             if (loader.type === 'url' && loader.urlRef.origin === oldOrigin) {

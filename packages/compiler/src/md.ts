@@ -1,6 +1,6 @@
 import { Spec as VegaSpec } from 'vega-typings';
 import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
-import { ChartFull, DataSource, ElementGroup, extendedElements, InteractiveDocument, Variable } from 'schema';
+import { ChartFull, DataSource, ElementGroup, InteractiveDocument, Variable } from 'schema';
 import { getChartType } from './util.js';
 import { addDynamicDataLoaderToSpec, addStaticDataLoaderToSpec } from './loader.js';
 import { Plugins } from '@microsoft/interactive-document-markdown';
@@ -29,7 +29,7 @@ ${content}
 
 const $schema = "https://vega.github.io/schema/vega/v5.json";
 
-export function targetMarkdown(page: InteractiveDocument<extendedElements>) {
+export function targetMarkdown(page: InteractiveDocument) {
     const mdSections: string[] = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
@@ -92,7 +92,7 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[]) {
     return vegaScope;
 }
 
-function groupMarkdown(group: ElementGroup<extendedElements>, variables: Variable[], vegaScope: VegaScope) {
+function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: VegaScope) {
     const mdElements: string[] = [];
     for (const element of group.elements) {
         if (typeof element === 'string') {

@@ -1016,12 +1016,12 @@
       ],
       "type": "object"
     },
-    "ElementGroup<never>": {
+    "ElementGroup": {
       "additionalProperties": false,
       "properties": {
         "elements": {
           "items": {
-            "$ref": "#/definitions/PageElement%3Cnever%3E"
+            "$ref": "#/definitions/PageElement"
           },
           "type": "array"
         },
@@ -1743,7 +1743,7 @@
         "groups": {
           "description": "the first groupId should be 'main'",
           "items": {
-            "$ref": "#/definitions/ElementGroup%3Cnever%3E"
+            "$ref": "#/definitions/ElementGroup"
           },
           "type": "array"
         },
@@ -1780,6 +1780,9 @@
         },
         {
           "$ref": "#/definitions/ImageElement"
+        },
+        {
+          "$ref": "#/definitions/PresetsElement"
         },
         {
           "$ref": "#/definitions/SliderElement"
@@ -2368,7 +2371,7 @@
       ],
       "type": "object"
     },
-    "PageElement<never>": {
+    "PageElement": {
       "anyOf": [
         {
           "$ref": "#/definitions/MarkdownElement"
@@ -2478,6 +2481,47 @@
         "type",
         "field",
         "value"
+      ],
+      "type": "object"
+    },
+    "Preset": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "state": {
+          "additionalProperties": {},
+          "type": "object"
+        }
+      },
+      "required": [
+        "name",
+        "state"
+      ],
+      "type": "object"
+    },
+    "PresetsElement": {
+      "additionalProperties": false,
+      "description": "Presets use for storing and applying preset batches of signal states",
+      "properties": {
+        "presets": {
+          "items": {
+            "$ref": "#/definitions/Preset"
+          },
+          "type": "array"
+        },
+        "type": {
+          "const": "presets",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "presets"
       ],
       "type": "object"
     },
