@@ -3,7 +3,7 @@
   "displayName": "Chartifact",
   "private": true,
   "description": "",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "msrvida",
   "repository": {
     "type": "git",
@@ -177,6 +177,6 @@
     "postpackage": "node ./scripts/move-package.mjs"
   },
   "devDependencies": {
-    "vsce": "^2.15.0"
+    "@vscode/vsce": "^3.6.0"
   }
 }
