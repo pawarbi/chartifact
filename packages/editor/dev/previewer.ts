@@ -8,6 +8,18 @@ export class DevPreviewer extends Previewer {
         super(elementOrSelector, markdown, options);
         try {
             this.renderer = new Renderer(this.element, { useShadowDom: true });
+
+            // Minimal CSS to keep the host from growing wider than its parent
+            const style: Partial<CSSStyleDeclaration> = {
+                display: 'block',
+                width: '100%',
+                maxWidth: '100%',
+                minWidth: '0',
+                contain: 'layout style',
+                boxSizing: 'border-box',
+            };
+            Object.assign(this.element.style, style);
+
             this.render(markdown);
             options.onReady?.();
         } catch (error) {
@@ -18,7 +30,10 @@ export class DevPreviewer extends Previewer {
 
     render(markdown: string) {
         const html = this.renderer.renderHtml(markdown);
-        this.renderer.element.innerHTML = html;
+        this.renderer.element.innerHTML = `
+            <style>.tabulator { margin-right: -1px; }</style>
+            <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+            ${html}`;
         this.renderer.hydrate().catch(error => {
             this.displayError('Failed to hydrate components');
             this.options.onError?.(error);
