@@ -1,11 +1,10 @@
 {
-  "name": "vscode-resources",
+  "name": "sandbox-resources",
   "private": true,
   "version": "1.0.0",
-  "main": "index.js",
   "scripts": {
     "tsc": "tsc -p .",
-    "build:06": "npm run tsc"
+    "build:02": "npm run tsc"
   },
   "author": "Dan Marshall",
   "license": "MIT",
