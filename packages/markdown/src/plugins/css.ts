@@ -5,14 +5,15 @@
 
 import { definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
+import * as Csstree from 'css-tree';
 
 // CSS Tree is expected to be available as a global variable
-declare const csstree: any;
+declare const csstree: typeof Csstree;
 
 interface Declaration {
-    css: string;        // Safe CSS or "/* omitted */" for unsafe
+    css: string;        // Safe CSS
     unsafeCss?: string; // Original unsafe CSS content (for debugging)
-    flag?: "xss" | "scriptExec" | "externalResource" | "malformed" | "importRule" | "svgDataUrl";
+    flag?: 'xss' | 'scriptExec' | 'insecureExternalResource' | 'externalResource' | 'malformed' | 'importRule' | 'svgDataUrl';
     reason?: string;
 }
 
@@ -40,24 +41,24 @@ function reconstituteAtRule(atRule: AtRule): string {
         // Simple at-rule (like @import) - check if it's flagged
         return atRule.flag ? `/* ${atRule.css} - BLOCKED: ${atRule.reason} */` : atRule.css;
     }
-    
+
     if (!atRule.rules || atRule.rules.length === 0) return '';
-    
+
     // At-rule with contained rules - reconstitute each rule
     const reconstitutedRules: string[] = [];
-    
+
     for (const rule of atRule.rules) {
         const validDeclarations = rule.declarations
-            .map(decl => decl.css) // Use the safe CSS (either original or "/* omitted */")
+            .map(decl => decl.css)
             .filter(css => css.trim() !== '');
-        
+
         if (validDeclarations.length > 0) {
             reconstitutedRules.push(`${rule.selector} {\n  ${validDeclarations.join(';\n  ')};\n}`);
         }
     }
-    
+
     if (reconstitutedRules.length === 0) return '';
-    
+
     if (atRule.signature === '') {
         // Global rules (no at-rule wrapper)
         return reconstitutedRules.join('\n\n');
@@ -93,36 +94,41 @@ function categorizeCss(cssContent: string): CategorizedCss {
         if (node.type === 'Function' && node.name === 'expression') {
             return { flag: 'scriptExec', reason: 'CSS expression() function detected' };
         }
-        
+
         // Check URLs for security issues
         if (node.type === 'Url') {
             const urlValue = node.value;
             if (!urlValue) return null;
-            
+
             const url = urlValue.value || urlValue;
             const urlStr = url.toLowerCase();
-            
+
             // Script URLs
             if (urlStr.startsWith('javascript:') || urlStr.startsWith('vbscript:')) {
                 return { flag: 'scriptExec', reason: `${urlStr.split(':')[0]} URL detected` };
             }
-            
+
             // Data URLs need specific checking
             if (urlStr.startsWith('data:')) {
                 // SVG data URLs can contain scripts
-                if (urlStr.includes('data:image/svg+xml') && urlStr.includes('<script')) {
-                    return { flag: 'svgDataUrl', reason: 'SVG data URL with script detected' };
+                if (urlStr.includes('data:image/svg+xml')) {
+                    if (urlStr.includes('<script')) {
+                        return { flag: 'svgDataUrl', reason: 'SVG data URL with script detected' };
+                    }
+                    //TODO check for inline handlers
                 }
                 // Other data URLs might be safe, but let's flag for review
                 return { flag: 'externalResource', reason: 'Data URL detected' };
             }
-            
+
             // External HTTP/HTTPS URLs
-            if (urlStr.startsWith('http://') || urlStr.startsWith('https://')) {
+            if (urlStr.startsWith('http://')) {
+                return { flag: 'insecureExternalResource', reason: 'Insecure external URL (http) detected' };
+            } else if (urlStr.startsWith('https://')) {
                 return { flag: 'externalResource', reason: 'External URL detected' };
             }
         }
-        
+
         // Check for CSS-encoded XSS attempts in values
         if (node.type === 'String' || node.type === 'Identifier') {
             const value = node.value || node.name || '';
@@ -134,19 +140,23 @@ function categorizeCss(cssContent: string): CategorizedCss {
                 }
             }
         }
-        
+
         return null;
     }
 
     try {
         // Parse CSS with CSS Tree
         const ast = csstree.parse(cssContent);
-        
-        // Walk the AST and collect rules with security checks
-        csstree.walk(ast, function (node) {
+
+        // Track current rule being built as we walk
+        let currentRule: Rule | null = null;
+        let currentAtRuleSignature = ''; // Global context by default
+
+        // Single walk through the AST - process each node once
+        csstree.walk(ast, (node) => {
             if (node.type === 'Atrule') {
                 const atRuleSignature = `@${node.name}${node.prelude ? ` ${csstree.generate(node.prelude)}` : ''}`;
-                
+
                 // Check for @import specifically
                 if (node.name === 'import') {
                     const ruleContent = csstree.generate(node);
@@ -159,7 +169,7 @@ function categorizeCss(cssContent: string): CategorizedCss {
                     result.hasFlags = true;
                     return;
                 }
-                
+
                 // For other at-rules that contain rules (like @media, @keyframes)
                 if (node.block) {
                     if (!result.atRules[atRuleSignature]) {
@@ -168,6 +178,8 @@ function categorizeCss(cssContent: string): CategorizedCss {
                             rules: []
                         };
                     }
+                    // Set current context for nested rules
+                    currentAtRuleSignature = atRuleSignature;
                 } else {
                     // Simple at-rule without block
                     const ruleContent = csstree.generate(node);
@@ -176,65 +188,89 @@ function categorizeCss(cssContent: string): CategorizedCss {
                         css: ruleContent
                     };
                 }
-                
+
             } else if (node.type === 'Rule') {
-                // Regular CSS rule - need to parse its declarations
+                // Finish previous rule if one exists
+                if (currentRule && currentRule.declarations.length > 0) {
+                    const targetAtRule = currentAtRuleSignature;
+
+                    if (!result.atRules[targetAtRule]) {
+                        result.atRules[targetAtRule] = {
+                            signature: targetAtRule,
+                            rules: []
+                        };
+                    }
+
+                    if (result.atRules[targetAtRule].rules) {
+                        result.atRules[targetAtRule].rules.push(currentRule);
+                    } else {
+                        result.atRules[targetAtRule].rules = [currentRule];
+                    }
+                }
+
+                // Start building a new rule
                 const selector = csstree.generate(node.prelude);
-                const declarations: Declaration[] = [];
-                
-                // Walk through the declarations in this rule
-                if (node.block && node.block.children) {
-                    node.block.children.forEach((declNode: any) => {
-                        if (declNode.type === 'Declaration') {
-                            const declCss = csstree.generate(declNode);
-                            const declaration: Declaration = { css: declCss };
-                            
-                            // Check this declaration for security issues
-                            let hasSecurityIssue = false;
-                            csstree.walk(declNode, function(childNode: any) {
-                                if (!hasSecurityIssue) {
-                                    const securityCheck = checkSecurityIssues(childNode);
-                                    if (securityCheck) {
-                                        declaration.css = '/* omitted */';
-                                        declaration.unsafeCss = declCss;
-                                        declaration.flag = securityCheck.flag;
-                                        declaration.reason = securityCheck.reason;
-                                        result.hasFlags = true;
-                                        hasSecurityIssue = true;
-                                    }
-                                }
-                            });
-                            
-                            declarations.push(declaration);
-                        }
-                    });
-                }
-                
-                const rule: Rule = {
+                currentRule = {
                     selector,
-                    declarations
+                    declarations: []
                 };
-                
-                // Find the appropriate at-rule context (global if none)
-                const currentAtRule = ''; // For now, put all rules in global context
-                
-                if (!result.atRules[currentAtRule]) {
-                    result.atRules[currentAtRule] = {
-                        signature: currentAtRule,
-                        rules: []
-                    };
+
+            } else if (node.type === 'Declaration' && currentRule) {
+                // Process declaration within the current rule
+                const declCss = csstree.generate(node);
+                const declaration: Declaration = { css: declCss };
+
+                // Check this declaration node directly for security issues
+                const securityCheck = checkSecurityIssues(node);
+                if (securityCheck) {
+                    declaration.css = `/* omitted (${securityCheck.reason}) */`;
+                    declaration.unsafeCss = declCss;
+                    declaration.flag = securityCheck.flag;
+                    declaration.reason = securityCheck.reason;
+                    result.hasFlags = true;
                 }
-                
-                result.atRules[currentAtRule].rules!.push(rule);
+
+                currentRule.declarations.push(declaration);
+
+            } else if (currentRule &&
+                (node.type === 'Function' || node.type === 'Url' ||
+                    node.type === 'String' || node.type === 'Identifier')) {
+                // Check child nodes of the current declaration for security issues
+                const securityCheck = checkSecurityIssues(node);
+                if (securityCheck && currentRule.declarations.length > 0) {
+                    const lastDecl = currentRule.declarations[currentRule.declarations.length - 1];
+                    if (!lastDecl.flag) { // Only flag if not already flagged
+                        lastDecl.unsafeCss = lastDecl.css; // Preserve original before overwriting
+                        lastDecl.css = `/* omitted (${securityCheck.reason}) */`;
+                        lastDecl.flag = securityCheck.flag;
+                        lastDecl.reason = securityCheck.reason;
+                        result.hasFlags = true;
+                    }
+                }
             }
         });
 
+        // Don't forget to add the last rule if it exists
+        if (currentRule && currentRule.declarations.length > 0) {
+            const targetAtRule = currentAtRuleSignature;
+
+            if (!result.atRules[targetAtRule]) {
+                result.atRules[targetAtRule] = {
+                    signature: targetAtRule,
+                    rules: []
+                };
+            }
+
+            if (result.atRules[targetAtRule].rules) {
+                result.atRules[targetAtRule].rules.push(currentRule);
+            } else {
+                result.atRules[targetAtRule].rules = [currentRule];
+            }
+        }
+
     } catch (parseError) {
-        result.atRules[''] = {
-            signature: '',
-            css: `/* CSS parsing failed: ${parseError.message} */`
-        };
-        result.hasFlags = true;
+        // Don't swallow CSS parsing errors - throw them so they can be handled upstream
+        throw new Error(`CSS parsing failed: ${parseError.message}`);
     }
 
     return result;
