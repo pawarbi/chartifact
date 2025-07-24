@@ -1,25 +1,16 @@
 import { Previewer, PreviewerOptions } from './preview.js';
 import { rendererHtml } from './resources/rendererHtml.js';
 import { rendererUmdJs } from './resources/rendererUmdJs.js';
-import { sandboxJs } from './resources/sandboxJs.js';
-import { Renderer } from '@microsoft/interactive-document-markdown';
-
-export interface SandboxedRenderRequestMessage {
-    markdown?: string;
-    html?: string;
-}
+import { sandboxedJs } from './resources/sandboxedJs.js';
+import { RenderRequestMessage } from '@microsoft/interactive-document-markdown';
 
 export class Sandbox extends Previewer {
     private iframe: HTMLIFrameElement;
-    private renderer: Renderer;
 
     constructor(elementOrSelector: string | HTMLElement, markdown: string, options?: PreviewerOptions) {
         super(elementOrSelector, markdown, options);
 
-        //create a renderer for decompilation, not to render in this DOM context
-        this.renderer = new Renderer(null, { useShadowDom: false });
-
-        const renderRequest = this.createRenderRequest(markdown);
+        const renderRequest: RenderRequestMessage = { markdown };
 
         const { iframe } = createIframe(this.getDependencies(), renderRequest);
         this.iframe = iframe;
@@ -42,17 +33,9 @@ export class Sandbox extends Previewer {
         this.iframe?.remove();
     }
 
-    createRenderRequest(markdown: string): SandboxedRenderRequestMessage {
-        //render into a document to ensure it is sanitized
-        const html = this.renderer.renderHtml(markdown);
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        //TODO: sanitize the document
-        return { html: doc.body.innerHTML };
-    }
-
     send(markdown: string): void {
         //TODO get html and ensure it is sanitized
-        this.iframe.contentWindow?.postMessage(this.createRenderRequest(markdown), '*');
+        this.iframe.contentWindow?.postMessage({ markdown }, '*');
     }
 
     getDependencies() {
@@ -66,14 +49,14 @@ export class Sandbox extends Previewer {
     }
 }
 
-function createIframe(dependencies: string, renderRequest: SandboxedRenderRequestMessage) {
+function createIframe(dependencies: string, renderRequest: RenderRequestMessage) {
     const title = 'Interactive Document Sandbox';
     const html = rendererHtml
         .replace('{{TITLE}}', () => title)
         .replace('{{DEPENDENCIES}}', () => dependencies)
         .replace('{{RENDERER_SCRIPT}}', () => `<script>${rendererUmdJs}</script>`)
         .replace('{{RENDER_REQUEST}}', () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};</script>`)
-        .replace('{{SANDBOX_JS}}', () => `<script>${sandboxJs}</script>`)
+        .replace('{{SANDBOX_JS}}', () => `<script>${sandboxedJs}</script>`)
         ;
 
     const htmlBlob = new Blob([html], { type: 'text/html' });

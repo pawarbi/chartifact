@@ -22,3 +22,4 @@ export {
 
 export type * as Plugins from './plugins/interfaces.js';
 export type { Batch, IInstance } from './factory.js';
+export * from './types.js';

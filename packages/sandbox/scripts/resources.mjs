@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 const resources = {
   rendererUmdJs: path.resolve(__dirname, '../../markdown/dist/umd/idocs.markdown.umd.js'),
   rendererHtml: path.resolve(__dirname, '../../sandbox-resources/html/markdown.html'),
-  sandboxJs: path.resolve(__dirname, '../../sandbox-resources/dist/sandbox.js'),
+  sandboxedJs: path.resolve(__dirname, '../../sandbox-resources/dist/sandboxed.js'),
 };
 
 const resourcesDir = path.resolve(__dirname, '../src/resources');

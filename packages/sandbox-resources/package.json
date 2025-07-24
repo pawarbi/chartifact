@@ -3,8 +3,10 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "clean": "rimraf dist",
     "tsc": "tsc -p .",
-    "build:02": "npm run tsc"
+    "build": "npm run tsc",
+    "build:02": "npm run build"
   },
   "author": "Dan Marshall",
   "license": "MIT",
