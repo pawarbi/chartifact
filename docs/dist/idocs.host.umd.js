@@ -2817,7 +2817,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (!["http:", "https:"].includes(parsedUrl.protocol)) {
         return false;
       }
-      if (parsedUrl.protocol === "javascript:" || parsedUrl.protocol === "data:") {
+      if (parsedUrl.protocol === "javascript:" || parsedUrl.protocol === "vbscript:" || parsedUrl.protocol === "data:") {
         return false;
       }
       const hostname = parsedUrl.hostname.toLowerCase();

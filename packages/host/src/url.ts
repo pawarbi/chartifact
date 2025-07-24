@@ -72,8 +72,8 @@ function isValidLoadUrl(url: string): boolean {
       return false;
     }
     
-    // Prevent javascript: and data: URLs
-    if (parsedUrl.protocol === 'javascript:' || parsedUrl.protocol === 'data:') {
+    // Prevent javascript:, vbscript:, and data: URLs
+    if (parsedUrl.protocol === 'javascript:' || parsedUrl.protocol === 'vbscript:' || parsedUrl.protocol === 'data:') {
       return false;
     }
     
