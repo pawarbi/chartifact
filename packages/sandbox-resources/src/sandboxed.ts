@@ -14,8 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function render(request: IDocs.markdown.RenderRequestMessage) {
         if (request.markdown) {
             renderer.reset();
-            renderer.renderHtml(request.markdown);
+            const html = renderer.renderHtml(request.markdown);
             //todo: look at dom elements prior to hydration
+            renderer.element.innerHTML = html;
             //todo: send message to parent to ask for whitelist
             //todo: asynchronously hydrate the renderer
             renderer.hydrate();

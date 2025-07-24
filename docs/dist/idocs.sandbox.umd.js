@@ -3716,7 +3716,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });
 `;
-  const sandboxJs = `document.addEventListener('DOMContentLoaded', () => {
+  const sandboxedJs = `document.addEventListener('DOMContentLoaded', () => {
     const renderer = new IDocs.markdown.Renderer(document.body, {
         errorHandler: (error, pluginName, instanceIndex, phase, container, detail) => {
             console.error(\`Error in plugin \${pluginName} at instance \${instanceIndex} during \${phase}:\`, error);
@@ -3728,11 +3728,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     });
     function render(request) {
         if (request.markdown) {
-            renderer.render(request.markdown);
-        }
-        else if (request.html) {
             renderer.reset();
-            document.body.innerHTML = request.html;
+            const html = renderer.renderHtml(request.markdown);
+            //todo: look at dom elements prior to hydration
+            renderer.element.innerHTML = html;
+            //todo: send message to parent to ask for whitelist
+            //todo: asynchronously hydrate the renderer
             renderer.hydrate();
         }
     }
@@ -3749,9 +3750,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     constructor(elementOrSelector, markdown, options) {
       super(elementOrSelector, markdown, options);
       __publicField(this, "iframe");
-      __publicField(this, "renderer");
-      this.renderer = new Renderer(null, { useShadowDom: false });
-      const renderRequest = this.createRenderRequest(markdown);
+      const renderRequest = { markdown };
       const { iframe } = createIframe(this.getDependencies(), renderRequest);
       this.iframe = iframe;
       this.element.appendChild(this.iframe);
@@ -3773,14 +3772,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       });
       (_a = this.iframe) == null ? void 0 : _a.remove();
     }
-    createRenderRequest(markdown) {
-      const html = this.renderer.renderHtml(markdown);
-      const doc = new DOMParser().parseFromString(html, "text/html");
-      return { html: doc.body.innerHTML };
-    }
     send(markdown) {
       var _a;
-      (_a = this.iframe.contentWindow) == null ? void 0 : _a.postMessage(this.createRenderRequest(markdown), "*");
+      (_a = this.iframe.contentWindow) == null ? void 0 : _a.postMessage({ markdown }, "*");
     }
     getDependencies() {
       return `
@@ -3794,7 +3788,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   }
   function createIframe(dependencies, renderRequest) {
     const title = "Interactive Document Sandbox";
-    const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDER_REQUEST}}", () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};<\/script>`).replace("{{SANDBOX_JS}}", () => `<script>${sandboxJs}<\/script>`);
+    const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDER_REQUEST}}", () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};<\/script>`).replace("{{SANDBOX_JS}}", () => `<script>${sandboxedJs}<\/script>`);
     const htmlBlob = new Blob([html], { type: "text/html" });
     const blobUrl = URL.createObjectURL(htmlBlob);
     const iframe = document.createElement("iframe");
