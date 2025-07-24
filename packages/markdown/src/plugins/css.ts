@@ -152,6 +152,26 @@ function categorizeCss(cssContent: string): CategorizedCss {
         let currentRule: Rule | null = null;
         let currentAtRuleSignature = ''; // Global context by default
 
+        // Helper function to add current rule to results
+        function addCurrentRule() {
+            if (currentRule && currentRule.declarations.length > 0) {
+                const targetAtRule = currentAtRuleSignature;
+
+                if (!result.atRules[targetAtRule]) {
+                    result.atRules[targetAtRule] = {
+                        signature: targetAtRule,
+                        rules: []
+                    };
+                }
+
+                if (result.atRules[targetAtRule].rules) {
+                    result.atRules[targetAtRule].rules.push(currentRule);
+                } else {
+                    result.atRules[targetAtRule].rules = [currentRule];
+                }
+            }
+        }
+
         // Single walk through the AST - process each node once
         csstree.walk(ast, (node) => {
             if (node.type === 'Atrule') {
@@ -191,22 +211,7 @@ function categorizeCss(cssContent: string): CategorizedCss {
 
             } else if (node.type === 'Rule') {
                 // Finish previous rule if one exists
-                if (currentRule && currentRule.declarations.length > 0) {
-                    const targetAtRule = currentAtRuleSignature;
-
-                    if (!result.atRules[targetAtRule]) {
-                        result.atRules[targetAtRule] = {
-                            signature: targetAtRule,
-                            rules: []
-                        };
-                    }
-
-                    if (result.atRules[targetAtRule].rules) {
-                        result.atRules[targetAtRule].rules.push(currentRule);
-                    } else {
-                        result.atRules[targetAtRule].rules = [currentRule];
-                    }
-                }
+                addCurrentRule();
 
                 // Start building a new rule
                 const selector = csstree.generate(node.prelude);
@@ -251,22 +256,7 @@ function categorizeCss(cssContent: string): CategorizedCss {
         });
 
         // Don't forget to add the last rule if it exists
-        if (currentRule && currentRule.declarations.length > 0) {
-            const targetAtRule = currentAtRuleSignature;
-
-            if (!result.atRules[targetAtRule]) {
-                result.atRules[targetAtRule] = {
-                    signature: targetAtRule,
-                    rules: []
-                };
-            }
-
-            if (result.atRules[targetAtRule].rules) {
-                result.atRules[targetAtRule].rules.push(currentRule);
-            } else {
-                result.atRules[targetAtRule].rules = [currentRule];
-            }
-        }
+        addCurrentRule();
 
     } catch (parseError) {
         // Don't swallow CSS parsing errors - throw them so they can be handled upstream
