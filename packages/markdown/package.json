@@ -34,5 +34,8 @@
   "bugs": {
     "url": "https://github.com/microsoft/interactive-documents/issues"
   },
-  "homepage": "https://github.com/microsoft/interactive-documents#readme"
+  "homepage": "https://github.com/microsoft/interactive-documents#readme",
+  "devDependencies": {
+    "@types/css-tree": "^2.3.10"
+  }
 }
