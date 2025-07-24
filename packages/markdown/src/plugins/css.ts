@@ -116,6 +116,8 @@ function categorizeCss(cssContent: string): CategorizedCss {
                         return { flag: 'svgDataUrl', reason: 'SVG data URL with script detected' };
                     }
                     //TODO check for inline handlers
+                    //for now, disallow svg data URLs
+                    return { flag: 'svgDataUrl', reason: 'SVG data URL detected - requires approval' };
                 }
                 // Other data URLs might be safe, but let's flag for review
                 return { flag: 'externalResource', reason: 'Data URL detected' };
