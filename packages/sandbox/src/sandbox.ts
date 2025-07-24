@@ -2,7 +2,7 @@ import { Previewer, PreviewerOptions } from './preview.js';
 import { rendererHtml } from './resources/rendererHtml.js';
 import { rendererUmdJs } from './resources/rendererUmdJs.js';
 import { sandboxedJs } from './resources/sandboxedJs.js';
-import { RenderRequestMessage } from '@microsoft/interactive-document-markdown';
+import type { RenderRequestMessage } from '@microsoft/interactive-document-markdown';
 
 export class Sandbox extends Previewer {
     private iframe: HTMLIFrameElement;
