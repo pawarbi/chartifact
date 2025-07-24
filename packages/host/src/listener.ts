@@ -120,10 +120,27 @@ export class Listener {
 
   public errorHandler(error: Error, detailsHtml: string) {
     show(this.loadingDiv, false);
-    this.appDiv.innerHTML = `<div style="color: red; padding: 20px;">
-    <strong>Error:</strong> ${error.message}<br>
-      ${detailsHtml}
-    </div>`;
+    
+    // Create DOM elements safely to prevent XSS
+    const errorDiv = document.createElement('div');
+    errorDiv.style.color = 'red';
+    errorDiv.style.padding = '20px';
+    
+    const errorLabel = document.createElement('strong');
+    errorLabel.textContent = 'Error:';
+    
+    const errorMessage = document.createTextNode(` ${error.message}`);
+    const lineBreak = document.createElement('br');
+    const details = document.createTextNode(detailsHtml);
+    
+    errorDiv.appendChild(errorLabel);
+    errorDiv.appendChild(errorMessage);
+    errorDiv.appendChild(lineBreak);
+    errorDiv.appendChild(details);
+    
+    // Clear previous content and append the error safely
+    this.appDiv.innerHTML = '';
+    this.appDiv.appendChild(errorDiv);
   }
 
   private bindTextareaToCompiler() {

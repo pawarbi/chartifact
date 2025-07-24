@@ -64,6 +64,7 @@ export class EditManager {
 						offlineDeps:
 							style(getResourceContent('tabulator.min.css')) +
 							script(getResourceContent('markdown-it.min.js')) +
+							script(getResourceContent('csstree.js')) +
 							script(getResourceContent('vega.min.js')) +
 							script(getResourceContent('vega-lite.min.js')) +
 							script(getResourceContent('tabulator.min.js'))
@@ -200,7 +201,6 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 	const resourceLinks = [
 		script(resourceUrl('react.production.min.js')),
 		script(resourceUrl('react-dom.production.min.js')),
-		script(resourceUrl('markdown-it.min.js')),
 		script(resourceUrl('idocs.editor.umd.js')),
 		script(resourceUrl('edit.js')),
 	].join('\n    ');

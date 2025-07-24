@@ -1149,9 +1149,176 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
+  function reconstituteAtRule(atRule) {
+    if (atRule.css) {
+      return atRule.flag ? \`/* \${atRule.css} - BLOCKED: \${atRule.reason} */\` : atRule.css;
+    }
+    if (!atRule.rules || atRule.rules.length === 0) return "";
+    const reconstitutedRules = [];
+    for (const rule of atRule.rules) {
+      const validDeclarations = rule.declarations.map((decl) => decl.css).filter((css) => css.trim() !== "");
+      if (validDeclarations.length > 0) {
+        reconstitutedRules.push(\`\${rule.selector} {
+  \${validDeclarations.join(";\\n  ")};
+}\`);
+      }
+    }
+    if (reconstitutedRules.length === 0) return "";
+    if (atRule.signature === "") {
+      return reconstitutedRules.join("\\n\\n");
+    } else {
+      return \`\${atRule.signature} {
+\${reconstitutedRules.join("\\n\\n")}
+}\`;
+    }
+  }
+  function reconstituteCss(atRules) {
+    const cssBlocks = [];
+    for (const atRule of Object.values(atRules)) {
+      const reconstructed = reconstituteAtRule(atRule);
+      if (reconstructed.trim()) {
+        cssBlocks.push(reconstructed);
+      }
+    }
+    return cssBlocks.join("\\n\\n");
+  }
+  function categorizeCss(cssContent) {
+    const result = {
+      atRules: {},
+      hasFlags: false
+    };
+    function checkSecurityIssues(node) {
+      if (node.type === "Function" && node.name === "expression") {
+        return { flag: "scriptExec", reason: "CSS expression() function detected" };
+      }
+      if (node.type === "Url") {
+        const urlValue = node.value;
+        if (!urlValue) return null;
+        const url = urlValue.value || urlValue;
+        const urlStr = url.toLowerCase();
+        if (urlStr.startsWith("javascript:") || urlStr.startsWith("vbscript:")) {
+          return { flag: "scriptExec", reason: \`\${urlStr.split(":")[0]} URL detected\` };
+        }
+        if (urlStr.startsWith("data:")) {
+          if (urlStr.includes("data:image/svg+xml")) {
+            if (urlStr.includes("<script")) {
+              return { flag: "svgDataUrl", reason: "SVG data URL with script detected" };
+            }
+            return { flag: "svgDataUrl", reason: "SVG data URL detected - requires approval" };
+          }
+          return { flag: "externalResource", reason: "Data URL detected" };
+        }
+        if (urlStr.startsWith("http://")) {
+          return { flag: "insecureExternalResource", reason: "Insecure external URL (http) detected" };
+        } else if (urlStr.startsWith("https://")) {
+          return { flag: "externalResource", reason: "External URL detected" };
+        }
+      }
+      if (node.type === "String" || node.type === "Identifier") {
+        const value = node.value || node.name || "";
+        if (typeof value === "string") {
+          const valueStr = value.toLowerCase();
+          if (valueStr.includes("\\\\") && (valueStr.includes("3c") || valueStr.includes("3e") || valueStr.includes("22") || valueStr.includes("27"))) {
+            return { flag: "xss", reason: "Potential CSS-encoded XSS detected" };
+          }
+        }
+      }
+      return null;
+    }
+    try {
+      let addCurrentRule = function() {
+        if (currentRule && currentRule.declarations.length > 0) {
+          const targetAtRule = currentAtRuleSignature;
+          if (!result.atRules[targetAtRule]) {
+            result.atRules[targetAtRule] = {
+              signature: targetAtRule,
+              rules: []
+            };
+          }
+          if (result.atRules[targetAtRule].rules) {
+            result.atRules[targetAtRule].rules.push(currentRule);
+          } else {
+            result.atRules[targetAtRule].rules = [currentRule];
+          }
+        }
+      };
+      const ast = csstree.parse(cssContent);
+      let currentRule = null;
+      let currentAtRuleSignature = "";
+      csstree.walk(ast, (node) => {
+        if (node.type === "Atrule") {
+          const atRuleSignature = \`@\${node.name}\${node.prelude ? \` \${csstree.generate(node.prelude)}\` : ""}\`;
+          if (node.name === "import") {
+            const ruleContent = csstree.generate(node);
+            result.atRules[atRuleSignature] = {
+              signature: atRuleSignature,
+              css: ruleContent,
+              flag: "importRule",
+              reason: "@import rule detected - requires approval"
+            };
+            result.hasFlags = true;
+            return;
+          }
+          if (node.block) {
+            if (!result.atRules[atRuleSignature]) {
+              result.atRules[atRuleSignature] = {
+                signature: atRuleSignature,
+                rules: []
+              };
+            }
+            currentAtRuleSignature = atRuleSignature;
+          } else {
+            const ruleContent = csstree.generate(node);
+            result.atRules[atRuleSignature] = {
+              signature: atRuleSignature,
+              css: ruleContent
+            };
+          }
+        } else if (node.type === "Rule") {
+          addCurrentRule();
+          const selector = csstree.generate(node.prelude);
+          currentRule = {
+            selector,
+            declarations: []
+          };
+        } else if (node.type === "Declaration" && currentRule) {
+          const declCss = csstree.generate(node);
+          const declaration = { css: declCss };
+          const securityCheck = checkSecurityIssues(node);
+          if (securityCheck) {
+            declaration.css = \`/* omitted (\${securityCheck.reason}) */\`;
+            declaration.unsafeCss = declCss;
+            declaration.flag = securityCheck.flag;
+            declaration.reason = securityCheck.reason;
+            result.hasFlags = true;
+          }
+          currentRule.declarations.push(declaration);
+        } else if (currentRule && (node.type === "Function" || node.type === "Url" || node.type === "String" || node.type === "Identifier")) {
+          const securityCheck = checkSecurityIssues(node);
+          if (securityCheck && currentRule.declarations.length > 0) {
+            const lastDecl = currentRule.declarations[currentRule.declarations.length - 1];
+            if (!lastDecl.flag) {
+              lastDecl.unsafeCss = lastDecl.css;
+              lastDecl.css = \`/* omitted (\${securityCheck.reason}) */\`;
+              lastDecl.flag = securityCheck.flag;
+              lastDecl.reason = securityCheck.reason;
+              result.hasFlags = true;
+            }
+          }
+        }
+      });
+      addCurrentRule();
+    } catch (parseError) {
+      throw new Error(\`CSS parsing failed: \${parseError.message}\`);
+    }
+    return result;
+  }
   const cssPlugin = {
     name: "css",
     initializePlugin: (md) => {
+      if (typeof csstree === "undefined") {
+        throw new Error("css-tree library is required for CSS plugin. Please include the css-tree script.");
+      }
       definePlugin(md, "css");
       md.block.ruler.before("fence", "css_block", function(state, startLine, endLine) {
         const start = state.bMarks[startLine] + state.tShift[startLine];
@@ -1179,7 +1346,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const info = token.info.trim();
         if (info === "css") {
           const cssId = \`css-\${idx}\`;
-          return sanitizedHTML("div", { id: cssId, class: "css-component" }, token.content.trim());
+          const cssContent = token.content.trim();
+          const categorizedCss = categorizeCss(cssContent);
+          return sanitizedHTML("div", { id: cssId, class: "css-component" }, JSON.stringify(categorizedCss));
         }
         if (originalFence) {
           return originalFence(tokens, idx, options, env, slf);
@@ -1194,17 +1363,29 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       for (const [index2, container] of Array.from(containers).entries()) {
         if (!container.textContent) continue;
         try {
-          const cssContent = container.textContent.trim();
-          const styleElement = document.createElement("style");
-          styleElement.type = "text/css";
-          styleElement.id = \`idocs-css-\${container.id}\`;
-          styleElement.textContent = cssContent;
-          renderer.element.appendChild(styleElement);
-          container.innerHTML = \`<!-- CSS styles applied to document -->\`;
-          cssInstances.push({
-            id: container.id,
-            element: styleElement
-          });
+          const categorizedCss = JSON.parse(container.textContent);
+          const comments = [];
+          if (categorizedCss.hasFlags) {
+            console.warn(\`CSS security: Security issues detected in CSS\`);
+            comments.push(\`<!-- CSS security issues detected and filtered -->\`);
+          }
+          const safeCss = reconstituteCss(categorizedCss.atRules);
+          if (safeCss.trim().length > 0) {
+            const styleElement = document.createElement("style");
+            styleElement.type = "text/css";
+            styleElement.id = \`idocs-css-\${container.id}\`;
+            styleElement.textContent = safeCss;
+            const target = renderer.shadowRoot || document.head;
+            target.appendChild(styleElement);
+            comments.push(\`<!-- CSS styles applied to \${renderer.shadowRoot ? "shadow DOM" : "document"} -->\`);
+            cssInstances.push({
+              id: container.id,
+              element: styleElement
+            });
+          } else {
+            comments.push(\`<!-- No safe CSS styles to apply -->\`);
+          }
+          container.innerHTML = comments.join("\\n");
         } catch (e) {
           container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
           errorHandler(e, "CSS", index2, "parse", container);
@@ -2347,6 +2528,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return `
 <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"><\/script>
+<script src="https://unpkg.com/css-tree/dist/csstree.js"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"><\/script>
 <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"><\/script>

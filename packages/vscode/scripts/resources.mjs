@@ -7,6 +7,7 @@ const resources = [
     '../../node_modules/vega/build/vega.min.js',
     '../../node_modules/vega-lite/build/vega-lite.min.js',
     '../../node_modules/markdown-it/dist/markdown-it.min.js',
+    '../../node_modules/css-tree/dist/csstree.js',
     '../../node_modules/tabulator-tables/dist/js/tabulator.min.js',
     '../../node_modules/tabulator-tables/dist/css/tabulator.min.css',
     '../../packages/host/dist/umd/idocs.host.umd.js',
