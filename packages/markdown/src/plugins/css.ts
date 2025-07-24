@@ -103,7 +103,7 @@ function categorizeCss(cssContent: string): CategorizedCss {
     try {
         // Parse CSS with CSS Tree
         const ast = csstree.parse(cssContent);        // Walk through the AST and organize rules
-        csstree.walk(ast, function(node) {
+        csstree.walk(ast, function (node) {
             if (node.type === 'Atrule') {
                 const atRuleSignature = `@${node.name}${node.prelude ? ` ${csstree.generate(node.prelude)}` : ''}`;
                 const ruleContent = csstree.generate(node);
@@ -205,7 +205,7 @@ export const cssPlugin: Plugin = {
     hydrateComponent: async (renderer, errorHandler) => {
         const cssInstances: { id: string; element: HTMLStyleElement }[] = [];
         const containers = renderer.element.querySelectorAll('.css-component');
-        
+
         for (const [index, container] of Array.from(containers).entries()) {
             if (!container.textContent) continue;
 
@@ -215,11 +215,13 @@ export const cssPlugin: Plugin = {
                 // Handle CSS with issues - show appropriate message
                 if (categorizedCss.unsafeAtRules) {
                     console.error('CSS blocked due to security issues');
+                    container.innerHTML = `<!-- CSS styles omitted due to security issues -->`;
                     continue;
                 }
 
                 if (categorizedCss.flaggedAtRules) {
                     console.warn('CSS contains external URLs requiring approval');
+                    container.innerHTML = `<!-- CSS styles contain external resources requiring approval -->`;
                     continue;
                 }
 
