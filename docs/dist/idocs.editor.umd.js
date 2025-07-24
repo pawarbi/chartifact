@@ -1430,13 +1430,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                         <label>
                             <span class="vega-bind-name">\${spec.label || spec.name}</span>
                             <select class="vega-bind-select" id="\${spec.name}" name="\${spec.name}" \${spec.multiple ? "multiple" : ""} size="\${spec.size || 1}">
-\${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""))}
                             </select>
                         </label>
                     </div>
                 </form>\`;
           container.innerHTML = html;
           const element = container.querySelector("select");
+          setSelectOptions(element, spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""));
           const dropdownInstance = { id: container.id, spec, element };
           dropdownInstances.push(dropdownInstance);
         } catch (e) {
@@ -1481,12 +1481,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 if (hasFieldName) {
                   const options = Array.from(uniqueOptions);
                   const existingSelection = spec.multiple ? Array.from(element.selectedOptions).map((option) => option.value) : element.value;
-                  element.innerHTML = getOptions(spec.multiple ?? false, options, existingSelection);
+                  setSelectOptions(element, spec.multiple ?? false, options, existingSelection);
                   if (!spec.multiple) {
                     element.value = ((_b = batch[spec.name]) == null ? void 0 : _b.value) || options[0];
                   }
                 } else {
-                  element.innerHTML = \`<option value="">Field "\${dynamicOptions.fieldName}" not found</option>\`;
+                  element.innerHTML = "";
+                  const errorOption = document.createElement("option");
+                  errorOption.value = "";
+                  errorOption.textContent = \`Field "\${dynamicOptions.fieldName}" not found\`;
+                  element.appendChild(errorOption);
                   element.value = "";
                 }
               }
@@ -1528,8 +1532,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return instances;
     }
   };
-  function getOptions(multiple, options, selected) {
-    if (!options) {
+  function setSelectOptions(selectElement, multiple, options, selected) {
+    selectElement.innerHTML = "";
+    if (!options || options.length === 0) {
       if (multiple) {
         if (Array.isArray(selected)) {
           options = selected;
@@ -1544,18 +1549,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
     }
-    if (!options) {
-      return "";
+    if (!options || options.length === 0) {
+      return;
     }
-    return options.map((option) => {
-      let attr = "";
+    options.forEach((optionValue) => {
+      const optionElement = document.createElement("option");
+      optionElement.value = optionValue;
+      optionElement.textContent = optionValue;
+      let isSelected = false;
       if (multiple) {
-        attr = (selected || []).includes(option) ? "selected" : "";
+        isSelected = (selected || []).includes(optionValue);
       } else {
-        attr = selected === option ? "selected" : "";
+        isSelected = selected === optionValue;
       }
-      return \`<option value="\${option}" \${attr}>\${option}</option>\`;
-    }).join("\\n");
+      optionElement.selected = isSelected;
+      selectElement.appendChild(optionElement);
+    });
   }
   /*!
   * Copyright (c) Microsoft Corporation.
