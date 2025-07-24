@@ -13,7 +13,7 @@
     "dev": "tsc -p . -w",
     "tsc": "tsc -p .",
     "build": "npm run tsc && npm run declaration && npm run strip-blanks && npm run schema && npm run copy-schema",
-    "build:01": "npm run build"
+    "build:00": "npm run build"
   },
   "author": "Dan Marshall",
   "license": "MIT",

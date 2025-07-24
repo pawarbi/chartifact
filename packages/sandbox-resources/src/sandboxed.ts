@@ -1,4 +1,4 @@
-declare const renderRequest: IDocs.sandbox.SandboxedRenderRequestMessage;
+declare const renderRequest: IDocs.markdown.RenderRequestMessage;
 
 document.addEventListener('DOMContentLoaded', () => {
     const renderer = new IDocs.markdown.Renderer(document.body, {
@@ -11,12 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function render(request) {
+    function render(request: IDocs.markdown.RenderRequestMessage) {
         if (request.markdown) {
-            renderer.render(request.markdown);
-        } else if (request.html) {
             renderer.reset();
-            document.body.innerHTML = request.html;
+            const html = renderer.renderHtml(request.markdown);
+            //todo: look at dom elements prior to hydration
+            renderer.element.innerHTML = html;
+            //todo: send message to parent to ask for whitelist
+            //todo: asynchronously hydrate the renderer
             renderer.hydrate();
         }
     }

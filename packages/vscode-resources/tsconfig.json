@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "outDir": "dist",
+        "module": "commonjs",
+        "typeRoots": [
+            "./src"
+        ],
+        "skipLibCheck": true,
+        "target": "esnext",
+        "lib": [
+            "dom",
+            "esnext"
+        ]
+    },
+    "include": [
+        "src"
+    ]
+}
