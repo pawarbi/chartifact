@@ -49,13 +49,15 @@ export const dropdownPlugin: Plugin = {
                         <label>
                             <span class="vega-bind-name">${spec.label || spec.name}</span>
                             <select class="vega-bind-select" id="${spec.name}" name="${spec.name}" ${spec.multiple ? 'multiple' : ''} size="${spec.size || 1}">
-${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""))}
                             </select>
                         </label>
                     </div>
                 </form>`;
                 container.innerHTML = html;
                 const element = container.querySelector('select') as HTMLSelectElement;
+                
+                // Safely set the initial options
+                setSelectOptions(element, spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""));
 
                 const dropdownInstance: DropdownInstance = { id: container.id, spec, element };
                 dropdownInstances.push(dropdownInstance);
@@ -103,13 +105,17 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                             if (hasFieldName) {
                                 const options = Array.from(uniqueOptions);
                                 const existingSelection = spec.multiple ? Array.from(element.selectedOptions).map(option => option.value) : element.value;
-                                element.innerHTML = getOptions(spec.multiple ?? false, options, existingSelection);
+                                setSelectOptions(element, spec.multiple ?? false, options, existingSelection);
                                 if (!spec.multiple) {
                                     element.value = (batch[spec.name]?.value as string) || options[0];
                                 }
                             } else {
                                 //if the field doesn't exist, set the select to the first option
-                                element.innerHTML = `<option value="">Field "${dynamicOptions.fieldName}" not found</option>`;
+                                element.innerHTML = '';
+                                const errorOption = document.createElement('option');
+                                errorOption.value = '';
+                                errorOption.textContent = `Field "${dynamicOptions.fieldName}" not found`;
+                                element.appendChild(errorOption);
                                 element.value = '';
                             }
                         }
@@ -155,8 +161,11 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     },
 };
 
-function getOptions(multiple: boolean, options: string[], selected: string | string[]) {
-    if (!options) {
+function setSelectOptions(selectElement: HTMLSelectElement, multiple: boolean, options: string[], selected: string | string[]) {
+    // Clear existing options
+    selectElement.innerHTML = '';
+    
+    if (!options || options.length === 0) {
         if (multiple) {
             if (Array.isArray(selected)) {
                 options = selected as string[];
@@ -171,16 +180,24 @@ function getOptions(multiple: boolean, options: string[], selected: string | str
             }
         }
     }
-    if (!options) {
-        return '';
+    
+    if (!options || options.length === 0) {
+        return;
     }
-    return options.map((option) => {
-        let attr = '';
+    
+    options.forEach((optionValue) => {
+        const optionElement = document.createElement('option');
+        optionElement.value = optionValue;
+        optionElement.textContent = optionValue; // This safely escapes HTML
+        
+        let isSelected = false;
         if (multiple) {
-            attr = (selected as string[] || []).includes(option) ? 'selected' : '';
+            isSelected = (selected as string[] || []).includes(optionValue);
         } else {
-            attr = selected === option ? 'selected' : '';
+            isSelected = selected === optionValue;
         }
-        return `<option value="${option}" ${attr}>${option}</option>`;
-    }).join('\n');
+        optionElement.selected = isSelected;
+        
+        selectElement.appendChild(optionElement);
+    });
 }
