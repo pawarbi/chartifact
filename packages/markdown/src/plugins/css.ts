@@ -214,12 +214,12 @@ export const cssPlugin: Plugin = {
 
                 // Handle CSS with issues - show appropriate message
                 if (categorizedCss.unsafeAtRules) {
-                    container.innerHTML = `<div class="error">CSS blocked due to security issues</div>`;
+                    console.error('CSS blocked due to security issues');
                     continue;
                 }
 
                 if (categorizedCss.flaggedAtRules) {
-                    container.innerHTML = `<div class="warning">CSS contains external URLs requiring approval</div>`;
+                    console.warn('CSS contains external URLs requiring approval');
                     continue;
                 }
 
