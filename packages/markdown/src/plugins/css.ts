@@ -38,7 +38,7 @@ interface CategorizedCss {
 // Helper function to reconstitute an at-rule block from at-rule data
 function reconstituteAtRule(atRule: AtRule): string {
     if (atRule.css) {
-        // Simple at-rule (like @import) - check if it's flagged
+        // Simple at-rule (like @import) or complete at-rule (like @keyframes) - check if it's flagged
         return atRule.flag ? `/* ${atRule.css} - BLOCKED: ${atRule.reason} */` : atRule.css;
     }
 
@@ -87,6 +87,29 @@ function categorizeCss(cssContent: string): CategorizedCss {
         atRules: {},
         hasFlags: false
     };
+
+    // At-rules that should be treated as complete blocks (not parsed internally)
+    const completeBlockAtRules = [
+        // Keyframes and variants
+        'keyframes',
+        '-webkit-keyframes',
+        '-moz-keyframes',
+        '-o-keyframes',
+        // Font-related at-rules
+        'font-face',
+        'font-feature-values',
+        'font-palette-values',
+        // Page and counter styling
+        'page',
+        'counter-style',
+        // CSS Houdini and newer features
+        'property',
+        'layer',
+        'container',
+        'scope',
+        'starting-style',
+        'position-try'
+    ];
 
     // Helper function to check for security issues using AST node analysis
     function checkSecurityIssues(node: any): Pick<Declaration, 'flag' | 'reason'> | null {
@@ -192,7 +215,18 @@ function categorizeCss(cssContent: string): CategorizedCss {
                     return;
                 }
 
-                // For other at-rules that contain rules (like @media, @keyframes)
+                // For at-rules that should be treated as complete blocks
+                if (completeBlockAtRules.includes(node.name)) {
+                    // Store the entire rule as CSS and validate it as a complete block
+                    const ruleContent = csstree.generate(node);
+                    result.atRules[atRuleSignature] = {
+                        signature: atRuleSignature,
+                        css: ruleContent
+                    };
+                    return;
+                }
+
+                // For other at-rules that contain rules (like @media, @supports)
                 if (node.block) {
                     if (!result.atRules[atRuleSignature]) {
                         result.atRules[atRuleSignature] = {

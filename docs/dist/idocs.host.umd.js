@@ -1187,6 +1187,27 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       atRules: {},
       hasFlags: false
     };
+    const completeBlockAtRules = [
+      // Keyframes and variants
+      "keyframes",
+      "-webkit-keyframes",
+      "-moz-keyframes",
+      "-o-keyframes",
+      // Font-related at-rules
+      "font-face",
+      "font-feature-values",
+      "font-palette-values",
+      // Page and counter styling
+      "page",
+      "counter-style",
+      // CSS Houdini and newer features
+      "property",
+      "layer",
+      "container",
+      "scope",
+      "starting-style",
+      "position-try"
+    ];
     function checkSecurityIssues(node) {
       if (node.type === "Function" && node.name === "expression") {
         return { flag: "scriptExec", reason: "CSS expression() function detected" };
@@ -1257,6 +1278,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               reason: "@import rule detected - requires approval"
             };
             result.hasFlags = true;
+            return;
+          }
+          if (completeBlockAtRules.includes(node.name)) {
+            const ruleContent = csstree.generate(node);
+            result.atRules[atRuleSignature] = {
+              signature: atRuleSignature,
+              css: ruleContent
+            };
             return;
           }
           if (node.block) {
@@ -2775,54 +2804,65 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   function checkUrlForFile(host) {
     const urlParams = new URLSearchParams(window.location.search);
     const loadUrl = urlParams.get(host.options.urlParamName);
+    if (!loadUrl) {
+      return false;
+    }
+    if (!isValidLoadUrl(loadUrl)) {
+      host.errorHandler(
+        new Error("Invalid URL format"),
+        "The URL provided has an invalid format or contains suspicious characters."
+      );
+      return false;
+    }
     const isValidUrl = (url) => isSameOrigin(url) || isHttps(url);
-    if (loadUrl && !isValidUrl(loadUrl)) {
+    if (!isValidUrl(loadUrl)) {
       host.errorHandler(
         new Error(`Invalid URL provided`),
         "The URL provided is not valid. Please ensure it is on the same origin or uses HTTPS."
       );
       return false;
     }
-    if (loadUrl) {
-      if (!isValidLoadUrl(loadUrl)) {
-        host.errorHandler(
-          new Error("Invalid URL format"),
-          "The URL provided has an invalid format or contains suspicious characters."
-        );
-        return false;
-      }
-      try {
-        fetch(loadUrl).then((response) => {
-          if (!response.ok) {
-            throw new Error(`Failed to load content from URL`);
-          }
-          return response.text();
-        }).then((content) => {
-          determineContent(content, host);
-        }).catch((error) => {
-          host.errorHandler(error, `Error loading file from the provided URL`);
-        });
-      } catch (error) {
+    try {
+      fetch(loadUrl).then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to load content from URL`);
+        }
+        return response.text();
+      }).then((content) => {
+        determineContent(content, host);
+      }).catch((error) => {
         host.errorHandler(error, `Error loading file from the provided URL`);
+      });
+    } catch (error) {
+      host.errorHandler(error, `Error loading file from the provided URL`);
+    }
+    return true;
+  }
+  function isSameOrigin(url) {
+    try {
+      if (!url.includes("://")) {
+        return true;
       }
-      return true;
-    } else {
+      const parsedUrl = new URL(url);
+      return parsedUrl.origin === window.location.origin;
+    } catch {
       return false;
     }
   }
-  function isSameOrigin(url) {
-    const link = document.createElement("a");
-    link.href = url;
-    return link.origin === window.location.origin;
-  }
   function isHttps(url) {
-    const link = document.createElement("a");
-    link.href = url;
-    return link.protocol === "https:";
+    try {
+      if (!url.includes("://")) {
+        return window.location.protocol === "https:";
+      }
+      const parsedUrl = new URL(url);
+      return parsedUrl.protocol === "https:";
+    } catch {
+      return false;
+    }
   }
   function isValidLoadUrl(url) {
     try {
-      const parsedUrl = new URL(url);
+      const parsedUrl = new URL(url, window.location.href);
       if (!["http:", "https:"].includes(parsedUrl.protocol)) {
         return false;
       }
