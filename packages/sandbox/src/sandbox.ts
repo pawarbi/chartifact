@@ -2,7 +2,7 @@ import { Previewer, PreviewerOptions } from './preview.js';
 import { rendererHtml } from './resources/rendererHtml.js';
 import { rendererUmdJs } from './resources/rendererUmdJs.js';
 import { sandboxedJs } from './resources/sandboxedJs.js';
-import type { RenderRequestMessage } from '@microsoft/interactive-document-markdown';
+import type { RenderRequestMessage } from 'common';
 
 export class Sandbox extends Previewer {
     private iframe: HTMLIFrameElement;
@@ -34,8 +34,8 @@ export class Sandbox extends Previewer {
     }
 
     send(markdown: string): void {
-        //TODO get html and ensure it is sanitized
-        this.iframe.contentWindow?.postMessage({ markdown }, '*');
+        const message: RenderRequestMessage = { markdown };
+        this.iframe.contentWindow?.postMessage(message, '*');
     }
 
     getDependencies() {
