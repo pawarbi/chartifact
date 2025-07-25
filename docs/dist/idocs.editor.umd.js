@@ -1187,6 +1187,27 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       atRules: {},
       hasFlags: false
     };
+    const completeBlockAtRules = [
+      // Keyframes and variants
+      "keyframes",
+      "-webkit-keyframes",
+      "-moz-keyframes",
+      "-o-keyframes",
+      // Font-related at-rules
+      "font-face",
+      "font-feature-values",
+      "font-palette-values",
+      // Page and counter styling
+      "page",
+      "counter-style",
+      // CSS Houdini and newer features
+      "property",
+      "layer",
+      "container",
+      "scope",
+      "starting-style",
+      "position-try"
+    ];
     function checkSecurityIssues(node) {
       if (node.type === "Function" && node.name === "expression") {
         return { flag: "scriptExec", reason: "CSS expression() function detected" };
@@ -1257,6 +1278,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
               reason: "@import rule detected - requires approval"
             };
             result.hasFlags = true;
+            return;
+          }
+          if (completeBlockAtRules.includes(node.name)) {
+            const ruleContent = csstree.generate(node);
+            result.atRules[atRuleSignature] = {
+              signature: atRuleSignature,
+              css: ruleContent
+            };
             return;
           }
           if (node.block) {
