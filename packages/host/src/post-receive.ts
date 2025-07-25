@@ -1,5 +1,5 @@
 import { Listener } from './listener.js';
-import type { RenderRequestMessage } from './types.js';
+import type { HostRenderRequestMessage } from 'common';
 
 export function setupPostMessageHandling(host: Listener) {
     window.addEventListener('message', (event) => {
@@ -13,7 +13,7 @@ export function setupPostMessageHandling(host: Listener) {
                 return;
             }
 
-            const data: RenderRequestMessage = event.data;
+            const data: HostRenderRequestMessage = event.data;
 
             if (data.markdown) {
                 host.render(data.markdown, undefined);

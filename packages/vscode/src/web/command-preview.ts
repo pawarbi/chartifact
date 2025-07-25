@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
 import { link, script } from './html';
 import { getResourceContent } from './resources';
-import type { ListenOptions, RenderRequestMessage } from '@microsoft/interactive-document-host' with { 'resolution-mode': 'import' };
+import type { ListenOptions } from '@microsoft/interactive-document-host' with { 'resolution-mode': 'import' };
+import type { HostRenderRequestMessage, HostStatusMessage } from 'common' with { 'resolution-mode': 'import' };
 
 /**
  * Manages the preview functionality for Interactive Documents
@@ -69,8 +70,8 @@ export class PreviewManager {
 	/**
 	 * Handles messages from the webview
 	 */
-	private handleWebviewMessage(message: any, fileUri: vscode.Uri, uriFsPath: string) {
-		switch (message.status) {
+	private handleWebviewMessage(message: HostStatusMessage, fileUri: vscode.Uri, uriFsPath: string) {
+		switch (message.hostStatus) {
 			case 'ready': {
 				this.getFileContentAndRender(fileUri, uriFsPath);
 				break;
@@ -99,7 +100,7 @@ export class PreviewManager {
 		});
 	}
 
-	public render(renderRequestMessage: RenderRequestMessage) {
+	public render(renderRequestMessage: HostRenderRequestMessage) {
 		if (this.current && this.current.panel.visible) {
 			this.current.panel.webview.postMessage(renderRequestMessage);
 		}

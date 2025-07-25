@@ -2,7 +2,7 @@ import { Previewer, PreviewerOptions } from './preview.js';
 import { rendererHtml } from './resources/rendererHtml.js';
 import { rendererUmdJs } from './resources/rendererUmdJs.js';
 import { sandboxedJs } from './resources/sandboxedJs.js';
-import type { RenderRequestMessage } from 'common';
+import type { MarkdownRenderRequestMessage } from 'common';
 
 export class Sandbox extends Previewer {
     private iframe: HTMLIFrameElement;
@@ -10,7 +10,7 @@ export class Sandbox extends Previewer {
     constructor(elementOrSelector: string | HTMLElement, markdown: string, options?: PreviewerOptions) {
         super(elementOrSelector, markdown, options);
 
-        const renderRequest: RenderRequestMessage = { markdown };
+        const renderRequest: MarkdownRenderRequestMessage = { markdown };
 
         const { iframe } = createIframe(this.getDependencies(), renderRequest);
         this.iframe = iframe;
@@ -34,7 +34,7 @@ export class Sandbox extends Previewer {
     }
 
     send(markdown: string): void {
-        const message: RenderRequestMessage = { markdown };
+        const message: MarkdownRenderRequestMessage = { markdown };
         this.iframe.contentWindow?.postMessage(message, '*');
     }
 
@@ -50,7 +50,7 @@ export class Sandbox extends Previewer {
     }
 }
 
-function createIframe(dependencies: string, renderRequest: RenderRequestMessage) {
+function createIframe(dependencies: string, renderRequest: MarkdownRenderRequestMessage) {
     const title = 'Interactive Document Sandbox';
     const html = rendererHtml
         .replace('{{TITLE}}', () => title)

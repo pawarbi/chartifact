@@ -1,6 +1,6 @@
-import type { StatusMessage } from './types.js';
+import type { HostStatusMessage } from 'common';
 
-export function postStatus(target: Window, message: Omit<StatusMessage, 'timestamp'>): void {
+export function postStatus(target: Window, message: Omit<HostStatusMessage, 'timestamp'>): void {
     if (target) {
         const messageWithTimestamp = {
             ...message,

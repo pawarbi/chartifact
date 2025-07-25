@@ -1,4 +1,4 @@
-declare const renderRequest: IDocs.common.RenderRequestMessage;
+declare const renderRequest: IDocs.common.MarkdownRenderRequestMessage;
 
 document.addEventListener('DOMContentLoaded', () => {
     const renderer = new IDocs.markdown.Renderer(document.body, {
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function render(request: IDocs.common.RenderRequestMessage) {
+    function render(request: IDocs.common.MarkdownRenderRequestMessage) {
         if (request.markdown) {
             renderer.reset();
             const html = renderer.renderHtml(request.markdown);
