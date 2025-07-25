@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if page.title %}{{ page.title }} - {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
+    <meta name="description" content="{{ page.description | default: site.description }}">
+    <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+</head>
+
+<body>
+    <div class="wrapper">
+        <main class="content">
+            {{ content }}
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <span>&copy; {{ 'now' | date: "%Y" }} Microsoft</span>
+                <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
+                <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
+                <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+                <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
+            </div>
+        </footer>
+    </div>
+</body>
+
+</html>
