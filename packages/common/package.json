@@ -9,7 +9,7 @@
     "dev": "tsc -p . -w",
     "tsc": "tsc -p .",
     "build": "npm run tsc",
-    "build:00": "npm run build"
+    "build:01": "npm run build"
   },
   "author": "Dan Marshall",
   "license": "MIT",

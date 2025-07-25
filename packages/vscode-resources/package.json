@@ -6,7 +6,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "tsc": "tsc -p .",
-    "build:06": "npm run tsc"
+    "build:07": "npm run tsc"
   },
   "author": "Dan Marshall",
   "license": "MIT",
