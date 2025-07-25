@@ -271,7 +271,7 @@ async function createSpecInit(container: Element, index: number, renderer: Rende
     const initialSignals: PrioritizedSignal[] = spec.signals?.map((signal: InitSignal | NewSignal) => {
         if (ignoredSignals.includes(signal.name)) return;
         let isData = isSignalDataBridge(signal as NewSignal);
-        //support legacy dataPrefix
+        //dataSignalPrefix will set isData to true
         if (signal.name.startsWith(defaultCommonOptions.dataSignalPrefix)) {
             isData = true;
         }
