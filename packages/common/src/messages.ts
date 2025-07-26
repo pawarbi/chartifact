@@ -25,7 +25,7 @@ export interface HostRenderRequestMessage {
 }
 
 export interface HostStatusMessage {
+    type: 'hostStatus';
     hostStatus: 'ready' | 'compiling' | 'rendering' | 'rendered' | 'error' | 'loading';
     details?: string;
-    timestamp: number;
 }

@@ -1,12 +1,7 @@
 import type { HostStatusMessage } from 'common';
 
-export function postStatus(target: Window, message: Omit<HostStatusMessage, 'timestamp'>): void {
+export function postStatus(target: Window, message: HostStatusMessage): void {
     if (target) {
-        const messageWithTimestamp: HostStatusMessage = {
-            ...message,
-            timestamp: Date.now()
-        };
-
-        target.postMessage(messageWithTimestamp, '*');
+        target.postMessage(message, '*');
     }
 }

@@ -71,10 +71,12 @@ export class PreviewManager {
 	 * Handles messages from the webview
 	 */
 	private handleWebviewMessage(message: HostStatusMessage, fileUri: vscode.Uri, uriFsPath: string) {
-		switch (message.hostStatus) {
-			case 'ready': {
-				this.getFileContentAndRender(fileUri, uriFsPath);
-				break;
+		if (message.type === 'hostStatus') {
+			switch (message.hostStatus) {
+				case 'ready': {
+					this.getFileContentAndRender(fileUri, uriFsPath);
+					break;
+				}
 			}
 		}
 	}

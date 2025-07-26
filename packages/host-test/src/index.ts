@@ -2,7 +2,7 @@ const iframe = document.getElementById('host') as HTMLIFrameElement;
 
 window.addEventListener('message', (event) => {
   const hostStatusMessage = event.data as IDocs.common.HostStatusMessage;
-  if (hostStatusMessage.hostStatus === 'ready') {
+  if (hostStatusMessage.type === 'hostStatus' && hostStatusMessage.hostStatus === 'ready') {
     const message: IDocs.common.HostRenderRequestMessage = {
       type: 'hostRenderRequest',
       markdown: `# Auto-loaded Content
