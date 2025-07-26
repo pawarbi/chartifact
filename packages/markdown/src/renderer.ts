@@ -94,8 +94,19 @@ export class Renderer {
         //loop through all the plugins and render them
         this.signalBus.log('Renderer', 'rendering DOM');
         const hydrationPromises: Promise<Hydration>[] = [];
-        for (let i = 0; i < plugins.length; i++) {
-            const plugin = plugins[i];
+
+        //create a copy of the plugins and sort them by runsBefore
+        const sortedPlugins = [...plugins].sort((a, b) => {
+            // If plugin a should run before plugin b, a comes first
+            if (a.hydratesBefore === b.name) return -1;
+            // If plugin b should run before plugin a, b comes first
+            if (b.hydratesBefore === a.name) return 1;
+            // Otherwise maintain original order
+            return 0;
+        });
+
+        for (let i = 0; i < sortedPlugins.length; i++) {
+            const plugin = sortedPlugins[i];
             if (plugin.hydrateComponent) {
                 //make a new promise that returns IInstances but adds the plugin name
                 hydrationPromises.push(plugin.hydrateComponent(this, this.options.errorHandler).then(instances => {

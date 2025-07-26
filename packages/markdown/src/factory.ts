@@ -39,6 +39,7 @@ export interface IInstance {
 
 export interface Plugin {
     name: string;
+    hydratesBefore?: string;
     initializePlugin: (md: MarkdownIt) => void;
     fence?: (token: Token, idx: number) => string;
     hydrateComponent?: (renderer: Renderer, errorHandler: ErrorHandler) => Promise<IInstance[]>;
