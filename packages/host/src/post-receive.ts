@@ -1,5 +1,5 @@
 import { Listener } from './listener.js';
-import type { HostRenderRequestMessage, SandboxApprovalMessage, SandboxedPreRenderMessage } from 'common';
+import type { HostRenderRequestMessage, SandboxApprovalMessage, SandboxedPreHydrateMessage } from 'common';
 
 export function setupPostMessageHandling(host: Listener) {
     window.addEventListener('message', (event) => {
@@ -13,7 +13,7 @@ export function setupPostMessageHandling(host: Listener) {
                 return;
             }
 
-            const message = event.data as HostRenderRequestMessage | SandboxedPreRenderMessage;
+            const message = event.data as HostRenderRequestMessage | SandboxedPreHydrateMessage;
             if (message.type == 'hostRenderRequest') {
                 if (message.markdown) {
                     host.render(message.markdown, undefined);
@@ -22,7 +22,7 @@ export function setupPostMessageHandling(host: Listener) {
                 } else {
                     //do nothing, as messages may be directed to the page for other purposes
                 }
-            } else if (message.type == 'sandboxedPreRender') {
+            } else if (message.type == 'sandboxedPreHydrate') {
                 //make sure its from the sandbox iframe
                 if (event.source === host.sandbox.iframe.contentWindow) {
                     // TODO check whitelist and do a mutation if needed

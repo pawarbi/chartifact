@@ -1,10 +1,11 @@
 const iframe = document.getElementById('host') as HTMLIFrameElement;
 
 window.addEventListener('message', (event) => {
-    const hostStatusMessage = event.data as IDocs.common.HostStatusMessage;
-    if (hostStatusMessage.hostStatus === 'ready') {
-        iframe.contentWindow.postMessage({
-            markdown: `# Auto-loaded Content
+  const hostStatusMessage = event.data as IDocs.common.HostStatusMessage;
+  if (hostStatusMessage.hostStatus === 'ready') {
+    const message: IDocs.common.HostRenderRequestMessage = {
+      type: 'hostRenderRequest',
+      markdown: `# Auto-loaded Content
 
 This markdown was automatically sent when the iframe became ready.
 
@@ -48,7 +49,7 @@ The colors distinguish between different weather conditions such as sun, fog, dr
   }
 }
 \`\`\`
-`
-        }, '*');
-    }
+`};
+    iframe.contentWindow.postMessage(message, '*');
+  }
 });

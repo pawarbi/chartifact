@@ -1,12 +1,12 @@
 import { InteractiveDocument } from "schema";
 
-export interface MarkdownRenderRequestMessage {
-    type: 'markdownRenderRequest';
+export interface SandboxRenderMessage {
+    type: 'sandboxRender';
     markdown?: string;
 }
 
-export interface SandboxedPreRenderMessage {
-    type: 'sandboxedPreRender';
+export interface SandboxedPreHydrateMessage {
+    type: 'sandboxedPreHydrate';
     transactionId: number;
     //todo put stuff here for whitelist
 }

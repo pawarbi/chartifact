@@ -2,7 +2,7 @@ import React from 'react';
 import { InteractiveDocument } from "schema";
 import { targetMarkdown } from '@microsoft/interactive-document-compiler';
 import { Previewer, Sandbox } from '@microsoft/chartifact-sandbox';
-import { SandboxApprovalMessage, SandboxedPreRenderMessage } from 'common';
+import { SandboxApprovalMessage, SandboxedPreHydrateMessage } from 'common';
 
 export interface SandboxDocumentPreviewProps {
     page: InteractiveDocument;
@@ -38,8 +38,8 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
                             this.isSandboxReady = true;
 
                             this.windowMessageReceivedHandler = (event: MessageEvent) => {
-                                const message = event.data as SandboxedPreRenderMessage;
-                                if (message.type === 'sandboxedPreRender' && this.sandboxRef) {
+                                const message = event.data as SandboxedPreHydrateMessage;
+                                if (message.type === 'sandboxedPreHydrate' && this.sandboxRef) {
                                     // Handle sandboxed pre-render message
                                     console.log('Handling sandboxed pre-render message:', message);
 

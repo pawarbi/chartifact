@@ -48,7 +48,7 @@ body {
         console.error('No data received from sandbox');
         return;
       }
-      if (event.data.type === 'sandboxedPreRender') {
+      if (event.data.type === 'sandboxedPreHydrate') {
         console.log('Sandbox pre-render received:', event.data);
         //inspect doc and handle approval
         const sandboxedApprovalMessage = {

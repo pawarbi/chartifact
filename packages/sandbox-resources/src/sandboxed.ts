@@ -1,4 +1,4 @@
-declare const renderRequest: IDocs.common.MarkdownRenderRequestMessage;
+declare const renderRequest: IDocs.common.SandboxRenderMessage;
 
 document.addEventListener('DOMContentLoaded', () => {
     let transactionIndex = 0;
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function render(request: IDocs.common.MarkdownRenderRequestMessage) {
+    function render(request: IDocs.common.SandboxRenderMessage) {
         if (request.markdown) {
             renderer.reset();
             const html = renderer.renderHtml(request.markdown);
@@ -29,8 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
             transactions[transactionId] = doc;
 
             //send message to parent to ask for whitelist
-            const sandboxedPreRenderMessage: IDocs.common.SandboxedPreRenderMessage = {
-                type: 'sandboxedPreRender',
+            const sandboxedPreRenderMessage: IDocs.common.SandboxedPreHydrateMessage = {
+                type: 'sandboxedPreHydrate',
                 transactionId,
                 //todo put stuff here for whitelist
             };
@@ -44,10 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('message', (event) => {
         if (!event.data) return;
 
-        const message = event.data as IDocs.common.SandboxApprovalMessage | IDocs.common.MarkdownRenderRequestMessage;
+        const message = event.data as IDocs.common.SandboxApprovalMessage | IDocs.common.SandboxRenderMessage;
 
         switch (message.type) {
-            case 'markdownRenderRequest': {
+            case 'sandboxRender': {
                 render(message);
                 break;
             }
