@@ -1,7 +1,7 @@
 import { InteractiveDocument } from "schema";
-import { EditorMessage, PageMessage, ReadyMessage } from "./types.js";
 import { SandboxDocumentPreview } from "./sandbox.js";
 import { Previewer } from '@microsoft/chartifact-sandbox';
+import { EditorPageMessage, EditorReadyMessage } from "common";
 
 export interface EditorProps {
     postMessageTarget?: Window;
@@ -35,13 +35,13 @@ export function Editor(props: EditorProps) {
     }));
 
     React.useEffect(() => {
-        const handleMessage = (event: MessageEvent<EditorMessage>) => {
+        const handleMessage = (event: MessageEvent<EditorReadyMessage | EditorPageMessage>) => {
             // Optionally add origin validation here for security
             // if (event.origin !== 'expected-origin') return;
 
             // Only process messages that are not from us (editor)
             if (event.data && event.data.sender !== 'editor') {
-                if (event.data.type === 'page' && event.data.page) {
+                if (event.data.type === 'editorPage' && event.data.page) {
                     setPage(event.data.page);
                 }
             }
@@ -56,8 +56,8 @@ export function Editor(props: EditorProps) {
 
     React.useEffect(() => {
         // Send ready message when the editor is mounted and ready
-        const readyMessage: ReadyMessage = {
-            type: 'ready',
+        const readyMessage: EditorReadyMessage = {
+            type: 'editorReady',
             sender: 'editor'
         };
         postMessageTarget.postMessage(readyMessage, '*');
@@ -76,8 +76,8 @@ export function EditorView(props: EditorViewProps) {
     const { page, postMessageTarget, previewer } = props;
 
     const sendEditToApp = (newPage: InteractiveDocument) => {
-        const pageMessage: PageMessage = {
-            type: 'page',
+        const pageMessage: EditorPageMessage = {
+            type: 'editorPage',
             page: newPage,
             sender: 'editor'
         };

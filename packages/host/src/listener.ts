@@ -110,7 +110,7 @@ export class Listener {
         this.sandboxReady = true;
 
         // Send ready message to parent window (if embedded)
-        postStatus(this.options.postMessageTarget, { hostStatus: 'ready' });
+        postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'ready' });
       },
       onError: () => {
         this.errorHandler(new Error('Sandbox initialization failed'), 'Sandbox could not be initialized');
@@ -201,7 +201,7 @@ export class Listener {
   }
 
   private renderInteractiveDocument(content: InteractiveDocument) {
-    postStatus(this.options.postMessageTarget, { hostStatus: 'compiling', details: 'Starting interactive document compilation' });
+    postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'compiling', details: 'Starting interactive document compilation' });
     const markdown = targetMarkdown(content);
     this.renderMarkdown(markdown);
   }
@@ -215,18 +215,18 @@ export class Listener {
     this.hideLoadingAndHelp();
 
     try {
-      postStatus(this.options.postMessageTarget, { hostStatus: 'rendering', details: 'Starting markdown rendering' });
+      postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'rendering', details: 'Starting markdown rendering' });
       if (!this.sandbox || !this.sandboxReady) {
         this.createSandbox(markdown);
       } else {
         this.sandbox.send(markdown);
       }
-      postStatus(this.options.postMessageTarget, { hostStatus: 'rendered', details: 'Markdown rendering completed successfully' });
+      postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'rendered', details: 'Markdown rendering completed successfully' });
     } catch (error) {
       this.errorHandler(
         error, 'Error rendering markdown content'
       );
-      postStatus(this.options.postMessageTarget, { hostStatus: 'error', details: `Rendering failed: ${error.message}` });
+      postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'error', details: `Rendering failed: ${error.message}` });
     }
   }
 

@@ -37,7 +37,7 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
                         onReady: () => {
                             this.isSandboxReady = true;
 
-                            this.windowMessageReceivedHandler = (event: MessageEvent) => {
+                            this.windowMessageReceivedHandler = (event: MessageEvent<SandboxedPreHydrateMessage>) => {
                                 const message = event.data as SandboxedPreHydrateMessage;
                                 if (message.type === 'sandboxedPreHydrate' && this.sandboxRef) {
                                     // Handle sandboxed pre-render message

@@ -29,3 +29,25 @@ export interface HostStatusMessage {
     hostStatus: 'ready' | 'compiling' | 'rendering' | 'rendered' | 'error' | 'loading';
     details?: string;
 }
+
+export interface EditorReadyMessage {
+    type: 'editorReady';
+    sender: string;
+}
+
+export interface EditorPageMessage {
+    type: 'editorPage';
+    sender: string;
+    page: InteractiveDocument;
+}
+
+export interface EditorGetOfflineDependenciesMessage {
+    type: 'editorGetOfflineDependencies';
+    sender: string;
+}
+
+export interface EditorSetOfflineDependenciesMessage {
+    type: 'editorSetOfflineDependencies';
+    sender: string;
+    offlineDeps: string;
+}

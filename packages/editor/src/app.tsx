@@ -1,7 +1,7 @@
 import { InteractiveDocument } from "schema";
 import { Editor } from './editor.js';
-import { PageMessage, EditorMessage } from "./types.js";
 import { Previewer } from '@microsoft/chartifact-sandbox';
+import { EditorPageMessage, EditorReadyMessage } from "common";
 
 export interface AppProps {
     previewer: typeof Previewer;
@@ -45,25 +45,25 @@ export function App(props: AppProps) {
         }
 
         // Post message to the editor within the same window
-        const pageMessage: PageMessage = {
-            type: 'page',
+        const pageMessage: EditorPageMessage = {
+            type: 'editorPage',
             page: page,
-            sender: 'app'
+            sender: 'app',
         };
         window.postMessage(pageMessage, '*');
     };
 
     React.useEffect(() => {
         // Listen for messages from the editor
-        const handleMessage = (event: MessageEvent<EditorMessage>) => {
+        const handleMessage = (event: MessageEvent<EditorPageMessage | EditorReadyMessage>) => {
             // Only process messages from editor, ignore our own messages
             if (event.data && event.data.sender === 'editor') {
-                if (event.data.type === 'ready') {
+                if (event.data.type === 'editorReady') {
                     setIsEditorReady(true);
                     // Send initial page when editor is ready
                     sendPageToEditor(currentPage);
-                } else if (event.data.type === 'page' && event.data.page) {
-                    const pageMessage = event.data as PageMessage;
+                } else if (event.data.type === 'editorPage' && event.data.page) {
+                    const pageMessage = event.data as EditorPageMessage;
                     // Use functional updates to avoid closure issues
                     setHistoryIndex(prevIndex => {
                         setHistory(prevHistory => {

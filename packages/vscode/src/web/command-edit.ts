@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
 import { script, style } from './html';
 import { getResourceContent } from './resources';
-import type { ReadyMessage, PageMessage, EditorMessage } from 'editor' with { 'resolution-mode': 'import' };
+import type { EditorPageMessage, EditorReadyMessage, EditorGetOfflineDependenciesMessage, EditorSetOfflineDependenciesMessage } from 'common' with { 'resolution-mode': 'import' };
 
 /**
  * Manages the edit functionality for Interactive Documents
@@ -54,13 +54,14 @@ export class EditManager {
 	/**
 	 * Handles messages from the webview
 	 */
-	private handleWebviewMessage(message: EditorMessage | { type: 'getOfflineDeps' }, fileUri: vscode.Uri, uriFsPath: string) {
+	private handleWebviewMessage(message: EditorPageMessage | EditorReadyMessage | EditorGetOfflineDependenciesMessage, fileUri: vscode.Uri, uriFsPath: string) {
 		switch (message.type) {
-			case 'getOfflineDeps': {
+			case 'editorGetOfflineDependencies': {
 				// Send offline dependencies to the webview
 				if (this.current) {
-					this.current.panel.webview.postMessage({
-						type: 'setOfflineDeps',
+					const setOfflineDependenciesMessage: EditorSetOfflineDependenciesMessage = {
+						type: 'editorSetOfflineDependencies',
+						sender: 'vscode',
 						offlineDeps:
 							style(getResourceContent('tabulator.min.css')) +
 							script(getResourceContent('markdown-it.min.js')) +
@@ -68,15 +69,16 @@ export class EditManager {
 							script(getResourceContent('vega.min.js')) +
 							script(getResourceContent('vega-lite.min.js')) +
 							script(getResourceContent('tabulator.min.js'))
-					});
+					}
+					this.current.panel.webview.postMessage(setOfflineDependenciesMessage);
 				}
 				break;
 			}
-			case 'ready': {
+			case 'editorReady': {
 				this.getFileContentAndRender(fileUri, uriFsPath);
 				break;
 			}
-			case 'page': {
+			case 'editorPage': {
 				// Handle page updates from the editor
 				this.handlePageUpdate(message, fileUri, uriFsPath);
 				break;
@@ -87,7 +89,7 @@ export class EditManager {
 	/**
 	 * Handles page update messages from the webview editor
 	 */
-	private async handlePageUpdate(message: PageMessage, fileUri: vscode.Uri, uriFsPath: string) {
+	private async handlePageUpdate(message: EditorPageMessage, fileUri: vscode.Uri, uriFsPath: string) {
 		try {
 			// Convert the page data to JSON string
 			const jsonContent = JSON.stringify(message.page, null, 2);
@@ -120,7 +122,7 @@ export class EditManager {
 					const interactiveDocument = JSON.parse(jsonContent);
 					this.render({
 						page: interactiveDocument,
-						type: 'page',
+						type: 'editorPage',
 						sender: 'app'
 					});
 				} catch (error) {
@@ -131,7 +133,7 @@ export class EditManager {
 		});
 	}
 
-	public render(renderRequestMessage: PageMessage) {
+	public render(renderRequestMessage: EditorPageMessage) {
 		if (this.current && this.current.panel.visible) {
 			this.current.panel.webview.postMessage(renderRequestMessage);
 		}

@@ -6,8 +6,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
         let offlineDeps = '<script>console.log("offline deps not loaded!");</script>';
 
-        if (event.data.type === 'setOfflineDeps') {
-            offlineDeps = event.data.offlineDeps;
+        const message = event.data as IDocs.common.EditorSetOfflineDependenciesMessage;
+
+        if (message.type === 'editorSetOfflineDependencies') {
+            offlineDeps = message.offlineDeps;
             class OfflineSandbox extends IDocs.sandbox.Sandbox {
                 constructor(element, markdown, options) {
                     super(element, markdown, options);
@@ -22,5 +24,10 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    vscode.postMessage({ type: 'getOfflineDeps' }, '*');
+    const editorGetOfflineDependenciesMessage: IDocs.common.EditorGetOfflineDependenciesMessage = {
+        type: 'editorGetOfflineDependencies',
+        sender: 'webview',
+    };
+
+    vscode.postMessage(editorGetOfflineDependenciesMessage, '*');
 });
