@@ -43,6 +43,22 @@ body {
     textarea.addEventListener('input', () => {
       sandbox.send(textarea.value);
     });
+    window.addEventListener('message', (event) => {
+      if (!event.data) {
+        console.error('No data received from sandbox');
+        return;
+      }
+      if (event.data.type === 'sandboxedPreRender') {
+        console.log('Sandbox pre-render received:', event.data);
+        //inspect doc and handle approval
+        const sandboxedApprovalMessage = {
+          type: 'sandboxApproval',
+          transactionId: event.data.transactionId,
+          approved: true // or false based on your logic
+        };
+        sandbox.approve(sandboxedApprovalMessage);
+      }
+    });
   </script>
 
 </body>

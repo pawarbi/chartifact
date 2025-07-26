@@ -1,8 +1,12 @@
 import { Renderer } from '@microsoft/interactive-document-markdown';
 import { Previewer, PreviewerOptions } from '@microsoft/chartifact-sandbox';
+import { SandboxApprovalMessage } from 'common';
+
+let transactionIndex = 0;
 
 export class DevPreviewer extends Previewer {
-    private renderer: Renderer;
+    public renderer: Renderer;
+    public transactions: Record<number, Document> = {};
 
     constructor(elementOrSelector: string | HTMLElement, markdown: string, options: PreviewerOptions) {
         super(elementOrSelector, markdown, options);
@@ -30,14 +34,22 @@ export class DevPreviewer extends Previewer {
 
     render(markdown: string) {
         const html = this.renderer.renderHtml(markdown);
-        this.renderer.element.innerHTML = `
-            <style>.tabulator { margin-right: -1px; }</style>
-            <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
-            ${html}`;
-        this.renderer.hydrate().catch(error => {
-            this.displayError('Failed to hydrate components');
-            this.options.onError?.(error);
-        });
+
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const transactionId = transactionIndex++;
+        this.transactions[transactionId] = doc;
+
+        //inline approval
+        const sandboxedPreRenderMessage: SandboxApprovalMessage = {
+            type: 'sandboxApproval',
+            transactionId,
+            approved: true,
+            // Additional data for whitelist can be added here
+        };
+
+        //inline approval
+        this.approve(sandboxedPreRenderMessage);
+
     }
 
     send(markdown: string) {
@@ -46,6 +58,30 @@ export class DevPreviewer extends Previewer {
         } catch (error) {
             this.displayError(error);
             this.options.onError?.(error);
+        }
+    }
+
+    approve(message: SandboxApprovalMessage): void {
+        if (message.approved) {
+            //only handle if the transactionId is the latest
+            if (message.transactionId === transactionIndex - 1) {
+
+                console.log('Sandbox approval received:', message.transactionId, transactionIndex);
+                if (message.transactionId === transactionIndex - 1) {
+                    const doc = this.transactions[message.transactionId];
+                    if (doc) {
+                        const newHtml = `<style>.tabulator { margin-right: -1px; }</style>
+<link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+${doc.body.innerHTML}`;
+                        this.renderer.element.innerHTML = newHtml;
+                        this.renderer.hydrate();
+                    }
+                }
+            } else {
+                console.warn('Received sandbox approval for an outdated transaction:', message.transactionId, transactionIndex);
+            }
+        } else {
+            console.warn('Sandbox approval denied:', message.transactionId);
         }
     }
 

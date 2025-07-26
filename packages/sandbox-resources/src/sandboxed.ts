@@ -1,6 +1,10 @@
 declare const renderRequest: IDocs.common.MarkdownRenderRequestMessage;
 
 document.addEventListener('DOMContentLoaded', () => {
+    let transactionIndex = 0;
+
+    const transactions: Record<number, Document> = {};
+
     const renderer = new IDocs.markdown.Renderer(document.body, {
         errorHandler: (error: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string) => {
             console.error(`Error in plugin ${pluginName} at instance ${instanceIndex} during ${phase}:`, error);
@@ -15,11 +19,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (request.markdown) {
             renderer.reset();
             const html = renderer.renderHtml(request.markdown);
-            //todo: look at dom elements prior to hydration
-            renderer.element.innerHTML = html;
-            //todo: send message to parent to ask for whitelist
-            //todo: asynchronously hydrate the renderer
-            renderer.hydrate();
+
+            //look at dom elements prior to hydration
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            //todo: get stuff here for whitelist
+            const transactionId = transactionIndex++;
+            transactions[transactionId] = doc;
+
+            //send message to parent to ask for whitelist
+            const sandboxedPreRenderMessage: IDocs.common.SandboxedPreRenderMessage = {
+                type: 'sandboxedPreRender',
+                transactionId,
+                //todo put stuff here for whitelist
+            };
+            window.parent.postMessage(sandboxedPreRenderMessage, '*');
         }
     }
 
@@ -28,7 +43,37 @@ document.addEventListener('DOMContentLoaded', () => {
     //add listener for postMessage
     window.addEventListener('message', (event) => {
         if (!event.data) return;
-        render(event.data);
+
+        const message = event.data as IDocs.common.SandboxApprovalMessage | IDocs.common.MarkdownRenderRequestMessage;
+
+        switch (message.type) {
+            case 'markdownRenderRequest': {
+                render(message);
+                break;
+            }
+            case 'sandboxApproval': {
+                if (message.approved) {
+
+                    console.log('Sandbox approval received:', message.transactionId, transactionIndex);
+
+                    //only handle if the transactionId is the latest
+                    if (message.transactionId === transactionIndex - 1) {
+
+                        //todo: mutate the document according to approval
+
+                        //hydrate the renderer
+                        const doc = transactions[message.transactionId];
+                        if (doc) {
+                            renderer.element.innerHTML = doc.body.innerHTML;
+                            renderer.hydrate();
+                        }
+                    } else {
+                        console.warn('Received sandbox approval for an outdated transaction:', message.transactionId, transactionIndex);
+                    }
+                }
+                break;
+            }
+        }
     });
 
 });

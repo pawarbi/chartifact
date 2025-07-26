@@ -85,13 +85,19 @@ export class PreviewManager {
 			// If the file is a markdown file, we can send the markdown content
 			if (uriFsPath.endsWith('.md')) {
 				const markdown = new TextDecoder().decode(uint8array);
-				this.render({ markdown });
+				this.render({
+					type: 'hostRenderRequest',
+					markdown,
+				});
 			} else if (uriFsPath.endsWith('.json')) {
 				// If the file is a JSON file, we can send the JSON content
 				const jsonContent = new TextDecoder().decode(uint8array);
 				try {
 					const interactiveDocument = JSON.parse(jsonContent);
-					this.render({ interactiveDocument });
+					this.render({
+						type: 'hostRenderRequest',
+						interactiveDocument,
+					});
 				} catch (error) {
 					vscode.window.showErrorMessage(`Failed to parse JSON: ${error}`);
 				}

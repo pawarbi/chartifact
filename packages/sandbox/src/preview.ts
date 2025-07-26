@@ -1,3 +1,5 @@
+import { SandboxApprovalMessage } from "common/dist/esnext/messages.js";
+
 export interface PreviewerOptions {
     onReady?: () => void;
     onError?: (error: Error) => void;
@@ -21,6 +23,10 @@ export class Previewer {
     }
 
     send(markdown: string): void {
+        throw new Error('Method not implemented.');
+    }
+
+    approve(message: SandboxApprovalMessage) {
         throw new Error('Method not implemented.');
     }
 }

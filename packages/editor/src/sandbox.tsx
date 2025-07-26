@@ -2,6 +2,7 @@ import React from 'react';
 import { InteractiveDocument } from "schema";
 import { targetMarkdown } from '@microsoft/interactive-document-compiler';
 import { Previewer, Sandbox } from '@microsoft/chartifact-sandbox';
+import { SandboxApprovalMessage, SandboxedPreRenderMessage } from 'common';
 
 export interface SandboxDocumentPreviewProps {
     page: InteractiveDocument;
@@ -13,6 +14,7 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
     sandboxRef: Previewer | null;
     isSandboxReady: boolean;
     pendingUpdate: InteractiveDocument;
+    windowMessageReceivedHandler: (event: MessageEvent) => void;
 
     constructor(props: SandboxDocumentPreviewProps) {
         super(props);
@@ -34,6 +36,24 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
                     {
                         onReady: () => {
                             this.isSandboxReady = true;
+
+                            this.windowMessageReceivedHandler = (event: MessageEvent) => {
+                                const message = event.data as SandboxedPreRenderMessage;
+                                if (message.type === 'sandboxedPreRender' && this.sandboxRef) {
+                                    // Handle sandboxed pre-render message
+                                    console.log('Handling sandboxed pre-render message:', message);
+
+                                    // Approve the sandboxed pre-render
+                                    const sandboxedApprovalMessage: SandboxApprovalMessage = {
+                                        type: 'sandboxApproval',
+                                        transactionId: message.transactionId,
+                                        approved: true,
+
+                                    };
+                                    this.sandboxRef.approve(sandboxedApprovalMessage);
+                                }
+                            };
+                            window.addEventListener('message', this.windowMessageReceivedHandler);
 
                             // Process pending update
                             if (this.pendingUpdate) {
@@ -79,6 +99,7 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
     componentWillUnmount() {
         if (this.sandboxRef) {
             this.sandboxRef = null;
+            this.windowMessageReceivedHandler && window.removeEventListener('message', this.windowMessageReceivedHandler);
         }
     }
 

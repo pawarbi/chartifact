@@ -2,15 +2,18 @@ import { Previewer, PreviewerOptions } from './preview.js';
 import { rendererHtml } from './resources/rendererHtml.js';
 import { rendererUmdJs } from './resources/rendererUmdJs.js';
 import { sandboxedJs } from './resources/sandboxedJs.js';
-import type { MarkdownRenderRequestMessage } from 'common';
+import type { MarkdownRenderRequestMessage, SandboxApprovalMessage } from 'common';
 
 export class Sandbox extends Previewer {
-    private iframe: HTMLIFrameElement;
+    public iframe: HTMLIFrameElement;
 
     constructor(elementOrSelector: string | HTMLElement, markdown: string, options?: PreviewerOptions) {
         super(elementOrSelector, markdown, options);
 
-        const renderRequest: MarkdownRenderRequestMessage = { markdown };
+        const renderRequest: MarkdownRenderRequestMessage = {
+            type: 'markdownRenderRequest',
+            markdown,
+        };
 
         const { iframe } = createIframe(this.getDependencies(), renderRequest);
         this.iframe = iframe;
@@ -34,7 +37,14 @@ export class Sandbox extends Previewer {
     }
 
     send(markdown: string): void {
-        const message: MarkdownRenderRequestMessage = { markdown };
+        const message: MarkdownRenderRequestMessage = {
+            type: 'markdownRenderRequest',
+            markdown,
+        };
+        this.iframe.contentWindow?.postMessage(message, '*');
+    }
+
+    approve(message: SandboxApprovalMessage) {
         this.iframe.contentWindow?.postMessage(message, '*');
     }
 
