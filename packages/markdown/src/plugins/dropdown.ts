@@ -5,7 +5,7 @@
 
 import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
-import { getJsonScriptTag } from './util.js';
+import { getJsonScriptTag, pluginClassName } from './util.js';
 
 interface DropdownInstance {
     id: string;
@@ -29,23 +29,25 @@ export interface DropdownSpec {
     dynamicOptions?: DynamicDropdownOptions;
 }
 
+const pluginName = 'dropdown';
+const className = pluginClassName(pluginName);
+
 export const dropdownPlugin: Plugin = {
-    name: 'dropdown',
-    initializePlugin: (md) => definePlugin(md, 'dropdown'),
-    fence: (token, idx) => {
-        return sanitizedHTML('div', { class: 'dropdown' }, token.content.trim(), true);
+    name: pluginName,
+    initializePlugin: (md) => definePlugin(md, pluginName),
+    fence: token => {
+        return sanitizedHTML('div', { class: className }, token.content.trim(), true);
     },
     hydrateComponent: async (renderer, errorHandler) => {
         const dropdownInstances: DropdownInstance[] = [];
-        const containers = renderer.element.querySelectorAll('.dropdown');
+        const containers = renderer.element.querySelectorAll(`.${className}`);
         for (const [index, container] of Array.from(containers).entries()) {
-            const scriptTag = getJsonScriptTag(container);
-            if (!scriptTag) continue;
+            const jsonObj = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
+            if (!jsonObj) continue;
 
-            try {
-                const spec: DropdownSpec = JSON.parse(scriptTag.textContent);
+            const spec: DropdownSpec = jsonObj;
 
-                const html = `<form class="vega-bindings">
+            const html = `<form class="vega-bindings">
                     <div class="vega-bind">
                         <label>
                             <span class="vega-bind-name">${spec.label || spec.name}</span>
@@ -54,19 +56,14 @@ export const dropdownPlugin: Plugin = {
                         </label>
                     </div>
                 </form>`;
-                container.innerHTML = html;
-                const element = container.querySelector('select') as HTMLSelectElement;
-                
-                // Safely set the initial options
-                setSelectOptions(element, spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""));
+            container.innerHTML = html;
+            const element = container.querySelector('select') as HTMLSelectElement;
 
-                const dropdownInstance: DropdownInstance = { id: `dropdown-${index}`, spec, element };
-                dropdownInstances.push(dropdownInstance);
-            } catch (e) {
-                container.innerHTML = `<div class="error">${e.toString()}</div>`;
-                errorHandler(e, 'Dropdown', index, 'parse', container);
-                continue;
-            }
+            // Safely set the initial options
+            setSelectOptions(element, spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""));
+
+            const dropdownInstance: DropdownInstance = { id: `${pluginName}-${index}`, spec, element };
+            dropdownInstances.push(dropdownInstance);
         }
         const instances: IInstance[] = dropdownInstances.map((dropdownInstance, index) => {
             const { element, spec } = dropdownInstance;
@@ -165,7 +162,7 @@ export const dropdownPlugin: Plugin = {
 function setSelectOptions(selectElement: HTMLSelectElement, multiple: boolean, options: string[], selected: string | string[]) {
     // Clear existing options
     selectElement.innerHTML = '';
-    
+
     if (!options || options.length === 0) {
         if (multiple) {
             if (Array.isArray(selected)) {
@@ -181,16 +178,16 @@ function setSelectOptions(selectElement: HTMLSelectElement, multiple: boolean, o
             }
         }
     }
-    
+
     if (!options || options.length === 0) {
         return;
     }
-    
+
     options.forEach((optionValue) => {
         const optionElement = document.createElement('option');
         optionElement.value = optionValue;
         optionElement.textContent = optionValue; // This safely escapes HTML
-        
+
         let isSelected = false;
         if (multiple) {
             isSelected = (selected as string[] || []).includes(optionValue);
@@ -198,7 +195,7 @@ function setSelectOptions(selectElement: HTMLSelectElement, multiple: boolean, o
             isSelected = selected === optionValue;
         }
         optionElement.selected = isSelected;
-        
+
         selectElement.appendChild(optionElement);
     });
 }

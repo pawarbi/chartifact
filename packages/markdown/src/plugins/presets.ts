@@ -5,7 +5,7 @@
 
 import { Batch, definePlugin, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
-import { getJsonScriptTag } from './util.js';
+import { getJsonScriptTag, pluginClassName } from './util.js';
 
 interface Preset {
     name: string;
@@ -21,29 +21,24 @@ interface PresetsInstance {
     element: HTMLUListElement;
 }
 
+const pluginName = 'presets';
+const className = pluginClassName(pluginName);
+
 export const presetsPlugin: Plugin = {
-    name: 'presets',
-    initializePlugin: (md) => definePlugin(md, 'presets'),
-    fence: (token, idx) => {
-        const spec = JSON.parse(token.content.trim());
-        return sanitizedHTML('div', { class: 'presets' }, JSON.stringify(spec), true);
+    name: pluginName,
+    initializePlugin: (md) => definePlugin(md, pluginName),
+    fence: token => {
+        return sanitizedHTML('div', { class: className }, token.content.trim(), true);
     },
     hydrateComponent: async (renderer, errorHandler) => {
         const presetsInstances: PresetsInstance[] = [];
-        const containers = renderer.element.querySelectorAll('.presets');
+        const containers = renderer.element.querySelectorAll(`.${className}`);
         for (const [index, container] of Array.from(containers).entries()) {
-            const scriptTag = getJsonScriptTag(container);
-            if (!scriptTag) continue;
+            const jsonObj = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
+            if (!jsonObj) continue;
 
-            const id = `presets-${index}`;
-            let presets: Preset[];
-            try {
-                presets = JSON.parse(scriptTag.textContent) as Preset[];
-            } catch (e) {
-                container.innerHTML = `<div class="error">${e.toString()}</div>`;
-                errorHandler(e, 'presets', index, 'parse', container);
-                continue;
-            }
+            const id = `${pluginName}-${index}`;
+            const presets = jsonObj as Preset[];
             if (!Array.isArray(presets)) {
                 container.innerHTML = '<div class="error">Expected an array of presets</div>';
                 continue;

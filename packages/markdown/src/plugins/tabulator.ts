@@ -7,7 +7,7 @@ import { defaultCommonOptions } from 'common';
 import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { Tabulator as TabulatorType, Options as TabulatorOptions } from 'tabulator-tables';
-import { getJsonScriptTag } from './util.js';
+import { getJsonScriptTag, pluginClassName } from './util.js';
 
 interface TabulatorInstance {
     id: string;
@@ -23,49 +23,47 @@ export interface TabulatorSpec {
 
 declare const Tabulator: typeof TabulatorType;
 
+const pluginName = 'tabulator';
+const className = pluginClassName(pluginName);
+
 export const tabulatorPlugin: Plugin = {
-    name: 'tabulator',
-    initializePlugin: (md) => definePlugin(md, 'tabulator'),
-    fence: (token, idx) => {
-        return sanitizedHTML('div', { class: 'tabulator', style: 'box-sizing: border-box;' }, token.content.trim(), true);
+    name: pluginName,
+    initializePlugin: (md) => definePlugin(md, pluginName),
+    fence: token => {
+        return sanitizedHTML('div', { class: className, style: 'box-sizing: border-box;' }, token.content.trim(), true);
     },
     hydrateComponent: async (renderer, errorHandler) => {
         const tabulatorInstances: TabulatorInstance[] = [];
-        const containers = renderer.element.querySelectorAll('.tabulator');
+        const containers = renderer.element.querySelectorAll(`.${className}`);
         for (const [index, container] of Array.from(containers).entries()) {
-            const scriptTag = getJsonScriptTag(container);
-            if (!scriptTag) continue;
-            if (!Tabulator) {
-                errorHandler(new Error('Tabulator not found'), 'tabulator', index, 'init', container);
+            const jsonObj = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
+            if (!jsonObj) continue;
+
+            if (!Tabulator && index === 0) {
+                errorHandler(new Error('Tabulator not found'), pluginName, index, 'init', container);
                 continue;
             }
 
-            try {
-                const spec: TabulatorSpec = JSON.parse(scriptTag.textContent);
+            const spec: TabulatorSpec = jsonObj;
 
-                let options: TabulatorOptions = {
-                    autoColumns: true,
-                    layout: 'fitColumns',
-                    maxHeight: '200px',
-                };
+            let options: TabulatorOptions = {
+                autoColumns: true,
+                layout: 'fitColumns',
+                maxHeight: '200px',
+            };
 
-                //see if default options is an object with no properties
-                if (spec.options && Object.keys(spec.options).length > 0) {
-                    options = spec.options;
-                }
-
-                const table = new Tabulator(container as HTMLElement, options);
-                const tabulatorInstance: TabulatorInstance = { id: `tabulator-${index}`, spec, table, built: false };
-                table.on('tableBuilt', () => {
-                    table.off('tableBuilt');
-                    tabulatorInstance.built = true;
-                });
-                tabulatorInstances.push(tabulatorInstance);
-            } catch (e) {
-                container.innerHTML = `<div class="error">${e.toString()}</div>`;
-                errorHandler(e, 'tabulator', index, 'parse', container);
-                continue;
+            //see if default options is an object with no properties
+            if (spec.options && Object.keys(spec.options).length > 0) {
+                options = spec.options;
             }
+
+            const table = new Tabulator(container as HTMLElement, options);
+            const tabulatorInstance: TabulatorInstance = { id: `${pluginName}-${index}`, spec, table, built: false };
+            table.on('tableBuilt', () => {
+                table.off('tableBuilt');
+                tabulatorInstance.built = true;
+            });
+            tabulatorInstances.push(tabulatorInstance);
         }
         const dataNameSelectedSuffix = defaultCommonOptions.dataNameSelectedSuffix;
         const instances: IInstance[] = tabulatorInstances.map((tabulatorInstance, index) => {

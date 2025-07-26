@@ -7,7 +7,7 @@ export function urlParam(urlParamName: string, value: any) {
     }
 }
 
-export function getJsonScriptTag(container: Element): HTMLScriptElement | null {
+export function getJsonScriptTag(container: Element, errorHandler: (error: Error) => void) {
     const scriptTag = container.previousElementSibling;
     if (scriptTag?.tagName !== 'SCRIPT' || scriptTag.getAttribute('type') !== 'application/json') {
         return null;
@@ -15,5 +15,14 @@ export function getJsonScriptTag(container: Element): HTMLScriptElement | null {
     if (!scriptTag.textContent) {
         return null;
     }
-    return scriptTag as HTMLScriptElement;
+    try {
+        return JSON.parse(scriptTag.textContent);
+    } catch (error) {
+        errorHandler(error);
+        return null;
+    }
+}
+
+export function pluginClassName(pluginName: string) {
+    return `chartifact-plugin-${pluginName}`;
 }

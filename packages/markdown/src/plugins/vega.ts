@@ -7,10 +7,9 @@ import { changeset, parse, View, expressionFunction, LoggerInterface } from 'veg
 import { Batch, IInstance, Plugin, PrioritizedSignal, definePlugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { BaseSignal, InitSignal, NewSignal, Runtime, Spec, ValuesData } from 'vega-typings';
-import { Resolver, resolveSpec } from '../resolver.js';
 import { ErrorHandler, Renderer } from '../renderer.js';
 import { LogLevel } from '../signalbus.js';
-import { urlParam } from './util.js';
+import { getJsonScriptTag, pluginClassName, urlParam } from './util.js';
 import { defaultCommonOptions } from 'common';
 
 const ignoredSignals = ['width', 'height', 'padding', 'autosize', 'background', 'style', 'parent', 'datum', 'item', 'event', 'cursor'];
@@ -30,12 +29,14 @@ interface VegaInstance extends SpecInit {
     needToRun?: boolean;
 }
 
+const pluginName = 'vega';
+const className = pluginClassName(pluginName);
+
 export const vegaPlugin: Plugin = {
-    name: 'vega',
-    initializePlugin: (md) => definePlugin(md, 'vega'),
-    fence: (token, idx) => {
-        const vegaId = `vega-${idx}`;
-        return sanitizedHTML('div', { id: vegaId, class: 'vega-chart' }, token.content.trim());
+    name: pluginName,
+    initializePlugin: (md) => definePlugin(md, pluginName),
+    fence: token => {
+        return sanitizedHTML('div', { class: className }, token.content.trim(), true);
     },
     hydrateComponent: async (renderer, errorHandler) => {
         //initialize the expressionFunction only once
@@ -45,10 +46,13 @@ export const vegaPlugin: Plugin = {
         }
 
         const vegaInstances: VegaInstance[] = [];
-        const containers = renderer.element.querySelectorAll('.vega-chart');
+        const containers = renderer.element.querySelectorAll(`.${className}`);
         const specInits: SpecInit[] = [];
         for (const [index, container] of Array.from(containers).entries()) {
-            const specInit = await createSpecInit(container, index, renderer, errorHandler);
+            const jsonObj = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
+            if (!jsonObj) continue;
+
+            const specInit = createSpecInit(container, index, jsonObj);
             if (specInit) {
                 specInits.push(specInit);
             }
@@ -244,30 +248,7 @@ function recieveBatch(batch: Batch, renderer: Renderer, vegaInstance: VegaInstan
     return hasAnyChange;
 }
 
-async function createSpecInit(container: Element, index: number, renderer: Renderer, errorHandler: ErrorHandler) {
-    if (!container.textContent) {
-        container.innerHTML = '<div class="error">Expected a spec object or a url</div>';
-        return;
-    }
-
-    let result: Resolver;
-    try {
-        result = await resolveSpec(container.textContent);
-    } catch (e) {
-        container.innerHTML = `<div class="error">${e.toString()}</div>`;
-        errorHandler(e, 'vega', index, 'resolve', container);
-        return;
-    }
-    if (result.error) {
-        container.innerHTML = `<div class="error">${result.error.toString()}</div>`;
-        errorHandler(result.error, 'vega', index, 'resolve', container);
-        return;
-    }
-    if (!result.spec) {
-        container.innerHTML = '<div class="error">Expected a spec object</div>';
-        return;
-    }
-    const { spec } = result;
+function createSpecInit(container: Element, index: number, spec: Spec) {
     const initialSignals: PrioritizedSignal[] = spec.signals?.map((signal: InitSignal | NewSignal) => {
         if (ignoredSignals.includes(signal.name)) return;
         let isData = isSignalDataBridge(signal as NewSignal);
@@ -288,7 +269,7 @@ async function createSpecInit(container: Element, index: number, renderer: Rende
 
 async function createVegaInstance(specInit: SpecInit, renderer: Renderer, errorHandler: ErrorHandler) {
     const { container, index, initialSignals, spec } = specInit;
-    const id = `vega-${index}`;
+    const id = `${pluginName}-${index}`;
 
     let runtime: Runtime;
     let view: View;
@@ -297,7 +278,7 @@ async function createVegaInstance(specInit: SpecInit, renderer: Renderer, errorH
         runtime = parse(spec);
     } catch (e) {
         container.innerHTML = `<div class="error">${e.toString()}</div>`;
-        errorHandler(e, 'vega', index, 'parse', container);
+        errorHandler(e, pluginName, index, 'parse', container);
         return;
     }
 
@@ -306,7 +287,7 @@ async function createVegaInstance(specInit: SpecInit, renderer: Renderer, errorH
             container,
             renderer: renderer.options.vegaRenderer,
             logger: new VegaLogger(error => {
-                errorHandler(error, 'vega', index, 'view', container);
+                errorHandler(error, pluginName, index, 'view', container);
             }),
         });
         view.run();
@@ -323,7 +304,7 @@ async function createVegaInstance(specInit: SpecInit, renderer: Renderer, errorH
 
     } catch (e) {
         container.innerHTML = `<div class="error">${e.toString()}</div>`;
-        errorHandler(e, 'vega', index, 'view', container);
+        errorHandler(e, pluginName, index, 'view', container);
         return;
     }
 

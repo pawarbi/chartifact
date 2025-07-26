@@ -6,7 +6,7 @@
 import { definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import * as Csstree from 'css-tree';
-import { getJsonScriptTag } from './util.js';
+import { getJsonScriptTag, pluginClassName } from './util.js';
 
 // CSS Tree is expected to be available as a global variable
 declare const csstree: typeof Csstree;
@@ -303,22 +303,25 @@ function categorizeCss(cssContent: string): CategorizedCss {
     return result;
 }
 
+const pluginName = 'css';
+const className = pluginClassName(pluginName);
+
 export const cssPlugin: Plugin = {
-    name: 'css',
+    name: pluginName,
     initializePlugin: (md) => {
         // Check for required css-tree dependency
         if (typeof csstree === 'undefined') {
             throw new Error('css-tree library is required for CSS plugin. Please include the css-tree script.');
         }
 
-        definePlugin(md, 'css');
+        definePlugin(md, pluginName);
         // Custom rule for CSS blocks
         md.block.ruler.before('fence', 'css_block', function (state, startLine, endLine) {
             const start = state.bMarks[startLine] + state.tShift[startLine];
             const max = state.eMarks[startLine];
 
             // Check if the block starts with "```css"
-            if (!state.src.slice(start, max).trim().startsWith('```css')) {
+            if (!state.src.slice(start, max).trim().startsWith(`\`\`\`${pluginName}`)) {
                 return false;
             }
 
@@ -332,7 +335,7 @@ export const cssPlugin: Plugin = {
 
             state.line = nextLine + 1;
             const token = state.push('fence', 'code', 0);
-            token.info = 'css';
+            token.info = pluginName;
             token.content = state.getLines(startLine + 1, nextLine, state.blkIndent, true);
             token.map = [startLine, state.line];
 
@@ -345,13 +348,13 @@ export const cssPlugin: Plugin = {
             const token = tokens[idx];
             const info = token.info.trim();
 
-            if (info === 'css') {
+            if (info === pluginName) {
                 const cssContent = token.content.trim();
 
                 // Parse and categorize CSS content
                 const categorizedCss = categorizeCss(cssContent);
 
-                return sanitizedHTML('div', { class: 'css-component' }, JSON.stringify(categorizedCss), true);
+                return sanitizedHTML('div', { class: className }, JSON.stringify(categorizedCss), true);
             }
 
             // Fallback to original fence renderer
@@ -364,50 +367,44 @@ export const cssPlugin: Plugin = {
     },
     hydrateComponent: async (renderer, errorHandler) => {
         const cssInstances: { id: string; element: HTMLStyleElement }[] = [];
-        const containers = renderer.element.querySelectorAll('.css-component');
+        const containers = renderer.element.querySelectorAll(`.${className}`);
 
         for (const [index, container] of Array.from(containers).entries()) {
-            const scriptTag = getJsonScriptTag(container);
-            if (!scriptTag) continue;
+            const jsonObj = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
+            if (!jsonObj) continue;
 
-            try {
-                const categorizedCss: CategorizedCss = JSON.parse(scriptTag.textContent);
-                const comments: string[] = [];
+            const categorizedCss: CategorizedCss = jsonObj;
+            const comments: string[] = [];
 
-                // Log security issues found
-                if (categorizedCss.hasFlags) {
-                    console.warn(`CSS security: Security issues detected in CSS`);
-                    comments.push(`<!-- CSS security issues detected and filtered -->`);
-                }
-
-                // Generate and apply safe CSS
-                const safeCss = reconstituteCss(categorizedCss.atRules);
-
-                if (safeCss.trim().length > 0) {
-                    const styleElement = document.createElement('style');
-                    styleElement.type = 'text/css';
-                    styleElement.id = `idocs-css-${index}`;
-                    styleElement.textContent = safeCss;
-
-                    // Apply to shadow DOM if available, otherwise document
-                    const target = renderer.shadowRoot || document.head;
-                    target.appendChild(styleElement);
-
-                    comments.push(`<!-- CSS styles applied to ${renderer.shadowRoot ? 'shadow DOM' : 'document'} -->`);
-
-                    cssInstances.push({
-                        id: `css-${index}`,
-                        element: styleElement
-                    });
-                } else {
-                    comments.push(`<!-- No safe CSS styles to apply -->`);
-                }
-                container.innerHTML = comments.join('\n');
-            } catch (e) {
-                container.innerHTML = `<div class="error">${e.toString()}</div>`;
-                errorHandler(e, 'CSS', index, 'parse', container);
-                continue;
+            // Log security issues found
+            if (categorizedCss.hasFlags) {
+                console.warn(`CSS security: Security issues detected in CSS`);
+                comments.push(`<!-- CSS security issues detected and filtered -->`);
             }
+
+            // Generate and apply safe CSS
+            const safeCss = reconstituteCss(categorizedCss.atRules);
+
+            if (safeCss.trim().length > 0) {
+                const styleElement = document.createElement('style');
+                styleElement.type = 'text/css';
+                styleElement.id = `idocs-css-${index}`;
+                styleElement.textContent = safeCss;
+
+                // Apply to shadow DOM if available, otherwise document
+                const target = renderer.shadowRoot || document.head;
+                target.appendChild(styleElement);
+
+                comments.push(`<!-- CSS styles applied to ${renderer.shadowRoot ? 'shadow DOM' : 'document'} -->`);
+
+                cssInstances.push({
+                    id: `${pluginName}-${index}`,
+                    element: styleElement
+                });
+            } else {
+                comments.push(`<!-- No safe CSS styles to apply -->`);
+            }
+            container.innerHTML = comments.join('\n');
         }
 
         const instances: IInstance[] = cssInstances.map((cssInstance) => {

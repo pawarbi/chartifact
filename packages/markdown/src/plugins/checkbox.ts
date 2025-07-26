@@ -5,7 +5,7 @@
 
 import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
-import { getJsonScriptTag } from './util.js';
+import { getJsonScriptTag, pluginClassName } from './util.js';
 
 interface CheckboxInstance {
     id: string;
@@ -19,23 +19,25 @@ export interface CheckboxSpec {
     label?: string;
 }
 
+const pluginName = 'checkbox';
+const className = pluginClassName(pluginName);
+
 export const checkboxPlugin: Plugin = {
-    name: 'checkbox',
-    initializePlugin: (md) => definePlugin(md, 'checkbox'),
-    fence: (token, idx) => {
-        return sanitizedHTML('div', { class: 'checkbox' }, token.content.trim(), true);
+    name: pluginName,
+    initializePlugin: (md) => definePlugin(md, pluginName),
+    fence: token => {
+        return sanitizedHTML('div', { class: className }, token.content.trim(), true);
     },
     hydrateComponent: async (renderer, errorHandler) => {
         const checkboxInstances: CheckboxInstance[] = [];
-        const containers = renderer.element.querySelectorAll('.checkbox');
+        const containers = renderer.element.querySelectorAll(`.${className}`);
         for (const [index, container] of Array.from(containers).entries()) {
-            const scriptTag = getJsonScriptTag(container);
-            if (!scriptTag) continue;
+            const jsonObj = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
+            if (!jsonObj) continue;
 
-            try {
-                const spec: CheckboxSpec = JSON.parse(scriptTag.textContent);
+            const spec: CheckboxSpec = jsonObj;
 
-                const html = `<form class="vega-bindings">
+            const html = `<form class="vega-bindings">
                     <div class="vega-bind">
                         <label>
                             <span class="vega-bind-name">${spec.label || spec.name}</span>
@@ -43,18 +45,13 @@ export const checkboxPlugin: Plugin = {
                         </label>
                     </div>
                 </form>`;
-                container.innerHTML = html;
-                const element = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
+            container.innerHTML = html;
+            const element = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
 
-                const checkboxInstance: CheckboxInstance = { id: `checkbox-${index}`, spec, element };
-                checkboxInstances.push(checkboxInstance);
-            } catch (e) {
-                container.innerHTML = `<div class="error">${e.toString()}</div>`;
-                errorHandler(e, 'Checkbox', index, 'parse', container);
-                continue;
-            }
+            const checkboxInstance: CheckboxInstance = { id: `${pluginName}-${index}`, spec, element };
+            checkboxInstances.push(checkboxInstance);
         }
-        
+
         const instances: IInstance[] = checkboxInstances.map((checkboxInstance) => {
             const { element, spec } = checkboxInstance;
             const initialSignals = [{
@@ -63,7 +60,7 @@ export const checkboxPlugin: Plugin = {
                 priority: 1,
                 isData: false,
             }];
-            
+
             return {
                 ...checkboxInstance,
                 initialSignals,
