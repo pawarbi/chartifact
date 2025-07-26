@@ -5,6 +5,7 @@
 
 import { Batch, definePlugin, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
+import { getJsonScriptTag } from './util.js';
 
 interface Preset {
     name: string;
@@ -25,19 +26,19 @@ export const presetsPlugin: Plugin = {
     initializePlugin: (md) => definePlugin(md, 'presets'),
     fence: (token, idx) => {
         const spec = JSON.parse(token.content.trim());
-        const pluginId = `preset-${idx}`;
-        return sanitizedHTML('div', { id: pluginId, class: 'presets' }, JSON.stringify(spec));
+        return sanitizedHTML('div', { class: 'presets' }, JSON.stringify(spec), true);
     },
     hydrateComponent: async (renderer, errorHandler) => {
         const presetsInstances: PresetsInstance[] = [];
         const containers = renderer.element.querySelectorAll('.presets');
         for (const [index, container] of Array.from(containers).entries()) {
-            if (!container.textContent) continue;
+            const scriptTag = getJsonScriptTag(container);
+            if (!scriptTag) continue;
 
-            const id = `presets${index}`;
+            const id = `presets-${index}`;
             let presets: Preset[];
             try {
-                presets = JSON.parse(container.textContent) as Preset[];
+                presets = JSON.parse(scriptTag.textContent) as Preset[];
             } catch (e) {
                 container.innerHTML = `<div class="error">${e.toString()}</div>`;
                 errorHandler(e, 'presets', index, 'parse', container);

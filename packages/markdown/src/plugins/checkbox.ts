@@ -5,6 +5,7 @@
 
 import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
+import { getJsonScriptTag } from './util.js';
 
 interface CheckboxInstance {
     id: string;
@@ -22,17 +23,17 @@ export const checkboxPlugin: Plugin = {
     name: 'checkbox',
     initializePlugin: (md) => definePlugin(md, 'checkbox'),
     fence: (token, idx) => {
-        const CheckboxId = `Checkbox-${idx}`;
-        return sanitizedHTML('div', { id: CheckboxId, class: 'checkbox' }, token.content.trim());
+        return sanitizedHTML('div', { class: 'checkbox' }, token.content.trim(), true);
     },
     hydrateComponent: async (renderer, errorHandler) => {
         const checkboxInstances: CheckboxInstance[] = [];
         const containers = renderer.element.querySelectorAll('.checkbox');
         for (const [index, container] of Array.from(containers).entries()) {
-            if (!container.textContent) continue;
+            const scriptTag = getJsonScriptTag(container);
+            if (!scriptTag) continue;
 
             try {
-                const spec: CheckboxSpec = JSON.parse(container.textContent);
+                const spec: CheckboxSpec = JSON.parse(scriptTag.textContent);
 
                 const html = `<form class="vega-bindings">
                     <div class="vega-bind">
@@ -45,7 +46,7 @@ export const checkboxPlugin: Plugin = {
                 container.innerHTML = html;
                 const element = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
 
-                const checkboxInstance: CheckboxInstance = { id: container.id, spec, element };
+                const checkboxInstance: CheckboxInstance = { id: `checkbox-${index}`, spec, element };
                 checkboxInstances.push(checkboxInstance);
             } catch (e) {
                 container.innerHTML = `<div class="error">${e.toString()}</div>`;

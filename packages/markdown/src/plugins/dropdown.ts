@@ -5,6 +5,7 @@
 
 import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
+import { getJsonScriptTag } from './util.js';
 
 interface DropdownInstance {
     id: string;
@@ -32,17 +33,17 @@ export const dropdownPlugin: Plugin = {
     name: 'dropdown',
     initializePlugin: (md) => definePlugin(md, 'dropdown'),
     fence: (token, idx) => {
-        const DropdownId = `Dropdown-${idx}`;
-        return sanitizedHTML('div', { id: DropdownId, class: 'dropdown' }, token.content.trim());
+        return sanitizedHTML('div', { class: 'dropdown' }, token.content.trim(), true);
     },
     hydrateComponent: async (renderer, errorHandler) => {
         const dropdownInstances: DropdownInstance[] = [];
         const containers = renderer.element.querySelectorAll('.dropdown');
         for (const [index, container] of Array.from(containers).entries()) {
-            if (!container.textContent) continue;
+            const scriptTag = getJsonScriptTag(container);
+            if (!scriptTag) continue;
 
             try {
-                const spec: DropdownSpec = JSON.parse(container.textContent);
+                const spec: DropdownSpec = JSON.parse(scriptTag.textContent);
 
                 const html = `<form class="vega-bindings">
                     <div class="vega-bind">
@@ -59,7 +60,7 @@ export const dropdownPlugin: Plugin = {
                 // Safely set the initial options
                 setSelectOptions(element, spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""));
 
-                const dropdownInstance: DropdownInstance = { id: container.id, spec, element };
+                const dropdownInstance: DropdownInstance = { id: `dropdown-${index}`, spec, element };
                 dropdownInstances.push(dropdownInstance);
             } catch (e) {
                 container.innerHTML = `<div class="error">${e.toString()}</div>`;

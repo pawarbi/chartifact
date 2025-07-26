@@ -6,3 +6,14 @@ export function urlParam(urlParamName: string, value: any) {
         return `${urlParamName}=${encodeURIComponent(value)}`;
     }
 }
+
+export function getJsonScriptTag(container: Element): HTMLScriptElement | null {
+    const scriptTag = container.previousElementSibling;
+    if (scriptTag?.tagName !== 'SCRIPT' || scriptTag.getAttribute('type') !== 'application/json') {
+        return null;
+    }
+    if (!scriptTag.textContent) {
+        return null;
+    }
+    return scriptTag as HTMLScriptElement;
+}

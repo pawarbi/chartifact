@@ -5,6 +5,7 @@
 
 import { definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
+import { getJsonScriptTag } from './util.js';
 
 export interface ImageSpec {
     srcSignalName: string;
@@ -30,16 +31,16 @@ export const imagePlugin: Plugin = {
     name: 'image',
     initializePlugin: (md) => definePlugin(md, 'image'),
     fence: (token, idx) => {
-        const ImageId = `Image-${idx}`;
-        return sanitizedHTML('div', { id: ImageId, class: 'image' }, token.content.trim());
+        return sanitizedHTML('div', { class: 'image' }, token.content.trim(), true);
     },
     hydrateComponent: async (renderer, errorHandler) => {
         const imageInstances: ImageInstance[] = [];
         const containers = renderer.element.querySelectorAll('.image');
         for (const [index, container] of Array.from(containers).entries()) {
-            if (!container.textContent) continue;
+            const scriptTag = getJsonScriptTag(container);
+            if (!scriptTag) continue;
             try {
-                const spec: ImageSpec = JSON.parse(container.textContent);
+                const spec: ImageSpec = JSON.parse(scriptTag.textContent);
                 const element = document.createElement('img');
                 const spinner = document.createElement('div');
                 spinner.innerHTML = `
@@ -68,7 +69,7 @@ export const imagePlugin: Plugin = {
                 container.appendChild(spinner);
                 container.appendChild(element);
 
-                const imageInstance: ImageInstance = { id: container.id, spec, element, spinner };
+                const imageInstance: ImageInstance = { id: `image-${index}`, spec, element, spinner };
                 imageInstances.push(imageInstance);
             } catch (e) {
                 container.innerHTML = `<div class="error">${e.toString()}</div>`;
