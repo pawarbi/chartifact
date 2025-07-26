@@ -7,6 +7,7 @@ import { defaultCommonOptions } from 'common';
 import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { Tabulator as TabulatorType, Options as TabulatorOptions } from 'tabulator-tables';
+import { getJsonScriptTag } from './util.js';
 
 interface TabulatorInstance {
     id: string;
@@ -26,21 +27,21 @@ export const tabulatorPlugin: Plugin = {
     name: 'tabulator',
     initializePlugin: (md) => definePlugin(md, 'tabulator'),
     fence: (token, idx) => {
-        const tabulatorId = `tabulator-${idx}`;
-        return sanitizedHTML('div', { id: tabulatorId, class: 'tabulator', style: 'box-sizing: border-box;' }, token.content.trim());
+        return sanitizedHTML('div', { class: 'tabulator', style: 'box-sizing: border-box;' }, token.content.trim(), true);
     },
     hydrateComponent: async (renderer, errorHandler) => {
         const tabulatorInstances: TabulatorInstance[] = [];
         const containers = renderer.element.querySelectorAll('.tabulator');
         for (const [index, container] of Array.from(containers).entries()) {
-            if (!container.textContent) continue;
+            const scriptTag = getJsonScriptTag(container);
+            if (!scriptTag) continue;
             if (!Tabulator) {
                 errorHandler(new Error('Tabulator not found'), 'tabulator', index, 'init', container);
                 continue;
             }
 
             try {
-                const spec: TabulatorSpec = JSON.parse(container.textContent);
+                const spec: TabulatorSpec = JSON.parse(scriptTag.textContent);
 
                 let options: TabulatorOptions = {
                     autoColumns: true,
@@ -54,7 +55,7 @@ export const tabulatorPlugin: Plugin = {
                 }
 
                 const table = new Tabulator(container as HTMLElement, options);
-                const tabulatorInstance: TabulatorInstance = { id: container.id, spec, table, built: false };
+                const tabulatorInstance: TabulatorInstance = { id: `tabulator-${index}`, spec, table, built: false };
                 table.on('tableBuilt', () => {
                     table.off('tableBuilt');
                     tabulatorInstance.built = true;

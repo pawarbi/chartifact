@@ -6,6 +6,7 @@
 import { definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import * as Csstree from 'css-tree';
+import { getJsonScriptTag } from './util.js';
 
 // CSS Tree is expected to be available as a global variable
 declare const csstree: typeof Csstree;
@@ -345,13 +346,12 @@ export const cssPlugin: Plugin = {
             const info = token.info.trim();
 
             if (info === 'css') {
-                const cssId = `css-${idx}`;
                 const cssContent = token.content.trim();
 
                 // Parse and categorize CSS content
                 const categorizedCss = categorizeCss(cssContent);
 
-                return sanitizedHTML('div', { id: cssId, class: 'css-component' }, JSON.stringify(categorizedCss));
+                return sanitizedHTML('div', { class: 'css-component' }, JSON.stringify(categorizedCss), true);
             }
 
             // Fallback to original fence renderer
@@ -367,10 +367,11 @@ export const cssPlugin: Plugin = {
         const containers = renderer.element.querySelectorAll('.css-component');
 
         for (const [index, container] of Array.from(containers).entries()) {
-            if (!container.textContent) continue;
+            const scriptTag = getJsonScriptTag(container);
+            if (!scriptTag) continue;
 
             try {
-                const categorizedCss: CategorizedCss = JSON.parse(container.textContent);
+                const categorizedCss: CategorizedCss = JSON.parse(scriptTag.textContent);
                 const comments: string[] = [];
 
                 // Log security issues found
@@ -385,7 +386,7 @@ export const cssPlugin: Plugin = {
                 if (safeCss.trim().length > 0) {
                     const styleElement = document.createElement('style');
                     styleElement.type = 'text/css';
-                    styleElement.id = `idocs-css-${container.id}`;
+                    styleElement.id = `idocs-css-${index}`;
                     styleElement.textContent = safeCss;
 
                     // Apply to shadow DOM if available, otherwise document
@@ -395,7 +396,7 @@ export const cssPlugin: Plugin = {
                     comments.push(`<!-- CSS styles applied to ${renderer.shadowRoot ? 'shadow DOM' : 'document'} -->`);
 
                     cssInstances.push({
-                        id: container.id,
+                        id: `css-${index}`,
                         element: styleElement
                     });
                 } else {
