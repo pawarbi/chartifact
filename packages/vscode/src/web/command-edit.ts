@@ -69,7 +69,7 @@ export class EditManager {
 							script(getResourceContent('vega.min.js')) +
 							script(getResourceContent('vega-lite.min.js')) +
 							script(getResourceContent('tabulator.min.js'))
-					}
+					};
 					this.current.panel.webview.postMessage(setOfflineDependenciesMessage);
 				}
 				break;
