@@ -4,13 +4,13 @@
 */
 
 import { changeset, parse, View, expressionFunction, LoggerInterface } from 'vega';
-import { Batch, IInstance, Plugin, PrioritizedSignal, IConfig } from '../factory.js';
+import { Batch, IInstance, Plugin, PrioritizedSignal, FlaggableSpec } from '../factory.js';
 import { BaseSignal, InitSignal, NewSignal, Runtime, Spec, ValuesData } from 'vega-typings';
 import { ErrorHandler, Renderer } from '../renderer.js';
 import { LogLevel } from '../signalbus.js';
 import { pluginClassName, urlParam } from './util.js';
 import { defaultCommonOptions } from 'common';
-import { configPlugin } from './config.js';
+import { flaggableJsonPlugin } from './config.js';
 
 const ignoredSignals = ['width', 'height', 'padding', 'autosize', 'background', 'style', 'parent', 'datum', 'item', 'event', 'cursor'];
 
@@ -32,16 +32,16 @@ interface VegaInstance extends SpecInit {
 const pluginName = 'vega';
 const className = pluginClassName(pluginName);
 
-export function inspectSpec(spec: Spec) {
+export function inspectVegaSpec(spec: Spec) {
     //TODO inspect spec for flags
-    const result: IConfig<Spec> = {
+    const flaggableSpec: FlaggableSpec<Spec> = {
         spec,
     };
-    return result;
+    return flaggableSpec;
 }
 
 export const vegaPlugin: Plugin<Spec> = {
-    ...configPlugin<Spec>(pluginName, className, inspectSpec),
+    ...flaggableJsonPlugin<Spec>(pluginName, className, inspectVegaSpec),
     hydrateComponent: async (renderer, errorHandler, configContainers) => {
         //initialize the expressionFunction only once
         if (!expressionsInitialized) {
@@ -53,7 +53,7 @@ export const vegaPlugin: Plugin<Spec> = {
         const specInits: SpecInit[] = [];
         for (const [index, configContainer] of Array.from(configContainers).entries()) {
 
-            const specInit = createSpecInit(configContainer.container, index, configContainer.config.spec);
+            const specInit = createSpecInit(configContainer.container, index, configContainer.flaggableSpec.spec);
             if (specInit) {
                 specInits.push(specInit);
             }

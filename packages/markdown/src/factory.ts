@@ -37,15 +37,15 @@ export interface IInstance {
     getCurrentSignalValue?: (signalName: string) => unknown;
 }
 
-export interface IConfig<T> {
+export interface FlaggableSpec<T> {
     spec: T;
     hasFlags?: boolean;
     reason?: string;
 }
 
-export interface IConfigContainer<T> {
+export interface SpecContainer<T> {
     container: HTMLElement;
-    config: IConfig<T>;
+    flaggableSpec: FlaggableSpec<T>;
 }
 
 export interface Plugin<T = {}> {
@@ -53,8 +53,8 @@ export interface Plugin<T = {}> {
     hydratesBefore?: string;
     initializePlugin: (md: MarkdownIt) => void;
     fence?: (token: Token, idx: number) => string;
-    hydrateConfig?: (renderer: Renderer, errorHandler: ErrorHandler) => IConfigContainer<T>[];
-    hydrateComponent?: (renderer: Renderer, errorHandler: ErrorHandler, configs?: IConfigContainer<T>[]) => Promise<IInstance[]>;
+    hydrateSpecs?: (renderer: Renderer, errorHandler: ErrorHandler) => SpecContainer<T>[];
+    hydrateComponent?: (renderer: Renderer, errorHandler: ErrorHandler, specContainers?: SpecContainer<T>[]) => Promise<IInstance[]>;
 }
 
 export const plugins: Plugin[] = [];

@@ -5,7 +5,7 @@
 
 import MarkdownIt from 'markdown-it';
 import { Renderers } from 'vega-typings';
-import { create, IConfigContainer, IInstance, plugins } from './factory.js';
+import { create, SpecContainer, IInstance, plugins } from './factory.js';
 import { SignalBus } from './signalbus.js';
 import { defaultCommonOptions } from 'common';
 
@@ -97,9 +97,9 @@ export class Renderer {
 
         for (let i = 0; i < plugins.length; i++) {
             const plugin = plugins[i];
-            let configContainers: IConfigContainer<{}>[];
-            if (plugin.hydrateConfig) {
-                configContainers = plugin.hydrateConfig(this, this.options.errorHandler);
+            let configContainers: SpecContainer<{}>[];
+            if (plugin.hydrateSpecs) {
+                configContainers = plugin.hydrateSpecs(this, this.options.errorHandler);
             }
             if (plugin.hydrateComponent) {
                 //make a new promise that returns IInstances but adds the plugin name

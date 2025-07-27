@@ -3,11 +3,11 @@
 * Licensed under the MIT License.
 */
 
-import { definePlugin, IConfig, IConfigContainer, IInstance, Plugin } from '../factory.js';
+import { definePlugin, FlaggableSpec, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import * as Csstree from 'css-tree';
-import { getJsonScriptTag, pluginClassName } from './util.js';
-import { configPlugin, hydrateConfig } from './config.js';
+import { pluginClassName } from './util.js';
+import { flaggableJsonPlugin } from './config.js';
 
 // CSS Tree is expected to be available as a global variable
 declare const csstree: typeof Csstree;
@@ -88,7 +88,7 @@ function categorizeCss(cssContent: string) {
         atRules: {},
     };
 
-    const result: IConfig<CategorizedCss> = {
+    const result: FlaggableSpec<CategorizedCss> = {
         spec,
         hasFlags: false
     };
@@ -311,7 +311,7 @@ const pluginName = 'css';
 const className = pluginClassName(pluginName);
 
 export const cssPlugin: Plugin<CategorizedCss> = {
-    ...configPlugin<CategorizedCss>(pluginName, className),
+    ...flaggableJsonPlugin<CategorizedCss>(pluginName, className),
     initializePlugin: (md) => {
         // Check for required css-tree dependency
         if (typeof csstree === 'undefined') {
@@ -374,11 +374,11 @@ export const cssPlugin: Plugin<CategorizedCss> = {
 
         for (const [index, configContainer] of Array.from(configContainers).entries()) {
 
-            const categorizedCss = configContainer.config.spec;
+            const categorizedCss = configContainer.flaggableSpec.spec;
             const comments: string[] = [];
 
             // Log security issues found
-            if (configContainer.config.hasFlags) {
+            if (configContainer.flaggableSpec.hasFlags) {
                 console.warn(`CSS security: Security issues detected in CSS`);
                 comments.push(`<!-- CSS security issues detected and filtered -->`);
             }

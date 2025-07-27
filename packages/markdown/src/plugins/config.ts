@@ -1,47 +1,44 @@
-import { definePlugin, IConfig, IConfigContainer, Plugin } from "../factory.js";
-import { ErrorHandler, Renderer } from '../renderer.js';
+import { definePlugin, FlaggableSpec, SpecContainer, Plugin } from "../factory.js";
 import { sanitizedHTML } from "../sanitize.js";
 import { getJsonScriptTag } from "./util.js";
 
-export function hydrateConfig<T>(pluginName: string, className: string, renderer: Renderer, errorHandler: ErrorHandler) {
-    const configs: IConfigContainer<T>[] = [];
-    const containers = renderer.element.querySelectorAll(`.${className}`);
-    for (const [index, container] of Array.from(containers).entries()) {
-        const jsonObj = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
-        if (!jsonObj) continue;
-        configs.push({ container: container as HTMLElement, config: jsonObj });
-    }
-    return configs;
-}
-
-export function configPlugin<T>(pluginName: string, className: string, j2c?: (spec: T) => IConfig<T>) {
-    const basePlugin: Plugin<T> = {
+export function flaggableJsonPlugin<T>(pluginName: string, className: string, flagger?: (spec: T) => FlaggableSpec<T>) {
+    const plugin: Plugin<T> = {
         name: pluginName,
         initializePlugin: (md) => definePlugin(md, pluginName),
         fence: token => {
-            let content = token.content.trim();
-            if (j2c) {
+            let json = token.content.trim();
+            if (flagger) {
                 let spec: T;
+                let flaggableSpec: FlaggableSpec<T>;
                 try {
-                    spec = JSON.parse(content);
+                    spec = JSON.parse(json);
                 } catch (e) {
-                    const result: IConfig<T> = {
+                    flaggableSpec = {
                         spec: null,
                         hasFlags: true,
                         reason: `malformed JSON`
                     };
-                    content = JSON.stringify(result);
                 }
                 if (spec) {
-                    const config = j2c(spec);
-                    content = JSON.stringify(config);
+                    flaggableSpec = flagger(spec);
+                }
+                if (flaggableSpec) {
+                    json = JSON.stringify(flaggableSpec);
                 }
             }
-            return sanitizedHTML('div', { class: className }, content, true);
+            return sanitizedHTML('div', { class: className }, json, true);
         },
-        hydrateConfig: (renderer, errorHandler) => {
-            return hydrateConfig<T>(pluginName, className, renderer, errorHandler);
+        hydrateSpecs: (renderer, errorHandler) => {
+            const specContainers: SpecContainer<T>[] = [];
+            const containers = renderer.element.querySelectorAll(`.${className}`);
+            for (const [index, container] of Array.from(containers).entries()) {
+                const flaggableSpec = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
+                if (!flaggableSpec) continue;
+                specContainers.push({ container: container as HTMLElement, flaggableSpec });
+            }
+            return specContainers;
         },
     };
-    return basePlugin;
+    return plugin;
 }
