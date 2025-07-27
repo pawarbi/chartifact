@@ -2520,8 +2520,8 @@
         }
       },
       "required": [
-        "type",
-        "presets"
+        "presets",
+        "type"
       ],
       "type": "object"
     },
@@ -2820,12 +2820,15 @@
       "additionalProperties": false,
       "description": "Table use for tabular data",
       "properties": {
-        "dataSourceName": {
+        "input_dataSourceName": {
           "type": "string"
         },
         "options": {
           "description": "Tabulator options (must be serializable, so no callbacks allowed)",
           "type": "object"
+        },
+        "output_dataSourceName": {
+          "type": "string"
         },
         "type": {
           "const": "table",
@@ -2833,8 +2836,9 @@
         }
       },
       "required": [
-        "type",
-        "dataSourceName"
+        "input_dataSourceName",
+        "output_dataSourceName",
+        "type"
       ],
       "type": "object"
     },

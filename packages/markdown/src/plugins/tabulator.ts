@@ -8,6 +8,7 @@ import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { Tabulator as TabulatorType, Options as TabulatorOptions } from 'tabulator-tables';
 import { getJsonScriptTag, pluginClassName } from './util.js';
+import { TableElementProps } from 'schema';
 
 interface TabulatorInstance {
     id: string;
@@ -16,8 +17,7 @@ interface TabulatorInstance {
     built: boolean;
 }
 
-export interface TabulatorSpec {
-    dataSignalName: string;
+export interface TabulatorSpec extends TableElementProps {
     options?: TabulatorOptions;
 }
 
@@ -46,6 +46,14 @@ export const tabulatorPlugin: Plugin = {
 
             const spec: TabulatorSpec = jsonObj;
 
+            if (!spec.input_dataSourceName || !spec.output_dataSourceName) {
+                errorHandler(new Error('Tabulator requires input_dataSourceName and output_dataSourceName'), pluginName, index, 'init', container);
+                continue;
+            } else if (spec.input_dataSourceName === spec.output_dataSourceName) {
+                errorHandler(new Error('Tabulator input_dataSourceName and output_dataSourceName cannot be the same'), pluginName, index, 'init', container);
+                continue;
+            }
+
             let options: TabulatorOptions = {
                 autoColumns: true,
                 layout: 'fitColumns',
@@ -65,17 +73,16 @@ export const tabulatorPlugin: Plugin = {
             });
             tabulatorInstances.push(tabulatorInstance);
         }
-        const dataNameSelectedSuffix = defaultCommonOptions.dataNameSelectedSuffix;
         const instances: IInstance[] = tabulatorInstances.map((tabulatorInstance, index) => {
             const initialSignals = [{
-                name: tabulatorInstance.spec.dataSignalName,
+                name: tabulatorInstance.spec.input_dataSourceName,
                 value: null,
                 priority: -1,
                 isData: true,
             }];
             if (tabulatorInstance.spec.options?.selectableRows) {
                 initialSignals.push({
-                    name: `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`,
+                    name: tabulatorInstance.spec.output_dataSourceName,
                     value: [],
                     priority: -1,
                     isData: true,
@@ -85,7 +92,7 @@ export const tabulatorPlugin: Plugin = {
                 ...tabulatorInstance,
                 initialSignals,
                 recieveBatch: async (batch) => {
-                    const newData = batch[tabulatorInstance.spec.dataSignalName]?.value as object[];
+                    const newData = batch[tabulatorInstance.spec.input_dataSourceName]?.value as object[];
                     if (newData) {
                         //make sure tabulator is ready before setting data
                         if (!tabulatorInstance.built) {
@@ -104,12 +111,12 @@ export const tabulatorPlugin: Plugin = {
                     if (tabulatorInstance.spec.options?.selectableRows) {
                         for (const { isData, signalName } of sharedSignals) {
                             if (isData) {
-                                const matchData = signalName === `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`;
+                                const matchData = signalName === tabulatorInstance.spec.output_dataSourceName;
                                 if (matchData) {
                                     tabulatorInstance.table.on('rowSelectionChanged', (e, rows) => {
                                         const selectedData = tabulatorInstance.table.getSelectedData();
                                         const batch: Batch = {
-                                            [`${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`]: {
+                                            [tabulatorInstance.spec.output_dataSourceName]: {
                                                 value: selectedData,
                                                 isData: true,
                                             },

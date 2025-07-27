@@ -3,6 +3,7 @@
 * Licensed under the MIT License.
 */
 
+import { DropdownElementProps } from 'schema';
 import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { getJsonScriptTag, pluginClassName } from './util.js';
@@ -13,20 +14,8 @@ interface DropdownInstance {
     element: HTMLSelectElement;
 }
 
-interface DynamicDropdownOptions {
-    dataSignalName: string;
-    fieldName: string;
-}
-
-export interface DropdownSpec {
-    name: string;
+export interface DropdownSpec extends DropdownElementProps {
     value?: string | string[];
-    label?: string;
-    //one of either static or dynamic options must be set
-    options?: string[];
-    multiple?: boolean;
-    size?: number;
-    dynamicOptions?: DynamicDropdownOptions;
 }
 
 const pluginName = 'dropdown';
@@ -50,8 +39,8 @@ export const dropdownPlugin: Plugin = {
             const html = `<form class="vega-bindings">
                     <div class="vega-bind">
                         <label>
-                            <span class="vega-bind-name">${spec.label || spec.name}</span>
-                            <select class="vega-bind-select" id="${spec.name}" name="${spec.name}" ${spec.multiple ? 'multiple' : ''} size="${spec.size || 1}">
+                            <span class="vega-bind-name">${spec.label || spec.variableId}</span>
+                            <select class="vega-bind-select" id="${spec.variableId}" name="${spec.variableId}" ${spec.multiple ? 'multiple' : ''} size="${spec.size || 1}">
                             </select>
                         </label>
                     </div>
@@ -68,14 +57,14 @@ export const dropdownPlugin: Plugin = {
         const instances: IInstance[] = dropdownInstances.map((dropdownInstance, index) => {
             const { element, spec } = dropdownInstance;
             const initialSignals = [{
-                name: spec.name,
+                name: spec.variableId,
                 value: spec.value || null,
                 priority: 1,
                 isData: false,
             }];
             if (spec.dynamicOptions) {
                 initialSignals.push({
-                    name: spec.dynamicOptions.dataSignalName,
+                    name: spec.dynamicOptions.dataSourceName,
                     value: null,
                     priority: -1,
                     isData: true,
@@ -86,8 +75,8 @@ export const dropdownPlugin: Plugin = {
                 initialSignals,
                 recieveBatch: async (batch) => {
                     const { dynamicOptions } = spec;
-                    if (dynamicOptions?.dataSignalName) {
-                        const newData = batch[dynamicOptions.dataSignalName]?.value as object[];
+                    if (dynamicOptions?.dataSourceName) {
+                        const newData = batch[dynamicOptions.dataSourceName]?.value as object[];
                         if (newData) {
                             //pluck the field from the data and add options to the select
                             let hasFieldName = false;
@@ -105,7 +94,7 @@ export const dropdownPlugin: Plugin = {
                                 const existingSelection = spec.multiple ? Array.from(element.selectedOptions).map(option => option.value) : element.value;
                                 setSelectOptions(element, spec.multiple ?? false, options, existingSelection);
                                 if (!spec.multiple) {
-                                    element.value = (batch[spec.name]?.value as string) || options[0];
+                                    element.value = (batch[spec.variableId]?.value as string) || options[0];
                                 }
                             } else {
                                 //if the field doesn't exist, set the select to the first option
@@ -118,8 +107,8 @@ export const dropdownPlugin: Plugin = {
                             }
                         }
                     }
-                    if (batch[spec.name]) {
-                        const value = batch[spec.name].value as string | string[];
+                    if (batch[spec.variableId]) {
+                        const value = batch[spec.variableId].value as string | string[];
                         if (spec.multiple) {
                             Array.from(element.options).forEach((option) => {
                                 option.selected = !!(value && Array.isArray(value) && value.includes(option.value));
@@ -136,7 +125,7 @@ export const dropdownPlugin: Plugin = {
                             ? Array.from((e.target as HTMLSelectElement).selectedOptions).map(option => option.value)
                             : (e.target as HTMLSelectElement).value;
                         const batch: Batch = {
-                            [spec.name]: {
+                            [spec.variableId]: {
                                 value,
                                 isData: false,
                             },

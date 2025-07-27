@@ -73,11 +73,7 @@ export const vegaPlugin: Plugin = {
             if (!vegaInstance.spec.data) continue;
             for (const data of vegaInstance.spec.data) {
                 //find a matching data signal
-                const dataSignal = dataSignals.find(signal =>
-                    (signal.name === data.name)                 //exact match
-                    ||
-                    (`${signal.name}${defaultCommonOptions.dataNameSelectedSuffix}` === data.name),   //match a selection from Tabulator
-                );
+                const dataSignal = dataSignals.find(signal => (signal.name === data.name));
                 if (dataSignal) {
                     //if we find a match, add it to our initialSignals
                     vegaInstance.initialSignals.push({

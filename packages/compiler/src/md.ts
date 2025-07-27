@@ -1,6 +1,6 @@
 import { Spec as VegaSpec } from 'vega-typings';
 import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
-import { ChartFull, DataSource, ElementGroup, InteractiveDocument, Variable } from 'schema';
+import { ChartFull, DataSource, ElementGroup, InteractiveDocument, TableElement, Variable } from 'schema';
 import { getChartType } from './util.js';
 import { addDynamicDataLoaderToSpec, addStaticDataLoaderToSpec } from './loader.js';
 import { Plugins } from '@microsoft/interactive-document-markdown';
@@ -38,7 +38,9 @@ export function targetMarkdown(page: InteractiveDocument) {
         mdSections.push(tickWrap('css', page.layout.css));
     }
 
-    const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables);
+    const tableElements = page.groups.flatMap(group => group.elements.filter(e => typeof e !== 'string' && e.type === 'table') as TableElement[]);
+
+    const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables, tableElements);
 
     for (const dataLoader of dataLoaders.filter(dl => dl.type === 'spec')) {
         mdSections.push(chartWrap(dataLoader.spec));
@@ -55,14 +57,13 @@ export function targetMarkdown(page: InteractiveDocument) {
     return markdown;
 }
 
-function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[]) {
+function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], tableElements: TableElement[]) {
 
     //create a Vega spec with all variables
-    const spec = createSpecWithVariables(defaultCommonOptions.dataNameSelectedSuffix, variables);
+    const spec = createSpecWithVariables(variables, tableElements);
     const vegaScope = new VegaScope(spec);
 
     for (const dataSource of dataSources) {
-
         switch (dataSource.type) {
             case 'json': {
                 addStaticDataLoaderToSpec(vegaScope, dataSource);
@@ -77,16 +78,6 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[]) {
                 break;
             }
         }
-
-        //TODO: only add this if there is a selectable table ?
-
-        //add a special "-selected" data item
-        if (!spec.data) {
-            spec.data = [];
-        }
-        spec.data.unshift({
-            name: dataSource.dataSourceName + defaultCommonOptions.dataNameSelectedSuffix,
-        });
     }
 
     return vegaScope;
@@ -112,7 +103,7 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                 }
                 case 'checkbox': {
                     const cbSpec: Plugins.CheckboxSpec = {
-                        name: element.variableId,
+                        variableId: element.variableId,
                         value: variables.find(v => v.variableId === element.variableId)?.initialValue as boolean,
                         label: element.label,
                     };
@@ -121,13 +112,13 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                 }
                 case 'dropdown': {
                     const ddSpec: Plugins.DropdownSpec = {
-                        name: element.variableId,
+                        variableId: element.variableId,
                         value: variables.find(v => v.variableId === element.variableId)?.initialValue as string | string[],
                         label: element.label,
                     };
                     if (element.dynamicOptions) {
                         ddSpec.dynamicOptions = {
-                            dataSignalName: element.dynamicOptions.dataSourceName,
+                            dataSourceName: element.dynamicOptions.dataSourceName,
                             fieldName: element.dynamicOptions.fieldName,
                         };
                     } else {
@@ -178,10 +169,8 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                     break;
                 }
                 case 'table': {
-                    const tableSpec: Plugins.TabulatorSpec = {
-                        dataSignalName: element.dataSourceName,
-                        options: element.options,
-                    };
+                    const { input_dataSourceName, output_dataSourceName, options } = element;
+                    const tableSpec: Plugins.TabulatorSpec = { input_dataSourceName, output_dataSourceName, options };
                     mdElements.push(jsonWrap('tabulator', JSON.stringify(tableSpec, null, 2)));
                     break;
                 }

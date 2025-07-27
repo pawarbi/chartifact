@@ -1,25 +1,15 @@
 import { DataSourceByDynamicURL, DataSourceByFile, DataSourceByJSON } from 'schema';
 import { SignalRef, ValuesData } from 'vega';
 import { VegaScope } from './scope.js';
+import { dataAsSignal, ensureDataAndSignalsArray } from './spec.js';
 
 export function addStaticDataLoaderToSpec(vegaScope: VegaScope, dataSource: DataSourceByJSON | DataSourceByFile) {
     const { spec } = vegaScope;
     const { dataSourceName } = dataSource;
 
-    if (!spec.signals) {
-        spec.signals = [];
-    }
-    spec.signals.push(
-        {
-            name: dataSourceName,
-            update: `data('${dataSourceName}')`
-        }
-    );
+    ensureDataAndSignalsArray(spec);
 
-    //real data goes to the beginning of the data array
-    if (!spec.data) {
-        spec.data = [];
-    }
+    spec.signals.push(dataAsSignal(dataSourceName));
 
     const newData: ValuesData = {
         name: dataSourceName,
@@ -36,6 +26,7 @@ export function addStaticDataLoaderToSpec(vegaScope: VegaScope, dataSource: Data
         newData.values = [dataSource.content];
     }
 
+    //real data goes to the beginning of the data array
     spec.data.unshift(newData);
 }
 
@@ -46,20 +37,11 @@ export function addDynamicDataLoaderToSpec(vegaScope: VegaScope, dataSource: Dat
     const urlSignal = vegaScope.createUrlSignal(dataSource.urlRef);
     const url: SignalRef = { signal: urlSignal.name };
 
-    if (!spec.signals) {
-        spec.signals = [];
-    }
-    spec.signals.push(
-        {
-            name: dataSourceName,
-            update: `data('${dataSourceName}')`
-        }
-    );
+    ensureDataAndSignalsArray(spec);
+
+    spec.signals.push(dataAsSignal(dataSourceName));
 
     //real data goes to the beginning of the data array
-    if (!spec.data) {
-        spec.data = [];
-    }
     spec.data.unshift({
         name: dataSourceName,
         url,

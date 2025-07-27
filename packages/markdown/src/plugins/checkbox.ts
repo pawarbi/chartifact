@@ -3,6 +3,7 @@
 * Licensed under the MIT License.
 */
 
+import { VariableControl } from 'schema';
 import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { getJsonScriptTag, pluginClassName } from './util.js';
@@ -13,10 +14,8 @@ interface CheckboxInstance {
     element: HTMLInputElement;
 }
 
-export interface CheckboxSpec {
-    name: string;
+export interface CheckboxSpec extends VariableControl {
     value?: boolean;
-    label?: string;
 }
 
 const pluginName = 'checkbox';
@@ -40,8 +39,8 @@ export const checkboxPlugin: Plugin = {
             const html = `<form class="vega-bindings">
                     <div class="vega-bind">
                         <label>
-                            <span class="vega-bind-name">${spec.label || spec.name}</span>
-                            <input type="checkbox" class="vega-bind-checkbox" id="${spec.name}" name="${spec.name}" ${spec.value ? 'checked' : ''}>
+                            <span class="vega-bind-name">${spec.label || spec.variableId}</span>
+                            <input type="checkbox" class="vega-bind-checkbox" id="${spec.variableId}" name="${spec.variableId}" ${spec.value ? 'checked' : ''}>
                         </label>
                     </div>
                 </form>`;
@@ -55,7 +54,7 @@ export const checkboxPlugin: Plugin = {
         const instances: IInstance[] = checkboxInstances.map((checkboxInstance) => {
             const { element, spec } = checkboxInstance;
             const initialSignals = [{
-                name: spec.name,
+                name: spec.variableId,
                 value: spec.value || false,
                 priority: 1,
                 isData: false,
@@ -65,8 +64,8 @@ export const checkboxPlugin: Plugin = {
                 ...checkboxInstance,
                 initialSignals,
                 recieveBatch: async (batch) => {
-                    if (batch[spec.name]) {
-                        const value = batch[spec.name].value as boolean;
+                    if (batch[spec.variableId]) {
+                        const value = batch[spec.variableId].value as boolean;
                         element.checked = value;
                     }
                 },
@@ -75,7 +74,7 @@ export const checkboxPlugin: Plugin = {
                     element.addEventListener('change', (e) => {
                         const value = (e.target as HTMLInputElement).checked;
                         const batch: Batch = {
-                            [spec.name]: {
+                            [spec.variableId]: {
                                 value,
                                 isData: false,
                             },

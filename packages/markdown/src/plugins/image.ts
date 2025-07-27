@@ -3,15 +3,13 @@
 * Licensed under the MIT License.
 */
 
+import { ImageElementProps } from 'schema';
 import { definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { getJsonScriptTag, pluginClassName } from './util.js';
 
-export interface ImageSpec {
+export interface ImageSpec extends ImageElementProps {
     srcSignalName: string;
-    alt?: string;
-    width?: number;
-    height?: number;
 }
 
 interface ImageInstance {
