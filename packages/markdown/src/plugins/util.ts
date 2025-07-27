@@ -10,9 +10,11 @@ export function urlParam(urlParamName: string, value: any) {
 export function getJsonScriptTag(container: Element, errorHandler: (error: Error) => void) {
     const scriptTag = container.previousElementSibling;
     if (scriptTag?.tagName !== 'SCRIPT' || scriptTag.getAttribute('type') !== 'application/json') {
+        errorHandler(new Error('Invalid JSON script tag'));
         return null;
     }
     if (!scriptTag.textContent) {
+        errorHandler(new Error('Empty JSON script tag'));
         return null;
     }
     try {

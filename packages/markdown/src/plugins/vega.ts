@@ -4,13 +4,13 @@
 */
 
 import { changeset, parse, View, expressionFunction, LoggerInterface } from 'vega';
-import { Batch, IInstance, Plugin, PrioritizedSignal, definePlugin } from '../factory.js';
-import { sanitizedHTML } from '../sanitize.js';
+import { Batch, IInstance, Plugin, PrioritizedSignal, IConfig } from '../factory.js';
 import { BaseSignal, InitSignal, NewSignal, Runtime, Spec, ValuesData } from 'vega-typings';
 import { ErrorHandler, Renderer } from '../renderer.js';
 import { LogLevel } from '../signalbus.js';
-import { getJsonScriptTag, pluginClassName, urlParam } from './util.js';
+import { pluginClassName, urlParam } from './util.js';
 import { defaultCommonOptions } from 'common';
+import { configPlugin } from './config.js';
 
 const ignoredSignals = ['width', 'height', 'padding', 'autosize', 'background', 'style', 'parent', 'datum', 'item', 'event', 'cursor'];
 
@@ -32,13 +32,17 @@ interface VegaInstance extends SpecInit {
 const pluginName = 'vega';
 const className = pluginClassName(pluginName);
 
-export const vegaPlugin: Plugin = {
-    name: pluginName,
-    initializePlugin: (md) => definePlugin(md, pluginName),
-    fence: token => {
-        return sanitizedHTML('div', { class: className }, token.content.trim(), true);
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
+export function inspectSpec(spec: Spec) {
+    //TODO inspect spec for flags
+    const result: IConfig<Spec> = {
+        spec,
+    };
+    return result;
+}
+
+export const vegaPlugin: Plugin<Spec> = {
+    ...configPlugin<Spec>(pluginName, className, inspectSpec),
+    hydrateComponent: async (renderer, errorHandler, configContainers) => {
         //initialize the expressionFunction only once
         if (!expressionsInitialized) {
             expressionFunction('urlParam', urlParam);
@@ -46,13 +50,10 @@ export const vegaPlugin: Plugin = {
         }
 
         const vegaInstances: VegaInstance[] = [];
-        const containers = renderer.element.querySelectorAll(`.${className}`);
         const specInits: SpecInit[] = [];
-        for (const [index, container] of Array.from(containers).entries()) {
-            const jsonObj = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
-            if (!jsonObj) continue;
+        for (const [index, configContainer] of Array.from(configContainers).entries()) {
 
-            const specInit = createSpecInit(container, index, jsonObj);
+            const specInit = createSpecInit(configContainer.container, index, configContainer.config.spec);
             if (specInit) {
                 specInits.push(specInit);
             }

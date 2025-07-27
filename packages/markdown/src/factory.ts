@@ -37,18 +37,52 @@ export interface IInstance {
     getCurrentSignalValue?: (signalName: string) => unknown;
 }
 
-export interface Plugin {
+export interface IConfig<T> {
+    spec: T;
+    hasFlags?: boolean;
+    reason?: string;
+}
+
+export interface IConfigContainer<T> {
+    container: HTMLElement;
+    config: IConfig<T>;
+}
+
+export interface Plugin<T = {}> {
     name: string;
     hydratesBefore?: string;
     initializePlugin: (md: MarkdownIt) => void;
     fence?: (token: Token, idx: number) => string;
-    hydrateComponent?: (renderer: Renderer, errorHandler: ErrorHandler) => Promise<IInstance[]>;
+    hydrateConfig?: (renderer: Renderer, errorHandler: ErrorHandler) => IConfigContainer<T>[];
+    hydrateComponent?: (renderer: Renderer, errorHandler: ErrorHandler, configs?: IConfigContainer<T>[]) => Promise<IInstance[]>;
 }
 
 export const plugins: Plugin[] = [];
 
 export function registerMarkdownPlugin(plugin: Plugin) {
-    plugins.push(plugin);
+    // Find the correct position to insert the plugin based on hydratesBefore
+    let insertIndex = plugins.length;
+    
+    // First, find the latest position where plugins that should run before this one are located
+    let minIndex = 0;
+    for (let i = 0; i < plugins.length; i++) {
+        if (plugins[i].hydratesBefore === plugin.name) {
+            minIndex = Math.max(minIndex, i + 1);
+        }
+    }
+    
+    // Then, if this plugin should run before another plugin, find that plugin's position
+    if (plugin.hydratesBefore) {
+        const targetIndex = plugins.findIndex(p => p.name === plugin.hydratesBefore);
+        if (targetIndex !== -1) {
+            insertIndex = targetIndex;
+        }
+    }
+    
+    // Ensure we don't insert before plugins that should run before this one
+    insertIndex = Math.max(insertIndex, minIndex);
+    
+    plugins.splice(insertIndex, 0, plugin);
     return 'register';
 }
 

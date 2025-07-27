@@ -5,7 +5,7 @@
 
 import MarkdownIt from 'markdown-it';
 import { Renderers } from 'vega-typings';
-import { create, IInstance, plugins } from './factory.js';
+import { create, IConfigContainer, IInstance, plugins } from './factory.js';
 import { SignalBus } from './signalbus.js';
 import { defaultCommonOptions } from 'common';
 
@@ -95,21 +95,15 @@ export class Renderer {
         this.signalBus.log('Renderer', 'rendering DOM');
         const hydrationPromises: Promise<Hydration>[] = [];
 
-        //create a copy of the plugins and sort them by runsBefore
-        const sortedPlugins = [...plugins].sort((a, b) => {
-            // If plugin a should run before plugin b, a comes first
-            if (a.hydratesBefore === b.name) return -1;
-            // If plugin b should run before plugin a, b comes first
-            if (b.hydratesBefore === a.name) return 1;
-            // Otherwise maintain original order
-            return 0;
-        });
-
-        for (let i = 0; i < sortedPlugins.length; i++) {
-            const plugin = sortedPlugins[i];
+        for (let i = 0; i < plugins.length; i++) {
+            const plugin = plugins[i];
+            let configContainers: IConfigContainer<{}>[];
+            if (plugin.hydrateConfig) {
+                configContainers = plugin.hydrateConfig(this, this.options.errorHandler);
+            }
             if (plugin.hydrateComponent) {
                 //make a new promise that returns IInstances but adds the plugin name
-                hydrationPromises.push(plugin.hydrateComponent(this, this.options.errorHandler).then(instances => {
+                hydrationPromises.push(plugin.hydrateComponent(this, this.options.errorHandler, configContainers).then(instances => {
                     return {
                         pluginName: plugin.name,
                         instances,

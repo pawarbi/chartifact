@@ -3,10 +3,11 @@
 * Licensed under the MIT License.
 */
 
-import { definePlugin, Plugin } from '../factory.js';
+import { Spec } from 'vega';
+import { definePlugin, IConfig, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { getJsonScriptTag, pluginClassName } from './util.js';
-import { vegaPlugin } from './vega.js';
+import { inspectSpec, vegaPlugin } from './vega.js';
 import { compile } from 'vega-lite';
 
 const pluginName = 'vega-lite';
@@ -29,8 +30,10 @@ export const vegaLitePlugin: Plugin = {
             try {
                 const { spec } = compile(jsonObj);
 
+                const result = inspectSpec(spec);
+
                 //create both a script tag and a vega tag for the vega plugin to catch
-                const html = sanitizedHTML('div', { class: pluginClassName(vegaPlugin.name) }, JSON.stringify(spec, null, 2), true);
+                const html = sanitizedHTML('div', { class: pluginClassName(vegaPlugin.name) }, JSON.stringify(result, null, 2), true);
 
                 //append the html right after this container
                 container.insertAdjacentHTML('afterend', html);

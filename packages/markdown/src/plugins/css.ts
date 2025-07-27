@@ -3,10 +3,11 @@
 * Licensed under the MIT License.
 */
 
-import { definePlugin, IInstance, Plugin } from '../factory.js';
+import { definePlugin, IConfig, IConfigContainer, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import * as Csstree from 'css-tree';
 import { getJsonScriptTag, pluginClassName } from './util.js';
+import { configPlugin, hydrateConfig } from './config.js';
 
 // CSS Tree is expected to be available as a global variable
 declare const csstree: typeof Csstree;
@@ -33,7 +34,6 @@ interface AtRule {
 
 interface CategorizedCss {
     atRules: { [atRuleSignature: string]: AtRule };
-    hasFlags: boolean;
 }
 
 // Helper function to reconstitute an at-rule block from at-rule data
@@ -83,9 +83,13 @@ function reconstituteCss(atRules: { [atRuleSignature: string]: AtRule }): string
     return cssBlocks.join('\n\n');
 }
 
-function categorizeCss(cssContent: string): CategorizedCss {
-    const result: CategorizedCss = {
+function categorizeCss(cssContent: string) {
+    const spec: CategorizedCss = {
         atRules: {},
+    };
+
+    const result: IConfig<CategorizedCss> = {
+        spec,
         hasFlags: false
     };
 
@@ -183,17 +187,17 @@ function categorizeCss(cssContent: string): CategorizedCss {
             if (currentRule && currentRule.declarations.length > 0) {
                 const targetAtRule = currentAtRuleSignature;
 
-                if (!result.atRules[targetAtRule]) {
-                    result.atRules[targetAtRule] = {
+                if (!spec.atRules[targetAtRule]) {
+                    spec.atRules[targetAtRule] = {
                         signature: targetAtRule,
                         rules: []
                     };
                 }
 
-                if (result.atRules[targetAtRule].rules) {
-                    result.atRules[targetAtRule].rules.push(currentRule);
+                if (spec.atRules[targetAtRule].rules) {
+                    spec.atRules[targetAtRule].rules.push(currentRule);
                 } else {
-                    result.atRules[targetAtRule].rules = [currentRule];
+                    spec.atRules[targetAtRule].rules = [currentRule];
                 }
             }
         }
@@ -206,7 +210,7 @@ function categorizeCss(cssContent: string): CategorizedCss {
                 // Check for @import specifically
                 if (node.name === 'import') {
                     const ruleContent = csstree.generate(node);
-                    result.atRules[atRuleSignature] = {
+                    spec.atRules[atRuleSignature] = {
                         signature: atRuleSignature,
                         css: ruleContent,
                         flag: 'importRule',
@@ -220,7 +224,7 @@ function categorizeCss(cssContent: string): CategorizedCss {
                 if (completeBlockAtRules.includes(node.name)) {
                     // Store the entire rule as CSS and validate it as a complete block
                     const ruleContent = csstree.generate(node);
-                    result.atRules[atRuleSignature] = {
+                    spec.atRules[atRuleSignature] = {
                         signature: atRuleSignature,
                         css: ruleContent
                     };
@@ -229,8 +233,8 @@ function categorizeCss(cssContent: string): CategorizedCss {
 
                 // For other at-rules that contain rules (like @media, @supports)
                 if (node.block) {
-                    if (!result.atRules[atRuleSignature]) {
-                        result.atRules[atRuleSignature] = {
+                    if (!spec.atRules[atRuleSignature]) {
+                        spec.atRules[atRuleSignature] = {
                             signature: atRuleSignature,
                             rules: []
                         };
@@ -240,7 +244,7 @@ function categorizeCss(cssContent: string): CategorizedCss {
                 } else {
                     // Simple at-rule without block
                     const ruleContent = csstree.generate(node);
-                    result.atRules[atRuleSignature] = {
+                    spec.atRules[atRuleSignature] = {
                         signature: atRuleSignature,
                         css: ruleContent
                     };
@@ -306,8 +310,8 @@ function categorizeCss(cssContent: string): CategorizedCss {
 const pluginName = 'css';
 const className = pluginClassName(pluginName);
 
-export const cssPlugin: Plugin = {
-    name: pluginName,
+export const cssPlugin: Plugin<CategorizedCss> = {
+    ...configPlugin<CategorizedCss>(pluginName, className),
     initializePlugin: (md) => {
         // Check for required css-tree dependency
         if (typeof csstree === 'undefined') {
@@ -365,19 +369,16 @@ export const cssPlugin: Plugin = {
             }
         };
     },
-    hydrateComponent: async (renderer, errorHandler) => {
+    hydrateComponent: async (renderer, errorHandler, configContainers) => {
         const cssInstances: { id: string; element: HTMLStyleElement }[] = [];
-        const containers = renderer.element.querySelectorAll(`.${className}`);
 
-        for (const [index, container] of Array.from(containers).entries()) {
-            const jsonObj = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
-            if (!jsonObj) continue;
+        for (const [index, configContainer] of Array.from(configContainers).entries()) {
 
-            const categorizedCss: CategorizedCss = jsonObj;
+            const categorizedCss = configContainer.config.spec;
             const comments: string[] = [];
 
             // Log security issues found
-            if (categorizedCss.hasFlags) {
+            if (configContainer.config.hasFlags) {
                 console.warn(`CSS security: Security issues detected in CSS`);
                 comments.push(`<!-- CSS security issues detected and filtered -->`);
             }
@@ -404,7 +405,7 @@ export const cssPlugin: Plugin = {
             } else {
                 comments.push(`<!-- No safe CSS styles to apply -->`);
             }
-            container.innerHTML = comments.join('\n');
+            configContainer.container.innerHTML = comments.join('\n');
         }
 
         const instances: IInstance[] = cssInstances.map((cssInstance) => {
