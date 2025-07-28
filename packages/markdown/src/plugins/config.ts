@@ -18,7 +18,7 @@ export function flaggableJsonPlugin<T>(pluginName: string, className: string, fl
                     flaggableSpec = {
                         spec: null,
                         hasFlags: true,
-                        reason: `malformed JSON`
+                        reasons: [`malformed JSON`],
                     };
                 }
                 if (spec) {
@@ -39,8 +39,8 @@ export function flaggableJsonPlugin<T>(pluginName: string, className: string, fl
                 if (!flaggableSpec) continue;
                 const f: Flagged<T> = { approvedSpec: null, pluginName, containerId: container.id };
                 if (flaggableSpec.hasFlags) {
-                    f.unApprovedSpec = flaggableSpec.spec;
-                    f.reason = flaggableSpec.reason;
+                    f.blockedSpec = flaggableSpec.spec;
+                    f.reason = flaggableSpec.reasons?.join(', ') || 'Unknown reason';
                 } else {
                     f.approvedSpec = flaggableSpec.spec;
                 }

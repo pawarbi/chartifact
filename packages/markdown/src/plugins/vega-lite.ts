@@ -26,7 +26,7 @@ export const vegaLitePlugin: Plugin<TopLevelSpec> = {
             flaggableSpec = {
                 spec: null,
                 hasFlags: true,
-                reason: `malformed JSON`
+                reasons: [`malformed JSON`],
             };
         }
         if (spec) {
@@ -38,7 +38,7 @@ export const vegaLitePlugin: Plugin<TopLevelSpec> = {
                 flaggableSpec = {
                     spec: null,
                     hasFlags: true,
-                    reason: `failed to compile vega spec`
+                    reasons: [`failed to compile vega spec`],
                 };
             }
         }

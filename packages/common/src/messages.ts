@@ -1,9 +1,16 @@
 import { InteractiveDocument } from "schema";
-import { Flagged } from "./types.js";
 
 export interface SandboxRenderMessage {
     type: 'sandboxRender';
     markdown?: string;
+}
+
+export interface Flagged<T> {
+    pluginName: string;
+    containerId: string;
+    approvedSpec: T;
+    blockedSpec?: T;
+    reason?: string;
 }
 
 export interface SandboxedPreHydrateMessage {

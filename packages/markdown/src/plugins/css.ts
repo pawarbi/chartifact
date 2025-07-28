@@ -90,7 +90,8 @@ function categorizeCss(cssContent: string) {
 
     const result: RawFlaggableSpec<CategorizedCss> = {
         spec,
-        hasFlags: false
+        hasFlags: false,
+        reasons: [],
     };
 
     // At-rules that should be treated as complete blocks (not parsed internally)
@@ -210,13 +211,15 @@ function categorizeCss(cssContent: string) {
                 // Check for @import specifically
                 if (node.name === 'import') {
                     const ruleContent = csstree.generate(node);
+                    const reason = '@import rule detected - requires approval';
                     spec.atRules[atRuleSignature] = {
                         signature: atRuleSignature,
                         css: ruleContent,
                         flag: 'importRule',
-                        reason: '@import rule detected - requires approval'
+                        reason,
                     };
                     result.hasFlags = true;
+                    result.reasons.push(reason);
                     return;
                 }
 
@@ -274,6 +277,7 @@ function categorizeCss(cssContent: string) {
                     declaration.flag = securityCheck.flag;
                     declaration.reason = securityCheck.reason;
                     result.hasFlags = true;
+                    result.reasons.push(securityCheck.reason);
                 }
 
                 currentRule.declarations.push(declaration);
@@ -291,6 +295,7 @@ function categorizeCss(cssContent: string) {
                         lastDecl.flag = securityCheck.flag;
                         lastDecl.reason = securityCheck.reason;
                         result.hasFlags = true;
+                        result.reasons.push(securityCheck.reason);
                     }
                 }
             }

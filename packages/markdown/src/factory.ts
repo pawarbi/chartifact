@@ -40,7 +40,7 @@ export interface IInstance {
 export interface RawFlaggableSpec<T> {
     spec: T;
     hasFlags?: boolean;
-    reason?: string;
+    reasons?: string[];
 }
 
 export interface SpecContainer<T> {
