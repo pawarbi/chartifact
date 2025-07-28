@@ -346,7 +346,8 @@ Click the map above to show related data.
 
         function render() {
             //renderer.render(textarea.value);
-
+            
+            renderer.reset();
             const html = renderer.renderHtml(textarea.value);
             renderer.element.innerHTML = html;
             const specs = renderer.hydrateSpecs();
