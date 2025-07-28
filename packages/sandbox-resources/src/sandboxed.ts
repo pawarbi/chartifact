@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
             renderer.element.innerHTML = html;
             const specs = renderer.hydrateSpecs();
 
-            //todo: get stuff here for whitelist
             const transactionId = transactionIndex++;
             transactions[transactionId] = specs;
 
