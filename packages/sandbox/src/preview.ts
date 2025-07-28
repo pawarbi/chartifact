@@ -26,8 +26,4 @@ export class Previewer {
     send(markdown: string): void {
         throw new Error('Method not implemented.');
     }
-
-    approve(message: SandboxApprovalMessage) {
-        throw new Error('Method not implemented.');
-    }
 }

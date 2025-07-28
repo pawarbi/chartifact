@@ -37,7 +37,7 @@ export class Sandbox extends Previewer {
                         // TODO check whitelist and do a mutation if needed
                         // TODO loop through all flagged
                         const sandboxedApprovalMessage = this.options.onApprove(message);
-                        this.approve(sandboxedApprovalMessage);
+                        this.iframe.contentWindow?.postMessage(sandboxedApprovalMessage, '*');
                     }
                 }
             }
@@ -56,10 +56,6 @@ export class Sandbox extends Previewer {
             type: 'sandboxRender',
             markdown,
         };
-        this.iframe.contentWindow?.postMessage(message, '*');
-    }
-
-    approve(message: SandboxApprovalMessage) {
         this.iframe.contentWindow?.postMessage(message, '*');
     }
 
