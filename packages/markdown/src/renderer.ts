@@ -7,7 +7,7 @@ import MarkdownIt from 'markdown-it';
 import { Renderers } from 'vega-typings';
 import { create, IInstance, plugins } from './factory.js';
 import { SignalBus } from './signalbus.js';
-import { defaultCommonOptions, Flagged } from 'common';
+import { defaultCommonOptions, SpecReview } from 'common';
 
 export interface ErrorHandler {
     (error: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string): void;
@@ -90,7 +90,7 @@ export class Renderer {
     hydrateSpecs() {
         this.ensureMd();
 
-        const allFlagged: Flagged<{}>[] = [];
+        const allFlagged: SpecReview<{}>[] = [];
 
         //loop through all the plugins and hydrate their specs and flag them id needed
         this.signalBus.log('Renderer', 'hydrate specs');
@@ -105,7 +105,7 @@ export class Renderer {
         return allFlagged;
     }
 
-    async hydrate(hydratedSpecs: Flagged<{}>[]) {
+    async hydrate(hydratedSpecs: SpecReview<{}>[]) {
         this.ensureMd();
 
         //loop through all the plugins and render them

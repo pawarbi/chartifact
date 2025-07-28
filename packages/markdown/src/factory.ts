@@ -7,7 +7,7 @@ import MarkdownIt, { Token } from 'markdown-it/index.js';
 import { attrs } from '@mdit/plugin-attrs';
 import { container, MarkdownItContainerOptions } from '@mdit/plugin-container';
 import { ErrorHandler, Renderer } from './renderer.js';
-import { defaultCommonOptions, Flagged } from 'common';
+import { defaultCommonOptions, SpecReview } from 'common';
 
 declare const markdownit: typeof MarkdownIt;
 
@@ -53,8 +53,8 @@ export interface Plugin<T = {}> {
     hydratesBefore?: string;
     initializePlugin: (md: MarkdownIt) => void;
     fence?: (token: Token, idx: number) => string;
-    hydrateSpecs?: (renderer: Renderer, errorHandler: ErrorHandler) => Flagged<T>[];
-    hydrateComponent?: (renderer: Renderer, errorHandler: ErrorHandler, flagged: Flagged<T>[]) => Promise<IInstance[]>;
+    hydrateSpecs?: (renderer: Renderer, errorHandler: ErrorHandler) => SpecReview<T>[];
+    hydrateComponent?: (renderer: Renderer, errorHandler: ErrorHandler, flagged: SpecReview<T>[]) => Promise<IInstance[]>;
 }
 
 export const plugins: Plugin[] = [];

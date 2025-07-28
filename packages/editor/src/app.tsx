@@ -1,11 +1,11 @@
 import { InteractiveDocument } from "schema";
 import { Editor } from './editor.js';
 import { Previewer } from '@microsoft/chartifact-sandbox';
-import { EditorPageMessage, EditorReadyMessage, Flagged, SandboxedPreHydrateMessage } from "common";
+import { EditorPageMessage, EditorReadyMessage, SpecReview, SandboxedPreHydrateMessage } from "common";
 
 export interface AppProps {
   previewer: typeof Previewer;
-  onApprove: (message: SandboxedPreHydrateMessage) => Flagged<{}>[];
+  onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
 // Alternative implementation using same-origin communication

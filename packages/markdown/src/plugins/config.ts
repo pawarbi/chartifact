@@ -1,7 +1,7 @@
 import { definePlugin, Plugin, RawFlaggableSpec } from "../factory.js";
 import { sanitizedHTML } from "../sanitize.js";
 import { getJsonScriptTag } from "./util.js";
-import { Flagged } from 'common';
+import { SpecReview } from 'common';
 
 export function flaggableJsonPlugin<T>(pluginName: string, className: string, flagger?: (spec: T) => RawFlaggableSpec<T>) {
     const plugin: Plugin<T> = {
@@ -31,13 +31,13 @@ export function flaggableJsonPlugin<T>(pluginName: string, className: string, fl
             return sanitizedHTML('div', { class: className, id: `${pluginName}-${index}` }, json, true);
         },
         hydrateSpecs: (renderer, errorHandler) => {
-            const flagged: Flagged<T>[] = [];
+            const flagged: SpecReview<T>[] = [];
             const containers = renderer.element.querySelectorAll(`.${className}`);
             for (const [index, container] of Array.from(containers).entries()) {
                 const id = container.id;
                 const flaggableSpec = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container)) as RawFlaggableSpec<T>;
                 if (!flaggableSpec) continue;
-                const f: Flagged<T> = { approvedSpec: null, pluginName, containerId: container.id };
+                const f: SpecReview<T> = { approvedSpec: null, pluginName, containerId: container.id };
                 if (flaggableSpec.hasFlags) {
                     f.blockedSpec = flaggableSpec.spec;
                     f.reason = flaggableSpec.reasons?.join(', ') || 'Unknown reason';

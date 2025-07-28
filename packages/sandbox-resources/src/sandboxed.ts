@@ -5,7 +5,7 @@ let renderer: IDocs.markdown.Renderer;
 document.addEventListener('DOMContentLoaded', () => {
     let transactionIndex = 0;
 
-    const transactions: Record<number, IDocs.common.Flagged<{}>[]> = {};
+    const transactions: Record<number, IDocs.common.SpecReview<{}>[]> = {};
 
     renderer = new IDocs.markdown.Renderer(document.body, {
         errorHandler: (error: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string) => {

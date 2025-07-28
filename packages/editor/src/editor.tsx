@@ -1,12 +1,12 @@
 import { InteractiveDocument } from "schema";
 import { SandboxDocumentPreview } from "./sandbox.js";
 import { Previewer } from '@microsoft/chartifact-sandbox';
-import { EditorPageMessage, EditorReadyMessage, Flagged, SandboxedPreHydrateMessage } from "common";
+import { EditorPageMessage, EditorReadyMessage, SpecReview, SandboxedPreHydrateMessage } from "common";
 
 export interface EditorProps {
     postMessageTarget?: Window;
     previewer: typeof Previewer;
-    onApprove: (message: SandboxedPreHydrateMessage) => Flagged<{}>[];
+    onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
 const devmode = false; // Set to true to use DevDocumentPreview, false for SandboxDocumentPreview
@@ -78,7 +78,7 @@ export interface EditorViewProps {
     page: InteractiveDocument;
     postMessageTarget: Window;
     previewer: typeof Previewer;
-    onApprove: (message: SandboxedPreHydrateMessage) => Flagged<{}>[];
+    onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
 export function EditorView(props: EditorViewProps) {

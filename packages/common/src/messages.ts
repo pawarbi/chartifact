@@ -5,7 +5,7 @@ export interface SandboxRenderMessage {
     markdown?: string;
 }
 
-export interface Flagged<T> {
+export interface SpecReview<T> {
     pluginName: string;
     containerId: string;
     approvedSpec: T;
@@ -16,13 +16,13 @@ export interface Flagged<T> {
 export interface SandboxedPreHydrateMessage {
     type: 'sandboxedPreHydrate';
     transactionId: number;
-    flags: Flagged<{}>[];
+    flags: SpecReview<{}>[];
 }
 
 export type SandboxApprovalMessage = {
     type: 'sandboxApproval';
     transactionId: number;
-    remediated: Flagged<{}>[];
+    remediated: SpecReview<{}>[];
 };
 
 export interface HostRenderRequestMessage {

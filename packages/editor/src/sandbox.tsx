@@ -2,12 +2,12 @@ import React from 'react';
 import { InteractiveDocument } from "schema";
 import { targetMarkdown } from '@microsoft/interactive-document-compiler';
 import { Previewer, Sandbox } from '@microsoft/chartifact-sandbox';
-import { Flagged, SandboxedPreHydrateMessage } from 'common';
+import { SpecReview, SandboxedPreHydrateMessage } from 'common';
 
 export interface SandboxDocumentPreviewProps {
     page: InteractiveDocument;
     previewer?: typeof Previewer;
-    onApprove: (message: SandboxedPreHydrateMessage) => Flagged<{}>[];
+    onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
 export class SandboxDocumentPreview extends React.Component<SandboxDocumentPreviewProps> {

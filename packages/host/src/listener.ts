@@ -8,7 +8,7 @@ import { setupPostMessageHandling } from './post-receive.js';
 import { InteractiveDocument, InteractiveDocumentWithSchema } from 'schema';
 import { postStatus } from './post-send.js';
 import { ListenOptions } from './types.js';
-import { Flagged, SandboxedPreHydrateMessage } from 'common';
+import { SpecReview, SandboxedPreHydrateMessage } from 'common';
 
 function getElement<T extends HTMLElement = HTMLElement>(elementOrSelector: string | T): T | null {
   if (typeof elementOrSelector === 'string') {
@@ -32,7 +32,7 @@ export interface InitializeOptions {
   fileInput?: string | HTMLElement;
   textarea?: string | HTMLTextAreaElement;
   options?: ListenOptions;
-  onApprove: (message: SandboxedPreHydrateMessage) => Flagged<{}>[];
+  onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
 const defaultOptions: ListenOptions = {
@@ -54,7 +54,7 @@ export class Listener {
   public fileInput: HTMLElement;
   public textarea: HTMLTextAreaElement;
   public sandbox: Sandbox;
-  public onApprove: (message: SandboxedPreHydrateMessage) => Flagged<{}>[];
+  public onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 
   private removeInteractionHandlers: (() => void)[];
   private sandboxReady: boolean = false;

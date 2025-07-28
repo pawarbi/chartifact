@@ -1,9 +1,9 @@
-import { Flagged, SandboxedPreHydrateMessage } from "common";
+import { SpecReview, SandboxedPreHydrateMessage } from "common";
 
 export interface PreviewerOptions {
     onReady?: () => void;
     onError?: (error: Error) => void;
-    onApprove: (message: SandboxedPreHydrateMessage) => Flagged<{}>[];
+    onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
 // Previewer class
