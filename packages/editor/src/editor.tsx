@@ -1,11 +1,12 @@
 import { InteractiveDocument } from "schema";
 import { SandboxDocumentPreview } from "./sandbox.js";
 import { Previewer } from '@microsoft/chartifact-sandbox';
-import { EditorPageMessage, EditorReadyMessage } from "common";
+import { EditorPageMessage, EditorReadyMessage, Flagged, SandboxedPreHydrateMessage } from "common";
 
 export interface EditorProps {
     postMessageTarget?: Window;
     previewer: typeof Previewer;
+    onApprove: (message: SandboxedPreHydrateMessage) => Flagged<{}>[];
 }
 
 const devmode = false; // Set to true to use DevDocumentPreview, false for SandboxDocumentPreview
@@ -63,17 +64,25 @@ export function Editor(props: EditorProps) {
         postMessageTarget.postMessage(readyMessage, '*');
     }, []);
 
-    return <EditorView page={page} postMessageTarget={postMessageTarget} previewer={props.previewer} />;
+    return (
+        <EditorView
+            page={page}
+            postMessageTarget={postMessageTarget}
+            previewer={props.previewer}
+            onApprove={props.onApprove}
+        />
+    );
 }
 
 export interface EditorViewProps {
     page: InteractiveDocument;
     postMessageTarget: Window;
     previewer: typeof Previewer;
+    onApprove: (message: SandboxedPreHydrateMessage) => Flagged<{}>[];
 }
 
 export function EditorView(props: EditorViewProps) {
-    const { page, postMessageTarget, previewer } = props;
+    const { page, postMessageTarget, previewer, onApprove } = props;
 
     const sendEditToApp = (newPage: InteractiveDocument) => {
         const pageMessage: EditorPageMessage = {
@@ -188,6 +197,7 @@ export function EditorView(props: EditorViewProps) {
                 <SandboxDocumentPreview
                     page={page}
                     previewer={previewer}
+                    onApprove={onApprove}
                 />
             </div>
         </div>

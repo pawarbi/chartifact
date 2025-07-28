@@ -35,9 +35,16 @@ export function flaggableJsonPlugin<T>(pluginName: string, className: string, fl
             const containers = renderer.element.querySelectorAll(`.${className}`);
             for (const [index, container] of Array.from(containers).entries()) {
                 const id = container.id;
-                const flaggableSpec = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
+                const flaggableSpec = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container)) as RawFlaggableSpec<T>;
                 if (!flaggableSpec) continue;
-                flagged.push({ ...flaggableSpec, pluginName, containerId: container.id });
+                const f: Flagged<T> = { approvedSpec: null, pluginName, containerId: container.id };
+                if (flaggableSpec.hasFlags) {
+                    f.unApprovedSpec = flaggableSpec.spec;
+                    f.reason = flaggableSpec.reason;
+                } else {
+                    f.approvedSpec = flaggableSpec.spec;
+                }
+                flagged.push(f);
             }
             return flagged;
         },

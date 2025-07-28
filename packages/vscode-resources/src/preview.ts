@@ -6,5 +6,13 @@ window.addEventListener('DOMContentLoaded', () => {
         app: '#app',
         loading: '#loading',
         options,
+        onApprove: (message: IDocs.common.SandboxedPreHydrateMessage) => {
+            // Handle sandboxed pre-render message
+            console.log('Handling sandboxed pre-render message:', message);
+
+            // TODO look through each and override policy to approve unapproved
+            const remediated = message.flags;
+            return remediated;
+        },
     });
 });

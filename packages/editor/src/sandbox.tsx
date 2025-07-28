@@ -2,11 +2,12 @@ import React from 'react';
 import { InteractiveDocument } from "schema";
 import { targetMarkdown } from '@microsoft/interactive-document-compiler';
 import { Previewer, Sandbox } from '@microsoft/chartifact-sandbox';
-import { SandboxApprovalMessage, SandboxedPreHydrateMessage } from 'common';
+import { Flagged, SandboxedPreHydrateMessage } from 'common';
 
 export interface SandboxDocumentPreviewProps {
     page: InteractiveDocument;
     previewer?: typeof Previewer;
+    onApprove: (message: SandboxedPreHydrateMessage) => Flagged<{}>[];
 }
 
 export class SandboxDocumentPreview extends React.Component<SandboxDocumentPreviewProps> {
@@ -43,19 +44,7 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
                             }
                         },
                         onError: (error) => console.error('Sandbox initialization failed:', error),
-                        onApprove: (message: SandboxedPreHydrateMessage) => {
-                            // Handle sandboxed pre-render message
-                            console.log('Handling sandboxed pre-render message:', message);
-                            const remediated = message.flags;
-
-                            // Approve the sandboxed pre-render
-                            const sandboxedApprovalMessage: SandboxApprovalMessage = {
-                                type: 'sandboxApproval',
-                                transactionId: message.transactionId,
-                                remediated,
-                            };
-                            return sandboxedApprovalMessage;
-                        },
+                        onApprove: this.props.onApprove,
                     }
                 );
             } catch (error) {

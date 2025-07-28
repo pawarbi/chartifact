@@ -8,7 +8,7 @@ import { setupPostMessageHandling } from './post-receive.js';
 import { InteractiveDocument, InteractiveDocumentWithSchema } from 'schema';
 import { postStatus } from './post-send.js';
 import { ListenOptions } from './types.js';
-import { SandboxApprovalMessage } from 'common/dist/esnext/messages.js';
+import { Flagged, SandboxedPreHydrateMessage } from 'common';
 
 function getElement<T extends HTMLElement = HTMLElement>(elementOrSelector: string | T): T | null {
   if (typeof elementOrSelector === 'string') {
@@ -32,6 +32,7 @@ export interface InitializeOptions {
   fileInput?: string | HTMLElement;
   textarea?: string | HTMLTextAreaElement;
   options?: ListenOptions;
+  onApprove: (message: SandboxedPreHydrateMessage) => Flagged<{}>[];
 }
 
 const defaultOptions: ListenOptions = {
@@ -53,12 +54,14 @@ export class Listener {
   public fileInput: HTMLElement;
   public textarea: HTMLTextAreaElement;
   public sandbox: Sandbox;
+  public onApprove: (message: SandboxedPreHydrateMessage) => Flagged<{}>[];
 
   private removeInteractionHandlers: (() => void)[];
   private sandboxReady: boolean = false;
 
   constructor(options: InitializeOptions) {
     this.options = { ...defaultOptions, ...options?.options };
+    this.onApprove = options.onApprove;
     this.removeInteractionHandlers = [];
 
     this.appDiv = getElement(options.app);
@@ -116,19 +119,7 @@ export class Listener {
       onError: () => {
         this.errorHandler(new Error('Sandbox initialization failed'), 'Sandbox could not be initialized');
       },
-      onApprove: (message) => {
-        // Handle sandboxed pre-render message
-        console.log('Handling sandboxed pre-render message:', message);
-        const remediated = message.flags;
-
-        // Approve the sandboxed pre-render
-        const sandboxedApprovalMessage: SandboxApprovalMessage = {
-          type: 'sandboxApproval',
-          transactionId: message.transactionId,
-          remediated,
-        };
-        return sandboxedApprovalMessage;
-      },
+      onApprove: this.onApprove,
     });
   }
 

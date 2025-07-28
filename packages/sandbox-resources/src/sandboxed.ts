@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 //only handle if the transactionId is the latest
                 if (message.transactionId === transactionIndex - 1) {
 
-                    //todo: mutate the document according to approval
+                    //todo: console.warn of unapproved
 
                     //hydrate the renderer
                     const flags = transactions[message.transactionId];

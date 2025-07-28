@@ -374,16 +374,13 @@ export const cssPlugin: Plugin<CategorizedCss> = {
 
         for (let index = 0; index < configContainers.length; index++) {
             const configContainer = configContainers[index];
+            if (!configContainer.approvedSpec) {
+                continue;
+            }
             const container = renderer.element.querySelector(`#${configContainer.containerId}`);
 
-            const categorizedCss = configContainer.spec;
+            const categorizedCss = configContainer.approvedSpec;
             const comments: string[] = [];
-
-            // Log security issues found
-            if (configContainer.hasFlags) {
-                console.warn(`CSS security: Security issues detected in CSS`);
-                comments.push(`<!-- CSS security issues detected and filtered -->`);
-            }
 
             // Generate and apply safe CSS
             const safeCss = reconstituteCss(categorizedCss.atRules);

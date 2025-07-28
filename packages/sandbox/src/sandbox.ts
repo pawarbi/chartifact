@@ -2,12 +2,12 @@ import { Previewer, PreviewerOptions } from './preview.js';
 import { rendererHtml } from './resources/rendererHtml.js';
 import { rendererUmdJs } from './resources/rendererUmdJs.js';
 import { sandboxedJs } from './resources/sandboxedJs.js';
-import type { SandboxRenderMessage, SandboxApprovalMessage, SandboxedPreHydrateMessage } from 'common';
+import type { SandboxRenderMessage, SandboxedPreHydrateMessage, SandboxApprovalMessage } from 'common';
 
 export class Sandbox extends Previewer {
     public iframe: HTMLIFrameElement;
 
-    constructor(elementOrSelector: string | HTMLElement, markdown: string, options?: PreviewerOptions) {
+    constructor(elementOrSelector: string | HTMLElement, markdown: string, public options: PreviewerOptions) {
         super(elementOrSelector, markdown, options);
 
         const renderRequest: SandboxRenderMessage = {
@@ -29,16 +29,17 @@ export class Sandbox extends Previewer {
         });
 
         window.addEventListener('message', (event) => {
+            //make sure its from the sandbox iframe          
             if (event.source === this.iframe.contentWindow) {
                 const message = event.data as SandboxedPreHydrateMessage;
                 if (message.type == 'sandboxedPreHydrate') {
-                    //make sure its from the sandbox iframe
-                    if (this.options?.onApprove) {
-                        // TODO check whitelist and do a mutation if needed
-                        // TODO loop through all flagged
-                        const sandboxedApprovalMessage = this.options.onApprove(message);
-                        this.iframe.contentWindow?.postMessage(sandboxedApprovalMessage, '*');
-                    }
+                    const remediated = this.options.onApprove(message);
+                    const sandboxedApprovalMessage: SandboxApprovalMessage = {
+                        type: 'sandboxApproval',
+                        transactionId: message.transactionId,
+                        remediated,
+                    };
+                    this.iframe.contentWindow?.postMessage(sandboxedApprovalMessage, '*');
                 }
             }
         });

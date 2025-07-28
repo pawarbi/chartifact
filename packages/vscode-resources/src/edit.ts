@@ -18,9 +18,19 @@ window.addEventListener('DOMContentLoaded', () => {
                     return offlineDeps;
                 }
             }
-            const editorProps = { previewer: OfflineSandbox, postMessageTarget: vscode };
+            const editorProps: IDocs.editor.EditorProps = {
+                previewer: OfflineSandbox,
+                postMessageTarget: vscode as any,
+                onApprove: (message) => {
+                    // Handle sandboxed pre-render message
+                    console.log('Handling sandboxed pre-render message:', message);
+                    //Here you can approve unapproved specs per your own policy
+                    const remediated = message.flags;
+                    return remediated;
+                }
+            };
             const root = ReactDOM.createRoot(document.getElementById("app"));
-            root.render(React.createElement(IDocs.editor.Editor, editorProps as any));
+            root.render(React.createElement(IDocs.editor.Editor, editorProps));
         }
     });
 

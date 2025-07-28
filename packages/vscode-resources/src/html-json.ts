@@ -19,15 +19,9 @@ window.addEventListener('DOMContentLoaded', () => {
                 onApprove: (message) => {
                     // Handle sandboxed pre-render message
                     console.log('Handling sandboxed pre-render message:', message);
+                    //Here you can approve unapproved specs per your own policy
                     const remediated = message.flags;
-
-                    // Approve the sandboxed pre-render
-                    const sandboxedApprovalMessage: IDocs.common.SandboxApprovalMessage = {
-                        type: 'sandboxApproval',
-                        transactionId: message.transactionId,
-                        remediated,
-                    };
-                    return sandboxedApprovalMessage;
+                    return remediated;
                 },
                 onError: (error) => {
                     console.error('Sandbox error:', error);

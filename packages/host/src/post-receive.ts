@@ -1,5 +1,5 @@
 import { Listener } from './listener.js';
-import type { HostRenderRequestMessage, SandboxApprovalMessage, SandboxedPreHydrateMessage } from 'common';
+import type { HostRenderRequestMessage } from 'common';
 
 export function setupPostMessageHandling(host: Listener) {
     window.addEventListener('message', (event) => {

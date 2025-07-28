@@ -53,8 +53,11 @@ export const vegaPlugin: Plugin<Spec> = {
         const specInits: SpecInit[] = [];
         for (let index = 0; index < configContainers.length; index++) {
             const configContainer = configContainers[index];
+            if (!configContainer.approvedSpec) {
+                continue;
+            }
             const container = renderer.element.querySelector(`#${configContainer.containerId}`);
-            const specInit = createSpecInit(container, index, configContainer.spec);
+            const specInit = createSpecInit(container, index, configContainer.approvedSpec);
             if (specInit) {
                 specInits.push(specInit);
             }

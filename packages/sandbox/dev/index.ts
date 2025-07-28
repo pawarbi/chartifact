@@ -1,4 +1,3 @@
-import { SandboxApprovalMessage } from 'common';
 import { Sandbox } from '../src/index.ts';
 const textarea = document.getElementById('md') as HTMLTextAreaElement;
 const sandbox = new Sandbox(document.body, textarea.value, {
@@ -10,12 +9,8 @@ const sandbox = new Sandbox(document.body, textarea.value, {
     },
     onApprove: (message) => {
         console.log('Sandbox approval message:', message);
-        const approval: SandboxApprovalMessage = {
-            type: 'sandboxApproval',
-            transactionId: message.transactionId,
-            remediated: message.flags,
-        };
-        return approval;
+        //TODO policy to approve unapproved
+        return message.flags;
     }
 });
 

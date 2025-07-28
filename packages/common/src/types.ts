@@ -1,7 +1,7 @@
 export interface Flagged<T> {
     pluginName: string;
     containerId: string;
-    spec: T;
-    hasFlags?: boolean;
+    approvedSpec: T;
+    unApprovedSpec?: T;
     reason?: string;
 }
