@@ -5,7 +5,7 @@
 
 import { VariableControl } from 'schema';
 import { Batch, IInstance, Plugin } from '../factory.js';
-import { getJsonScriptTag, pluginClassName } from './util.js';
+import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';
 
 interface CheckboxInstance {
@@ -38,7 +38,7 @@ export const checkboxPlugin: Plugin<CheckboxSpec> = {
                     <div class="vega-bind">
                         <label>
                             <span class="vega-bind-name">${spec.label || spec.variableId}</span>
-                            <input type="checkbox" class="vega-bind-checkbox" id="${spec.variableId}" name="${spec.variableId}" ${spec.value ? 'checked' : ''}>
+                            <input type="checkbox" class="vega-bind-checkbox" id="${spec.variableId}" name="${spec.variableId}" ${spec.value ? 'checked' : ''}/>
                         </label>
                     </div>
                 </form>`;

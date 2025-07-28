@@ -108,8 +108,12 @@ interface CheckboxElement extends VariableControl {
  * Textbox
  * use sparingly - typically only for text input
  */
-interface TextboxElement extends VariableControl {
+interface TextboxElement extends VariableControl, TextboxElementProps {
     type: 'textbox';
+}
+interface TextboxElementProps {
+    /** whether to render as a textarea instead of input */
+    multiline?: boolean;
 }
 /**
  * Slider
@@ -247,4 +251,4 @@ type PageElement = MarkdownElement | InteractiveElement;
 type InteractiveDocumentWithSchema = InteractiveDocument & {
     $schema?: string;
 };
-export type { Calculation, ChartElement, ChartFull, ChartPlaceholder, ChartValue, CheckboxElement, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceByJSON, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, Layout, MappedNameValuePairs, MarkdownElement, NameValuePairs, PageElement, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TableElement, TableElementProps, TextboxElement, UrlRef, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive };
+export type { Calculation, ChartElement, ChartFull, ChartPlaceholder, ChartValue, CheckboxElement, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceByJSON, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, Layout, MappedNameValuePairs, MarkdownElement, NameValuePairs, PageElement, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TableElement, TableElementProps, TextboxElement, TextboxElementProps, UrlRef, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive };

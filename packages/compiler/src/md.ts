@@ -1,6 +1,6 @@
 import { Spec as VegaSpec } from 'vega-typings';
 import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
-import { ChartFull, DataSource, ElementGroup, InteractiveDocument, TableElement, Variable } from 'schema';
+import { ChartFull, DataSource, ElementGroup, InteractiveDocument, TableElement, TextboxElement, Variable } from 'schema';
 import { getChartType } from './util.js';
 import { addDynamicDataLoaderToSpec, addStaticDataLoaderToSpec } from './loader.js';
 import { Plugins } from '@microsoft/interactive-document-markdown';
@@ -149,23 +149,15 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                     break;
                 }
                 case 'slider': {
-                    const spec: VegaSpec = {
-                        $schema,
-                        signals: [
-                            {
-                                name: element.variableId,
-                                value: variables.find(v => v.variableId === element.variableId)?.initialValue,
-                                bind: {
-                                    input: "range",
-                                    min: element.min,
-                                    max: element.max,
-                                    step: element.step,
-                                    debounce: 100,
-                                }
-                            }
-                        ]
+                    const sliderSpec: Plugins.SliderSpec = {
+                        variableId: element.variableId,
+                        value: variables.find(v => v.variableId === element.variableId)?.initialValue as number,
+                        label: element.label,
+                        min: element.min,
+                        max: element.max,
+                        step: element.step,
                     };
-                    mdElements.push(chartWrap(spec));
+                    mdElements.push(jsonWrap('slider', JSON.stringify(sliderSpec, null, 2)));
                     break;
                 }
                 case 'table': {
@@ -175,20 +167,14 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                     break;
                 }
                 case 'textbox': {
-                    const spec: VegaSpec = {
-                        $schema,
-                        signals: [
-                            {
-                                name: element.variableId,
-                                value: variables.find(v => v.variableId === element.variableId)?.initialValue,
-                                bind: {
-                                    input: "text",
-                                    debounce: 100,
-                                }
-                            }
-                        ]
+                    const textboxElement = element as TextboxElement;
+                    const textboxSpec: Plugins.TextboxSpec = {
+                        variableId: textboxElement.variableId,
+                        value: variables.find(v => v.variableId === textboxElement.variableId)?.initialValue as string,
+                        label: textboxElement.label,
+                        multiline: textboxElement.multiline,
                     };
-                    mdElements.push(chartWrap(spec));
+                    mdElements.push(jsonWrap('textbox', JSON.stringify(textboxSpec, null, 2)));
                     break;
                 }
             }

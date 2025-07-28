@@ -5,7 +5,7 @@
 
 import { Batch, IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
 import { Tabulator as TabulatorType, Options as TabulatorOptions } from 'tabulator-tables';
-import { getJsonScriptTag, pluginClassName } from './util.js';
+import { pluginClassName } from './util.js';
 import { TableElementProps } from 'schema';
 import { flaggableJsonPlugin } from './config.js';
 

@@ -16,8 +16,12 @@ export interface CheckboxElement extends VariableControl {
  * Textbox
  * use sparingly - typically only for text input
  */
-export interface TextboxElement extends VariableControl {
+export interface TextboxElement extends VariableControl, TextboxElementProps {
   type: 'textbox';
+}
+export interface TextboxElementProps {
+  /** whether to render as a textarea instead of input */
+  multiline?: boolean;
 }
 
 /**

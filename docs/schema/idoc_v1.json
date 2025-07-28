@@ -2850,6 +2850,10 @@
           "description": "optional label if the variableId is not descriptive enough",
           "type": "string"
         },
+        "multiline": {
+          "description": "whether to render as a textarea instead of input",
+          "type": "boolean"
+        },
         "type": {
           "const": "textbox",
           "type": "string"

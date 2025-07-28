@@ -4,9 +4,8 @@
 */
 
 import { ImageElementProps } from 'schema';
-import { definePlugin, IInstance, Plugin } from '../factory.js';
-import { sanitizedHTML } from '../sanitize.js';
-import { getJsonScriptTag, pluginClassName } from './util.js';
+import { IInstance, Plugin } from '../factory.js';
+import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';
 
 export interface ImageSpec extends ImageElementProps {

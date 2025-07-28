@@ -4,9 +4,8 @@
 */
 
 import { Preset } from 'schema';
-import { Batch, definePlugin, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
-import { sanitizedHTML } from '../sanitize.js';
-import { getJsonScriptTag, pluginClassName } from './util.js';
+import { Batch, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
+import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';
 
 export type PresetsSpec = Preset[];
