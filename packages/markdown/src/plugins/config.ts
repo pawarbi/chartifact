@@ -1,7 +1,7 @@
-import { definePlugin, Plugin } from "../factory.js";
+import { definePlugin, Plugin, FlaggableSpec } from "../factory.js";
 import { sanitizedHTML } from "../sanitize.js";
 import { getJsonScriptTag } from "./util.js";
-import { FlaggableSpec, Flagged } from 'common';
+import { Flagged } from 'common';
 
 export function flaggableJsonPlugin<T>(pluginName: string, className: string, flagger?: (spec: T) => FlaggableSpec<T>) {
     const plugin: Plugin<T> = {
@@ -37,7 +37,7 @@ export function flaggableJsonPlugin<T>(pluginName: string, className: string, fl
                 const id = container.id;
                 const flaggableSpec = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
                 if (!flaggableSpec) continue;
-                flagged.push({ pluginName, containerId: container.id, flaggableSpec });
+                flagged.push({ ...flaggableSpec, pluginName, containerId: container.id });
             }
             return flagged;
         },

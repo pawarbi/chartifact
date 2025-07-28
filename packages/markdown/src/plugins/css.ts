@@ -3,12 +3,11 @@
 * Licensed under the MIT License.
 */
 
-import { definePlugin, IInstance, Plugin } from '../factory.js';
+import { definePlugin, IInstance, Plugin, FlaggableSpec } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import * as Csstree from 'css-tree';
 import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';
-import { FlaggableSpec } from 'common';
 
 // CSS Tree is expected to be available as a global variable
 declare const csstree: typeof Csstree;
@@ -377,11 +376,11 @@ export const cssPlugin: Plugin<CategorizedCss> = {
             const configContainer = configContainers[index];
             const container = renderer.element.querySelector(`#${configContainer.containerId}`);
 
-            const categorizedCss = configContainer.flaggableSpec.spec;
+            const categorizedCss = configContainer.spec;
             const comments: string[] = [];
 
             // Log security issues found
-            if (configContainer.flaggableSpec.hasFlags) {
+            if (configContainer.hasFlags) {
                 console.warn(`CSS security: Security issues detected in CSS`);
                 comments.push(`<!-- CSS security issues detected and filtered -->`);
             }

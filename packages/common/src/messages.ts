@@ -15,7 +15,6 @@ export interface SandboxedPreHydrateMessage {
 export type SandboxApprovalMessage = {
     type: 'sandboxApproval';
     transactionId: number;
-    approved: boolean;
     remediated: Flagged<{}>[];
 };
 

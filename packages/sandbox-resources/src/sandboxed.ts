@@ -55,25 +55,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             }
             case 'sandboxApproval': {
-                if (message.approved) {
 
-                    console.log('Sandbox approval received:', message.transactionId, transactionIndex);
+                //debugger;
 
-                    //debugger;
+                //only handle if the transactionId is the latest
+                if (message.transactionId === transactionIndex - 1) {
 
-                    //only handle if the transactionId is the latest
-                    if (message.transactionId === transactionIndex - 1) {
+                    //todo: mutate the document according to approval
 
-                        //todo: mutate the document according to approval
-
-                        //hydrate the renderer
-                        const flags = transactions[message.transactionId];
-                        if (flags) {
-                            renderer.hydrate(flags);
-                        }
-                    } else {
-                        console.warn('Received sandbox approval for an outdated transaction:', message.transactionId, transactionIndex);
+                    //hydrate the renderer
+                    const flags = transactions[message.transactionId];
+                    if (flags) {
+                        renderer.hydrate(flags);
                     }
+                } else {
+                    console.warn('Received sandbox approval for an outdated transaction:', message.transactionId, transactionIndex);
                 }
                 break;
             }

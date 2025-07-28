@@ -7,7 +7,7 @@ import MarkdownIt, { Token } from 'markdown-it/index.js';
 import { attrs } from '@mdit/plugin-attrs';
 import { container, MarkdownItContainerOptions } from '@mdit/plugin-container';
 import { ErrorHandler, Renderer } from './renderer.js';
-import { defaultCommonOptions, FlaggableSpec, Flagged } from 'common';
+import { defaultCommonOptions, Flagged } from 'common';
 
 declare const markdownit: typeof MarkdownIt;
 
@@ -35,6 +35,12 @@ export interface IInstance {
     broadcastComplete?: () => Promise<void>;
     destroy?: () => void;
     getCurrentSignalValue?: (signalName: string) => unknown;
+}
+
+export interface FlaggableSpec<T> {
+    spec: T;
+    hasFlags?: boolean;
+    reason?: string;
 }
 
 export interface SpecContainer<T> {

@@ -125,7 +125,6 @@ export class Listener {
         const sandboxedApprovalMessage: SandboxApprovalMessage = {
           type: 'sandboxApproval',
           transactionId: message.transactionId,
-          approved: true,
           remediated,
         };
         return sandboxedApprovalMessage;

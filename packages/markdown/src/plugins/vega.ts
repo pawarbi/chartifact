@@ -4,12 +4,12 @@
 */
 
 import { changeset, parse, View, expressionFunction, LoggerInterface } from 'vega';
-import { Batch, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
+import { Batch, IInstance, Plugin, PrioritizedSignal, FlaggableSpec } from '../factory.js';
 import { BaseSignal, InitSignal, NewSignal, Runtime, Spec, ValuesData } from 'vega-typings';
 import { ErrorHandler, Renderer } from '../renderer.js';
 import { LogLevel } from '../signalbus.js';
 import { pluginClassName, urlParam } from './util.js';
-import { defaultCommonOptions, FlaggableSpec } from 'common';
+import { defaultCommonOptions } from 'common';
 import { flaggableJsonPlugin, } from './config.js';
 
 const ignoredSignals = ['width', 'height', 'padding', 'autosize', 'background', 'style', 'parent', 'datum', 'item', 'event', 'cursor'];
@@ -33,7 +33,7 @@ const pluginName = 'vega';
 const className = pluginClassName(pluginName);
 
 export function inspectVegaSpec(spec: Spec) {
-    //TODO inspect spec for flags
+    //TODO inspect spec for flags, such as http:// instead of https://, or other security issues
     const flaggableSpec: FlaggableSpec<Spec> = {
         spec,
     };
@@ -54,7 +54,7 @@ export const vegaPlugin: Plugin<Spec> = {
         for (let index = 0; index < configContainers.length; index++) {
             const configContainer = configContainers[index];
             const container = renderer.element.querySelector(`#${configContainer.containerId}`);
-            const specInit = createSpecInit(container, index, configContainer.flaggableSpec.spec);
+            const specInit = createSpecInit(container, index, configContainer.spec);
             if (specInit) {
                 specInits.push(specInit);
             }

@@ -52,7 +52,6 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
                             const sandboxedApprovalMessage: SandboxApprovalMessage = {
                                 type: 'sandboxApproval',
                                 transactionId: message.transactionId,
-                                approved: true,
                                 remediated,
                             };
                             return sandboxedApprovalMessage;

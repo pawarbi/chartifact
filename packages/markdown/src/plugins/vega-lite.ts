@@ -3,8 +3,7 @@
 * Licensed under the MIT License.
 */
 
-import { FlaggableSpec } from 'common';
-import { Plugin } from '../factory.js';
+import { Plugin, FlaggableSpec } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { flaggableJsonPlugin } from './config.js';
 import { pluginClassName } from './util.js';
@@ -16,7 +15,7 @@ const pluginName = 'vega-lite';
 const className = pluginClassName(pluginName);
 
 export function inspectVegaLiteSpec(spec: TopLevelSpec) {
-    //TODO inspect spec for flags
+    //TODO inspect spec for flags, such as http:// instead of https://, or other security issues
     const flaggableSpec: FlaggableSpec<TopLevelSpec> = {
         spec,
     };
