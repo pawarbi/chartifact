@@ -1,34 +1,14 @@
 window.addEventListener('DOMContentLoaded', () => {
     const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-    const sandbox = new IDocs.sandbox.Sandbox('main', textarea.value);
-
-    window.addEventListener('message', (event) => {
-        try {
-            // Validate the message structure
-            if (!event.data || typeof event.data !== 'object') {
-                return;
-            }
-
-            const message = event.data as IDocs.common.SandboxedPreHydrateMessage;
-            if (message.type == 'sandboxedPreHydrate') {
-                //make sure its from the sandbox iframe
-                if (event.source === sandbox.iframe.contentWindow) {
-                    // TODO check whitelist and do a mutation if needed
-                    console.log('TODO: handle sandboxed pre-render message:', message);
-
-                    //approve the sandboxed pre-render
-                    const sandboxedApprovalMessage: IDocs.common.SandboxApprovalMessage = {
-                        type: 'sandboxApproval',
-                        transactionId: message.transactionId,
-                        approved: true,
-                        //todo: mutations
-                    };
-                    sandbox.approve(sandboxedApprovalMessage);
-                }
-            }
-        } catch (error) {
-            console.error('Error processing postMessage event:', error);
-        }
+    const sandbox = new IDocs.sandbox.Sandbox('main', textarea.value, {
+        onApprove: (message) => {
+            //Here you can approve unapproved specs per your own policy
+            const { specs } = message;
+            return specs;
+        },
+        onError: (error) => {
+            console.error('Sandbox error:', error);
+        },
     });
 
     textarea.addEventListener('input', () => {

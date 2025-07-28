@@ -3,48 +3,49 @@
 * Licensed under the MIT License.
 */
 
-import { definePlugin, Plugin } from '../factory.js';
+import { Plugin, RawFlaggableSpec } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
-import { getJsonScriptTag, pluginClassName } from './util.js';
-import { vegaPlugin } from './vega.js';
-import { compile } from 'vega-lite';
+import { flaggableJsonPlugin } from './config.js';
+import { pluginClassName } from './util.js';
+import { inspectVegaSpec, vegaPlugin } from './vega.js';
+import { compile, TopLevelSpec } from 'vega-lite';
+import { Spec } from 'vega';
 
 const pluginName = 'vega-lite';
 const className = pluginClassName(pluginName);
 
-export const vegaLitePlugin: Plugin = {
-    name: pluginName,
-    hydratesBefore: vegaPlugin.name,
-    initializePlugin: (md) => definePlugin(md, pluginName),
-    fence: token => {
-        return sanitizedHTML('div', { class: className }, token.content.trim(), true);
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
-        const containers = renderer.element.querySelectorAll(`.${className}`);
-        for (const [index, container] of Array.from(containers).entries()) {
-            const jsonObj = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
-            if (!jsonObj) continue;
-
-            //compile to vega
+export const vegaLitePlugin: Plugin<TopLevelSpec> = {
+    ...flaggableJsonPlugin<TopLevelSpec>(pluginName, className),
+    fence: (token, index) => {
+        let json = token.content.trim();
+        let spec: TopLevelSpec;
+        let flaggableSpec: RawFlaggableSpec<Spec>;
+        try {
+            spec = JSON.parse(json);
+        } catch (e) {
+            flaggableSpec = {
+                spec: null,
+                hasFlags: true,
+                reasons: [`malformed JSON`],
+            };
+        }
+        if (spec) {
             try {
-                const { spec } = compile(jsonObj);
-
-                //create both a script tag and a vega tag for the vega plugin to catch
-                const html = sanitizedHTML('div', { class: pluginClassName(vegaPlugin.name) }, JSON.stringify(spec, null, 2), true);
-
-                //append the html right after this container
-                container.insertAdjacentHTML('afterend', html);
-
-                //the container can be removed
-                container.remove();
-
-            } catch (error) {
-                //did not compile
-                errorHandler(error, pluginName, index, 'compile', container);
+                const vegaSpec = compile(spec);
+                flaggableSpec = inspectVegaSpec(vegaSpec.spec);
+            }
+            catch (e) {
+                flaggableSpec = {
+                    spec: null,
+                    hasFlags: true,
+                    reasons: [`failed to compile vega spec`],
+                };
             }
         }
-
-        //return a promise that resolves to an empty array of IInstance
-        return Promise.resolve([]);
+        if (flaggableSpec) {
+            json = JSON.stringify(flaggableSpec);
+        }
+        return sanitizedHTML('div', { class: pluginClassName(vegaPlugin.name), id: `${pluginName}-${index}` }, json, true);
     },
+    hydratesBefore: vegaPlugin.name,
 };

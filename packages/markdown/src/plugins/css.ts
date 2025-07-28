@@ -3,10 +3,11 @@
 * Licensed under the MIT License.
 */
 
-import { definePlugin, IInstance, Plugin } from '../factory.js';
+import { definePlugin, IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import * as Csstree from 'css-tree';
-import { getJsonScriptTag, pluginClassName } from './util.js';
+import { pluginClassName } from './util.js';
+import { flaggableJsonPlugin } from './config.js';
 
 // CSS Tree is expected to be available as a global variable
 declare const csstree: typeof Csstree;
@@ -33,7 +34,6 @@ interface AtRule {
 
 interface CategorizedCss {
     atRules: { [atRuleSignature: string]: AtRule };
-    hasFlags: boolean;
 }
 
 // Helper function to reconstitute an at-rule block from at-rule data
@@ -83,10 +83,15 @@ function reconstituteCss(atRules: { [atRuleSignature: string]: AtRule }): string
     return cssBlocks.join('\n\n');
 }
 
-function categorizeCss(cssContent: string): CategorizedCss {
-    const result: CategorizedCss = {
+function categorizeCss(cssContent: string) {
+    const spec: CategorizedCss = {
         atRules: {},
-        hasFlags: false
+    };
+
+    const result: RawFlaggableSpec<CategorizedCss> = {
+        spec,
+        hasFlags: false,
+        reasons: [],
     };
 
     // At-rules that should be treated as complete blocks (not parsed internally)
@@ -183,17 +188,17 @@ function categorizeCss(cssContent: string): CategorizedCss {
             if (currentRule && currentRule.declarations.length > 0) {
                 const targetAtRule = currentAtRuleSignature;
 
-                if (!result.atRules[targetAtRule]) {
-                    result.atRules[targetAtRule] = {
+                if (!spec.atRules[targetAtRule]) {
+                    spec.atRules[targetAtRule] = {
                         signature: targetAtRule,
                         rules: []
                     };
                 }
 
-                if (result.atRules[targetAtRule].rules) {
-                    result.atRules[targetAtRule].rules.push(currentRule);
+                if (spec.atRules[targetAtRule].rules) {
+                    spec.atRules[targetAtRule].rules.push(currentRule);
                 } else {
-                    result.atRules[targetAtRule].rules = [currentRule];
+                    spec.atRules[targetAtRule].rules = [currentRule];
                 }
             }
         }
@@ -206,13 +211,15 @@ function categorizeCss(cssContent: string): CategorizedCss {
                 // Check for @import specifically
                 if (node.name === 'import') {
                     const ruleContent = csstree.generate(node);
-                    result.atRules[atRuleSignature] = {
+                    const reason = '@import rule detected - requires approval';
+                    spec.atRules[atRuleSignature] = {
                         signature: atRuleSignature,
                         css: ruleContent,
                         flag: 'importRule',
-                        reason: '@import rule detected - requires approval'
+                        reason,
                     };
                     result.hasFlags = true;
+                    result.reasons.push(reason);
                     return;
                 }
 
@@ -220,7 +227,7 @@ function categorizeCss(cssContent: string): CategorizedCss {
                 if (completeBlockAtRules.includes(node.name)) {
                     // Store the entire rule as CSS and validate it as a complete block
                     const ruleContent = csstree.generate(node);
-                    result.atRules[atRuleSignature] = {
+                    spec.atRules[atRuleSignature] = {
                         signature: atRuleSignature,
                         css: ruleContent
                     };
@@ -229,8 +236,8 @@ function categorizeCss(cssContent: string): CategorizedCss {
 
                 // For other at-rules that contain rules (like @media, @supports)
                 if (node.block) {
-                    if (!result.atRules[atRuleSignature]) {
-                        result.atRules[atRuleSignature] = {
+                    if (!spec.atRules[atRuleSignature]) {
+                        spec.atRules[atRuleSignature] = {
                             signature: atRuleSignature,
                             rules: []
                         };
@@ -240,7 +247,7 @@ function categorizeCss(cssContent: string): CategorizedCss {
                 } else {
                     // Simple at-rule without block
                     const ruleContent = csstree.generate(node);
-                    result.atRules[atRuleSignature] = {
+                    spec.atRules[atRuleSignature] = {
                         signature: atRuleSignature,
                         css: ruleContent
                     };
@@ -270,6 +277,7 @@ function categorizeCss(cssContent: string): CategorizedCss {
                     declaration.flag = securityCheck.flag;
                     declaration.reason = securityCheck.reason;
                     result.hasFlags = true;
+                    result.reasons.push(securityCheck.reason);
                 }
 
                 currentRule.declarations.push(declaration);
@@ -287,6 +295,7 @@ function categorizeCss(cssContent: string): CategorizedCss {
                         lastDecl.flag = securityCheck.flag;
                         lastDecl.reason = securityCheck.reason;
                         result.hasFlags = true;
+                        result.reasons.push(securityCheck.reason);
                     }
                 }
             }
@@ -306,8 +315,8 @@ function categorizeCss(cssContent: string): CategorizedCss {
 const pluginName = 'css';
 const className = pluginClassName(pluginName);
 
-export const cssPlugin: Plugin = {
-    name: pluginName,
+export const cssPlugin: Plugin<CategorizedCss> = {
+    ...flaggableJsonPlugin<CategorizedCss>(pluginName, className),
     initializePlugin: (md) => {
         // Check for required css-tree dependency
         if (typeof csstree === 'undefined') {
@@ -354,7 +363,7 @@ export const cssPlugin: Plugin = {
                 // Parse and categorize CSS content
                 const categorizedCss = categorizeCss(cssContent);
 
-                return sanitizedHTML('div', { class: className }, JSON.stringify(categorizedCss), true);
+                return sanitizedHTML('div', { id: `${pluginName}-${idx}`, class: className }, JSON.stringify(categorizedCss), true);
             }
 
             // Fallback to original fence renderer
@@ -365,22 +374,18 @@ export const cssPlugin: Plugin = {
             }
         };
     },
-    hydrateComponent: async (renderer, errorHandler) => {
+    hydrateComponent: async (renderer, errorHandler, configContainers) => {
         const cssInstances: { id: string; element: HTMLStyleElement }[] = [];
-        const containers = renderer.element.querySelectorAll(`.${className}`);
 
-        for (const [index, container] of Array.from(containers).entries()) {
-            const jsonObj = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
-            if (!jsonObj) continue;
-
-            const categorizedCss: CategorizedCss = jsonObj;
-            const comments: string[] = [];
-
-            // Log security issues found
-            if (categorizedCss.hasFlags) {
-                console.warn(`CSS security: Security issues detected in CSS`);
-                comments.push(`<!-- CSS security issues detected and filtered -->`);
+        for (let index = 0; index < configContainers.length; index++) {
+            const configContainer = configContainers[index];
+            if (!configContainer.approvedSpec) {
+                continue;
             }
+            const container = renderer.element.querySelector(`#${configContainer.containerId}`);
+
+            const categorizedCss = configContainer.approvedSpec;
+            const comments: string[] = [];
 
             // Generate and apply safe CSS
             const safeCss = reconstituteCss(categorizedCss.atRules);
@@ -404,6 +409,7 @@ export const cssPlugin: Plugin = {
             } else {
                 comments.push(`<!-- No safe CSS styles to apply -->`);
             }
+
             container.innerHTML = comments.join('\n');
         }
 

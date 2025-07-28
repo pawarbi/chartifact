@@ -18,9 +18,18 @@ window.addEventListener('DOMContentLoaded', () => {
                     return offlineDeps;
                 }
             }
-            const editorProps = { previewer: OfflineSandbox, postMessageTarget: vscode };
+            const editorProps: IDocs.editor.EditorProps = {
+                previewer: OfflineSandbox,
+                postMessageTarget: vscode as any,
+                onApprove: (message) => {
+                    // TODO look through each and override policy to approve unapproved
+                    // policy from vscode settings
+                    const { specs } = message;
+                    return specs;
+                }
+            };
             const root = ReactDOM.createRoot(document.getElementById("app"));
-            root.render(React.createElement(IDocs.editor.Editor, editorProps as any));
+            root.render(React.createElement(IDocs.editor.Editor, editorProps));
         }
     });
 

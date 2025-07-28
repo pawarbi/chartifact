@@ -6,7 +6,9 @@
   "scripts": {
     "clean": "rimraf dist",
     "tsc": "tsc -p .",
-    "build:07": "npm run tsc"
+    "build": "npm run tsc",
+    "postbuild": "node -e \"const fs = require('fs'); const path = require('path'); const src = path.join(__dirname, 'dist', 'view.js'); const destDir = path.join(__dirname, '..', '..', 'docs', 'view'); const dest = path.join(destDir, 'view.js'); fs.mkdirSync(destDir, { recursive: true }); fs.copyFileSync(src, dest); console.log('Copied view.js to docs/view');\"",
+    "build:07": "npm run build"
   },
   "author": "Dan Marshall",
   "license": "MIT",

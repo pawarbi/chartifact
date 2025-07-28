@@ -5,17 +5,24 @@ export interface SandboxRenderMessage {
     markdown?: string;
 }
 
+export interface SpecReview<T> {
+    pluginName: string;
+    containerId: string;
+    approvedSpec: T;
+    blockedSpec?: T;
+    reason?: string;
+}
+
 export interface SandboxedPreHydrateMessage {
     type: 'sandboxedPreHydrate';
     transactionId: number;
-    //todo put stuff here for whitelist
+    specs: SpecReview<{}>[];
 }
 
 export type SandboxApprovalMessage = {
     type: 'sandboxApproval';
     transactionId: number;
-    approved: boolean;
-    //todo: add more fields as needed
+    specs: SpecReview<{}>[];
 };
 
 export interface HostRenderRequestMessage {

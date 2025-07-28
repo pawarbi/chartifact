@@ -35,31 +35,7 @@ body {
 ```
 </textarea>
 
-  <script type="module">
-    import { Sandbox } from '/src/index.ts';
-    const textarea = document.getElementById('md');
-    const sandbox = new Sandbox(document.body, textarea.value);
-    window.sandbox = sandbox;
-    textarea.addEventListener('input', () => {
-      sandbox.send(textarea.value);
-    });
-    window.addEventListener('message', (event) => {
-      if (!event.data) {
-        console.error('No data received from sandbox');
-        return;
-      }
-      if (event.data.type === 'sandboxedPreHydrate') {
-        console.log('Sandbox pre-render received:', event.data);
-        //inspect doc and handle approval
-        const sandboxedApprovalMessage = {
-          type: 'sandboxApproval',
-          transactionId: event.data.transactionId,
-          approved: true // or false based on your logic
-        };
-        sandbox.approve(sandboxedApprovalMessage);
-      }
-    });
-  </script>
+  <script type="module" src="./dev/index.ts"></script>
 
 </body>
 

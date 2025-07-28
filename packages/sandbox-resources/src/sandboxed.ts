@@ -1,11 +1,13 @@
 declare const renderRequest: IDocs.common.SandboxRenderMessage;
 
+let renderer: IDocs.markdown.Renderer;
+
 document.addEventListener('DOMContentLoaded', () => {
     let transactionIndex = 0;
 
-    const transactions: Record<number, Document> = {};
+    const transactions: Record<number, IDocs.common.SpecReview<{}>[]> = {};
 
-    const renderer = new IDocs.markdown.Renderer(document.body, {
+    renderer = new IDocs.markdown.Renderer(document.body, {
         errorHandler: (error: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string) => {
             console.error(`Error in plugin ${pluginName} at instance ${instanceIndex} during ${phase}:`, error);
             if (detail) {
@@ -18,21 +20,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function render(request: IDocs.common.SandboxRenderMessage) {
         if (request.markdown) {
             renderer.reset();
+
+            //debugger;
+
             const html = renderer.renderHtml(request.markdown);
+            renderer.element.innerHTML = html;
+            const specs = renderer.hydrateSpecs();
 
-            //look at dom elements prior to hydration
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-
-            //todo: get stuff here for whitelist
             const transactionId = transactionIndex++;
-            transactions[transactionId] = doc;
+            transactions[transactionId] = specs;
 
             //send message to parent to ask for whitelist
             const sandboxedPreRenderMessage: IDocs.common.SandboxedPreHydrateMessage = {
                 type: 'sandboxedPreHydrate',
                 transactionId,
-                //todo put stuff here for whitelist
+                specs,
             };
             window.parent.postMessage(sandboxedPreRenderMessage, '*');
         }
@@ -52,24 +54,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             }
             case 'sandboxApproval': {
-                if (message.approved) {
 
-                    console.log('Sandbox approval received:', message.transactionId, transactionIndex);
+                //debugger;
 
-                    //only handle if the transactionId is the latest
-                    if (message.transactionId === transactionIndex - 1) {
+                //only handle if the transactionId is the latest
+                if (message.transactionId === transactionIndex - 1) {
 
-                        //todo: mutate the document according to approval
+                    //todo: console.warn of unapproved
 
-                        //hydrate the renderer
-                        const doc = transactions[message.transactionId];
-                        if (doc) {
-                            renderer.element.innerHTML = doc.body.innerHTML;
-                            renderer.hydrate();
-                        }
-                    } else {
-                        console.warn('Received sandbox approval for an outdated transaction:', message.transactionId, transactionIndex);
+                    //hydrate the renderer
+                    const flags = transactions[message.transactionId];
+                    if (flags) {
+                        renderer.hydrate(flags);
                     }
+                } else {
+                    console.warn('Received sandbox approval for an outdated transaction:', message.transactionId, transactionIndex);
                 }
                 break;
             }

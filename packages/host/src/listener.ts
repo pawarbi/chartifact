@@ -8,6 +8,7 @@ import { setupPostMessageHandling } from './post-receive.js';
 import { InteractiveDocument, InteractiveDocumentWithSchema } from 'schema';
 import { postStatus } from './post-send.js';
 import { ListenOptions } from './types.js';
+import { SpecReview, SandboxedPreHydrateMessage } from 'common';
 
 function getElement<T extends HTMLElement = HTMLElement>(elementOrSelector: string | T): T | null {
   if (typeof elementOrSelector === 'string') {
@@ -31,6 +32,7 @@ export interface InitializeOptions {
   fileInput?: string | HTMLElement;
   textarea?: string | HTMLTextAreaElement;
   options?: ListenOptions;
+  onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
 const defaultOptions: ListenOptions = {
@@ -52,12 +54,14 @@ export class Listener {
   public fileInput: HTMLElement;
   public textarea: HTMLTextAreaElement;
   public sandbox: Sandbox;
+  public onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 
   private removeInteractionHandlers: (() => void)[];
   private sandboxReady: boolean = false;
 
   constructor(options: InitializeOptions) {
     this.options = { ...defaultOptions, ...options?.options };
+    this.onApprove = options.onApprove;
     this.removeInteractionHandlers = [];
 
     this.appDiv = getElement(options.app);
@@ -114,30 +118,31 @@ export class Listener {
       },
       onError: () => {
         this.errorHandler(new Error('Sandbox initialization failed'), 'Sandbox could not be initialized');
-      }
+      },
+      onApprove: this.onApprove,
     });
   }
 
   public errorHandler(error: Error, detailsHtml: string) {
     show(this.loadingDiv, false);
-    
+
     // Create DOM elements safely to prevent XSS
     const errorDiv = document.createElement('div');
     errorDiv.style.color = 'red';
     errorDiv.style.padding = '20px';
-    
+
     const errorLabel = document.createElement('strong');
     errorLabel.textContent = 'Error:';
-    
+
     const errorMessage = document.createTextNode(` ${error.message}`);
     const lineBreak = document.createElement('br');
     const details = document.createTextNode(detailsHtml);
-    
+
     errorDiv.appendChild(errorLabel);
     errorDiv.appendChild(errorMessage);
     errorDiv.appendChild(lineBreak);
     errorDiv.appendChild(details);
-    
+
     // Clear previous content and append the error safely
     this.appDiv.innerHTML = '';
     this.appDiv.appendChild(errorDiv);
