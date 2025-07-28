@@ -4,7 +4,7 @@ import { Previewer } from '@microsoft/chartifact-sandbox';
 import { EditorPageMessage, EditorReadyMessage, SpecReview, SandboxedPreHydrateMessage } from "common";
 
 export interface AppProps {
-  previewer: typeof Previewer;
+  previewer?: typeof Previewer;
   onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 

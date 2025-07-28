@@ -5,7 +5,7 @@ import { EditorPageMessage, EditorReadyMessage, SpecReview, SandboxedPreHydrateM
 
 export interface EditorProps {
     postMessageTarget?: Window;
-    previewer: typeof Previewer;
+    previewer?: typeof Previewer;
     onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
@@ -77,7 +77,7 @@ export function Editor(props: EditorProps) {
 export interface EditorViewProps {
     page: InteractiveDocument;
     postMessageTarget: Window;
-    previewer: typeof Previewer;
+    previewer?: typeof Previewer;
     onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
