@@ -90,7 +90,7 @@ export class Renderer {
     hydrateSpecs() {
         this.ensureMd();
 
-        const allFlagged: SpecReview<{}>[] = [];
+        const specs: SpecReview<{}>[] = [];
 
         //loop through all the plugins and hydrate their specs and flag them id needed
         this.signalBus.log('Renderer', 'hydrate specs');
@@ -98,14 +98,14 @@ export class Renderer {
         for (let i = 0; i < plugins.length; i++) {
             const plugin = plugins[i];
             if (plugin.hydrateSpecs) {
-                allFlagged.push(...plugin.hydrateSpecs(this, this.options.errorHandler));
+                specs.push(...plugin.hydrateSpecs(this, this.options.errorHandler));
             }
         }
 
-        return allFlagged;
+        return specs;
     }
 
-    async hydrate(hydratedSpecs: SpecReview<{}>[]) {
+    async hydrate(specs: SpecReview<{}>[]) {
         this.ensureMd();
 
         //loop through all the plugins and render them
@@ -116,9 +116,9 @@ export class Renderer {
             const plugin = plugins[i];
             if (plugin.hydrateComponent) {
                 //get only those specs that match the plugin name
-                const specContainers = hydratedSpecs.filter(spec => spec.pluginName === plugin.name);
+                const specsForPlugin = specs.filter(spec => spec.pluginName === plugin.name);
                 //make a new promise that returns IInstances but adds the plugin name
-                hydrationPromises.push(plugin.hydrateComponent(this, this.options.errorHandler, specContainers).then(instances => {
+                hydrationPromises.push(plugin.hydrateComponent(this, this.options.errorHandler, specsForPlugin).then(instances => {
                     return {
                         pluginName: plugin.name,
                         instances,
