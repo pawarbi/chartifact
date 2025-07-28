@@ -3,7 +3,7 @@
 * Licensed under the MIT License.
 */
 
-import { Plugin, FlaggableSpec } from '../factory.js';
+import { Plugin, RawFlaggableSpec } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { flaggableJsonPlugin } from './config.js';
 import { pluginClassName } from './util.js';
@@ -19,7 +19,7 @@ export const vegaLitePlugin: Plugin<TopLevelSpec> = {
     fence: (token, index) => {
         let json = token.content.trim();
         let spec: TopLevelSpec;
-        let flaggableSpec: FlaggableSpec<Spec>;
+        let flaggableSpec: RawFlaggableSpec<Spec>;
         try {
             spec = JSON.parse(json);
         } catch (e) {

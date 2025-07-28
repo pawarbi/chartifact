@@ -3,7 +3,7 @@
 * Licensed under the MIT License.
 */
 
-import { definePlugin, IInstance, Plugin, FlaggableSpec } from '../factory.js';
+import { definePlugin, IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import * as Csstree from 'css-tree';
 import { pluginClassName } from './util.js';
@@ -88,7 +88,7 @@ function categorizeCss(cssContent: string) {
         atRules: {},
     };
 
-    const result: FlaggableSpec<CategorizedCss> = {
+    const result: RawFlaggableSpec<CategorizedCss> = {
         spec,
         hasFlags: false
     };

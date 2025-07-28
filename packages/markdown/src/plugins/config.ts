@@ -1,9 +1,9 @@
-import { definePlugin, Plugin, FlaggableSpec } from "../factory.js";
+import { definePlugin, Plugin, RawFlaggableSpec } from "../factory.js";
 import { sanitizedHTML } from "../sanitize.js";
 import { getJsonScriptTag } from "./util.js";
 import { Flagged } from 'common';
 
-export function flaggableJsonPlugin<T>(pluginName: string, className: string, flagger?: (spec: T) => FlaggableSpec<T>) {
+export function flaggableJsonPlugin<T>(pluginName: string, className: string, flagger?: (spec: T) => RawFlaggableSpec<T>) {
     const plugin: Plugin<T> = {
         name: pluginName,
         initializePlugin: (md) => definePlugin(md, pluginName),
@@ -11,7 +11,7 @@ export function flaggableJsonPlugin<T>(pluginName: string, className: string, fl
             let json = token.content.trim();
             if (flagger) {
                 let spec: T;
-                let flaggableSpec: FlaggableSpec<T>;
+                let flaggableSpec: RawFlaggableSpec<T>;
                 try {
                     spec = JSON.parse(json);
                 } catch (e) {

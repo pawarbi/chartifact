@@ -37,7 +37,7 @@ export interface IInstance {
     getCurrentSignalValue?: (signalName: string) => unknown;
 }
 
-export interface FlaggableSpec<T> {
+export interface RawFlaggableSpec<T> {
     spec: T;
     hasFlags?: boolean;
     reason?: string;
@@ -45,7 +45,7 @@ export interface FlaggableSpec<T> {
 
 export interface SpecContainer<T> {
     container: HTMLElement;
-    flaggableSpec: FlaggableSpec<T>;
+    flaggableSpec: RawFlaggableSpec<T>;
 }
 
 export interface Plugin<T = {}> {
