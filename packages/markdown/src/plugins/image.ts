@@ -7,6 +7,7 @@ import { ImageElementProps } from 'schema';
 import { definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { getJsonScriptTag, pluginClassName } from './util.js';
+import { flaggableJsonPlugin } from './config.js';
 
 export interface ImageSpec extends ImageElementProps {
     srcSignalName: string;
@@ -28,20 +29,18 @@ enum ImageOpacity {
 const pluginName = 'image';
 const className = pluginClassName(pluginName);
 
-export const imagePlugin: Plugin = {
-    name: pluginName,
-    initializePlugin: (md) => definePlugin(md, pluginName),
-    fence: token => {
-        return sanitizedHTML('div', { class: className }, token.content.trim(), true);
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
+export const imagePlugin: Plugin<ImageSpec> = {
+    ...flaggableJsonPlugin<ImageSpec>(pluginName, className),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
         const imageInstances: ImageInstance[] = [];
-        const containers = renderer.element.querySelectorAll(`.${className}`);
-        for (const [index, container] of Array.from(containers).entries()) {
-            const jsonObj = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
-            if (!jsonObj) continue;
+        for (let index = 0; index < specs.length; index++) {
+            const specReview = specs[index];
+            if (!specReview.approvedSpec) {
+                continue;
+            }
+            const container = renderer.element.querySelector(`#${specReview.containerId}`);
 
-            const spec: ImageSpec = jsonObj;
+            const spec: ImageSpec = specReview.approvedSpec;
             const element = document.createElement('img');
             const spinner = document.createElement('div');
             spinner.innerHTML = `

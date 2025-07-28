@@ -3,12 +3,11 @@
 * Licensed under the MIT License.
 */
 
-import { defaultCommonOptions } from 'common';
-import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
-import { sanitizedHTML } from '../sanitize.js';
+import { Batch, IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
 import { Tabulator as TabulatorType, Options as TabulatorOptions } from 'tabulator-tables';
 import { getJsonScriptTag, pluginClassName } from './util.js';
 import { TableElementProps } from 'schema';
+import { flaggableJsonPlugin } from './config.js';
 
 interface TabulatorInstance {
     id: string;
@@ -23,28 +22,34 @@ export interface TabulatorSpec extends TableElementProps {
 
 declare const Tabulator: typeof TabulatorType;
 
+export function inspectTabulatorSpec(spec: TabulatorSpec) {
+    //TODO inspect spec for flags, such as http:// instead of https://, or other security issues
+    const flaggableSpec: RawFlaggableSpec<TabulatorSpec> = {
+        spec,
+    };
+    return flaggableSpec;
+}
+
 const pluginName = 'tabulator';
 const className = pluginClassName(pluginName);
 
-export const tabulatorPlugin: Plugin = {
-    name: pluginName,
-    initializePlugin: (md) => definePlugin(md, pluginName),
-    fence: token => {
-        return sanitizedHTML('div', { class: className, style: 'box-sizing: border-box;' }, token.content.trim(), true);
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
+export const tabulatorPlugin: Plugin<TabulatorSpec> = {
+    ...flaggableJsonPlugin<TabulatorSpec>(pluginName, className, inspectTabulatorSpec, { style: 'box-sizing: border-box;' }),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
         const tabulatorInstances: TabulatorInstance[] = [];
-        const containers = renderer.element.querySelectorAll(`.${className}`);
-        for (const [index, container] of Array.from(containers).entries()) {
-            const jsonObj = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
-            if (!jsonObj) continue;
+        for (let index = 0; index < specs.length; index++) {
+            const specReview = specs[index];
+            if (!specReview.approvedSpec) {
+                continue;
+            }
+            const container = renderer.element.querySelector(`#${specReview.containerId}`);
 
             if (!Tabulator && index === 0) {
                 errorHandler(new Error('Tabulator not found'), pluginName, index, 'init', container);
                 continue;
             }
 
-            const spec: TabulatorSpec = jsonObj;
+            const spec: TabulatorSpec = specReview.approvedSpec;
 
             if (!spec.input_dataSourceName || !spec.output_dataSourceName) {
                 errorHandler(new Error('Tabulator requires input_dataSourceName and output_dataSourceName'), pluginName, index, 'init', container);

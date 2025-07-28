@@ -42,7 +42,7 @@ export function inspectVegaSpec(spec: Spec) {
 
 export const vegaPlugin: Plugin<Spec> = {
     ...flaggableJsonPlugin<Spec>(pluginName, className, inspectVegaSpec),
-    hydrateComponent: async (renderer, errorHandler, configContainers) => {
+    hydrateComponent: async (renderer, errorHandler, specs) => {
         //initialize the expressionFunction only once
         if (!expressionsInitialized) {
             expressionFunction('urlParam', urlParam);
@@ -51,13 +51,13 @@ export const vegaPlugin: Plugin<Spec> = {
 
         const vegaInstances: VegaInstance[] = [];
         const specInits: SpecInit[] = [];
-        for (let index = 0; index < configContainers.length; index++) {
-            const configContainer = configContainers[index];
-            if (!configContainer.approvedSpec) {
+        for (let index = 0; index < specs.length; index++) {
+            const specReview = specs[index];
+            if (!specReview.approvedSpec) {
                 continue;
             }
-            const container = renderer.element.querySelector(`#${configContainer.containerId}`);
-            const specInit = createSpecInit(container, index, configContainer.approvedSpec);
+            const container = renderer.element.querySelector(`#${specReview.containerId}`);
+            const specInit = createSpecInit(container, index, specReview.approvedSpec);
             if (specInit) {
                 specInits.push(specInit);
             }

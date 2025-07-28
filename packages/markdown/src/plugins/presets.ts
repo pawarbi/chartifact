@@ -7,6 +7,7 @@ import { Preset } from 'schema';
 import { Batch, definePlugin, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { getJsonScriptTag, pluginClassName } from './util.js';
+import { flaggableJsonPlugin } from './config.js';
 
 export type PresetsSpec = Preset[];
 
@@ -19,21 +20,19 @@ interface PresetsInstance {
 const pluginName = 'presets';
 const className = pluginClassName(pluginName);
 
-export const presetsPlugin: Plugin = {
-    name: pluginName,
-    initializePlugin: (md) => definePlugin(md, pluginName),
-    fence: token => {
-        return sanitizedHTML('div', { class: className }, token.content.trim(), true);
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
+export const presetsPlugin: Plugin<PresetsSpec> = {
+    ...flaggableJsonPlugin<PresetsSpec>(pluginName, className),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
         const presetsInstances: PresetsInstance[] = [];
-        const containers = renderer.element.querySelectorAll(`.${className}`);
-        for (const [index, container] of Array.from(containers).entries()) {
-            const jsonObj = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
-            if (!jsonObj) continue;
+        for (let index = 0; index < specs.length; index++) {
+            const specReview = specs[index];
+            if (!specReview.approvedSpec) {
+                continue;
+            }
+            const container = renderer.element.querySelector(`#${specReview.containerId}`);
 
             const id = `${pluginName}-${index}`;
-            const presets = jsonObj as Preset[];
+            const presets = specReview.approvedSpec;
             if (!Array.isArray(presets)) {
                 container.innerHTML = '<div class="error">Expected an array of presets</div>';
                 continue;

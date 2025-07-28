@@ -374,17 +374,17 @@ export const cssPlugin: Plugin<CategorizedCss> = {
             }
         };
     },
-    hydrateComponent: async (renderer, errorHandler, configContainers) => {
+    hydrateComponent: async (renderer, errorHandler, specs) => {
         const cssInstances: { id: string; element: HTMLStyleElement }[] = [];
 
-        for (let index = 0; index < configContainers.length; index++) {
-            const configContainer = configContainers[index];
-            if (!configContainer.approvedSpec) {
+        for (let index = 0; index < specs.length; index++) {
+            const specReview = specs[index];
+            if (!specReview.approvedSpec) {
                 continue;
             }
-            const container = renderer.element.querySelector(`#${configContainer.containerId}`);
+            const container = renderer.element.querySelector(`#${specReview.containerId}`);
 
-            const categorizedCss = configContainer.approvedSpec;
+            const categorizedCss = specReview.approvedSpec;
             const comments: string[] = [];
 
             // Generate and apply safe CSS

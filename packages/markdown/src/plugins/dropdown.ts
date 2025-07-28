@@ -7,6 +7,7 @@ import { DropdownElementProps } from 'schema';
 import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { getJsonScriptTag, pluginClassName } from './util.js';
+import { flaggableJsonPlugin } from './config.js';
 
 interface DropdownInstance {
     id: string;
@@ -21,20 +22,18 @@ export interface DropdownSpec extends DropdownElementProps {
 const pluginName = 'dropdown';
 const className = pluginClassName(pluginName);
 
-export const dropdownPlugin: Plugin = {
-    name: pluginName,
-    initializePlugin: (md) => definePlugin(md, pluginName),
-    fence: token => {
-        return sanitizedHTML('div', { class: className }, token.content.trim(), true);
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
+export const dropdownPlugin: Plugin<DropdownSpec> = {
+    ...flaggableJsonPlugin<DropdownSpec>(pluginName, className),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
         const dropdownInstances: DropdownInstance[] = [];
-        const containers = renderer.element.querySelectorAll(`.${className}`);
-        for (const [index, container] of Array.from(containers).entries()) {
-            const jsonObj = getJsonScriptTag(container, e => errorHandler(e, pluginName, index, 'parse', container));
-            if (!jsonObj) continue;
+        for (let index = 0; index < specs.length; index++) {
+            const specReview = specs[index];
+            if (!specReview.approvedSpec) {
+                continue;
+            }
+            const container = renderer.element.querySelector(`#${specReview.containerId}`);
 
-            const spec: DropdownSpec = jsonObj;
+            const spec: DropdownSpec = specReview.approvedSpec;
 
             const html = `<form class="vega-bindings">
                     <div class="vega-bind">
