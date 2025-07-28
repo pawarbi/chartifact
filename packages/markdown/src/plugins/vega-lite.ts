@@ -14,14 +14,6 @@ import { Spec } from 'vega';
 const pluginName = 'vega-lite';
 const className = pluginClassName(pluginName);
 
-export function inspectVegaLiteSpec(spec: TopLevelSpec) {
-    //TODO inspect spec for flags, such as http:// instead of https://, or other security issues
-    const flaggableSpec: FlaggableSpec<TopLevelSpec> = {
-        spec,
-    };
-    return flaggableSpec;
-}
-
 export const vegaLitePlugin: Plugin<TopLevelSpec> = {
     ...flaggableJsonPlugin<TopLevelSpec>(pluginName, className),
     fence: (token, index) => {
