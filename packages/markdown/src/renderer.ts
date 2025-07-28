@@ -68,9 +68,9 @@ export class Renderer {
 
         const html = this.renderHtml(markdown);
         this.element.innerHTML = html;
-        const hydratedSpecs = this.hydrateSpecs();
+        const specs = this.hydrateSpecs();
 
-        await this.hydrate(hydratedSpecs);
+        await this.hydrate(specs);
     }
 
     renderHtml(markdown: string) {
