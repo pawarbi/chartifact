@@ -1,8 +1,9 @@
-import { SandboxApprovalMessage } from "common/dist/esnext/messages.js";
+import { SandboxApprovalMessage, SandboxedPreHydrateMessage } from "common/dist/esnext/messages.js";
 
 export interface PreviewerOptions {
     onReady?: () => void;
     onError?: (error: Error) => void;
+    onApprove?: (message: SandboxedPreHydrateMessage) => SandboxApprovalMessage;
 }
 
 // Previewer class

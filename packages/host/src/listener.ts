@@ -8,6 +8,7 @@ import { setupPostMessageHandling } from './post-receive.js';
 import { InteractiveDocument, InteractiveDocumentWithSchema } from 'schema';
 import { postStatus } from './post-send.js';
 import { ListenOptions } from './types.js';
+import { SandboxApprovalMessage } from 'common/dist/esnext/messages.js';
 
 function getElement<T extends HTMLElement = HTMLElement>(elementOrSelector: string | T): T | null {
   if (typeof elementOrSelector === 'string') {
@@ -114,30 +115,44 @@ export class Listener {
       },
       onError: () => {
         this.errorHandler(new Error('Sandbox initialization failed'), 'Sandbox could not be initialized');
-      }
+      },
+      onApprove: (message) => {
+        // Handle sandboxed pre-render message
+        console.log('Handling sandboxed pre-render message:', message);
+        const remediated = message.flags;
+
+        // Approve the sandboxed pre-render
+        const sandboxedApprovalMessage: SandboxApprovalMessage = {
+          type: 'sandboxApproval',
+          transactionId: message.transactionId,
+          approved: true,
+          remediated,
+        };
+        return sandboxedApprovalMessage;
+      },
     });
   }
 
   public errorHandler(error: Error, detailsHtml: string) {
     show(this.loadingDiv, false);
-    
+
     // Create DOM elements safely to prevent XSS
     const errorDiv = document.createElement('div');
     errorDiv.style.color = 'red';
     errorDiv.style.padding = '20px';
-    
+
     const errorLabel = document.createElement('strong');
     errorLabel.textContent = 'Error:';
-    
+
     const errorMessage = document.createTextNode(` ${error.message}`);
     const lineBreak = document.createElement('br');
     const details = document.createTextNode(detailsHtml);
-    
+
     errorDiv.appendChild(errorLabel);
     errorDiv.appendChild(errorMessage);
     errorDiv.appendChild(lineBreak);
     errorDiv.appendChild(details);
-    
+
     // Clear previous content and append the error safely
     this.appDiv.innerHTML = '';
     this.appDiv.appendChild(errorDiv);

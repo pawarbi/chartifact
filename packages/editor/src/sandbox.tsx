@@ -14,7 +14,6 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
     sandboxRef: Previewer | null;
     isSandboxReady: boolean;
     pendingUpdate: InteractiveDocument;
-    windowMessageReceivedHandler: (event: MessageEvent) => void;
 
     constructor(props: SandboxDocumentPreviewProps) {
         super(props);
@@ -37,24 +36,6 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
                         onReady: () => {
                             this.isSandboxReady = true;
 
-                            this.windowMessageReceivedHandler = (event: MessageEvent<SandboxedPreHydrateMessage>) => {
-                                const message = event.data as SandboxedPreHydrateMessage;
-                                if (message.type === 'sandboxedPreHydrate' && this.sandboxRef) {
-                                    // Handle sandboxed pre-render message
-                                    console.log('Handling sandboxed pre-render message:', message);
-
-                                    // Approve the sandboxed pre-render
-                                    const sandboxedApprovalMessage: SandboxApprovalMessage = {
-                                        type: 'sandboxApproval',
-                                        transactionId: message.transactionId,
-                                        approved: true,
-
-                                    };
-                                    this.sandboxRef.approve(sandboxedApprovalMessage);
-                                }
-                            };
-                            window.addEventListener('message', this.windowMessageReceivedHandler);
-
                             // Process pending update
                             if (this.pendingUpdate) {
                                 this.processUpdate(this.pendingUpdate);
@@ -62,6 +43,20 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
                             }
                         },
                         onError: (error) => console.error('Sandbox initialization failed:', error),
+                        onApprove: (message: SandboxedPreHydrateMessage) => {
+                            // Handle sandboxed pre-render message
+                            console.log('Handling sandboxed pre-render message:', message);
+                            const remediated = message.flags;
+
+                            // Approve the sandboxed pre-render
+                            const sandboxedApprovalMessage: SandboxApprovalMessage = {
+                                type: 'sandboxApproval',
+                                transactionId: message.transactionId,
+                                approved: true,
+                                remediated,
+                            };
+                            return sandboxedApprovalMessage;
+                        },
                     }
                 );
             } catch (error) {
@@ -99,7 +94,6 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
     componentWillUnmount() {
         if (this.sandboxRef) {
             this.sandboxRef = null;
-            this.windowMessageReceivedHandler && window.removeEventListener('message', this.windowMessageReceivedHandler);
         }
     }
 

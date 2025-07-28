@@ -2,7 +2,7 @@ import { Previewer, PreviewerOptions } from './preview.js';
 import { rendererHtml } from './resources/rendererHtml.js';
 import { rendererUmdJs } from './resources/rendererUmdJs.js';
 import { sandboxedJs } from './resources/sandboxedJs.js';
-import type { SandboxRenderMessage, SandboxApprovalMessage } from 'common';
+import type { SandboxRenderMessage, SandboxApprovalMessage, SandboxedPreHydrateMessage } from 'common';
 
 export class Sandbox extends Previewer {
     public iframe: HTMLIFrameElement;
@@ -26,6 +26,21 @@ export class Sandbox extends Previewer {
         this.iframe.addEventListener('error', (error) => {
             console.error('Error loading iframe:', error);
             options?.onError?.(new Error('Failed to load iframe'));
+        });
+
+        window.addEventListener('message', (event) => {
+            if (event.source === this.iframe.contentWindow) {
+                const message = event.data as SandboxedPreHydrateMessage;
+                if (message.type == 'sandboxedPreHydrate') {
+                    //make sure its from the sandbox iframe
+                    if (this.options?.onApprove) {
+                        // TODO check whitelist and do a mutation if needed
+                        // TODO loop through all flagged
+                        const sandboxedApprovalMessage = this.options.onApprove(message);
+                        this.approve(sandboxedApprovalMessage);
+                    }
+                }
+            }
         });
     }
 
