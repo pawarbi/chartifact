@@ -25,17 +25,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const html = renderer.renderHtml(request.markdown);
             renderer.element.innerHTML = html;
-            const flags = renderer.hydrateSpecs();
+            const specs = renderer.hydrateSpecs();
 
             //todo: get stuff here for whitelist
             const transactionId = transactionIndex++;
-            transactions[transactionId] = flags;
+            transactions[transactionId] = specs;
 
             //send message to parent to ask for whitelist
             const sandboxedPreRenderMessage: IDocs.common.SandboxedPreHydrateMessage = {
                 type: 'sandboxedPreHydrate',
                 transactionId,
-                flags,
+                specs,
             };
             window.parent.postMessage(sandboxedPreRenderMessage, '*');
         }

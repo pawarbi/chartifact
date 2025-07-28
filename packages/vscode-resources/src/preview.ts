@@ -11,8 +11,8 @@ window.addEventListener('DOMContentLoaded', () => {
             console.log('Handling sandboxed pre-render message:', message);
 
             // TODO look through each and override policy to approve unapproved
-            const remediated = message.flags;
-            return remediated;
+            const { specs } = message;
+            return specs;
         },
     });
 });

@@ -16,13 +16,13 @@ export interface SpecReview<T> {
 export interface SandboxedPreHydrateMessage {
     type: 'sandboxedPreHydrate';
     transactionId: number;
-    flags: SpecReview<{}>[];
+    specs: SpecReview<{}>[];
 }
 
 export type SandboxApprovalMessage = {
     type: 'sandboxApproval';
     transactionId: number;
-    remediated: SpecReview<{}>[];
+    specs: SpecReview<{}>[];
 };
 
 export interface HostRenderRequestMessage {

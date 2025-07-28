@@ -9,9 +9,9 @@ window.addEventListener('DOMContentLoaded', () => {
         fileInput: '#file-input',
         textarea: '#textarea',
         onApprove: (message: IDocs.common.SandboxedPreHydrateMessage) => {
-            // TODO look through each and override policy to approve unapproved
-            const remediated = message.flags;
-            return remediated;
+            // TODO look through each spec and override policy to approve unapproved for https://microsoft.github.io/chartifact/
+            const { specs } = message;
+            return specs;
         },
     });
 });

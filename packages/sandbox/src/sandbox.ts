@@ -33,11 +33,11 @@ export class Sandbox extends Previewer {
             if (event.source === this.iframe.contentWindow) {
                 const message = event.data as SandboxedPreHydrateMessage;
                 if (message.type == 'sandboxedPreHydrate') {
-                    const remediated = this.options.onApprove(message);
+                    const specs = this.options.onApprove(message);
                     const sandboxedApprovalMessage: SandboxApprovalMessage = {
                         type: 'sandboxApproval',
                         transactionId: message.transactionId,
-                        remediated,
+                        specs,
                     };
                     this.iframe.contentWindow?.postMessage(sandboxedApprovalMessage, '*');
                 }

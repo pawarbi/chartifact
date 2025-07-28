@@ -20,8 +20,8 @@ window.addEventListener('DOMContentLoaded', () => {
                     // Handle sandboxed pre-render message
                     console.log('Handling sandboxed pre-render message:', message);
                     //Here you can approve unapproved specs per your own policy
-                    const remediated = message.flags;
-                    return remediated;
+                    const { specs } = message;
+                    return specs;
                 },
                 onError: (error) => {
                     console.error('Sandbox error:', error);

@@ -9,8 +9,9 @@ const sandbox = new Sandbox(document.body, textarea.value, {
     },
     onApprove: (message) => {
         console.log('Sandbox approval message:', message);
-        //TODO policy to approve unapproved
-        return message.flags;
+        //TODO policy to approve unapproved on localhost
+        const { specs } = message;
+        return specs;
     }
 });
 
