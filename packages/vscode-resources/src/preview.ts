@@ -7,10 +7,8 @@ window.addEventListener('DOMContentLoaded', () => {
         loading: '#loading',
         options,
         onApprove: (message: IDocs.common.SandboxedPreHydrateMessage) => {
-            // Handle sandboxed pre-render message
-            console.log('Handling sandboxed pre-render message:', message);
-
             // TODO look through each and override policy to approve unapproved
+            // policy from vscode settings
             const { specs } = message;
             return specs;
         },

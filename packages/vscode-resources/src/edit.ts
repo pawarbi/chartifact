@@ -22,9 +22,8 @@ window.addEventListener('DOMContentLoaded', () => {
                 previewer: OfflineSandbox,
                 postMessageTarget: vscode as any,
                 onApprove: (message) => {
-                    // Handle sandboxed pre-render message
-                    console.log('Handling sandboxed pre-render message:', message);
-                    //Here you can approve unapproved specs per your own policy
+                    // TODO look through each and override policy to approve unapproved
+                    // policy from vscode settings
                     const { specs } = message;
                     return specs;
                 }

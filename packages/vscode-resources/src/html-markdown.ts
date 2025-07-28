@@ -2,8 +2,6 @@ window.addEventListener('DOMContentLoaded', () => {
     const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
     const sandbox = new IDocs.sandbox.Sandbox('main', textarea.value, {
         onApprove: (message) => {
-            // Handle sandboxed pre-render message
-            console.log('Handling sandboxed pre-render message:', message);
             //Here you can approve unapproved specs per your own policy
             const { specs } = message;
             return specs;

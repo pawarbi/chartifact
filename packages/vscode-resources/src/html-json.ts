@@ -17,8 +17,6 @@ window.addEventListener('DOMContentLoaded', () => {
         if (!sandbox) {
             sandbox = new IDocs.sandbox.Sandbox('main', markdown, {
                 onApprove: (message) => {
-                    // Handle sandboxed pre-render message
-                    console.log('Handling sandboxed pre-render message:', message);
                     //Here you can approve unapproved specs per your own policy
                     const { specs } = message;
                     return specs;
