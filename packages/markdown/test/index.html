@@ -345,7 +345,13 @@ Click the map above to show related data.
         const renderer = new IDocs.markdown.Renderer(document.getElementById('content'));
 
         function render() {
-            renderer.render(textarea.value);
+            //renderer.render(textarea.value);
+
+            const html = renderer.renderHtml(textarea.value);
+            renderer.element.innerHTML = html;
+            const specs = renderer.hydrateSpecs();
+            console.log('Specs:', specs);
+            renderer.hydrate(specs);
         }
 
         textarea.addEventListener('input', render);
