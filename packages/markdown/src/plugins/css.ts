@@ -3,11 +3,12 @@
 * Licensed under the MIT License.
 */
 
-import { definePlugin, FlaggableSpec, IInstance, Plugin } from '../factory.js';
+import { definePlugin, IInstance, Plugin } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import * as Csstree from 'css-tree';
 import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';
+import { FlaggableSpec } from 'common';
 
 // CSS Tree is expected to be available as a global variable
 declare const csstree: typeof Csstree;
@@ -358,7 +359,7 @@ export const cssPlugin: Plugin<CategorizedCss> = {
                 // Parse and categorize CSS content
                 const categorizedCss = categorizeCss(cssContent);
 
-                return sanitizedHTML('div', { class: className }, JSON.stringify(categorizedCss), true);
+                return sanitizedHTML('div', { id: `${pluginName}-${idx}`, class: className }, JSON.stringify(categorizedCss), true);
             }
 
             // Fallback to original fence renderer
@@ -372,7 +373,9 @@ export const cssPlugin: Plugin<CategorizedCss> = {
     hydrateComponent: async (renderer, errorHandler, configContainers) => {
         const cssInstances: { id: string; element: HTMLStyleElement }[] = [];
 
-        for (const [index, configContainer] of Array.from(configContainers).entries()) {
+        for (let index = 0; index < configContainers.length; index++) {
+            const configContainer = configContainers[index];
+            const container = renderer.element.querySelector(`#${configContainer.containerId}`);
 
             const categorizedCss = configContainer.flaggableSpec.spec;
             const comments: string[] = [];
@@ -405,7 +408,8 @@ export const cssPlugin: Plugin<CategorizedCss> = {
             } else {
                 comments.push(`<!-- No safe CSS styles to apply -->`);
             }
-            configContainer.container.innerHTML = comments.join('\n');
+
+            container.innerHTML = comments.join('\n');
         }
 
         const instances: IInstance[] = cssInstances.map((cssInstance) => {

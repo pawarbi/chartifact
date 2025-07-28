@@ -1,4 +1,5 @@
 import { InteractiveDocument } from "schema";
+import { Flagged } from "./types.js";
 
 export interface SandboxRenderMessage {
     type: 'sandboxRender';
@@ -8,14 +9,14 @@ export interface SandboxRenderMessage {
 export interface SandboxedPreHydrateMessage {
     type: 'sandboxedPreHydrate';
     transactionId: number;
-    //todo put stuff here for whitelist
+    flags: Flagged<{}>[];
 }
 
 export type SandboxApprovalMessage = {
     type: 'sandboxApproval';
     transactionId: number;
     approved: boolean;
-    //todo: add more fields as needed
+    remediated: Flagged<{}>[];
 };
 
 export interface HostRenderRequestMessage {

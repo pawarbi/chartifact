@@ -7,7 +7,7 @@ import MarkdownIt, { Token } from 'markdown-it/index.js';
 import { attrs } from '@mdit/plugin-attrs';
 import { container, MarkdownItContainerOptions } from '@mdit/plugin-container';
 import { ErrorHandler, Renderer } from './renderer.js';
-import { defaultCommonOptions } from 'common';
+import { defaultCommonOptions, FlaggableSpec, Flagged } from 'common';
 
 declare const markdownit: typeof MarkdownIt;
 
@@ -37,12 +37,6 @@ export interface IInstance {
     getCurrentSignalValue?: (signalName: string) => unknown;
 }
 
-export interface FlaggableSpec<T> {
-    spec: T;
-    hasFlags?: boolean;
-    reason?: string;
-}
-
 export interface SpecContainer<T> {
     container: HTMLElement;
     flaggableSpec: FlaggableSpec<T>;
@@ -53,8 +47,8 @@ export interface Plugin<T = {}> {
     hydratesBefore?: string;
     initializePlugin: (md: MarkdownIt) => void;
     fence?: (token: Token, idx: number) => string;
-    hydrateSpecs?: (renderer: Renderer, errorHandler: ErrorHandler) => SpecContainer<T>[];
-    hydrateComponent?: (renderer: Renderer, errorHandler: ErrorHandler, specContainers?: SpecContainer<T>[]) => Promise<IInstance[]>;
+    hydrateSpecs?: (renderer: Renderer, errorHandler: ErrorHandler) => Flagged<T>[];
+    hydrateComponent?: (renderer: Renderer, errorHandler: ErrorHandler, flagged: Flagged<T>[]) => Promise<IInstance[]>;
 }
 
 export const plugins: Plugin[] = [];
