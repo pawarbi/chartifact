@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         renderer.hydrate(flags);
                     }
                 } else {
-                    console.warn('Received sandbox approval for an outdated transaction:', message.transactionId, transactionIndex);
+                    console.debug('Received sandbox approval for an outdated transaction:', message.transactionId, transactionIndex);
                 }
                 break;
             }
