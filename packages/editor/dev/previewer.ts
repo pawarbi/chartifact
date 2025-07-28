@@ -34,8 +34,8 @@ export class DevPreviewer extends Previewer {
 <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
 ${html}`;
         this.renderer.element.innerHTML = newHtml;
-        const x = this.renderer.hydrateSpecs();
-        this.renderer.hydrate(x);
+        const specs = this.renderer.hydrateSpecs();
+        this.renderer.hydrate(specs);
     }
 
     send(markdown: string) {
