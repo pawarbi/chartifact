@@ -17,7 +17,7 @@ interface TabulatorInstance {
 }
 
 export interface TabulatorSpec extends TableElementProps {
-    options?: TabulatorOptions;
+    tabulatorOptions?: TabulatorOptions;    //recast the default with strong typing
 }
 
 declare const Tabulator: typeof TabulatorType;
@@ -66,8 +66,8 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
             };
 
             //see if default options is an object with no properties
-            if (spec.options && Object.keys(spec.options).length > 0) {
-                options = spec.options;
+            if (spec.tabulatorOptions && Object.keys(spec.tabulatorOptions).length > 0) {
+                options = spec.tabulatorOptions;
             }
 
             const table = new Tabulator(container as HTMLElement, options);
@@ -85,7 +85,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                 priority: -1,
                 isData: true,
             }];
-            if (tabulatorInstance.spec.options?.selectableRows) {
+            if (tabulatorInstance.spec.tabulatorOptions?.selectableRows) {
                 initialSignals.push({
                     name: tabulatorInstance.spec.variableId,
                     value: [],
@@ -113,7 +113,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     }
                 },
                 beginListening(sharedSignals) {
-                    if (tabulatorInstance.spec.options?.selectableRows) {
+                    if (tabulatorInstance.spec.tabulatorOptions?.selectableRows) {
                         for (const { isData, signalName } of sharedSignals) {
                             if (isData) {
                                 const matchData = signalName === tabulatorInstance.spec.variableId;
