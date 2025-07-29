@@ -13,6 +13,7 @@ import { PluginNames } from './interfaces.js';
 interface TabulatorInstance {
     id: string;
     spec: TabulatorSpec;
+    container: Element;
     table: TabulatorType;
     built: boolean;
     selectableRows: boolean;
@@ -45,13 +46,28 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                 continue;
             }
             const container = renderer.element.querySelector(`#${specReview.containerId}`);
+            if (!container) {
+                continue;
+            }
+
+            const spec: TabulatorSpec = specReview.approvedSpec;
+            const buttons = spec.editable
+                ? `<div class="tabulator-buttons">
+                        <button type="button" class="tabulator-add-row">Add Row</button>
+                        <button type="button" class="tabulator-reset">Reset</button>
+                   </div>`
+                : '';
+
+            container.innerHTML = `<div class="tabulator-parent">
+                <div class="tabulator-nested"></div>
+                ${buttons}
+            </div>`;
+            const nestedDiv = container.querySelector('.tabulator-nested');
 
             if (!Tabulator && index === 0) {
                 errorHandler(new Error('Tabulator not found'), pluginName, index, 'init', container);
                 continue;
             }
-
-            const spec: TabulatorSpec = specReview.approvedSpec;
 
             if (!spec.dataSourceName || !spec.variableId) {
                 errorHandler(new Error('Tabulator requires dataSourceName and variableId'), pluginName, index, 'init', container);
@@ -77,10 +93,12 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                 delete options.selectableRows; //remove selectableRows from options if editable
             }
 
-            const table = new Tabulator(container as HTMLElement, options);
+            const table = new Tabulator(nestedDiv as HTMLElement, options);
+
             const tabulatorInstance: TabulatorInstance = {
                 id: `${pluginName}-${index}`,
                 spec,
+                container,
                 table,
                 built: false,
                 selectableRows,
@@ -92,7 +110,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
             tabulatorInstances.push(tabulatorInstance);
         }
         const instances: IInstance[] = tabulatorInstances.map((tabulatorInstance, index) => {
-            const { spec, table, selectableRows } = tabulatorInstance;
+            const { container, spec, table, selectableRows } = tabulatorInstance;
             const initialSignals = [{
                 name: spec.dataSourceName,
                 value: null,
@@ -138,9 +156,9 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                         const columns1 = table.getColumnDefinitions();
 
                         //if selectable, remove the first column
-                        if (selectableRows) {
-                            columns1.shift();
-                        }
+                        // if (selectableRows) {
+                        //     columns1.shift();
+                        // }
                         const columns: ColumnDefinition[] = columns1.map(col => {
                             // Only set editor if not already defined
                             if (col.editor === undefined) {
@@ -184,6 +202,26 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     // errorHandler(error, pluginName, index, 'setData', container);
                 });
             };
+
+            if (spec.editable) {
+                const addRowBtn = container.querySelector('.tabulator-add-row') as HTMLButtonElement;
+                const resetBtn = container.querySelector('.tabulator-reset') as HTMLButtonElement;
+
+                if (addRowBtn) {
+                    addRowBtn.onclick = () => {
+                        table.addRow({});
+                    };
+                }
+                if (resetBtn) {
+                    resetBtn.onclick = () => {
+                        const value = renderer.signalBus.signalDeps[spec.dataSourceName].value;
+                        if (Array.isArray(value)) {
+                            setData(value);
+                        }
+                    };
+                }
+            }
+
             return {
                 ...tabulatorInstance,
                 initialSignals,
