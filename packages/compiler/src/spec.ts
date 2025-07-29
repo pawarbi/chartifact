@@ -16,10 +16,10 @@ export function createSpecWithVariables(variables: Variable[], tableElements: Ta
 
     //add table elements as data sources
     tableElements.forEach((table) => {
-        const { output_dataSourceName } = table;
-        spec.signals.push(dataAsSignal(output_dataSourceName));
+        const { variableId } = table;
+        spec.signals.push(dataAsSignal(variableId));
         spec.data.unshift({
-            name: output_dataSourceName,
+            name: variableId,
             values: [],
         });
     });

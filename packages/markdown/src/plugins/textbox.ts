@@ -3,7 +3,7 @@
 * Licensed under the MIT License.
 */
 
-import { VariableControl } from 'schema';
+import { TextboxElementProps } from 'schema';
 import { Batch, IInstance, Plugin } from '../factory.js';
 import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';
@@ -14,12 +14,8 @@ interface TextboxInstance {
     element: HTMLInputElement | HTMLTextAreaElement;
 }
 
-export interface TextboxSpec extends VariableControl {
+export interface TextboxSpec extends TextboxElementProps {
     value?: string;
-    /** whether to render as a textarea instead of input */
-    multiline?: boolean;
-    /** placeholder text to show when input is empty */
-    placeholder?: string;
 }
 
 const pluginName = 'textbox';

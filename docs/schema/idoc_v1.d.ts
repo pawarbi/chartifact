@@ -101,28 +101,32 @@ type DataLoader = DataSource | DataLoaderBySpec;
  * Checkbox
  * use for boolean values
  */
-interface CheckboxElement extends VariableControl {
+interface CheckboxElement extends CheckboxProps {
     type: 'checkbox';
+}
+interface CheckboxProps extends VariableControl {
 }
 /**
  * Textbox
  * use sparingly - typically only for text input
  */
-interface TextboxElement extends VariableControl, TextboxElementProps {
+interface TextboxElement extends TextboxElementProps {
     type: 'textbox';
 }
-interface TextboxElementProps {
+interface TextboxElementProps extends VariableControl {
     /** whether to render as a textarea instead of input */
     multiline?: boolean;
+    /** placeholder text to show when input is empty */
+    placeholder?: string;
 }
 /**
  * Slider
  * prefer sliders over textbox for numbers. Never use for boolean values.
  */
-interface SliderElement extends VariableControl, SliderElementProps {
+interface SliderElement extends SliderElementProps {
     type: 'slider';
 }
-interface SliderElementProps {
+interface SliderElementProps extends VariableControl {
     min: number;
     max: number;
     step: number;
@@ -205,14 +209,14 @@ interface Preset {
  * Table
  * use for tabular data
  */
-interface TableElement extends ElementBase, TableElementProps {
+interface TableElement extends TableElementProps {
     type: 'table';
 }
-interface TableElementProps {
-    input_dataSourceName: string;
-    output_dataSourceName: string;
-    /** Tabulator options (must be serializable, so no callbacks allowed) */
-    options?: object;
+interface TableElementProps extends VariableControl {
+    /** Name of the data source to use for incoming data (output data is available via the variableId of this table element) */
+    dataSourceName: string;
+    /** Tabulator options (must be JSON stringify-able, so no callbacks allowed) */
+    tabulatorOptions?: object;
 }
 /**
  * Union type for all possible interactive elements
@@ -251,4 +255,4 @@ type PageElement = MarkdownElement | InteractiveElement;
 type InteractiveDocumentWithSchema = InteractiveDocument & {
     $schema?: string;
 };
-export type { Calculation, ChartElement, ChartFull, ChartPlaceholder, ChartValue, CheckboxElement, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceByJSON, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, Layout, MappedNameValuePairs, MarkdownElement, NameValuePairs, PageElement, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TableElement, TableElementProps, TextboxElement, TextboxElementProps, UrlRef, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive };
+export type { Calculation, ChartElement, ChartFull, ChartPlaceholder, ChartValue, CheckboxElement, CheckboxProps, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceByJSON, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, Layout, MappedNameValuePairs, MarkdownElement, NameValuePairs, PageElement, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TableElement, TableElementProps, TextboxElement, TextboxElementProps, UrlRef, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive };

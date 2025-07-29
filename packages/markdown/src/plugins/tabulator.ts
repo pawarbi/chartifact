@@ -51,11 +51,11 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
 
             const spec: TabulatorSpec = specReview.approvedSpec;
 
-            if (!spec.input_dataSourceName || !spec.output_dataSourceName) {
-                errorHandler(new Error('Tabulator requires input_dataSourceName and output_dataSourceName'), pluginName, index, 'init', container);
+            if (!spec.dataSourceName || !spec.variableId) {
+                errorHandler(new Error('Tabulator requires dataSourceName and variableId'), pluginName, index, 'init', container);
                 continue;
-            } else if (spec.input_dataSourceName === spec.output_dataSourceName) {
-                errorHandler(new Error('Tabulator input_dataSourceName and output_dataSourceName cannot be the same'), pluginName, index, 'init', container);
+            } else if (spec.dataSourceName === spec.variableId) {
+                errorHandler(new Error('Tabulator dataSourceName and variableId cannot be the same'), pluginName, index, 'init', container);
                 continue;
             }
 
@@ -80,14 +80,14 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
         }
         const instances: IInstance[] = tabulatorInstances.map((tabulatorInstance, index) => {
             const initialSignals = [{
-                name: tabulatorInstance.spec.input_dataSourceName,
+                name: tabulatorInstance.spec.dataSourceName,
                 value: null,
                 priority: -1,
                 isData: true,
             }];
             if (tabulatorInstance.spec.options?.selectableRows) {
                 initialSignals.push({
-                    name: tabulatorInstance.spec.output_dataSourceName,
+                    name: tabulatorInstance.spec.variableId,
                     value: [],
                     priority: -1,
                     isData: true,
@@ -97,7 +97,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                 ...tabulatorInstance,
                 initialSignals,
                 recieveBatch: async (batch) => {
-                    const newData = batch[tabulatorInstance.spec.input_dataSourceName]?.value as object[];
+                    const newData = batch[tabulatorInstance.spec.dataSourceName]?.value as object[];
                     if (newData) {
                         //make sure tabulator is ready before setting data
                         if (!tabulatorInstance.built) {
@@ -116,12 +116,12 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     if (tabulatorInstance.spec.options?.selectableRows) {
                         for (const { isData, signalName } of sharedSignals) {
                             if (isData) {
-                                const matchData = signalName === tabulatorInstance.spec.output_dataSourceName;
+                                const matchData = signalName === tabulatorInstance.spec.variableId;
                                 if (matchData) {
                                     tabulatorInstance.table.on('rowSelectionChanged', (e, rows) => {
                                         const selectedData = tabulatorInstance.table.getSelectedData();
                                         const batch: Batch = {
-                                            [tabulatorInstance.spec.output_dataSourceName]: {
+                                            [tabulatorInstance.spec.variableId]: {
                                                 value: selectedData,
                                                 isData: true,
                                             },

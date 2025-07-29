@@ -8,30 +8,34 @@ import { DataSourceBase, VariableID, VariableControl, ElementBase, UrlRef } from
  * Checkbox
  * use for boolean values
  */
-export interface CheckboxElement extends VariableControl {
+export interface CheckboxElement extends CheckboxProps {
   type: 'checkbox';
+}
+export interface CheckboxProps extends VariableControl {
 }
 
 /**
  * Textbox
  * use sparingly - typically only for text input
  */
-export interface TextboxElement extends VariableControl, TextboxElementProps {
+export interface TextboxElement extends TextboxElementProps {
   type: 'textbox';
 }
-export interface TextboxElementProps {
+export interface TextboxElementProps extends VariableControl {
   /** whether to render as a textarea instead of input */
   multiline?: boolean;
+  /** placeholder text to show when input is empty */
+  placeholder?: string;
 }
 
 /**
  * Slider
  * prefer sliders over textbox for numbers. Never use for boolean values.
  */
-export interface SliderElement extends VariableControl, SliderElementProps {
+export interface SliderElement extends SliderElementProps {
   type: 'slider';
 }
-export interface SliderElementProps {
+export interface SliderElementProps extends VariableControl {
   min: number;
   max: number;
   step: number;
@@ -108,30 +112,32 @@ export interface ImageElementProps {
  * use for storing and applying preset batches of signal states
  */
 export interface PresetsElement extends ElementBase, PresetsElementProps {
-    type: 'presets';
+  type: 'presets';
 }
 export interface PresetsElementProps {
-    presets: Preset[];
+  presets: Preset[];
 }
 
 export interface Preset {
-    name: string;
-    description?: string;
-    state: { [signalName: string]: unknown };
+  name: string;
+  description?: string;
+  state: { [signalName: string]: unknown };
 }
 
 /**
  * Table
  * use for tabular data
  */
-export interface TableElement extends ElementBase, TableElementProps {
+export interface TableElement extends TableElementProps {
   type: 'table';
 }
-export interface TableElementProps {
-  input_dataSourceName: string;
-  output_dataSourceName: string;
-  /** Tabulator options (must be serializable, so no callbacks allowed) */
-  options?: object;
+export interface TableElementProps extends VariableControl {
+
+  /** Name of the data source to use for incoming data (output data is available via the variableId of this table element) */
+  dataSourceName: string;
+
+  /** Tabulator options (must be JSON stringify-able, so no callbacks allowed) */
+  tabulatorOptions?: object;
 
   /**
    * Example table options
