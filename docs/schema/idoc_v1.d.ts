@@ -215,6 +215,7 @@ interface TableElement extends TableElementProps {
 interface TableElementProps extends VariableControl {
     /** Name of the data source to use for incoming data (output data is available via the variableId of this table element) */
     dataSourceName: string;
+    editable?: boolean;
     /** Tabulator options (must be JSON stringify-able, so no callbacks allowed) */
     tabulatorOptions?: object;
 }

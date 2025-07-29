@@ -2824,6 +2824,9 @@
           "description": "Name of the data source to use for incoming data (output data is available via the variableId of this table element)",
           "type": "string"
         },
+        "editable": {
+          "type": "boolean"
+        },
         "label": {
           "description": "optional label if the variableId is not descriptive enough",
           "type": "string"
