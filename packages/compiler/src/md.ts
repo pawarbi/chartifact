@@ -127,9 +127,10 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                         label,
                     };
                     if (dynamicOptions) {
+                        const { dataSourceName, fieldName } = dynamicOptions;
                         ddSpec.dynamicOptions = {
-                            dataSourceName: dynamicOptions.dataSourceName,
-                            fieldName: dynamicOptions.fieldName,
+                            dataSourceName,
+                            fieldName,
                         };
                     } else {
                         ddSpec.options = options;
