@@ -6,7 +6,6 @@ var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { en
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   const defaultCommonOptions = {
-    dataNameSelectedSuffix: "_selected",
     dataSignalPrefix: "data_signal:",
     groupClassName: "group"
   };
@@ -18,11 +17,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return name.replace(/[^a-zA-Z0-9_]/g, "_");
   }
   function getChartType(spec) {
-    const $schema2 = spec == null ? void 0 : spec.$schema;
-    if (!$schema2) {
+    const $schema = spec == null ? void 0 : spec.$schema;
+    if (!$schema) {
       return "vega-lite";
     }
-    return $schema2.includes("vega-lite") ? "vega-lite" : "vega";
+    return $schema.includes("vega-lite") ? "vega-lite" : "vega";
   }
   function changePageOrigin(page, oldOrigin, newOriginUrl) {
     const newPage = {
@@ -58,21 +57,103 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     };
     return newPage;
   }
-  function addStaticDataLoaderToSpec(vegaScope, dataSource) {
-    const { spec } = vegaScope;
-    const { dataSourceName } = dataSource;
-    if (!spec.signals) {
-      spec.signals = [];
+  function topologicalSort(list) {
+    var _a;
+    const nameToObject = /* @__PURE__ */ new Map();
+    const inDegree = /* @__PURE__ */ new Map();
+    const graph = /* @__PURE__ */ new Map();
+    for (const obj of list) {
+      nameToObject.set(obj.variableId, obj);
+      inDegree.set(obj.variableId, 0);
+      graph.set(obj.variableId, []);
     }
-    spec.signals.push(
-      {
-        name: dataSourceName,
-        update: `data('${dataSourceName}')`
+    for (const obj of list) {
+      const sources = ((_a = obj.calculation) == null ? void 0 : _a.dependsOn) || [];
+      for (const dep of sources) {
+        if (!graph.has(dep)) {
+          continue;
+        }
+        graph.get(dep).push(obj.variableId);
+        inDegree.set(obj.variableId, inDegree.get(obj.variableId) + 1);
       }
-    );
+    }
+    const queue = [];
+    for (const [name, degree] of inDegree.entries()) {
+      if (degree === 0) queue.push(name);
+    }
+    const sorted = [];
+    while (queue.length) {
+      const current = queue.shift();
+      sorted.push(nameToObject.get(current));
+      for (const neighbor of graph.get(current)) {
+        inDegree.set(neighbor, inDegree.get(neighbor) - 1);
+        if (inDegree.get(neighbor) === 0) {
+          queue.push(neighbor);
+        }
+      }
+    }
+    if (sorted.length !== list.length) {
+      throw new Error("Cycle or missing dependency detected");
+    }
+    return sorted;
+  }
+  function createSpecWithVariables(variables, tableElements, stubDataLoaders) {
+    const spec = {
+      $schema: "https://vega.github.io/schema/vega/v5.json",
+      signals: [],
+      data: []
+    };
+    tableElements.forEach((table) => {
+      const { variableId } = table;
+      spec.signals.push(dataAsSignal(variableId));
+      spec.data.unshift({
+        name: variableId,
+        values: []
+      });
+    });
+    topologicalSort(variables).forEach((v) => {
+      if (isDataframePipeline(v)) {
+        const { dataFrameTransformations } = v.calculation;
+        const data = {
+          name: v.variableId,
+          source: v.calculation.dependsOn || [],
+          transform: dataFrameTransformations
+        };
+        spec.data.push(data);
+        spec.signals.push(dataAsSignal(v.variableId));
+      } else {
+        const signal = { name: v.variableId, value: v.initialValue };
+        if (v.calculation) {
+          signal.update = v.calculation.vegaExpression;
+        }
+        spec.signals.push(signal);
+      }
+    });
+    return spec;
+  }
+  function isDataframePipeline(variable) {
+    var _a, _b;
+    return variable.type === "object" && !!variable.isArray && (((_a = variable.calculation) == null ? void 0 : _a.dependsOn) !== void 0 && variable.calculation.dependsOn.length > 0 || ((_b = variable.calculation) == null ? void 0 : _b.dataFrameTransformations) !== void 0 && variable.calculation.dataFrameTransformations.length > 0);
+  }
+  function ensureDataAndSignalsArray(spec) {
     if (!spec.data) {
       spec.data = [];
     }
+    if (!spec.signals) {
+      spec.signals = [];
+    }
+  }
+  function dataAsSignal(name) {
+    return {
+      name,
+      update: `data('${name}')`
+    };
+  }
+  function addStaticDataLoaderToSpec(vegaScope, dataSource) {
+    const { spec } = vegaScope;
+    const { dataSourceName } = dataSource;
+    ensureDataAndSignalsArray(spec);
+    spec.signals.push(dataAsSignal(dataSourceName));
     const newData = {
       name: dataSourceName,
       values: [],
@@ -93,18 +174,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const { dataSourceName } = dataSource;
     const urlSignal = vegaScope.createUrlSignal(dataSource.urlRef);
     const url = { signal: urlSignal.name };
-    if (!spec.signals) {
-      spec.signals = [];
-    }
-    spec.signals.push(
-      {
-        name: dataSourceName,
-        update: `data('${dataSourceName}')`
-      }
-    );
-    if (!spec.data) {
-      spec.data = [];
-    }
+    ensureDataAndSignalsArray(spec);
+    spec.signals.push(dataAsSignal(dataSourceName));
     spec.data.unshift({
       name: dataSourceName,
       url,
@@ -156,82 +227,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return JSON.stringify(param.value);
     }
   }
-  function topologicalSort(list) {
-    var _a;
-    const nameToObject = /* @__PURE__ */ new Map();
-    const inDegree = /* @__PURE__ */ new Map();
-    const graph = /* @__PURE__ */ new Map();
-    for (const obj of list) {
-      nameToObject.set(obj.variableId, obj);
-      inDegree.set(obj.variableId, 0);
-      graph.set(obj.variableId, []);
-    }
-    for (const obj of list) {
-      const sources = ((_a = obj.calculation) == null ? void 0 : _a.dependsOn) || [];
-      for (const dep of sources) {
-        if (!graph.has(dep)) {
-          continue;
-        }
-        graph.get(dep).push(obj.variableId);
-        inDegree.set(obj.variableId, inDegree.get(obj.variableId) + 1);
-      }
-    }
-    const queue = [];
-    for (const [name, degree] of inDegree.entries()) {
-      if (degree === 0) queue.push(name);
-    }
-    const sorted = [];
-    while (queue.length) {
-      const current = queue.shift();
-      sorted.push(nameToObject.get(current));
-      for (const neighbor of graph.get(current)) {
-        inDegree.set(neighbor, inDegree.get(neighbor) - 1);
-        if (inDegree.get(neighbor) === 0) {
-          queue.push(neighbor);
-        }
-      }
-    }
-    if (sorted.length !== list.length) {
-      throw new Error("Cycle or missing dependency detected");
-    }
-    return sorted;
-  }
-  function createSpecWithVariables(dataNameSelectedSuffix, variables, stubDataLoaders) {
-    const spec = {
-      $schema: "https://vega.github.io/schema/vega/v5.json",
-      signals: [],
-      data: []
-    };
-    topologicalSort(variables).forEach((v) => {
-      if (isDataframePipeline(v)) {
-        const { dataFrameTransformations } = v.calculation;
-        const data = {
-          name: v.variableId,
-          source: v.calculation.dependsOn || [],
-          transform: dataFrameTransformations
-        };
-        spec.data.push(data);
-        if (!spec.signals) {
-          spec.signals = [];
-        }
-        spec.signals.push({
-          name: v.variableId,
-          update: `data('${v.variableId}')`
-        });
-      } else {
-        const signal = { name: v.variableId, value: v.initialValue };
-        if (v.calculation) {
-          signal.update = v.calculation.vegaExpression;
-        }
-        spec.signals.push(signal);
-      }
-    });
-    return spec;
-  }
-  function isDataframePipeline(variable) {
-    var _a, _b;
-    return variable.type === "object" && !!variable.isArray && (((_a = variable.calculation) == null ? void 0 : _a.dependsOn) !== void 0 && variable.calculation.dependsOn.length > 0 || ((_b = variable.calculation) == null ? void 0 : _b.dataFrameTransformations) !== void 0 && variable.calculation.dataFrameTransformations.length > 0);
-  }
   function tickWrap(tick, content) {
     return `\`\`\`${tick}
 ${content}
@@ -249,7 +244,6 @@ ${content}
 ${content}
 :::`;
   }
-  const $schema = "https://vega.github.io/schema/vega/v5.json";
   function targetMarkdown(page) {
     var _a;
     const mdSections = [];
@@ -258,7 +252,8 @@ ${content}
     if ((_a = page.layout) == null ? void 0 : _a.css) {
       mdSections.push(tickWrap("css", page.layout.css));
     }
-    const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables);
+    const tableElements = page.groups.flatMap((group) => group.elements.filter((e) => typeof e !== "string" && e.type === "table"));
+    const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables, tableElements);
     for (const dataLoader of dataLoaders.filter((dl) => dl.type === "spec")) {
       mdSections.push(chartWrap(dataLoader.spec));
     }
@@ -269,8 +264,8 @@ ${content}
     const markdown = mdSections.join("\n\n");
     return markdown;
   }
-  function dataLoaderMarkdown(dataSources, variables) {
-    const spec = createSpecWithVariables(defaultCommonOptions.dataNameSelectedSuffix, variables);
+  function dataLoaderMarkdown(dataSources, variables, tableElements) {
+    const spec = createSpecWithVariables(variables, tableElements);
     const vegaScope = new VegaScope(spec);
     for (const dataSource of dataSources) {
       switch (dataSource.type) {
@@ -287,12 +282,6 @@ ${content}
           break;
         }
       }
-      if (!spec.data) {
-        spec.data = [];
-      }
-      spec.data.unshift({
-        name: dataSource.dataSourceName + defaultCommonOptions.dataNameSelectedSuffix
-      });
     }
     return vegaScope;
   }
@@ -315,7 +304,7 @@ ${content}
           }
           case "checkbox": {
             const cbSpec = {
-              name: element.variableId,
+              variableId: element.variableId,
               value: (_a = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _a.initialValue,
               label: element.label
             };
@@ -324,13 +313,13 @@ ${content}
           }
           case "dropdown": {
             const ddSpec = {
-              name: element.variableId,
+              variableId: element.variableId,
               value: (_b = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _b.initialValue,
               label: element.label
             };
             if (element.dynamicOptions) {
               ddSpec.dynamicOptions = {
-                dataSignalName: element.dynamicOptions.dataSourceName,
+                dataSourceName: element.dynamicOptions.dataSourceName,
                 fieldName: element.dynamicOptions.fieldName
               };
             } else {
@@ -360,48 +349,32 @@ ${content}
             break;
           }
           case "slider": {
-            const spec = {
-              $schema,
-              signals: [
-                {
-                  name: element.variableId,
-                  value: (_c = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _c.initialValue,
-                  bind: {
-                    input: "range",
-                    min: element.min,
-                    max: element.max,
-                    step: element.step,
-                    debounce: 100
-                  }
-                }
-              ]
+            const sliderSpec = {
+              variableId: element.variableId,
+              value: (_c = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _c.initialValue,
+              label: element.label,
+              min: element.min,
+              max: element.max,
+              step: element.step
             };
-            mdElements.push(chartWrap(spec));
+            mdElements.push(jsonWrap("slider", JSON.stringify(sliderSpec, null, 2)));
             break;
           }
           case "table": {
-            const tableSpec = {
-              dataSignalName: element.dataSourceName,
-              options: element.options
-            };
+            const { dataSourceName, variableId, tabulatorOptions } = element;
+            const tableSpec = { dataSourceName, variableId, tabulatorOptions };
             mdElements.push(jsonWrap("tabulator", JSON.stringify(tableSpec, null, 2)));
             break;
           }
           case "textbox": {
-            const spec = {
-              $schema,
-              signals: [
-                {
-                  name: element.variableId,
-                  value: (_d = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _d.initialValue,
-                  bind: {
-                    input: "text",
-                    debounce: 100
-                  }
-                }
-              ]
+            const textboxElement = element;
+            const textboxSpec = {
+              variableId: textboxElement.variableId,
+              value: (_d = variables.find((v) => v.variableId === textboxElement.variableId)) == null ? void 0 : _d.initialValue,
+              label: textboxElement.label,
+              multiline: textboxElement.multiline
             };
-            mdElements.push(chartWrap(spec));
+            mdElements.push(jsonWrap("textbox", JSON.stringify(textboxSpec, null, 2)));
             break;
           }
         }
