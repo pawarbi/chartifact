@@ -4,7 +4,7 @@
 */
 
 import { Batch, IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
-import { Tabulator as TabulatorType, Options as TabulatorOptions } from 'tabulator-tables';
+import { Tabulator as TabulatorType, Options as TabulatorOptions, ColumnDefinition } from 'tabulator-tables';
 import { pluginClassName } from './util.js';
 import { TableElementProps } from 'schema';
 import { flaggableJsonPlugin } from './config.js';
@@ -80,63 +80,143 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
             tabulatorInstances.push(tabulatorInstance);
         }
         const instances: IInstance[] = tabulatorInstances.map((tabulatorInstance, index) => {
+            const { spec, table } = tabulatorInstance;
             const initialSignals = [{
-                name: tabulatorInstance.spec.dataSourceName,
+                name: spec.dataSourceName,
                 value: null,
                 priority: -1,
                 isData: true,
             }];
-            if (tabulatorInstance.spec.tabulatorOptions?.selectableRows) {
+            if (spec.tabulatorOptions?.selectableRows || spec.editable) {
                 initialSignals.push({
-                    name: tabulatorInstance.spec.variableId,
+                    name: spec.variableId,
                     value: [],
                     priority: -1,
                     isData: true,
                 });
             }
+            const outputData = () => {
+                let data: object[];
+                if (spec.tabulatorOptions?.selectableRows) {
+                    data = table.getSelectedData();
+                } else {
+                    data = table.getData();
+                }
+
+                // Use structuredClone to ensure deep copy
+                // vega may efficiently have symbols on data to cache a datum's values
+                // so this needs to appear to be new data
+                const value = structuredClone(data);
+
+                const batch: Batch = {
+                    [spec.variableId]: {
+                        value,
+                        isData: true,
+                    },
+                };
+                renderer.signalBus.log(tabulatorInstance.id, 'sending batch', batch);
+                renderer.signalBus.broadcast(tabulatorInstance.id, batch);
+            }
+            const setData = (data: object[]) => {
+                table.setData(data).then(() => {
+                    console.log(`Tabulator ${spec.variableId} data set`, table.getColumnDefinitions());
+
+                    if (spec.editable) {
+                        // Get current column definitions
+                        const columns1 = table.getColumnDefinitions();
+
+                        //if selectable, remove the first column
+                        if (spec.tabulatorOptions?.selectableRows) {
+                            columns1.shift();
+                        }
+                        const columns: ColumnDefinition[] = columns1.map(col => {
+                            // Only set editor if not already defined
+                            if (col.editor === undefined) {
+                                // Prefer explicit type, fallback to sorter
+                                const type = (col as any).type || col.sorter;
+                                if (type === "number") {
+                                    return { ...col, editor: "number" };
+                                }
+                                if (type === "date" || type === "datetime") {
+                                    return { ...col, editor: "date" };
+                                }
+                                if (type === "boolean") {
+                                    return { ...col, editor: "tickCross" };
+                                }
+                                // Add more types as needed
+                                return { ...col, editor: "input" };
+                            }
+                            return col;
+                        });
+
+                        // Add delete action column at the end
+                        columns.push({
+                            title: "",
+                            field: "_actions",
+                            width: 60,
+                            hozAlign: "center",
+                            headerSort: false,
+                            formatter: () => "🗑️",
+                            cellClick: (e, cell) => {
+                                cell.getRow().delete();
+                                outputData();
+                            }
+                        });
+
+                        table.setColumns(columns);
+                    }
+
+                    outputData();
+                }).catch((error) => {
+                    console.error(`Error setting data for Tabulator ${spec.variableId}:`, error);
+                    // errorHandler(error, pluginName, index, 'setData', container);
+                });
+            };
             return {
                 ...tabulatorInstance,
                 initialSignals,
-                recieveBatch: async (batch) => {
-                    const newData = batch[tabulatorInstance.spec.dataSourceName]?.value as object[];
+                recieveBatch: async (batch, from) => {
+                    const newData = batch[spec.dataSourceName]?.value as object[];
                     if (newData) {
+                        console.log(`Tabulator ${spec.variableId} received batch from ${from}`, batch);
                         //make sure tabulator is ready before setting data
                         if (!tabulatorInstance.built) {
-                            tabulatorInstance.table.off('tableBuilt');
-                            tabulatorInstance.table.on('tableBuilt', () => {
+                            table.off('tableBuilt');
+                            table.on('tableBuilt', () => {
                                 tabulatorInstance.built = true;
-                                tabulatorInstance.table.off('tableBuilt');
-                                tabulatorInstance.table.setData(newData);
+                                table.off('tableBuilt');
+                                setData(newData);
                             });
                         } else {
-                            tabulatorInstance.table.setData(newData);
+                            setData(newData);
                         }
                     }
                 },
                 beginListening(sharedSignals) {
-                    if (tabulatorInstance.spec.tabulatorOptions?.selectableRows) {
-                        for (const { isData, signalName } of sharedSignals) {
-                            if (isData) {
-                                const matchData = signalName === tabulatorInstance.spec.variableId;
-                                if (matchData) {
-                                    tabulatorInstance.table.on('rowSelectionChanged', (e, rows) => {
-                                        const selectedData = tabulatorInstance.table.getSelectedData();
-                                        const batch: Batch = {
-                                            [tabulatorInstance.spec.variableId]: {
-                                                value: selectedData,
-                                                isData: true,
-                                            },
-                                        };
-                                        renderer.signalBus.log(tabulatorInstance.id, 'sending batch', batch);
-                                        renderer.signalBus.broadcast(tabulatorInstance.id, batch);
-                                    });
-                                }
-                            }
+                    if (spec.tabulatorOptions?.selectableRows) {
+                        const hasMatchingSignal = sharedSignals.some(({ isData, signalName }) =>
+                            isData && signalName === spec.variableId
+                        );
+
+                        if (hasMatchingSignal) {
+                            table.on('rowSelectionChanged', (e, rows) => {
+                                outputData();
+                            });
                         }
+                    }
+                    if (spec.editable) {
+                        table.on('cellEdited', (cell) => {
+                            outputData();
+                        });
                     }
                 },
                 getCurrentSignalValue() {
-                    return tabulatorInstance.table.getSelectedData();
+                    if (spec.tabulatorOptions?.selectableRows) {
+                        return tabulatorInstance.table.getSelectedData();
+                    } else {
+                        // When editable, return all data since that's what gets broadcast
+                        return tabulatorInstance.table.getData();
+                    }
                 },
                 destroy: () => {
                     tabulatorInstance.table.destroy();

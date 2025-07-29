@@ -174,8 +174,8 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                     break;
                 }
                 case 'table': {
-                    const { dataSourceName, variableId, tabulatorOptions } = element;
-                    const tableSpec: Plugins.TabulatorSpec = { dataSourceName, variableId, tabulatorOptions };
+                    const { dataSourceName, variableId, tabulatorOptions, editable } = element;
+                    const tableSpec: Plugins.TabulatorSpec = { dataSourceName, variableId, tabulatorOptions, editable };
                     addSpec('tabulator', tableSpec);
                     break;
                 }
