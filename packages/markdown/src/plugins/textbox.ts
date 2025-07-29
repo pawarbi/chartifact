@@ -7,6 +7,7 @@ import { TextboxElementProps } from 'schema';
 import { Batch, IInstance, Plugin } from '../factory.js';
 import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';
+import { PluginNames } from './interfaces.js';
 
 interface TextboxInstance {
     id: string;
@@ -18,7 +19,7 @@ export interface TextboxSpec extends TextboxElementProps {
     value?: string;
 }
 
-const pluginName = 'textbox';
+const pluginName: PluginNames = 'textbox';
 const className = pluginClassName(pluginName);
 
 export const textboxPlugin: Plugin<TextboxSpec> = {
@@ -35,7 +36,7 @@ export const textboxPlugin: Plugin<TextboxSpec> = {
             const spec: TextboxSpec = specReview.approvedSpec;
 
             const placeholderAttr = spec.placeholder ? ` placeholder="${spec.placeholder}"` : '';
-            const inputElement = spec.multiline 
+            const inputElement = spec.multiline
                 ? `<textarea class="vega-bind-text" id="${spec.variableId}" name="${spec.variableId}"${placeholderAttr}>${spec.value || ''}</textarea>`
                 : `<input type="text" class="vega-bind-text" id="${spec.variableId}" name="${spec.variableId}" value="${spec.value || ''}"${placeholderAttr} />`;
 
@@ -84,7 +85,7 @@ export const textboxPlugin: Plugin<TextboxSpec> = {
                         };
                         renderer.signalBus.broadcast(textboxInstance.id, batch);
                     };
-                    
+
                     element.addEventListener('input', updateValue);
                     element.addEventListener('change', updateValue);
                 },

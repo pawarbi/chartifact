@@ -5,3 +5,16 @@ export { PresetsSpec } from './presets.js';
 export { SliderSpec } from './slider.js';
 export { TabulatorSpec } from './tabulator.js';
 export { TextboxSpec } from './textbox.js';
+
+export type PluginNames =
+    'css' |
+    'checkbox' |
+    'dropdown' |
+    'image' |
+    'placeholders' |
+    'presets' |
+    'slider' |
+    'tabulator' |
+    'textbox' |
+    'vega-lite' |
+    'vega';

@@ -83,8 +83,15 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], ta
     return vegaScope;
 }
 
+type pluginSpecs = Plugins.CheckboxSpec | Plugins.DropdownSpec | Plugins.ImageSpec | Plugins.PresetsSpec | Plugins.SliderSpec | Plugins.TabulatorSpec | Plugins.TextboxSpec;
+
 function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: VegaScope) {
     const mdElements: string[] = [];
+
+    const addSpec = (pluginName: Plugins.PluginNames, spec: pluginSpecs) => {
+        mdElements.push(jsonWrap(pluginName, JSON.stringify(spec, null, 2)));
+    }
+
     for (const element of group.elements) {
         if (typeof element === 'string') {
             mdElements.push(element);
@@ -105,11 +112,11 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                 case 'checkbox': {
                     const { label, variableId } = element;
                     const cbSpec: Plugins.CheckboxSpec = {
-                        variableId: variableId,
+                        variableId,
                         value: variables.find(v => v.variableId === variableId)?.initialValue as boolean,
                         label,
                     };
-                    mdElements.push(jsonWrap('checkbox', JSON.stringify(cbSpec, null, 2)));
+                    addSpec('checkbox', cbSpec);
                     break;
                 }
                 case 'dropdown': {
@@ -131,8 +138,7 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                         ddSpec.multiple = multiple;
                         ddSpec.size = size || 1;
                     }
-
-                    mdElements.push(jsonWrap('dropdown', JSON.stringify(ddSpec, null, 2)));
+                    addSpec('dropdown', ddSpec);
                     break;
                 }
                 case 'image': {
@@ -144,13 +150,13 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                         width,
                         height,
                     };
-                    mdElements.push(jsonWrap('image', JSON.stringify(imageSpec, null, 2)));
+                    addSpec('image', imageSpec);
                     break;
                 }
                 case 'presets': {
                     const { presets } = element;
                     const presetsSpec: Plugins.PresetsSpec = presets;
-                    mdElements.push(jsonWrap('presets', JSON.stringify(presetsSpec, null, 2)));
+                    addSpec('presets', presetsSpec);
                     break;
                 }
                 case 'slider': {
@@ -163,13 +169,13 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                         max,
                         step,
                     };
-                    mdElements.push(jsonWrap('slider', JSON.stringify(sliderSpec, null, 2)));
+                    addSpec('slider', sliderSpec);
                     break;
                 }
                 case 'table': {
                     const { dataSourceName, variableId, tabulatorOptions } = element;
                     const tableSpec: Plugins.TabulatorSpec = { dataSourceName, variableId, tabulatorOptions };
-                    mdElements.push(jsonWrap('tabulator', JSON.stringify(tableSpec, null, 2)));
+                    addSpec('tabulator', tableSpec);
                     break;
                 }
                 case 'textbox': {
@@ -181,7 +187,7 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                         multiline,
                         placeholder,
                     };
-                    mdElements.push(jsonWrap('textbox', JSON.stringify(textboxSpec, null, 2)));
+                    addSpec('textbox', textboxSpec);
                     break;
                 }
             }

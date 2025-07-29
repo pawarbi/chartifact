@@ -11,6 +11,7 @@ import { LogLevel } from '../signalbus.js';
 import { pluginClassName, urlParam } from './util.js';
 import { defaultCommonOptions } from 'common';
 import { flaggableJsonPlugin, } from './config.js';
+import { PluginNames } from './interfaces.js';
 
 const ignoredSignals = ['width', 'height', 'padding', 'autosize', 'background', 'style', 'parent', 'datum', 'item', 'event', 'cursor'];
 
@@ -29,7 +30,7 @@ interface VegaInstance extends SpecInit {
     needToRun?: boolean;
 }
 
-const pluginName = 'vega';
+const pluginName: PluginNames = 'vega';
 const className = pluginClassName(pluginName);
 
 export function inspectVegaSpec(spec: Spec) {

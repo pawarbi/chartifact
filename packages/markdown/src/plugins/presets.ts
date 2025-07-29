@@ -7,6 +7,7 @@ import { Preset } from 'schema';
 import { Batch, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
 import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';
+import { PluginNames } from './interfaces.js';
 
 export type PresetsSpec = Preset[];
 
@@ -16,7 +17,7 @@ interface PresetsInstance {
     element: HTMLUListElement;
 }
 
-const pluginName = 'presets';
+const pluginName: PluginNames = 'presets';
 const className = pluginClassName(pluginName);
 
 export const presetsPlugin: Plugin<PresetsSpec> = {

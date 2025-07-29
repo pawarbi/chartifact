@@ -7,6 +7,7 @@ import { VariableControl } from 'schema';
 import { Batch, IInstance, Plugin } from '../factory.js';
 import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';
+import { PluginNames } from './interfaces.js';
 
 interface CheckboxInstance {
     id: string;
@@ -18,7 +19,7 @@ export interface CheckboxSpec extends VariableControl {
     value?: boolean;
 }
 
-const pluginName = 'checkbox';
+const pluginName: PluginNames = 'checkbox';
 const className = pluginClassName(pluginName);
 
 export const checkboxPlugin: Plugin<CheckboxSpec> = {

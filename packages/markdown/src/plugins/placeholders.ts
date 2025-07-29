@@ -5,6 +5,7 @@
 
 import { Token } from 'markdown-it/index.js';
 import { Batch, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
+import { PluginNames } from './interfaces.js';
 
 function createTemplateFunction(template: string) {
     const parts = template.split(/(%7B%7B.*?%7D%7D)/g).map(part => {
@@ -34,7 +35,7 @@ function handleDynamicUrl(tokens: Token[], idx: number, attrName: string, elemen
     return token;
 }
 
-const pluginName = 'placeholders';
+const pluginName: PluginNames = 'placeholders';
 
 export const placeholdersPlugin: Plugin = {
     name: pluginName,

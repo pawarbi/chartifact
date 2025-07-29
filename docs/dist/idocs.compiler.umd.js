@@ -288,6 +288,9 @@ ${content}
   function groupMarkdown(group, variables, vegaScope) {
     var _a, _b, _c, _d;
     const mdElements = [];
+    const addSpec = (pluginName, spec) => {
+      mdElements.push(jsonWrap(pluginName, JSON.stringify(spec, null, 2)));
+    };
     for (const element of group.elements) {
       if (typeof element === "string") {
         mdElements.push(element);
@@ -310,7 +313,7 @@ ${content}
               value: (_a = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _a.initialValue,
               label
             };
-            mdElements.push(jsonWrap("checkbox", JSON.stringify(cbSpec, null, 2)));
+            addSpec("checkbox", cbSpec);
             break;
           }
           case "dropdown": {
@@ -332,7 +335,7 @@ ${content}
               ddSpec.multiple = multiple;
               ddSpec.size = size || 1;
             }
-            mdElements.push(jsonWrap("dropdown", JSON.stringify(ddSpec, null, 2)));
+            addSpec("dropdown", ddSpec);
             break;
           }
           case "image": {
@@ -344,13 +347,13 @@ ${content}
               width,
               height
             };
-            mdElements.push(jsonWrap("image", JSON.stringify(imageSpec, null, 2)));
+            addSpec("image", imageSpec);
             break;
           }
           case "presets": {
             const { presets } = element;
             const presetsSpec = presets;
-            mdElements.push(jsonWrap("presets", JSON.stringify(presetsSpec, null, 2)));
+            addSpec("presets", presetsSpec);
             break;
           }
           case "slider": {
@@ -363,13 +366,13 @@ ${content}
               max,
               step
             };
-            mdElements.push(jsonWrap("slider", JSON.stringify(sliderSpec, null, 2)));
+            addSpec("slider", sliderSpec);
             break;
           }
           case "table": {
             const { dataSourceName, variableId, tabulatorOptions } = element;
             const tableSpec = { dataSourceName, variableId, tabulatorOptions };
-            mdElements.push(jsonWrap("tabulator", JSON.stringify(tableSpec, null, 2)));
+            addSpec("tabulator", tableSpec);
             break;
           }
           case "textbox": {
@@ -381,7 +384,7 @@ ${content}
               multiline,
               placeholder
             };
-            mdElements.push(jsonWrap("textbox", JSON.stringify(textboxSpec, null, 2)));
+            addSpec("textbox", textboxSpec);
             break;
           }
         }

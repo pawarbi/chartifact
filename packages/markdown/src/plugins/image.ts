@@ -7,6 +7,7 @@ import { ImageElementProps } from 'schema';
 import { IInstance, Plugin } from '../factory.js';
 import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';
+import { PluginNames } from './interfaces.js';
 
 export interface ImageSpec extends ImageElementProps {
     srcSignalName: string;
@@ -25,7 +26,7 @@ enum ImageOpacity {
     error = '0.5',
 }
 
-const pluginName = 'image';
+const pluginName: PluginNames = 'image';
 const className = pluginClassName(pluginName);
 
 export const imagePlugin: Plugin<ImageSpec> = {

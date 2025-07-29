@@ -7,6 +7,7 @@ import { DropdownElementProps } from 'schema';
 import { Batch, IInstance, Plugin } from '../factory.js';
 import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';
+import { PluginNames } from './interfaces.js';
 
 interface DropdownInstance {
     id: string;
@@ -18,7 +19,7 @@ export interface DropdownSpec extends DropdownElementProps {
     value?: string | string[];
 }
 
-const pluginName = 'dropdown';
+const pluginName: PluginNames = 'dropdown';
 const className = pluginClassName(pluginName);
 
 export const dropdownPlugin: Plugin<DropdownSpec> = {

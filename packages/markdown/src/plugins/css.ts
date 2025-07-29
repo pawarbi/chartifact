@@ -8,6 +8,7 @@ import { sanitizedHTML } from '../sanitize.js';
 import * as Csstree from 'css-tree';
 import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';
+import { PluginNames } from './interfaces.js';
 
 // CSS Tree is expected to be available as a global variable
 declare const csstree: typeof Csstree;
@@ -312,7 +313,7 @@ function categorizeCss(cssContent: string) {
     return result;
 }
 
-const pluginName = 'css';
+const pluginName: PluginNames = 'css';
 const className = pluginClassName(pluginName);
 
 export const cssPlugin: Plugin<CategorizedCss> = {

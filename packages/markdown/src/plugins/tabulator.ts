@@ -8,6 +8,7 @@ import { Tabulator as TabulatorType, Options as TabulatorOptions } from 'tabulat
 import { pluginClassName } from './util.js';
 import { TableElementProps } from 'schema';
 import { flaggableJsonPlugin } from './config.js';
+import { PluginNames } from './interfaces.js';
 
 interface TabulatorInstance {
     id: string;
@@ -30,7 +31,7 @@ export function inspectTabulatorSpec(spec: TabulatorSpec) {
     return flaggableSpec;
 }
 
-const pluginName = 'tabulator';
+const pluginName: PluginNames = 'tabulator';
 const className = pluginClassName(pluginName);
 
 export const tabulatorPlugin: Plugin<TabulatorSpec> = {

@@ -10,8 +10,9 @@ import { pluginClassName } from './util.js';
 import { inspectVegaSpec, vegaPlugin } from './vega.js';
 import { compile, TopLevelSpec } from 'vega-lite';
 import { Spec } from 'vega';
+import { PluginNames } from './interfaces.js';
 
-const pluginName = 'vega-lite';
+const pluginName: PluginNames = 'vega-lite';
 const className = pluginClassName(pluginName);
 
 export const vegaLitePlugin: Plugin<TopLevelSpec> = {

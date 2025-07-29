@@ -7,6 +7,7 @@ import { VariableControl, SliderElementProps } from 'schema';
 import { Batch, IInstance, Plugin } from '../factory.js';
 import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';
+import { PluginNames } from './interfaces.js';
 
 interface SliderInstance {
     id: string;
@@ -18,7 +19,7 @@ export interface SliderSpec extends VariableControl, SliderElementProps {
     value?: number;
 }
 
-const pluginName = 'slider';
+const pluginName: PluginNames = 'slider';
 const className = pluginClassName(pluginName);
 
 export const sliderPlugin: Plugin<SliderSpec> = {
@@ -54,7 +55,7 @@ export const sliderPlugin: Plugin<SliderSpec> = {
         const instances: IInstance[] = sliderInstances.map((sliderInstance) => {
             const { element, spec } = sliderInstance;
             const valueSpan = element.parentElement?.querySelector('.vega-bind-value') as HTMLSpanElement;
-            
+
             const initialSignals = [{
                 name: spec.variableId,
                 value: spec.value || spec.min,
@@ -89,7 +90,7 @@ export const sliderPlugin: Plugin<SliderSpec> = {
                         };
                         renderer.signalBus.broadcast(sliderInstance.id, batch);
                     };
-                    
+
                     element.addEventListener('input', updateValue);
                     element.addEventListener('change', updateValue);
                 },
