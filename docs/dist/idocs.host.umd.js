@@ -296,7 +296,8 @@ ${content}
       } else if (typeof element === "object") {
         switch (element.type) {
           case "chart": {
-            const chartFull = element.chart;
+            const { chart } = element;
+            const chartFull = chart;
             if (!chartFull.spec) {
               mdElements.push("![Chart Spinner](/img/chart-spinner.gif)");
             } else {
@@ -305,59 +306,64 @@ ${content}
             break;
           }
           case "checkbox": {
+            const { label, variableId } = element;
             const cbSpec = {
-              variableId: element.variableId,
-              value: (_a = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _a.initialValue,
-              label: element.label
+              variableId,
+              value: (_a = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _a.initialValue,
+              label
             };
             mdElements.push(jsonWrap("checkbox", JSON.stringify(cbSpec, null, 2)));
             break;
           }
           case "dropdown": {
+            const { label, variableId, options, dynamicOptions, multiple, size } = element;
             const ddSpec = {
-              variableId: element.variableId,
-              value: (_b = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _b.initialValue,
-              label: element.label
+              variableId,
+              value: (_b = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _b.initialValue,
+              label
             };
-            if (element.dynamicOptions) {
+            if (dynamicOptions) {
               ddSpec.dynamicOptions = {
-                dataSourceName: element.dynamicOptions.dataSourceName,
-                fieldName: element.dynamicOptions.fieldName
+                dataSourceName: dynamicOptions.dataSourceName,
+                fieldName: dynamicOptions.fieldName
               };
             } else {
-              ddSpec.options = element.options;
+              ddSpec.options = options;
             }
-            if (element.multiple) {
-              ddSpec.multiple = element.multiple;
-              ddSpec.size = element.size || 1;
+            if (multiple) {
+              ddSpec.multiple = multiple;
+              ddSpec.size = size || 1;
             }
             mdElements.push(jsonWrap("dropdown", JSON.stringify(ddSpec, null, 2)));
             break;
           }
           case "image": {
-            const urlSignal = vegaScope.createUrlSignal(element.urlRef);
+            const { urlRef, alt, width, height } = element;
+            const urlSignal = vegaScope.createUrlSignal(urlRef);
             const imageSpec = {
               srcSignalName: urlSignal.name,
-              alt: element.alt,
-              width: element.width,
-              height: element.height
+              alt,
+              width,
+              height
             };
             mdElements.push(jsonWrap("image", JSON.stringify(imageSpec, null, 2)));
             break;
           }
           case "presets": {
-            const presetsSpec = element.presets;
+            const { presets } = element;
+            const presetsSpec = presets;
             mdElements.push(jsonWrap("presets", JSON.stringify(presetsSpec, null, 2)));
             break;
           }
           case "slider": {
+            const { label, min, max, step, variableId } = element;
             const sliderSpec = {
-              variableId: element.variableId,
-              value: (_c = variables.find((v) => v.variableId === element.variableId)) == null ? void 0 : _c.initialValue,
-              label: element.label,
-              min: element.min,
-              max: element.max,
-              step: element.step
+              variableId,
+              value: (_c = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _c.initialValue,
+              label,
+              min,
+              max,
+              step
             };
             mdElements.push(jsonWrap("slider", JSON.stringify(sliderSpec, null, 2)));
             break;
@@ -369,12 +375,13 @@ ${content}
             break;
           }
           case "textbox": {
-            const textboxElement = element;
+            const { variableId, label, multiline, placeholder } = element;
             const textboxSpec = {
-              variableId: textboxElement.variableId,
-              value: (_d = variables.find((v) => v.variableId === textboxElement.variableId)) == null ? void 0 : _d.initialValue,
-              label: textboxElement.label,
-              multiline: textboxElement.multiline
+              variableId,
+              value: (_d = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _d.initialValue,
+              label,
+              multiline,
+              placeholder
             };
             mdElements.push(jsonWrap("textbox", JSON.stringify(textboxSpec, null, 2)));
             break;
