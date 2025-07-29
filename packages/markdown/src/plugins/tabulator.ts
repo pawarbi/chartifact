@@ -15,6 +15,7 @@ interface TabulatorInstance {
     spec: TabulatorSpec;
     table: TabulatorType;
     built: boolean;
+    selectableRows: boolean;
 }
 
 export interface TabulatorSpec extends TableElementProps {
@@ -71,8 +72,19 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                 options = spec.tabulatorOptions;
             }
 
+            const selectableRows = !!options?.selectableRows || false;
+            if (spec.editable && selectableRows) {
+                delete options.selectableRows; //remove selectableRows from options if editable
+            }
+
             const table = new Tabulator(container as HTMLElement, options);
-            const tabulatorInstance: TabulatorInstance = { id: `${pluginName}-${index}`, spec, table, built: false };
+            const tabulatorInstance: TabulatorInstance = {
+                id: `${pluginName}-${index}`,
+                spec,
+                table,
+                built: false,
+                selectableRows,
+            };
             table.on('tableBuilt', () => {
                 table.off('tableBuilt');
                 tabulatorInstance.built = true;
@@ -80,14 +92,14 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
             tabulatorInstances.push(tabulatorInstance);
         }
         const instances: IInstance[] = tabulatorInstances.map((tabulatorInstance, index) => {
-            const { spec, table } = tabulatorInstance;
+            const { spec, table, selectableRows } = tabulatorInstance;
             const initialSignals = [{
                 name: spec.dataSourceName,
                 value: null,
                 priority: -1,
                 isData: true,
             }];
-            if (spec.tabulatorOptions?.selectableRows || spec.editable) {
+            if (selectableRows || spec.editable) {
                 initialSignals.push({
                     name: spec.variableId,
                     value: [],
@@ -97,7 +109,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
             }
             const outputData = () => {
                 let data: object[];
-                if (spec.tabulatorOptions?.selectableRows) {
+                if (selectableRows) {
                     data = table.getSelectedData();
                 } else {
                     data = table.getData();
@@ -126,7 +138,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                         const columns1 = table.getColumnDefinitions();
 
                         //if selectable, remove the first column
-                        if (spec.tabulatorOptions?.selectableRows) {
+                        if (selectableRows) {
                             columns1.shift();
                         }
                         const columns: ColumnDefinition[] = columns1.map(col => {
@@ -193,7 +205,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     }
                 },
                 beginListening(sharedSignals) {
-                    if (spec.tabulatorOptions?.selectableRows) {
+                    if (selectableRows) {
                         const hasMatchingSignal = sharedSignals.some(({ isData, signalName }) =>
                             isData && signalName === spec.variableId
                         );
@@ -211,7 +223,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     }
                 },
                 getCurrentSignalValue() {
-                    if (spec.tabulatorOptions?.selectableRows) {
+                    if (selectableRows) {
                         return tabulatorInstance.table.getSelectedData();
                     } else {
                         // When editable, return all data since that's what gets broadcast
