@@ -3,9 +3,12 @@
 * Licensed under the MIT License.
 */
 
-import { definePlugin, IInstance, Plugin } from '../factory.js';
+import { definePlugin, IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import * as Csstree from 'css-tree';
+import { pluginClassName } from './util.js';
+import { flaggableJsonPlugin } from './config.js';
+import { PluginNames } from './interfaces.js';
 
 // CSS Tree is expected to be available as a global variable
 declare const csstree: typeof Csstree;
@@ -32,7 +35,6 @@ interface AtRule {
 
 interface CategorizedCss {
     atRules: { [atRuleSignature: string]: AtRule };
-    hasFlags: boolean;
 }
 
 // Helper function to reconstitute an at-rule block from at-rule data
@@ -82,10 +84,15 @@ function reconstituteCss(atRules: { [atRuleSignature: string]: AtRule }): string
     return cssBlocks.join('\n\n');
 }
 
-function categorizeCss(cssContent: string): CategorizedCss {
-    const result: CategorizedCss = {
+function categorizeCss(cssContent: string) {
+    const spec: CategorizedCss = {
         atRules: {},
-        hasFlags: false
+    };
+
+    const result: RawFlaggableSpec<CategorizedCss> = {
+        spec,
+        hasFlags: false,
+        reasons: [],
     };
 
     // At-rules that should be treated as complete blocks (not parsed internally)
@@ -182,17 +189,17 @@ function categorizeCss(cssContent: string): CategorizedCss {
             if (currentRule && currentRule.declarations.length > 0) {
                 const targetAtRule = currentAtRuleSignature;
 
-                if (!result.atRules[targetAtRule]) {
-                    result.atRules[targetAtRule] = {
+                if (!spec.atRules[targetAtRule]) {
+                    spec.atRules[targetAtRule] = {
                         signature: targetAtRule,
                         rules: []
                     };
                 }
 
-                if (result.atRules[targetAtRule].rules) {
-                    result.atRules[targetAtRule].rules.push(currentRule);
+                if (spec.atRules[targetAtRule].rules) {
+                    spec.atRules[targetAtRule].rules.push(currentRule);
                 } else {
-                    result.atRules[targetAtRule].rules = [currentRule];
+                    spec.atRules[targetAtRule].rules = [currentRule];
                 }
             }
         }
@@ -205,13 +212,15 @@ function categorizeCss(cssContent: string): CategorizedCss {
                 // Check for @import specifically
                 if (node.name === 'import') {
                     const ruleContent = csstree.generate(node);
-                    result.atRules[atRuleSignature] = {
+                    const reason = '@import rule detected - requires approval';
+                    spec.atRules[atRuleSignature] = {
                         signature: atRuleSignature,
                         css: ruleContent,
                         flag: 'importRule',
-                        reason: '@import rule detected - requires approval'
+                        reason,
                     };
                     result.hasFlags = true;
+                    result.reasons.push(reason);
                     return;
                 }
 
@@ -219,7 +228,7 @@ function categorizeCss(cssContent: string): CategorizedCss {
                 if (completeBlockAtRules.includes(node.name)) {
                     // Store the entire rule as CSS and validate it as a complete block
                     const ruleContent = csstree.generate(node);
-                    result.atRules[atRuleSignature] = {
+                    spec.atRules[atRuleSignature] = {
                         signature: atRuleSignature,
                         css: ruleContent
                     };
@@ -228,8 +237,8 @@ function categorizeCss(cssContent: string): CategorizedCss {
 
                 // For other at-rules that contain rules (like @media, @supports)
                 if (node.block) {
-                    if (!result.atRules[atRuleSignature]) {
-                        result.atRules[atRuleSignature] = {
+                    if (!spec.atRules[atRuleSignature]) {
+                        spec.atRules[atRuleSignature] = {
                             signature: atRuleSignature,
                             rules: []
                         };
@@ -239,7 +248,7 @@ function categorizeCss(cssContent: string): CategorizedCss {
                 } else {
                     // Simple at-rule without block
                     const ruleContent = csstree.generate(node);
-                    result.atRules[atRuleSignature] = {
+                    spec.atRules[atRuleSignature] = {
                         signature: atRuleSignature,
                         css: ruleContent
                     };
@@ -269,6 +278,7 @@ function categorizeCss(cssContent: string): CategorizedCss {
                     declaration.flag = securityCheck.flag;
                     declaration.reason = securityCheck.reason;
                     result.hasFlags = true;
+                    result.reasons.push(securityCheck.reason);
                 }
 
                 currentRule.declarations.push(declaration);
@@ -286,6 +296,7 @@ function categorizeCss(cssContent: string): CategorizedCss {
                         lastDecl.flag = securityCheck.flag;
                         lastDecl.reason = securityCheck.reason;
                         result.hasFlags = true;
+                        result.reasons.push(securityCheck.reason);
                     }
                 }
             }
@@ -302,22 +313,25 @@ function categorizeCss(cssContent: string): CategorizedCss {
     return result;
 }
 
-export const cssPlugin: Plugin = {
-    name: 'css',
+const pluginName: PluginNames = 'css';
+const className = pluginClassName(pluginName);
+
+export const cssPlugin: Plugin<CategorizedCss> = {
+    ...flaggableJsonPlugin<CategorizedCss>(pluginName, className),
     initializePlugin: (md) => {
         // Check for required css-tree dependency
         if (typeof csstree === 'undefined') {
             throw new Error('css-tree library is required for CSS plugin. Please include the css-tree script.');
         }
 
-        definePlugin(md, 'css');
+        definePlugin(md, pluginName);
         // Custom rule for CSS blocks
         md.block.ruler.before('fence', 'css_block', function (state, startLine, endLine) {
             const start = state.bMarks[startLine] + state.tShift[startLine];
             const max = state.eMarks[startLine];
 
             // Check if the block starts with "```css"
-            if (!state.src.slice(start, max).trim().startsWith('```css')) {
+            if (!state.src.slice(start, max).trim().startsWith(`\`\`\`${pluginName}`)) {
                 return false;
             }
 
@@ -331,7 +345,7 @@ export const cssPlugin: Plugin = {
 
             state.line = nextLine + 1;
             const token = state.push('fence', 'code', 0);
-            token.info = 'css';
+            token.info = pluginName;
             token.content = state.getLines(startLine + 1, nextLine, state.blkIndent, true);
             token.map = [startLine, state.line];
 
@@ -344,14 +358,13 @@ export const cssPlugin: Plugin = {
             const token = tokens[idx];
             const info = token.info.trim();
 
-            if (info === 'css') {
-                const cssId = `css-${idx}`;
+            if (info === pluginName) {
                 const cssContent = token.content.trim();
 
                 // Parse and categorize CSS content
                 const categorizedCss = categorizeCss(cssContent);
 
-                return sanitizedHTML('div', { id: cssId, class: 'css-component' }, JSON.stringify(categorizedCss));
+                return sanitizedHTML('div', { id: `${pluginName}-${idx}`, class: className }, JSON.stringify(categorizedCss), true);
             }
 
             // Fallback to original fence renderer
@@ -362,51 +375,43 @@ export const cssPlugin: Plugin = {
             }
         };
     },
-    hydrateComponent: async (renderer, errorHandler) => {
+    hydrateComponent: async (renderer, errorHandler, specs) => {
         const cssInstances: { id: string; element: HTMLStyleElement }[] = [];
-        const containers = renderer.element.querySelectorAll('.css-component');
 
-        for (const [index, container] of Array.from(containers).entries()) {
-            if (!container.textContent) continue;
-
-            try {
-                const categorizedCss: CategorizedCss = JSON.parse(container.textContent);
-                const comments: string[] = [];
-
-                // Log security issues found
-                if (categorizedCss.hasFlags) {
-                    console.warn(`CSS security: Security issues detected in CSS`);
-                    comments.push(`<!-- CSS security issues detected and filtered -->`);
-                }
-
-                // Generate and apply safe CSS
-                const safeCss = reconstituteCss(categorizedCss.atRules);
-
-                if (safeCss.trim().length > 0) {
-                    const styleElement = document.createElement('style');
-                    styleElement.type = 'text/css';
-                    styleElement.id = `idocs-css-${container.id}`;
-                    styleElement.textContent = safeCss;
-
-                    // Apply to shadow DOM if available, otherwise document
-                    const target = renderer.shadowRoot || document.head;
-                    target.appendChild(styleElement);
-
-                    comments.push(`<!-- CSS styles applied to ${renderer.shadowRoot ? 'shadow DOM' : 'document'} -->`);
-
-                    cssInstances.push({
-                        id: container.id,
-                        element: styleElement
-                    });
-                } else {
-                    comments.push(`<!-- No safe CSS styles to apply -->`);
-                }
-                container.innerHTML = comments.join('\n');
-            } catch (e) {
-                container.innerHTML = `<div class="error">${e.toString()}</div>`;
-                errorHandler(e, 'CSS', index, 'parse', container);
+        for (let index = 0; index < specs.length; index++) {
+            const specReview = specs[index];
+            if (!specReview.approvedSpec) {
                 continue;
             }
+            const container = renderer.element.querySelector(`#${specReview.containerId}`);
+
+            const categorizedCss = specReview.approvedSpec;
+            const comments: string[] = [];
+
+            // Generate and apply safe CSS
+            const safeCss = reconstituteCss(categorizedCss.atRules);
+
+            if (safeCss.trim().length > 0) {
+                const styleElement = document.createElement('style');
+                styleElement.type = 'text/css';
+                styleElement.id = `idocs-css-${index}`;
+                styleElement.textContent = safeCss;
+
+                // Apply to shadow DOM if available, otherwise document
+                const target = renderer.shadowRoot || document.head;
+                target.appendChild(styleElement);
+
+                comments.push(`<!-- CSS styles applied to ${renderer.shadowRoot ? 'shadow DOM' : 'document'} -->`);
+
+                cssInstances.push({
+                    id: `${pluginName}-${index}`,
+                    element: styleElement
+                });
+            } else {
+                comments.push(`<!-- No safe CSS styles to apply -->`);
+            }
+
+            container.innerHTML = comments.join('\n');
         }
 
         const instances: IInstance[] = cssInstances.map((cssInstance) => {

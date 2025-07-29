@@ -3,14 +3,11 @@
 * Licensed under the MIT License.
 */
 
-import { Batch, definePlugin, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
-import { sanitizedHTML } from '../sanitize.js';
-
-interface Preset {
-    name: string;
-    description?: string;
-    state: { [signalName: string]: unknown };
-}
+import { Preset } from 'schema';
+import { Batch, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
+import { pluginClassName } from './util.js';
+import { flaggableJsonPlugin } from './config.js';
+import { PluginNames } from './interfaces.js';
 
 export type PresetsSpec = Preset[];
 
@@ -20,29 +17,22 @@ interface PresetsInstance {
     element: HTMLUListElement;
 }
 
-export const presetsPlugin: Plugin = {
-    name: 'presets',
-    initializePlugin: (md) => definePlugin(md, 'presets'),
-    fence: (token, idx) => {
-        const spec = JSON.parse(token.content.trim());
-        const pluginId = `preset-${idx}`;
-        return sanitizedHTML('div', { id: pluginId, class: 'presets' }, JSON.stringify(spec));
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
-        const presetsInstances: PresetsInstance[] = [];
-        const containers = renderer.element.querySelectorAll('.presets');
-        for (const [index, container] of Array.from(containers).entries()) {
-            if (!container.textContent) continue;
+const pluginName: PluginNames = 'presets';
+const className = pluginClassName(pluginName);
 
-            const id = `presets${index}`;
-            let presets: Preset[];
-            try {
-                presets = JSON.parse(container.textContent) as Preset[];
-            } catch (e) {
-                container.innerHTML = `<div class="error">${e.toString()}</div>`;
-                errorHandler(e, 'presets', index, 'parse', container);
+export const presetsPlugin: Plugin<PresetsSpec> = {
+    ...flaggableJsonPlugin<PresetsSpec>(pluginName, className),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
+        const presetsInstances: PresetsInstance[] = [];
+        for (let index = 0; index < specs.length; index++) {
+            const specReview = specs[index];
+            if (!specReview.approvedSpec) {
                 continue;
             }
+            const container = renderer.element.querySelector(`#${specReview.containerId}`);
+
+            const id = `${pluginName}-${index}`;
+            const presets = specReview.approvedSpec;
             if (!Array.isArray(presets)) {
                 container.innerHTML = '<div class="error">Expected an array of presets</div>';
                 continue;

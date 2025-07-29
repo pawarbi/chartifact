@@ -8,6 +8,7 @@ import { setupPostMessageHandling } from './post-receive.js';
 import { InteractiveDocument, InteractiveDocumentWithSchema } from 'schema';
 import { postStatus } from './post-send.js';
 import { ListenOptions } from './types.js';
+import { SpecReview, SandboxedPreHydrateMessage } from 'common';
 
 function getElement<T extends HTMLElement = HTMLElement>(elementOrSelector: string | T): T | null {
   if (typeof elementOrSelector === 'string') {
@@ -31,6 +32,7 @@ export interface InitializeOptions {
   fileInput?: string | HTMLElement;
   textarea?: string | HTMLTextAreaElement;
   options?: ListenOptions;
+  onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
 const defaultOptions: ListenOptions = {
@@ -52,12 +54,14 @@ export class Listener {
   public fileInput: HTMLElement;
   public textarea: HTMLTextAreaElement;
   public sandbox: Sandbox;
+  public onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 
   private removeInteractionHandlers: (() => void)[];
   private sandboxReady: boolean = false;
 
   constructor(options: InitializeOptions) {
     this.options = { ...defaultOptions, ...options?.options };
+    this.onApprove = options.onApprove;
     this.removeInteractionHandlers = [];
 
     this.appDiv = getElement(options.app);
@@ -110,34 +114,35 @@ export class Listener {
         this.sandboxReady = true;
 
         // Send ready message to parent window (if embedded)
-        postStatus(this.options.postMessageTarget, { status: 'ready' });
+        postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'ready' });
       },
       onError: () => {
         this.errorHandler(new Error('Sandbox initialization failed'), 'Sandbox could not be initialized');
-      }
+      },
+      onApprove: this.onApprove,
     });
   }
 
   public errorHandler(error: Error, detailsHtml: string) {
     show(this.loadingDiv, false);
-    
+
     // Create DOM elements safely to prevent XSS
     const errorDiv = document.createElement('div');
     errorDiv.style.color = 'red';
     errorDiv.style.padding = '20px';
-    
+
     const errorLabel = document.createElement('strong');
     errorLabel.textContent = 'Error:';
-    
+
     const errorMessage = document.createTextNode(` ${error.message}`);
     const lineBreak = document.createElement('br');
     const details = document.createTextNode(detailsHtml);
-    
+
     errorDiv.appendChild(errorLabel);
     errorDiv.appendChild(errorMessage);
     errorDiv.appendChild(lineBreak);
     errorDiv.appendChild(details);
-    
+
     // Clear previous content and append the error safely
     this.appDiv.innerHTML = '';
     this.appDiv.appendChild(errorDiv);
@@ -201,7 +206,7 @@ export class Listener {
   }
 
   private renderInteractiveDocument(content: InteractiveDocument) {
-    postStatus(this.options.postMessageTarget, { status: 'compiling', details: 'Starting interactive document compilation' });
+    postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'compiling', details: 'Starting interactive document compilation' });
     const markdown = targetMarkdown(content);
     this.renderMarkdown(markdown);
   }
@@ -215,18 +220,18 @@ export class Listener {
     this.hideLoadingAndHelp();
 
     try {
-      postStatus(this.options.postMessageTarget, { status: 'rendering', details: 'Starting markdown rendering' });
+      postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'rendering', details: 'Starting markdown rendering' });
       if (!this.sandbox || !this.sandboxReady) {
         this.createSandbox(markdown);
       } else {
         this.sandbox.send(markdown);
       }
-      postStatus(this.options.postMessageTarget, { status: 'rendered', details: 'Markdown rendering completed successfully' });
+      postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'rendered', details: 'Markdown rendering completed successfully' });
     } catch (error) {
       this.errorHandler(
         error, 'Error rendering markdown content'
       );
-      postStatus(this.options.postMessageTarget, { status: 'error', details: `Rendering failed: ${error.message}` });
+      postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'error', details: `Rendering failed: ${error.message}` });
     }
   }
 

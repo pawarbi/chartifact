@@ -1,4 +1,2 @@
-export { Editor } from './editor.js';
-export { App } from './app.js';
-export type * from './types.js';
-export type { EditorProps } from './editor.js';
+export { Editor, type EditorProps } from './editor.js';
+export { App, type AppProps } from './app.js';

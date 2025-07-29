@@ -1,11 +1,11 @@
 import { Spec as VegaSpec } from 'vega-typings';
-import { Variable, DataLoader } from "schema";
-import { SourceData, ValuesData, Signal } from "vega";
+import { Variable, DataLoader, TableElement } from "schema";
+import { SourceData, ValuesData, Signal, NewSignal } from "vega";
 import { topologicalSort } from "./sort.js";
 
 export const $schema = "https://vega.github.io/schema/vega/v5.json";
 
-export function createSpecWithVariables(dataNameSelectedSuffix: string, variables: Variable[], stubDataLoaders?: DataLoader[]) {
+export function createSpecWithVariables(variables: Variable[], tableElements: TableElement[], stubDataLoaders?: DataLoader[]) {
 
     //preload with variables as signals
     const spec: VegaSpec = {
@@ -14,22 +14,23 @@ export function createSpecWithVariables(dataNameSelectedSuffix: string, variable
         data: [],
     };
 
+    //add table elements as data sources
+    tableElements.forEach((table) => {
+        const { variableId } = table;
+        spec.signals.push(dataAsSignal(variableId));
+        spec.data.unshift({
+            name: variableId,
+            values: [],
+        });
+    });
+
     //ensure (fake) data loaders are at the beginning of the data array
     if (stubDataLoaders) {
         //add data loaders as both signals and data sources
         stubDataLoaders.filter(dl => dl.type !== 'spec').forEach((dl) => {
-            spec.signals!.push({
+            spec.signals.push(dataAsSignal(dl.dataSourceName));
+            spec.data.push({
                 name: dl.dataSourceName,
-                value: `data('${dl.dataSourceName}')`,
-            });
-            spec.data!.push({
-                name: dl.dataSourceName,
-                values: [],
-            });
-
-            //add a special "-selected" data item
-            spec.data!.push({
-                name: dl.dataSourceName + dataNameSelectedSuffix,
                 values: [],
             });
         });
@@ -43,20 +44,14 @@ export function createSpecWithVariables(dataNameSelectedSuffix: string, variable
                 source: v.calculation!.dependsOn || [],
                 transform: dataFrameTransformations,
             };
-            spec.data!.push(data);
-            if (!spec.signals) {
-                spec.signals = [];
-            }
-            spec.signals.push({
-                name: v.variableId,
-                update: `data('${v.variableId}')`,
-            });
+            spec.data.push(data);
+            spec.signals.push(dataAsSignal(v.variableId));
         } else {
             const signal: Signal = { name: v.variableId, value: v.initialValue };
             if (v.calculation) {
                 signal.update = v.calculation!.vegaExpression;
             }
-            spec.signals!.push(signal);
+            spec.signals.push(signal);
         }
     });
 
@@ -71,3 +66,19 @@ function isDataframePipeline(variable: Variable): boolean {
             || (variable.calculation?.dataFrameTransformations !== undefined && variable.calculation.dataFrameTransformations.length > 0)
         );
 }
+
+export function ensureDataAndSignalsArray(spec: VegaSpec) {
+    if (!spec.data) {
+        spec.data = [];
+    }
+    if (!spec.signals) {
+        spec.signals = [];
+    }
+}
+
+export function dataAsSignal(name: string): NewSignal {
+    return {
+        name,
+        update: `data('${name}')`
+    };
+}   

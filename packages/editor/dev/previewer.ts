@@ -2,7 +2,7 @@ import { Renderer } from '@microsoft/interactive-document-markdown';
 import { Previewer, PreviewerOptions } from '@microsoft/chartifact-sandbox';
 
 export class DevPreviewer extends Previewer {
-    private renderer: Renderer;
+    public renderer: Renderer;
 
     constructor(elementOrSelector: string | HTMLElement, markdown: string, options: PreviewerOptions) {
         super(elementOrSelector, markdown, options);
@@ -30,14 +30,12 @@ export class DevPreviewer extends Previewer {
 
     render(markdown: string) {
         const html = this.renderer.renderHtml(markdown);
-        this.renderer.element.innerHTML = `
-            <style>.tabulator { margin-right: -1px; }</style>
-            <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
-            ${html}`;
-        this.renderer.hydrate().catch(error => {
-            this.displayError('Failed to hydrate components');
-            this.options.onError?.(error);
-        });
+        const newHtml = `<style>.tabulator { margin-right: -1px; }</style>
+<link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+${html}`;
+        this.renderer.element.innerHTML = newHtml;
+        const specs = this.renderer.hydrateSpecs();
+        this.renderer.hydrate(specs);
     }
 
     send(markdown: string) {

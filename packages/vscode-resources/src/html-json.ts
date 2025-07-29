@@ -3,7 +3,7 @@ window.addEventListener('DOMContentLoaded', () => {
     let sandbox: IDocs.sandbox.Sandbox;
     const render = () => {
         const json = textarea.value;
-        let markdown;
+        let markdown: string;
         try {
             const interactiveDocument = JSON.parse(json);
             if (typeof interactiveDocument !== 'object') {
@@ -15,7 +15,16 @@ window.addEventListener('DOMContentLoaded', () => {
             markdown = 'Failed to parse Interactive Document JSON';
         }
         if (!sandbox) {
-            sandbox = new IDocs.sandbox.Sandbox('main', markdown);
+            sandbox = new IDocs.sandbox.Sandbox('main', markdown, {
+                onApprove: (message) => {
+                    //Here you can approve unapproved specs per your own policy
+                    const { specs } = message;
+                    return specs;
+                },
+                onError: (error) => {
+                    console.error('Sandbox error:', error);
+                },
+            });
         } else {
             sandbox.send(markdown);
         }

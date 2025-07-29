@@ -2,15 +2,18 @@ import { Previewer, PreviewerOptions } from './preview.js';
 import { rendererHtml } from './resources/rendererHtml.js';
 import { rendererUmdJs } from './resources/rendererUmdJs.js';
 import { sandboxedJs } from './resources/sandboxedJs.js';
-import type { RenderRequestMessage } from '@microsoft/interactive-document-markdown';
+import type { SandboxRenderMessage, SandboxedPreHydrateMessage, SandboxApprovalMessage } from 'common';
 
 export class Sandbox extends Previewer {
-    private iframe: HTMLIFrameElement;
+    public iframe: HTMLIFrameElement;
 
-    constructor(elementOrSelector: string | HTMLElement, markdown: string, options?: PreviewerOptions) {
+    constructor(elementOrSelector: string | HTMLElement, markdown: string, public options: PreviewerOptions) {
         super(elementOrSelector, markdown, options);
 
-        const renderRequest: RenderRequestMessage = { markdown };
+        const renderRequest: SandboxRenderMessage = {
+            type: 'sandboxRender',
+            markdown,
+        };
 
         const { iframe } = createIframe(this.getDependencies(), renderRequest);
         this.iframe = iframe;
@@ -24,6 +27,22 @@ export class Sandbox extends Previewer {
             console.error('Error loading iframe:', error);
             options?.onError?.(new Error('Failed to load iframe'));
         });
+
+        window.addEventListener('message', (event) => {
+            //make sure its from the sandbox iframe          
+            if (event.source === this.iframe.contentWindow) {
+                const message = event.data as SandboxedPreHydrateMessage;
+                if (message.type == 'sandboxedPreHydrate') {
+                    const specs = this.options.onApprove(message);
+                    const sandboxedApprovalMessage: SandboxApprovalMessage = {
+                        type: 'sandboxApproval',
+                        transactionId: message.transactionId,
+                        specs,
+                    };
+                    this.iframe.contentWindow?.postMessage(sandboxedApprovalMessage, '*');
+                }
+            }
+        });
     }
 
     destroy() {
@@ -34,8 +53,11 @@ export class Sandbox extends Previewer {
     }
 
     send(markdown: string): void {
-        //TODO get html and ensure it is sanitized
-        this.iframe.contentWindow?.postMessage({ markdown }, '*');
+        const message: SandboxRenderMessage = {
+            type: 'sandboxRender',
+            markdown,
+        };
+        this.iframe.contentWindow?.postMessage(message, '*');
     }
 
     getDependencies() {
@@ -50,7 +72,7 @@ export class Sandbox extends Previewer {
     }
 }
 
-function createIframe(dependencies: string, renderRequest: RenderRequestMessage) {
+function createIframe(dependencies: string, renderRequest: SandboxRenderMessage) {
     const title = 'Interactive Document Sandbox';
     const html = rendererHtml
         .replace('{{TITLE}}', () => title)

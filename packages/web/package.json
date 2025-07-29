@@ -1,0 +1,15 @@
+{
+  "name": "web",
+  "private": true,
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rimraf dist",
+    "tsc": "tsc -p .",
+    "build": "npm run tsc",
+    "build:07": "npm run build"
+  },
+  "author": "Dan Marshall",
+  "license": "MIT",
+  "description": ""
+}

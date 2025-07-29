@@ -94,7 +94,8 @@
                 {
                     "type": "table",
                     "dataSourceName": "itemsData",
-                    "options": {
+                    "variableId": "itemsData_selected",
+                    "tabulatorOptions": {
                         "autoColumns": true,
                         "layout": "fitColumns",
                         "minHeight": "200px",

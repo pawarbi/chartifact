@@ -343,10 +343,22 @@ Click the map above to show related data.
     <script>
         const textarea = document.getElementById('markdown-input');
         const renderer = new IDocs.markdown.Renderer(document.getElementById('content'));
-        textarea.addEventListener('input', () => {
-            renderer.render(textarea.value);
-        });
-        renderer.render(textarea.value);
+
+        function render() {
+            //renderer.render(textarea.value);
+            
+            renderer.reset();
+            const html = renderer.renderHtml(textarea.value);
+            renderer.element.innerHTML = html;
+            const specs = renderer.hydrateSpecs();
+            console.log('Specs:', specs);
+            renderer.hydrate(specs);
+        }
+
+        textarea.addEventListener('input', render);
+
+        render();
+
     </script>
 
 </body>

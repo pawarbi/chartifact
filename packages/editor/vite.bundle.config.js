@@ -26,6 +26,7 @@ export default defineConfig({
       entry: './umd.ts',
     },
     minify: false,
+    emptyOutDir: false,
     rollupOptions: {
       // External dependencies that the library expects consumers to provide
       external: ['react', 'react-dom', 'vega', 'vega-lite'],

@@ -1,5 +1,5 @@
 import { Listener } from './listener.js';
-import type { RenderRequestMessage } from './types.js';
+import type { HostRenderRequestMessage } from 'common';
 
 export function setupPostMessageHandling(host: Listener) {
     window.addEventListener('message', (event) => {
@@ -13,14 +13,15 @@ export function setupPostMessageHandling(host: Listener) {
                 return;
             }
 
-            const data: RenderRequestMessage = event.data;
-
-            if (data.markdown) {
-                host.render(data.markdown, undefined);
-            } else if (data.interactiveDocument) {
-                host.render(undefined, data.interactiveDocument);
-            } else {
-                //do nothing, as messages may be directed to the page for other purposes
+            const message = event.data as HostRenderRequestMessage;
+            if (message.type == 'hostRenderRequest') {
+                if (message.markdown) {
+                    host.render(message.markdown, undefined);
+                } else if (message.interactiveDocument) {
+                    host.render(undefined, message.interactiveDocument);
+                } else {
+                    //do nothing, as messages may be directed to the page for other purposes
+                }
             }
         } catch (error) {
             host.errorHandler(

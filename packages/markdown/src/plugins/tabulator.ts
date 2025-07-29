@@ -3,10 +3,12 @@
 * Licensed under the MIT License.
 */
 
-import { defaultCommonOptions } from 'common';
-import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
-import { sanitizedHTML } from '../sanitize.js';
+import { Batch, IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
 import { Tabulator as TabulatorType, Options as TabulatorOptions } from 'tabulator-tables';
+import { pluginClassName } from './util.js';
+import { TableElementProps } from 'schema';
+import { flaggableJsonPlugin } from './config.js';
+import { PluginNames } from './interfaces.js';
 
 interface TabulatorInstance {
     id: string;
@@ -15,68 +17,78 @@ interface TabulatorInstance {
     built: boolean;
 }
 
-export interface TabulatorSpec {
-    dataSignalName: string;
-    options?: TabulatorOptions;
+export interface TabulatorSpec extends TableElementProps {
+    tabulatorOptions?: TabulatorOptions;    //recast the default with strong typing
 }
 
 declare const Tabulator: typeof TabulatorType;
 
-export const tabulatorPlugin: Plugin = {
-    name: 'tabulator',
-    initializePlugin: (md) => definePlugin(md, 'tabulator'),
-    fence: (token, idx) => {
-        const tabulatorId = `tabulator-${idx}`;
-        return sanitizedHTML('div', { id: tabulatorId, class: 'tabulator', style: 'box-sizing: border-box;' }, token.content.trim());
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
+export function inspectTabulatorSpec(spec: TabulatorSpec) {
+    //TODO inspect spec for flags, such as http:// instead of https://, or other security issues
+    const flaggableSpec: RawFlaggableSpec<TabulatorSpec> = {
+        spec,
+    };
+    return flaggableSpec;
+}
+
+const pluginName: PluginNames = 'tabulator';
+const className = pluginClassName(pluginName);
+
+export const tabulatorPlugin: Plugin<TabulatorSpec> = {
+    ...flaggableJsonPlugin<TabulatorSpec>(pluginName, className, inspectTabulatorSpec, { style: 'box-sizing: border-box;' }),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
         const tabulatorInstances: TabulatorInstance[] = [];
-        const containers = renderer.element.querySelectorAll('.tabulator');
-        for (const [index, container] of Array.from(containers).entries()) {
-            if (!container.textContent) continue;
-            if (!Tabulator) {
-                errorHandler(new Error('Tabulator not found'), 'tabulator', index, 'init', container);
+        for (let index = 0; index < specs.length; index++) {
+            const specReview = specs[index];
+            if (!specReview.approvedSpec) {
+                continue;
+            }
+            const container = renderer.element.querySelector(`#${specReview.containerId}`);
+
+            if (!Tabulator && index === 0) {
+                errorHandler(new Error('Tabulator not found'), pluginName, index, 'init', container);
                 continue;
             }
 
-            try {
-                const spec: TabulatorSpec = JSON.parse(container.textContent);
+            const spec: TabulatorSpec = specReview.approvedSpec;
 
-                let options: TabulatorOptions = {
-                    autoColumns: true,
-                    layout: 'fitColumns',
-                    maxHeight: '200px',
-                };
-
-                //see if default options is an object with no properties
-                if (spec.options && Object.keys(spec.options).length > 0) {
-                    options = spec.options;
-                }
-
-                const table = new Tabulator(container as HTMLElement, options);
-                const tabulatorInstance: TabulatorInstance = { id: container.id, spec, table, built: false };
-                table.on('tableBuilt', () => {
-                    table.off('tableBuilt');
-                    tabulatorInstance.built = true;
-                });
-                tabulatorInstances.push(tabulatorInstance);
-            } catch (e) {
-                container.innerHTML = `<div class="error">${e.toString()}</div>`;
-                errorHandler(e, 'tabulator', index, 'parse', container);
+            if (!spec.dataSourceName || !spec.variableId) {
+                errorHandler(new Error('Tabulator requires dataSourceName and variableId'), pluginName, index, 'init', container);
+                continue;
+            } else if (spec.dataSourceName === spec.variableId) {
+                errorHandler(new Error('Tabulator dataSourceName and variableId cannot be the same'), pluginName, index, 'init', container);
                 continue;
             }
+
+            let options: TabulatorOptions = {
+                autoColumns: true,
+                layout: 'fitColumns',
+                maxHeight: '200px',
+            };
+
+            //see if default options is an object with no properties
+            if (spec.tabulatorOptions && Object.keys(spec.tabulatorOptions).length > 0) {
+                options = spec.tabulatorOptions;
+            }
+
+            const table = new Tabulator(container as HTMLElement, options);
+            const tabulatorInstance: TabulatorInstance = { id: `${pluginName}-${index}`, spec, table, built: false };
+            table.on('tableBuilt', () => {
+                table.off('tableBuilt');
+                tabulatorInstance.built = true;
+            });
+            tabulatorInstances.push(tabulatorInstance);
         }
-        const dataNameSelectedSuffix = defaultCommonOptions.dataNameSelectedSuffix;
         const instances: IInstance[] = tabulatorInstances.map((tabulatorInstance, index) => {
             const initialSignals = [{
-                name: tabulatorInstance.spec.dataSignalName,
+                name: tabulatorInstance.spec.dataSourceName,
                 value: null,
                 priority: -1,
                 isData: true,
             }];
-            if (tabulatorInstance.spec.options?.selectableRows) {
+            if (tabulatorInstance.spec.tabulatorOptions?.selectableRows) {
                 initialSignals.push({
-                    name: `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`,
+                    name: tabulatorInstance.spec.variableId,
                     value: [],
                     priority: -1,
                     isData: true,
@@ -86,7 +98,7 @@ export const tabulatorPlugin: Plugin = {
                 ...tabulatorInstance,
                 initialSignals,
                 recieveBatch: async (batch) => {
-                    const newData = batch[tabulatorInstance.spec.dataSignalName]?.value as object[];
+                    const newData = batch[tabulatorInstance.spec.dataSourceName]?.value as object[];
                     if (newData) {
                         //make sure tabulator is ready before setting data
                         if (!tabulatorInstance.built) {
@@ -102,15 +114,15 @@ export const tabulatorPlugin: Plugin = {
                     }
                 },
                 beginListening(sharedSignals) {
-                    if (tabulatorInstance.spec.options?.selectableRows) {
+                    if (tabulatorInstance.spec.tabulatorOptions?.selectableRows) {
                         for (const { isData, signalName } of sharedSignals) {
                             if (isData) {
-                                const matchData = signalName === `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`;
+                                const matchData = signalName === tabulatorInstance.spec.variableId;
                                 if (matchData) {
                                     tabulatorInstance.table.on('rowSelectionChanged', (e, rows) => {
                                         const selectedData = tabulatorInstance.table.getSelectedData();
                                         const batch: Batch = {
-                                            [`${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`]: {
+                                            [tabulatorInstance.spec.variableId]: {
                                                 value: selectedData,
                                                 isData: true,
                                             },
