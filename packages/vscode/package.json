@@ -3,7 +3,7 @@
   "displayName": "Chartifact",
   "private": true,
   "description": "",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "msrvida",
   "repository": {
     "type": "git",
@@ -163,7 +163,7 @@
     "pretest": "npm run compile-web",
     "vscode:prepublish": "npm run package-web",
     "build": "npm run resources && npm run compile-web",
-    "build:06": "npm run build",
+    "build:08": "npm run build",
     "compile-web": "npm run check-types && npm run lint && npm run resources && node esbuild.js",
     "watch-web": "npm-run-all -p watch-web:*",
     "watch-web:esbuild": "node esbuild.js --watch",
@@ -177,6 +177,6 @@
     "postpackage": "node ./scripts/move-package.mjs"
   },
   "devDependencies": {
-    "vsce": "^2.15.0"
+    "@vscode/vsce": "^3.6.0"
   }
 }

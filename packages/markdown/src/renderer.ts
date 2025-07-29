@@ -7,7 +7,7 @@ import MarkdownIt from 'markdown-it';
 import { Renderers } from 'vega-typings';
 import { create, IInstance, plugins } from './factory.js';
 import { SignalBus } from './signalbus.js';
-import { defaultCommonOptions } from 'common';
+import { defaultCommonOptions, SpecReview } from 'common';
 
 export interface ErrorHandler {
     (error: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string): void;
@@ -64,14 +64,13 @@ export class Renderer {
 
     async render(markdown: string) {
         //loop through all the destroy handlers and call them. have the key there to help us debug
-        await this.reset();
+        this.reset();
 
-        const content = this.renderHtml(markdown);
+        const html = this.renderHtml(markdown);
+        this.element.innerHTML = html;
+        const specs = this.hydrateSpecs();
 
-        // Set all content at once
-        this.element.innerHTML = content;
-
-        await this.hydrate();
+        await this.hydrate(specs);
     }
 
     renderHtml(markdown: string) {
@@ -88,17 +87,38 @@ export class Renderer {
         return content;
     }
 
-    async hydrate() {
+    hydrateSpecs() {
+        this.ensureMd();
+
+        const specs: SpecReview<{}>[] = [];
+
+        //loop through all the plugins and hydrate their specs and flag them id needed
+        this.signalBus.log('Renderer', 'hydrate specs');
+
+        for (let i = 0; i < plugins.length; i++) {
+            const plugin = plugins[i];
+            if (plugin.hydrateSpecs) {
+                specs.push(...plugin.hydrateSpecs(this, this.options.errorHandler));
+            }
+        }
+
+        return specs;
+    }
+
+    async hydrate(specs: SpecReview<{}>[]) {
         this.ensureMd();
 
         //loop through all the plugins and render them
-        this.signalBus.log('Renderer', 'rendering DOM');
+        this.signalBus.log('Renderer', 'hydrate components');
         const hydrationPromises: Promise<Hydration>[] = [];
+
         for (let i = 0; i < plugins.length; i++) {
             const plugin = plugins[i];
             if (plugin.hydrateComponent) {
+                //get only those specs that match the plugin name
+                const specsForPlugin = specs.filter(spec => spec.pluginName === plugin.name);
                 //make a new promise that returns IInstances but adds the plugin name
-                hydrationPromises.push(plugin.hydrateComponent(this, this.options.errorHandler).then(instances => {
+                hydrationPromises.push(plugin.hydrateComponent(this, this.options.errorHandler, specsForPlugin).then(instances => {
                     return {
                         pluginName: plugin.name,
                         instances,

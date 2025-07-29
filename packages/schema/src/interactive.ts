@@ -8,24 +8,34 @@ import { DataSourceBase, VariableID, VariableControl, ElementBase, UrlRef } from
  * Checkbox
  * use for boolean values
  */
-export interface CheckboxElement extends VariableControl {
+export interface CheckboxElement extends CheckboxProps {
   type: 'checkbox';
+}
+export interface CheckboxProps extends VariableControl {
 }
 
 /**
  * Textbox
  * use sparingly - typically only for text input
  */
-export interface TextboxElement extends VariableControl {
+export interface TextboxElement extends TextboxElementProps {
   type: 'textbox';
+}
+export interface TextboxElementProps extends VariableControl {
+  /** whether to render as a textarea instead of input */
+  multiline?: boolean;
+  /** placeholder text to show when input is empty */
+  placeholder?: string;
 }
 
 /**
  * Slider
  * prefer sliders over textbox for numbers. Never use for boolean values.
  */
-export interface SliderElement extends VariableControl {
+export interface SliderElement extends SliderElementProps {
   type: 'slider';
+}
+export interface SliderElementProps extends VariableControl {
   min: number;
   max: number;
   step: number;
@@ -43,9 +53,10 @@ export interface DynamicDropdownOptions {
   fieldName: string;
 }
 
-export interface DropdownElement extends VariableControl {
+export interface DropdownElement extends DropdownElementProps {
   type: 'dropdown';
-
+}
+export interface DropdownElementProps extends VariableControl {
   /** one of either options or dynamicOptions must be set */
   options?: string[];
   dynamicOptions?: DynamicDropdownOptions;
@@ -86,38 +97,49 @@ export interface ChartElement extends ElementBase {
  * Image element
  * use for displaying images or server-generated visualizations
  */
-export interface ImageElement extends ElementBase {
+export interface ImageElement extends ElementBase, ImageElementProps {
   type: 'image';
+  urlRef: UrlRef;
+}
+export interface ImageElementProps {
   alt?: string;
   height?: number;
   width?: number;
-  urlRef: UrlRef;
 }
 
 /**
  * Presets
  * use for storing and applying preset batches of signal states
  */
-export interface PresetsElement extends ElementBase {
-    type: 'presets';
-    presets: Preset[];
+export interface PresetsElement extends ElementBase, PresetsElementProps {
+  type: 'presets';
+}
+export interface PresetsElementProps {
+  presets: Preset[];
 }
 
 export interface Preset {
-    name: string;
-    description?: string;
-    state: { [signalName: string]: unknown };
+  name: string;
+  description?: string;
+  state: { [signalName: string]: unknown };
 }
 
 /**
  * Table
  * use for tabular data
  */
-export interface TableElement extends ElementBase {
+export interface TableElement extends TableElementProps {
   type: 'table';
+}
+export interface TableElementProps extends VariableControl {
+
+  /** Name of the data source to use for incoming data (output data is available via the variableId of this table element) */
   dataSourceName: string;
-  /** Tabulator options (must be serializable, so no callbacks allowed) */
-  options?: object;
+  
+  editable?: boolean;
+
+  /** Tabulator options (must be JSON stringify-able, so no callbacks allowed) */
+  tabulatorOptions?: object;
 
   /**
    * Example table options

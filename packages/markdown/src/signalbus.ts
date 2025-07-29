@@ -88,6 +88,7 @@ export class SignalBus {
     }
 
     registerPeer(peer: IInstance) {
+        this.log('registerPeer', 'register', peer);
         this.peers.push(peer);
         for (const initialSignal of peer.initialSignals) {
             if (!(initialSignal.name in this.signalDeps)) {

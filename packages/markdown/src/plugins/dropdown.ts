@@ -3,8 +3,11 @@
 * Licensed under the MIT License.
 */
 
-import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
-import { sanitizedHTML } from '../sanitize.js';
+import { DropdownElementProps } from 'schema';
+import { Batch, IInstance, Plugin } from '../factory.js';
+import { pluginClassName } from './util.js';
+import { flaggableJsonPlugin } from './config.js';
+import { PluginNames } from './interfaces.js';
 
 interface DropdownInstance {
     id: string;
@@ -12,70 +15,55 @@ interface DropdownInstance {
     element: HTMLSelectElement;
 }
 
-interface DynamicDropdownOptions {
-    dataSignalName: string;
-    fieldName: string;
-}
-
-export interface DropdownSpec {
-    name: string;
+export interface DropdownSpec extends DropdownElementProps {
     value?: string | string[];
-    label?: string;
-    //one of either static or dynamic options must be set
-    options?: string[];
-    multiple?: boolean;
-    size?: number;
-    dynamicOptions?: DynamicDropdownOptions;
 }
 
-export const dropdownPlugin: Plugin = {
-    name: 'dropdown',
-    initializePlugin: (md) => definePlugin(md, 'dropdown'),
-    fence: (token, idx) => {
-        const DropdownId = `Dropdown-${idx}`;
-        return sanitizedHTML('div', { id: DropdownId, class: 'dropdown' }, token.content.trim());
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
+const pluginName: PluginNames = 'dropdown';
+const className = pluginClassName(pluginName);
+
+export const dropdownPlugin: Plugin<DropdownSpec> = {
+    ...flaggableJsonPlugin<DropdownSpec>(pluginName, className),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
         const dropdownInstances: DropdownInstance[] = [];
-        const containers = renderer.element.querySelectorAll('.dropdown');
-        for (const [index, container] of Array.from(containers).entries()) {
-            if (!container.textContent) continue;
+        for (let index = 0; index < specs.length; index++) {
+            const specReview = specs[index];
+            if (!specReview.approvedSpec) {
+                continue;
+            }
+            const container = renderer.element.querySelector(`#${specReview.containerId}`);
 
-            try {
-                const spec: DropdownSpec = JSON.parse(container.textContent);
+            const spec: DropdownSpec = specReview.approvedSpec;
 
-                const html = `<form class="vega-bindings">
+            const html = `<form class="vega-bindings">
                     <div class="vega-bind">
                         <label>
-                            <span class="vega-bind-name">${spec.label || spec.name}</span>
-                            <select class="vega-bind-select" id="${spec.name}" name="${spec.name}" ${spec.multiple ? 'multiple' : ''} size="${spec.size || 1}">
-${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""))}
+                            <span class="vega-bind-name">${spec.label || spec.variableId}</span>
+                            <select class="vega-bind-select" id="${spec.variableId}" name="${spec.variableId}" ${spec.multiple ? 'multiple' : ''} size="${spec.size || 1}">
                             </select>
                         </label>
                     </div>
                 </form>`;
-                container.innerHTML = html;
-                const element = container.querySelector('select') as HTMLSelectElement;
+            container.innerHTML = html;
+            const element = container.querySelector('select') as HTMLSelectElement;
 
-                const dropdownInstance: DropdownInstance = { id: container.id, spec, element };
-                dropdownInstances.push(dropdownInstance);
-            } catch (e) {
-                container.innerHTML = `<div class="error">${e.toString()}</div>`;
-                errorHandler(e, 'Dropdown', index, 'parse', container);
-                continue;
-            }
+            // Safely set the initial options
+            setSelectOptions(element, spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""));
+
+            const dropdownInstance: DropdownInstance = { id: `${pluginName}-${index}`, spec, element };
+            dropdownInstances.push(dropdownInstance);
         }
         const instances: IInstance[] = dropdownInstances.map((dropdownInstance, index) => {
             const { element, spec } = dropdownInstance;
             const initialSignals = [{
-                name: spec.name,
+                name: spec.variableId,
                 value: spec.value || null,
                 priority: 1,
                 isData: false,
             }];
             if (spec.dynamicOptions) {
                 initialSignals.push({
-                    name: spec.dynamicOptions.dataSignalName,
+                    name: spec.dynamicOptions.dataSourceName,
                     value: null,
                     priority: -1,
                     isData: true,
@@ -86,8 +74,8 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                 initialSignals,
                 recieveBatch: async (batch) => {
                     const { dynamicOptions } = spec;
-                    if (dynamicOptions?.dataSignalName) {
-                        const newData = batch[dynamicOptions.dataSignalName]?.value as object[];
+                    if (dynamicOptions?.dataSourceName) {
+                        const newData = batch[dynamicOptions.dataSourceName]?.value as object[];
                         if (newData) {
                             //pluck the field from the data and add options to the select
                             let hasFieldName = false;
@@ -103,19 +91,23 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                             if (hasFieldName) {
                                 const options = Array.from(uniqueOptions);
                                 const existingSelection = spec.multiple ? Array.from(element.selectedOptions).map(option => option.value) : element.value;
-                                element.innerHTML = getOptions(spec.multiple ?? false, options, existingSelection);
+                                setSelectOptions(element, spec.multiple ?? false, options, existingSelection);
                                 if (!spec.multiple) {
-                                    element.value = (batch[spec.name]?.value as string) || options[0];
+                                    element.value = (batch[spec.variableId]?.value as string) || options[0];
                                 }
                             } else {
                                 //if the field doesn't exist, set the select to the first option
-                                element.innerHTML = `<option value="">Field "${dynamicOptions.fieldName}" not found</option>`;
+                                element.innerHTML = '';
+                                const errorOption = document.createElement('option');
+                                errorOption.value = '';
+                                errorOption.textContent = `Field "${dynamicOptions.fieldName}" not found`;
+                                element.appendChild(errorOption);
                                 element.value = '';
                             }
                         }
                     }
-                    if (batch[spec.name]) {
-                        const value = batch[spec.name].value as string | string[];
+                    if (batch[spec.variableId]) {
+                        const value = batch[spec.variableId].value as string | string[];
                         if (spec.multiple) {
                             Array.from(element.options).forEach((option) => {
                                 option.selected = !!(value && Array.isArray(value) && value.includes(option.value));
@@ -132,7 +124,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
                             ? Array.from((e.target as HTMLSelectElement).selectedOptions).map(option => option.value)
                             : (e.target as HTMLSelectElement).value;
                         const batch: Batch = {
-                            [spec.name]: {
+                            [spec.variableId]: {
                                 value,
                                 isData: false,
                             },
@@ -155,8 +147,11 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     },
 };
 
-function getOptions(multiple: boolean, options: string[], selected: string | string[]) {
-    if (!options) {
+function setSelectOptions(selectElement: HTMLSelectElement, multiple: boolean, options: string[], selected: string | string[]) {
+    // Clear existing options
+    selectElement.innerHTML = '';
+
+    if (!options || options.length === 0) {
         if (multiple) {
             if (Array.isArray(selected)) {
                 options = selected as string[];
@@ -171,16 +166,24 @@ function getOptions(multiple: boolean, options: string[], selected: string | str
             }
         }
     }
-    if (!options) {
-        return '';
+
+    if (!options || options.length === 0) {
+        return;
     }
-    return options.map((option) => {
-        let attr = '';
+
+    options.forEach((optionValue) => {
+        const optionElement = document.createElement('option');
+        optionElement.value = optionValue;
+        optionElement.textContent = optionValue; // This safely escapes HTML
+
+        let isSelected = false;
         if (multiple) {
-            attr = (selected as string[] || []).includes(option) ? 'selected' : '';
+            isSelected = (selected as string[] || []).includes(optionValue);
         } else {
-            attr = selected === option ? 'selected' : '';
+            isSelected = selected === optionValue;
         }
-        return `<option value="${option}" ${attr}>${option}</option>`;
-    }).join('\n');
+        optionElement.selected = isSelected;
+
+        selectElement.appendChild(optionElement);
+    });
 }

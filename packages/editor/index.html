@@ -8,9 +8,10 @@
 
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-    <script src="https://unpkg.com/markdown-it/dist/markdown-it.min.js"></script>
 
     <!-- use only for dev mode / local -->
+    <script src="https://unpkg.com/markdown-it/dist/markdown-it.min.js"></script>
+    <script src="https://unpkg.com/css-tree/dist/csstree.js"></script>
     <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
 
 </head>
@@ -22,8 +23,9 @@
     <!-- sandbox -->
     <!-- <script type="module">
         import { App } from './src/app.js';
+        import { appProps } from './dev/index.js';
         const root = ReactDOM.createRoot(document.getElementById("app"));
-        root.render(React.createElement(App));
+        root.render(React.createElement(App, appProps));
     </script> -->
 
     <!-- use only for dev mode / local -->

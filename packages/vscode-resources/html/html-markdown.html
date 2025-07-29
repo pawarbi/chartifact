@@ -37,20 +37,15 @@
         }
     </style>
 
-    <script src="https://unpkg.com/markdown-it/dist/markdown-it.min.js"></script>
-
     <!-- TODO: get this from CDN -->
     {{SANDBOX_UMD_JS}}
-
-    <!-- TODO: get this from CDN -->
-    {{COMPILER_UMD_JS}}
 
 </head>
 
 <body>
     <main>
         <textarea id="markdown-input"
-            placeholder="Type your Interactive Document json here...">{{TEXTAREA_CONTENT}}</textarea>
+            placeholder="Type your Interactive Document markdown here...">{{TEXTAREA_CONTENT}}</textarea>
     </main>
 
     <footer>
@@ -58,7 +53,7 @@
         Powered by <a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a>
     </footer>
 
-    {{HTML_JSON_JS}}
+    {{HTML_MARKDOWN_JS}}
 
 </body>
 

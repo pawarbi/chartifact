@@ -1,6 +1,6 @@
 import { Spec as VegaSpec } from 'vega-typings';
 import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
-import { ChartFull, DataSource, ElementGroup, InteractiveDocument, Variable } from 'schema';
+import { ChartFull, DataSource, ElementGroup, InteractiveDocument, TableElement, Variable } from 'schema';
 import { getChartType } from './util.js';
 import { addDynamicDataLoaderToSpec, addStaticDataLoaderToSpec } from './loader.js';
 import { Plugins } from '@microsoft/interactive-document-markdown';
@@ -38,7 +38,9 @@ export function targetMarkdown(page: InteractiveDocument) {
         mdSections.push(tickWrap('css', page.layout.css));
     }
 
-    const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables);
+    const tableElements = page.groups.flatMap(group => group.elements.filter(e => typeof e !== 'string' && e.type === 'table'));
+
+    const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables, tableElements);
 
     for (const dataLoader of dataLoaders.filter(dl => dl.type === 'spec')) {
         mdSections.push(chartWrap(dataLoader.spec));
@@ -55,14 +57,13 @@ export function targetMarkdown(page: InteractiveDocument) {
     return markdown;
 }
 
-function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[]) {
+function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], tableElements: TableElement[]) {
 
     //create a Vega spec with all variables
-    const spec = createSpecWithVariables(defaultCommonOptions.dataNameSelectedSuffix, variables);
+    const spec = createSpecWithVariables(variables, tableElements);
     const vegaScope = new VegaScope(spec);
 
     for (const dataSource of dataSources) {
-
         switch (dataSource.type) {
             case 'json': {
                 addStaticDataLoaderToSpec(vegaScope, dataSource);
@@ -77,30 +78,28 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[]) {
                 break;
             }
         }
-
-        //TODO: only add this if there is a selectable table ?
-
-        //add a special "-selected" data item
-        if (!spec.data) {
-            spec.data = [];
-        }
-        spec.data.unshift({
-            name: dataSource.dataSourceName + defaultCommonOptions.dataNameSelectedSuffix,
-        });
     }
 
     return vegaScope;
 }
 
+type pluginSpecs = Plugins.CheckboxSpec | Plugins.DropdownSpec | Plugins.ImageSpec | Plugins.PresetsSpec | Plugins.SliderSpec | Plugins.TabulatorSpec | Plugins.TextboxSpec;
+
 function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: VegaScope) {
     const mdElements: string[] = [];
+
+    const addSpec = (pluginName: Plugins.PluginNames, spec: pluginSpecs) => {
+        mdElements.push(jsonWrap(pluginName, JSON.stringify(spec, null, 2)));
+    }
+
     for (const element of group.elements) {
         if (typeof element === 'string') {
             mdElements.push(element);
         } else if (typeof element === 'object') {
             switch (element.type) {
                 case 'chart': {
-                    const chartFull = element.chart as ChartFull;
+                    const { chart } = element;
+                    const chartFull = chart as ChartFull;
                     //see if it's a placeholder or a full chart
                     if (!chartFull.spec) {
                         //add a markdown element (not a chart element) with an image of the spinner at /img/chart-spinner.gif
@@ -111,95 +110,85 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                     break;
                 }
                 case 'checkbox': {
+                    const { label, variableId } = element;
                     const cbSpec: Plugins.CheckboxSpec = {
-                        name: element.variableId,
-                        value: variables.find(v => v.variableId === element.variableId)?.initialValue as boolean,
-                        label: element.label,
+                        variableId,
+                        value: variables.find(v => v.variableId === variableId)?.initialValue as boolean,
+                        label,
                     };
-                    mdElements.push(jsonWrap('checkbox', JSON.stringify(cbSpec, null, 2)));
+                    addSpec('checkbox', cbSpec);
                     break;
                 }
                 case 'dropdown': {
+                    const { label, variableId, options, dynamicOptions, multiple, size } = element;
                     const ddSpec: Plugins.DropdownSpec = {
-                        name: element.variableId,
-                        value: variables.find(v => v.variableId === element.variableId)?.initialValue as string | string[],
-                        label: element.label,
+                        variableId,
+                        value: variables.find(v => v.variableId === variableId)?.initialValue as string | string[],
+                        label,
                     };
-                    if (element.dynamicOptions) {
+                    if (dynamicOptions) {
+                        const { dataSourceName, fieldName } = dynamicOptions;
                         ddSpec.dynamicOptions = {
-                            dataSignalName: element.dynamicOptions.dataSourceName,
-                            fieldName: element.dynamicOptions.fieldName,
+                            dataSourceName,
+                            fieldName,
                         };
                     } else {
-                        ddSpec.options = element.options;
+                        ddSpec.options = options;
                     }
-                    if (element.multiple) {
-                        ddSpec.multiple = element.multiple;
-                        ddSpec.size = element.size || 1;
+                    if (multiple) {
+                        ddSpec.multiple = multiple;
+                        ddSpec.size = size || 1;
                     }
-
-                    mdElements.push(jsonWrap('dropdown', JSON.stringify(ddSpec, null, 2)));
+                    addSpec('dropdown', ddSpec);
                     break;
                 }
                 case 'image': {
-                    const urlSignal = vegaScope.createUrlSignal(element.urlRef);
+                    const { urlRef, alt, width, height } = element;
+                    const urlSignal = vegaScope.createUrlSignal(urlRef);
                     const imageSpec: Plugins.ImageSpec = {
                         srcSignalName: urlSignal.name,
-                        alt: element.alt,
-                        width: element.width,
-                        height: element.height,
+                        alt,
+                        width,
+                        height,
                     };
-                    mdElements.push(jsonWrap('image', JSON.stringify(imageSpec, null, 2)));
+                    addSpec('image', imageSpec);
                     break;
                 }
                 case 'presets': {
-                    const presetsSpec: Plugins.PresetsSpec = element.presets;
-                    mdElements.push(jsonWrap('presets', JSON.stringify(presetsSpec, null, 2)));
+                    const { presets } = element;
+                    const presetsSpec: Plugins.PresetsSpec = presets;
+                    addSpec('presets', presetsSpec);
                     break;
                 }
                 case 'slider': {
-                    const spec: VegaSpec = {
-                        $schema,
-                        signals: [
-                            {
-                                name: element.variableId,
-                                value: variables.find(v => v.variableId === element.variableId)?.initialValue,
-                                bind: {
-                                    input: "range",
-                                    min: element.min,
-                                    max: element.max,
-                                    step: element.step,
-                                    debounce: 100,
-                                }
-                            }
-                        ]
+                    const { label, min, max, step, variableId } = element;
+                    const sliderSpec: Plugins.SliderSpec = {
+                        variableId,
+                        value: variables.find(v => v.variableId === variableId)?.initialValue as number,
+                        label,
+                        min,
+                        max,
+                        step,
                     };
-                    mdElements.push(chartWrap(spec));
+                    addSpec('slider', sliderSpec);
                     break;
                 }
                 case 'table': {
-                    const tableSpec: Plugins.TabulatorSpec = {
-                        dataSignalName: element.dataSourceName,
-                        options: element.options,
-                    };
-                    mdElements.push(jsonWrap('tabulator', JSON.stringify(tableSpec, null, 2)));
+                    const { dataSourceName, variableId, tabulatorOptions, editable } = element;
+                    const tableSpec: Plugins.TabulatorSpec = { dataSourceName, variableId, tabulatorOptions, editable };
+                    addSpec('tabulator', tableSpec);
                     break;
                 }
                 case 'textbox': {
-                    const spec: VegaSpec = {
-                        $schema,
-                        signals: [
-                            {
-                                name: element.variableId,
-                                value: variables.find(v => v.variableId === element.variableId)?.initialValue,
-                                bind: {
-                                    input: "text",
-                                    debounce: 100,
-                                }
-                            }
-                        ]
+                    const { variableId, label, multiline, placeholder } = element;
+                    const textboxSpec: Plugins.TextboxSpec = {
+                        variableId,
+                        value: variables.find(v => v.variableId === variableId)?.initialValue as string,
+                        label,
+                        multiline,
+                        placeholder,
                     };
-                    mdElements.push(chartWrap(spec));
+                    addSpec('textbox', textboxSpec);
                     break;
                 }
             }

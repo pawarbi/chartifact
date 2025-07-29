@@ -18,7 +18,7 @@
     "tsc": "tsc -p .",
     "bundle": "vite build --config vite.bundle.config.js",
     "build": "npm run tsc && npm run bundle",
-    "build:01": "npm run build"
+    "build:02": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -34,5 +34,8 @@
   "bugs": {
     "url": "https://github.com/microsoft/interactive-documents/issues"
   },
-  "homepage": "https://github.com/microsoft/interactive-documents#readme"
+  "homepage": "https://github.com/microsoft/interactive-documents#readme",
+  "devDependencies": {
+    "@types/css-tree": "^2.3.10"
+  }
 }

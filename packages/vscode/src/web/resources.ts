@@ -14,6 +14,7 @@ export const initializeResources = async (context: vscode.ExtensionContext): Pro
     //offline copies for editor sandbox (which can't access via vscode resources url)
     'tabulator.min.css',
     'markdown-it.min.js',
+    'csstree.js',
     'vega.min.js',
     'vega-lite.min.js',
     'tabulator.min.js',

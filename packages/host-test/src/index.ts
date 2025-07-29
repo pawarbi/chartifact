@@ -1,19 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Minimal Parent</title>
-</head>
-<body>
-    <iframe id="host" src="index.html" width="100%" height="600"></iframe>
+const iframe = document.getElementById('host') as HTMLIFrameElement;
 
-    <script>
-        const iframe = document.getElementById('host');
-
-        window.addEventListener('message', (event) => {
-            if (event.data.status === 'ready') {
-                iframe.contentWindow.postMessage({
-                    markdown: `# Auto-loaded Content
+window.addEventListener('message', (event) => {
+  const hostStatusMessage = event.data as IDocs.common.HostStatusMessage;
+  if (hostStatusMessage.type === 'hostStatus' && hostStatusMessage.hostStatus === 'ready') {
+    const message: IDocs.common.HostRenderRequestMessage = {
+      type: 'hostRenderRequest',
+      markdown: `# Auto-loaded Content
 
 This markdown was automatically sent when the iframe became ready.
 
@@ -57,10 +49,7 @@ The colors distinguish between different weather conditions such as sun, fog, dr
   }
 }
 \`\`\`
-`
-                }, '*');
-            }
-        });
-    </script>
-</body>
-</html>
+`};
+    iframe.contentWindow.postMessage(message, '*');
+  }
+});

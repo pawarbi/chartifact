@@ -1,27 +1,19 @@
 window.addEventListener('DOMContentLoaded', () => {
     const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-    let sandbox: IDocs.sandbox.Sandbox;
-    const render = () => {
-        const json = textarea.value;
-        let markdown;
-        try {
-            const interactiveDocument = JSON.parse(json);
-            if (typeof interactiveDocument !== 'object') {
-                markdown = 'Invalid Interactive Document JSON';
-            } else {
-                markdown = IDocs.compiler.targetMarkdown(interactiveDocument);
-            }
-        } catch (error) {
-            markdown = 'Failed to parse Interactive Document JSON';
-        }
-        if (!sandbox) {
-            sandbox = new IDocs.sandbox.Sandbox('main', markdown);
-        } else {
-            sandbox.send(markdown);
-        }
-    };
-    textarea.addEventListener('input', render);
-    render();
+    const sandbox = new IDocs.sandbox.Sandbox('main', textarea.value, {
+        onApprove: (message) => {
+            //Here you can approve unapproved specs per your own policy
+            const { specs } = message;
+            return specs;
+        },
+        onError: (error) => {
+            console.error('Sandbox error:', error);
+        },
+    });
+
+    textarea.addEventListener('input', () => {
+        sandbox.send(textarea.value);
+    });
 
     // Bot-friendly content hiding strategy:
     // 1. Bots that don't execute JS will see the textarea content in full

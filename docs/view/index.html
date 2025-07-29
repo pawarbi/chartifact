@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Document Host</title>
-    <script src="https://unpkg.com/markdown-it/dist/markdown-it.min.js"></script>
     <script src="../dist/idocs.host.umd.js"></script>
     <style>
         body {
@@ -88,16 +87,7 @@
         <button>edit a copy</button>
     </footer>
 
-    <script>
-        const host = new IDocs.host.Listener({
-            app: 'main',
-            loading: '#loading',
-            help: '#help',
-            uploadButton: '#upload-btn',
-            fileInput: '#file-input',
-            textarea: '#textarea',
-        });
-    </script>
+    <script src="../assets/js/view.js"></script>
 
 </body>
 

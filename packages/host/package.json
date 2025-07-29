@@ -13,7 +13,7 @@
     "tsc": "tsc -p .",
     "bundle": "vite build --config vite.bundle.config.js",
     "build": "npm run tsc && npm run bundle",
-    "build:04": "npm run build",
+    "build:05": "npm run build",
     "preview": "vite preview",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

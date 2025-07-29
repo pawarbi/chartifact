@@ -3,128 +3,280 @@
 * Licensed under the MIT License.
 */
 
-import { defaultCommonOptions } from 'common';
-import { Batch, definePlugin, IInstance, Plugin } from '../factory.js';
-import { sanitizedHTML } from '../sanitize.js';
+import { Batch, IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
 import { Tabulator as TabulatorType, Options as TabulatorOptions } from 'tabulator-tables';
+import { newId, pluginClassName } from './util.js';
+import { TableElementProps } from 'schema';
+import { flaggableJsonPlugin } from './config.js';
+import { PluginNames } from './interfaces.js';
 
 interface TabulatorInstance {
     id: string;
     spec: TabulatorSpec;
+    container: Element;
     table: TabulatorType;
     built: boolean;
+    selectableRows: boolean;
 }
 
-export interface TabulatorSpec {
-    dataSignalName: string;
-    options?: TabulatorOptions;
+export interface TabulatorSpec extends TableElementProps {
+    tabulatorOptions?: TabulatorOptions;    //recast the default with strong typing
 }
 
 declare const Tabulator: typeof TabulatorType;
 
-export const tabulatorPlugin: Plugin = {
-    name: 'tabulator',
-    initializePlugin: (md) => definePlugin(md, 'tabulator'),
-    fence: (token, idx) => {
-        const tabulatorId = `tabulator-${idx}`;
-        return sanitizedHTML('div', { id: tabulatorId, class: 'tabulator', style: 'box-sizing: border-box;' }, token.content.trim());
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
+export function inspectTabulatorSpec(spec: TabulatorSpec) {
+    //TODO inspect spec for flags, such as http:// instead of https://, or other security issues
+    const flaggableSpec: RawFlaggableSpec<TabulatorSpec> = {
+        spec,
+    };
+    return flaggableSpec;
+}
+
+const pluginName: PluginNames = 'tabulator';
+const className = pluginClassName(pluginName);
+
+export const tabulatorPlugin: Plugin<TabulatorSpec> = {
+    ...flaggableJsonPlugin<TabulatorSpec>(pluginName, className, inspectTabulatorSpec, { style: 'box-sizing: border-box;' }),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
         const tabulatorInstances: TabulatorInstance[] = [];
-        const containers = renderer.element.querySelectorAll('.tabulator');
-        for (const [index, container] of Array.from(containers).entries()) {
-            if (!container.textContent) continue;
-            if (!Tabulator) {
-                errorHandler(new Error('Tabulator not found'), 'tabulator', index, 'init', container);
+
+        // Generate a unique field name for the delete column, used for all tables in this hydration
+        const deleteFieldname = newId();
+
+        for (let index = 0; index < specs.length; index++) {
+            const specReview = specs[index];
+            if (!specReview.approvedSpec) {
+                continue;
+            }
+            const container = renderer.element.querySelector(`#${specReview.containerId}`);
+            if (!container) {
                 continue;
             }
 
-            try {
-                const spec: TabulatorSpec = JSON.parse(container.textContent);
+            const spec: TabulatorSpec = specReview.approvedSpec;
+            const buttons = spec.editable
+                ? `<div class="tabulator-buttons">
+                        <button type="button" class="tabulator-add-row">Add Row</button>
+                        <button type="button" class="tabulator-reset">Reset</button>
+                   </div>`
+                : '';
 
-                let options: TabulatorOptions = {
-                    autoColumns: true,
-                    layout: 'fitColumns',
-                    maxHeight: '200px',
-                };
+            container.innerHTML = `<div class="tabulator-parent">
+                <div class="tabulator-nested"></div>
+                ${buttons}
+            </div>`;
+            const nestedDiv = container.querySelector('.tabulator-nested');
 
-                //see if default options is an object with no properties
-                if (spec.options && Object.keys(spec.options).length > 0) {
-                    options = spec.options;
-                }
-
-                const table = new Tabulator(container as HTMLElement, options);
-                const tabulatorInstance: TabulatorInstance = { id: container.id, spec, table, built: false };
-                table.on('tableBuilt', () => {
-                    table.off('tableBuilt');
-                    tabulatorInstance.built = true;
-                });
-                tabulatorInstances.push(tabulatorInstance);
-            } catch (e) {
-                container.innerHTML = `<div class="error">${e.toString()}</div>`;
-                errorHandler(e, 'tabulator', index, 'parse', container);
+            if (!Tabulator && index === 0) {
+                errorHandler(new Error('Tabulator not found'), pluginName, index, 'init', container);
                 continue;
             }
+
+            if (!spec.dataSourceName || !spec.variableId) {
+                errorHandler(new Error('Tabulator requires dataSourceName and variableId'), pluginName, index, 'init', container);
+                continue;
+            } else if (spec.dataSourceName === spec.variableId) {
+                errorHandler(new Error('Tabulator dataSourceName and variableId cannot be the same'), pluginName, index, 'init', container);
+                continue;
+            }
+
+            let options: TabulatorOptions = {
+                autoColumns: true,
+                layout: 'fitColumns',
+                maxHeight: '200px',
+            };
+
+            //see if default options is an object with no properties
+            if (spec.tabulatorOptions && Object.keys(spec.tabulatorOptions).length > 0) {
+                options = spec.tabulatorOptions;
+            }
+
+            const selectableRows = !!options?.selectableRows || false;
+            if (spec.editable && selectableRows) {
+                delete options.selectableRows; //remove selectableRows from options if editable
+            }
+
+            const table = new Tabulator(nestedDiv as HTMLElement, options);
+
+            const tabulatorInstance: TabulatorInstance = {
+                id: `${pluginName}-${index}`,
+                spec,
+                container,
+                table,
+                built: false,
+                selectableRows,
+            };
+            table.on('tableBuilt', () => {
+                table.off('tableBuilt');
+                tabulatorInstance.built = true;
+            });
+            tabulatorInstances.push(tabulatorInstance);
         }
-        const dataNameSelectedSuffix = defaultCommonOptions.dataNameSelectedSuffix;
         const instances: IInstance[] = tabulatorInstances.map((tabulatorInstance, index) => {
+            const { container, spec, table, selectableRows } = tabulatorInstance;
             const initialSignals = [{
-                name: tabulatorInstance.spec.dataSignalName,
+                name: spec.dataSourceName,
                 value: null,
                 priority: -1,
                 isData: true,
             }];
-            if (tabulatorInstance.spec.options?.selectableRows) {
+            if (selectableRows || spec.editable) {
                 initialSignals.push({
-                    name: `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`,
+                    name: spec.variableId,
                     value: [],
                     priority: -1,
                     isData: true,
                 });
             }
+            const outputData = () => {
+                let data: object[];
+                if (selectableRows) {
+                    data = table.getSelectedData();
+                } else {
+                    data = table.getData();
+                }
+
+                //remove the delete column if it exists
+                data.forEach(row => {
+                    delete row[deleteFieldname];
+                });
+
+
+                // Use structuredClone to ensure deep copy
+                // vega may efficiently have symbols on data to cache a datum's values
+                // so this needs to appear to be new data
+                const value = structuredClone(data);
+
+                const batch: Batch = {
+                    [spec.variableId]: {
+                        value,
+                        isData: true,
+                    },
+                };
+                renderer.signalBus.log(tabulatorInstance.id, 'sending batch', batch);
+                renderer.signalBus.broadcast(tabulatorInstance.id, batch);
+            }
+            const setData = (data: object[]) => {
+                table.setData(data).then(() => {
+
+                    // Get current column definitions
+                    let columns = table.getColumnDefinitions()
+                        .filter(cd => cd.field !== deleteFieldname)
+                        .filter(cd => cd.formatter !== 'rowSelection');
+
+                    if (spec.editable) {
+
+                        //inject a column at the beginning for delete
+                        columns.unshift({
+                            headerSort: false,
+                            title: "Delete",
+                            field: deleteFieldname,
+                            titleFormatter: 'tickCross',
+                            width: 40,
+                            formatter: "tickCross",
+                            cellClick: (e, cell) => {
+                                cell.getRow().delete();
+                                outputData();
+                            }
+                        });
+
+                        columns = columns.map(col => {
+                            // Only set editor if not already defined
+                            if (col.editor === undefined) {
+                                // Prefer explicit type, fallback to sorter
+                                const type = (col as any).type || col.sorter;
+                                if (type === "number") {
+                                    return { ...col, editor: "number" };
+                                }
+                                if (type === "date" || type === "datetime") {
+                                    return { ...col, editor: "date" };
+                                }
+                                if (type === "boolean") {
+                                    return { ...col, editor: "tickCross" };
+                                }
+                                // Add more types as needed
+                                return { ...col, editor: "input" };
+                            }
+                            return col;
+                        });
+                    }
+                    table.setColumns(columns);
+
+
+                    outputData();
+
+                }).catch((error) => {
+                    console.error(`Error setting data for Tabulator ${spec.variableId}:`, error);
+                    // errorHandler(error, pluginName, index, 'setData', container);
+                });
+            };
+
+            if (spec.editable) {
+                const addRowBtn = container.querySelector('.tabulator-add-row') as HTMLButtonElement;
+                const resetBtn = container.querySelector('.tabulator-reset') as HTMLButtonElement;
+
+                if (addRowBtn) {
+                    addRowBtn.onclick = () => {
+                        table.addRow({}).then((row) => {
+                            row.scrollTo();
+                        });
+                    };
+                }
+                if (resetBtn) {
+                    resetBtn.onclick = () => {
+                        const value = renderer.signalBus.signalDeps[spec.dataSourceName].value;
+                        if (Array.isArray(value)) {
+                            setData(value);
+                        }
+                    };
+                }
+            }
+
             return {
                 ...tabulatorInstance,
                 initialSignals,
-                recieveBatch: async (batch) => {
-                    const newData = batch[tabulatorInstance.spec.dataSignalName]?.value as object[];
+                recieveBatch: async (batch, from) => {
+                    const newData = batch[spec.dataSourceName]?.value as object[];
                     if (newData) {
                         //make sure tabulator is ready before setting data
                         if (!tabulatorInstance.built) {
-                            tabulatorInstance.table.off('tableBuilt');
-                            tabulatorInstance.table.on('tableBuilt', () => {
+                            table.off('tableBuilt');
+                            table.on('tableBuilt', () => {
                                 tabulatorInstance.built = true;
-                                tabulatorInstance.table.off('tableBuilt');
-                                tabulatorInstance.table.setData(newData);
+                                table.off('tableBuilt');
+                                setData(newData);
                             });
                         } else {
-                            tabulatorInstance.table.setData(newData);
+                            setData(newData);
                         }
                     }
                 },
                 beginListening(sharedSignals) {
-                    if (tabulatorInstance.spec.options?.selectableRows) {
-                        for (const { isData, signalName } of sharedSignals) {
-                            if (isData) {
-                                const matchData = signalName === `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`;
-                                if (matchData) {
-                                    tabulatorInstance.table.on('rowSelectionChanged', (e, rows) => {
-                                        const selectedData = tabulatorInstance.table.getSelectedData();
-                                        const batch: Batch = {
-                                            [`${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`]: {
-                                                value: selectedData,
-                                                isData: true,
-                                            },
-                                        };
-                                        renderer.signalBus.log(tabulatorInstance.id, 'sending batch', batch);
-                                        renderer.signalBus.broadcast(tabulatorInstance.id, batch);
-                                    });
-                                }
-                            }
+                    if (selectableRows) {
+                        const hasMatchingSignal = sharedSignals.some(({ isData, signalName }) =>
+                            isData && signalName === spec.variableId
+                        );
+
+                        if (hasMatchingSignal) {
+                            table.on('rowSelectionChanged', (e, rows) => {
+                                outputData();
+                            });
                         }
+                    }
+                    if (spec.editable) {
+                        table.on('cellEdited', (cell) => {
+                            outputData();
+                        });
                     }
                 },
                 getCurrentSignalValue() {
-                    return tabulatorInstance.table.getSelectedData();
+                    if (selectableRows) {
+                        return tabulatorInstance.table.getSelectedData();
+                    } else {
+                        // When editable, return all data since that's what gets broadcast
+                        return tabulatorInstance.table.getData();
+                    }
                 },
                 destroy: () => {
                     tabulatorInstance.table.destroy();

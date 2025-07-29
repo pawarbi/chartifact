@@ -1,6 +1,9 @@
+import { SpecReview, SandboxedPreHydrateMessage } from "common";
+
 export interface PreviewerOptions {
     onReady?: () => void;
     onError?: (error: Error) => void;
+    onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
 // Previewer class

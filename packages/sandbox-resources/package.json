@@ -1,0 +1,14 @@
+{
+  "name": "sandbox-resources",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "clean": "rimraf dist",
+    "tsc": "tsc -p .",
+    "build": "npm run tsc",
+    "build:03": "npm run build"
+  },
+  "author": "Dan Marshall",
+  "license": "MIT",
+  "description": ""
+}

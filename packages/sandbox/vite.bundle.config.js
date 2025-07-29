@@ -10,6 +10,7 @@ const commonOutputConfig = {
     'markdown-it': 'markdownit',
     'vega': 'vega',
     'vega-lite': 'vegaLite',
+    'css-tree': 'csstree',
   },
   entryFileNames: 'idocs.sandbox.umd.js',
 };
@@ -23,7 +24,7 @@ export default defineConfig({
     emptyOutDir: false,
     rollupOptions: {
       // External dependencies that the library expects consumers to provide
-      external: ['vega', 'vega-lite'],
+      external: ['vega', 'vega-lite', 'css-tree'],
       output: [
         {
           ...commonOutputConfig,

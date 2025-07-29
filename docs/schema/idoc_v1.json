@@ -2520,8 +2520,8 @@
         }
       },
       "required": [
-        "type",
-        "presets"
+        "presets",
+        "type"
       ],
       "type": "object"
     },
@@ -2821,20 +2821,32 @@
       "description": "Table use for tabular data",
       "properties": {
         "dataSourceName": {
+          "description": "Name of the data source to use for incoming data (output data is available via the variableId of this table element)",
           "type": "string"
         },
-        "options": {
-          "description": "Tabulator options (must be serializable, so no callbacks allowed)",
+        "editable": {
+          "type": "boolean"
+        },
+        "label": {
+          "description": "optional label if the variableId is not descriptive enough",
+          "type": "string"
+        },
+        "tabulatorOptions": {
+          "description": "Tabulator options (must be JSON stringify-able, so no callbacks allowed)",
           "type": "object"
         },
         "type": {
           "const": "table",
           "type": "string"
+        },
+        "variableId": {
+          "$ref": "#/definitions/VariableID"
         }
       },
       "required": [
+        "dataSourceName",
         "type",
-        "dataSourceName"
+        "variableId"
       ],
       "type": "object"
     },
@@ -2844,6 +2856,14 @@
       "properties": {
         "label": {
           "description": "optional label if the variableId is not descriptive enough",
+          "type": "string"
+        },
+        "multiline": {
+          "description": "whether to render as a textarea instead of input",
+          "type": "boolean"
+        },
+        "placeholder": {
+          "description": "placeholder text to show when input is empty",
           "type": "string"
         },
         "type": {

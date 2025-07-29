@@ -2,10 +2,12 @@ import React from 'react';
 import { InteractiveDocument } from "schema";
 import { targetMarkdown } from '@microsoft/interactive-document-compiler';
 import { Previewer, Sandbox } from '@microsoft/chartifact-sandbox';
+import { SpecReview, SandboxedPreHydrateMessage } from 'common';
 
 export interface SandboxDocumentPreviewProps {
     page: InteractiveDocument;
     previewer?: typeof Previewer;
+    onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
 export class SandboxDocumentPreview extends React.Component<SandboxDocumentPreviewProps> {
@@ -42,6 +44,7 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
                             }
                         },
                         onError: (error) => console.error('Sandbox initialization failed:', error),
+                        onApprove: this.props.onApprove,
                     }
                 );
             } catch (error) {

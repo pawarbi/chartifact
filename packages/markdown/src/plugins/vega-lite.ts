@@ -3,14 +3,50 @@
 * Licensed under the MIT License.
 */
 
-import { definePlugin, Plugin } from '../factory.js';
+import { Plugin, RawFlaggableSpec } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
+import { flaggableJsonPlugin } from './config.js';
+import { pluginClassName } from './util.js';
+import { inspectVegaSpec, vegaPlugin } from './vega.js';
+import { compile, TopLevelSpec } from 'vega-lite';
+import { Spec } from 'vega';
+import { PluginNames } from './interfaces.js';
 
-export const vegaLitePlugin: Plugin = {
-    name: 'vega-lite',
-    initializePlugin: (md) => definePlugin(md, 'vega-lite'),
-    fence: (token, idx) => {
-        const vegaLiteId = `vega-lite-${idx}`;
-        return sanitizedHTML('div', { id: vegaLiteId, class: 'vega-chart' }, token.content.trim());
+const pluginName: PluginNames = 'vega-lite';
+const className = pluginClassName(pluginName);
+
+export const vegaLitePlugin: Plugin<TopLevelSpec> = {
+    ...flaggableJsonPlugin<TopLevelSpec>(pluginName, className),
+    fence: (token, index) => {
+        let json = token.content.trim();
+        let spec: TopLevelSpec;
+        let flaggableSpec: RawFlaggableSpec<Spec>;
+        try {
+            spec = JSON.parse(json);
+        } catch (e) {
+            flaggableSpec = {
+                spec: null,
+                hasFlags: true,
+                reasons: [`malformed JSON`],
+            };
+        }
+        if (spec) {
+            try {
+                const vegaSpec = compile(spec);
+                flaggableSpec = inspectVegaSpec(vegaSpec.spec);
+            }
+            catch (e) {
+                flaggableSpec = {
+                    spec: null,
+                    hasFlags: true,
+                    reasons: [`failed to compile vega spec`],
+                };
+            }
+        }
+        if (flaggableSpec) {
+            json = JSON.stringify(flaggableSpec);
+        }
+        return sanitizedHTML('div', { class: pluginClassName(vegaPlugin.name), id: `${pluginName}-${index}` }, json, true);
     },
+    hydratesBefore: vegaPlugin.name,
 };

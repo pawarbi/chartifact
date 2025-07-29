@@ -1,12 +1,11 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.IDocs = global.IDocs || {}, global.vega, global.vegaLite));
-})(this, function(exports2, vega, vegaLite) {
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.IDocs = global.IDocs || {}));
+})(this, function(exports2) {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   const defaultCommonOptions = {
-    dataNameSelectedSuffix: "_selected",
     dataSignalPrefix: "data_signal:",
     groupClassName: "group"
   };
@@ -18,11 +17,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return name.replace(/[^a-zA-Z0-9_]/g, "_");
   }
   function getChartType(spec) {
-    const $schema2 = spec == null ? void 0 : spec.$schema;
-    if (!$schema2) {
+    const $schema = spec == null ? void 0 : spec.$schema;
+    if (!$schema) {
       return "vega-lite";
     }
-    return $schema2.includes("vega-lite") ? "vega-lite" : "vega";
+    return $schema.includes("vega-lite") ? "vega-lite" : "vega";
   }
   function changePageOrigin(page, oldOrigin, newOriginUrl) {
     const newPage = {
@@ -57,101 +56,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }))
     };
     return newPage;
-  }
-  function addStaticDataLoaderToSpec(vegaScope, dataSource) {
-    const { spec } = vegaScope;
-    const { dataSourceName } = dataSource;
-    if (!spec.signals) {
-      spec.signals = [];
-    }
-    spec.signals.push({
-      name: dataSourceName,
-      update: `data('${dataSourceName}')`
-    });
-    if (!spec.data) {
-      spec.data = [];
-    }
-    const newData = {
-      name: dataSourceName,
-      values: [],
-      transform: dataSource.dataFrameTransformations || []
-    };
-    if (dataSource.type === "json") {
-      newData.values = dataSource.content;
-    } else if (dataSource.type === "file") {
-      newData.format = {
-        type: dataSource.format
-      };
-      newData.values = [dataSource.content];
-    }
-    spec.data.unshift(newData);
-  }
-  function addDynamicDataLoaderToSpec(vegaScope, dataSource) {
-    const { spec } = vegaScope;
-    const { dataSourceName } = dataSource;
-    const urlSignal = vegaScope.createUrlSignal(dataSource.urlRef);
-    const url = { signal: urlSignal.name };
-    if (!spec.signals) {
-      spec.signals = [];
-    }
-    spec.signals.push({
-      name: dataSourceName,
-      update: `data('${dataSourceName}')`
-    });
-    if (!spec.data) {
-      spec.data = [];
-    }
-    spec.data.unshift({
-      name: dataSourceName,
-      url,
-      format: { type: dataSource.format || "json" },
-      transform: dataSource.dataFrameTransformations || []
-    });
-  }
-  class VegaScope {
-    constructor(spec) {
-      __publicField(this, "spec");
-      __publicField(this, "urlCount", 0);
-      this.spec = spec;
-    }
-    addOrigin(origin) {
-      if (!this.spec.signals) {
-        this.spec.signals = [];
-      }
-      let origins = this.spec.signals.find((d2) => d2.name === "origins");
-      if (!origins) {
-        origins = {
-          name: "origins",
-          value: {}
-        };
-        this.spec.signals.unshift(origins);
-      }
-      origins.value[origin] = origin;
-    }
-    createUrlSignal(urlRef) {
-      const { origin, urlPath, mappedParams } = urlRef;
-      const name = `url:${this.urlCount++}:${safeVariableName(origin + urlPath)}`;
-      const signal = { name };
-      this.addOrigin(origin);
-      signal.update = `origins[${JSON.stringify(origin)}]+'${urlPath}'`;
-      if (mappedParams && mappedParams.length > 0) {
-        signal.update += ` + '?' + ${mappedParams.map((p) => `urlParam('${p.name}', ${variableValueExpression(p)})`).join(` + '&' + `)}`;
-      }
-      if (!this.spec.signals) {
-        this.spec.signals = [];
-      }
-      this.spec.signals.push(signal);
-      return signal;
-    }
-  }
-  function variableValueExpression(param) {
-    if (param.variableId) {
-      return param.variableId;
-    } else if (param.calculation) {
-      return "(" + param.calculation.vegaExpression + ")";
-    } else {
-      return JSON.stringify(param.value);
-    }
   }
   function topologicalSort(list) {
     var _a;
@@ -194,32 +98,34 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     return sorted;
   }
-  function createSpecWithVariables(dataNameSelectedSuffix, variables, stubDataLoaders) {
+  function createSpecWithVariables(variables, tableElements, stubDataLoaders) {
     const spec = {
       $schema: "https://vega.github.io/schema/vega/v5.json",
       signals: [],
       data: []
     };
-    topologicalSort(variables).forEach((v2) => {
-      if (isDataframePipeline(v2)) {
-        const { dataFrameTransformations } = v2.calculation;
+    tableElements.forEach((table) => {
+      const { variableId } = table;
+      spec.signals.push(dataAsSignal(variableId));
+      spec.data.unshift({
+        name: variableId,
+        values: []
+      });
+    });
+    topologicalSort(variables).forEach((v) => {
+      if (isDataframePipeline(v)) {
+        const { dataFrameTransformations } = v.calculation;
         const data = {
-          name: v2.variableId,
-          source: v2.calculation.dependsOn || [],
+          name: v.variableId,
+          source: v.calculation.dependsOn || [],
           transform: dataFrameTransformations
         };
         spec.data.push(data);
-        if (!spec.signals) {
-          spec.signals = [];
-        }
-        spec.signals.push({
-          name: v2.variableId,
-          update: `data('${v2.variableId}')`
-        });
+        spec.signals.push(dataAsSignal(v.variableId));
       } else {
-        const signal = { name: v2.variableId, value: v2.initialValue };
-        if (v2.calculation) {
-          signal.update = v2.calculation.vegaExpression;
+        const signal = { name: v.variableId, value: v.initialValue };
+        if (v.calculation) {
+          signal.update = v.calculation.vegaExpression;
         }
         spec.signals.push(signal);
       }
@@ -229,6 +135,99 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   function isDataframePipeline(variable) {
     var _a, _b;
     return variable.type === "object" && !!variable.isArray && (((_a = variable.calculation) == null ? void 0 : _a.dependsOn) !== void 0 && variable.calculation.dependsOn.length > 0 || ((_b = variable.calculation) == null ? void 0 : _b.dataFrameTransformations) !== void 0 && variable.calculation.dataFrameTransformations.length > 0);
+  }
+  function ensureDataAndSignalsArray(spec) {
+    if (!spec.data) {
+      spec.data = [];
+    }
+    if (!spec.signals) {
+      spec.signals = [];
+    }
+  }
+  function dataAsSignal(name) {
+    return {
+      name,
+      update: `data('${name}')`
+    };
+  }
+  function addStaticDataLoaderToSpec(vegaScope, dataSource) {
+    const { spec } = vegaScope;
+    const { dataSourceName } = dataSource;
+    ensureDataAndSignalsArray(spec);
+    spec.signals.push(dataAsSignal(dataSourceName));
+    const newData = {
+      name: dataSourceName,
+      values: [],
+      transform: dataSource.dataFrameTransformations || []
+    };
+    if (dataSource.type === "json") {
+      newData.values = dataSource.content;
+    } else if (dataSource.type === "file") {
+      newData.format = {
+        type: dataSource.format
+      };
+      newData.values = [dataSource.content];
+    }
+    spec.data.unshift(newData);
+  }
+  function addDynamicDataLoaderToSpec(vegaScope, dataSource) {
+    const { spec } = vegaScope;
+    const { dataSourceName } = dataSource;
+    const urlSignal = vegaScope.createUrlSignal(dataSource.urlRef);
+    const url = { signal: urlSignal.name };
+    ensureDataAndSignalsArray(spec);
+    spec.signals.push(dataAsSignal(dataSourceName));
+    spec.data.unshift({
+      name: dataSourceName,
+      url,
+      format: { type: dataSource.format || "json" },
+      transform: dataSource.dataFrameTransformations || []
+    });
+  }
+  class VegaScope {
+    constructor(spec) {
+      __publicField(this, "spec");
+      __publicField(this, "urlCount", 0);
+      this.spec = spec;
+    }
+    addOrigin(origin) {
+      if (!this.spec.signals) {
+        this.spec.signals = [];
+      }
+      let origins = this.spec.signals.find((d) => d.name === "origins");
+      if (!origins) {
+        origins = {
+          name: "origins",
+          value: {}
+        };
+        this.spec.signals.unshift(origins);
+      }
+      origins.value[origin] = origin;
+    }
+    createUrlSignal(urlRef) {
+      const { origin, urlPath, mappedParams } = urlRef;
+      const name = `url:${this.urlCount++}:${safeVariableName(origin + urlPath)}`;
+      const signal = { name };
+      this.addOrigin(origin);
+      signal.update = `origins[${JSON.stringify(origin)}]+'${urlPath}'`;
+      if (mappedParams && mappedParams.length > 0) {
+        signal.update += ` + '?' + ${mappedParams.map((p) => `urlParam('${p.name}', ${variableValueExpression(p)})`).join(` + '&' + `)}`;
+      }
+      if (!this.spec.signals) {
+        this.spec.signals = [];
+      }
+      this.spec.signals.push(signal);
+      return signal;
+    }
+  }
+  function variableValueExpression(param) {
+    if (param.variableId) {
+      return param.variableId;
+    } else if (param.calculation) {
+      return "(" + param.calculation.vegaExpression + ")";
+    } else {
+      return JSON.stringify(param.value);
+    }
   }
   function tickWrap(tick, content) {
     return `\`\`\`${tick}
@@ -247,7 +246,6 @@ ${content}
 ${content}
 :::`;
   }
-  const $schema = "https://vega.github.io/schema/vega/v5.json";
   function targetMarkdown(page) {
     var _a;
     const mdSections = [];
@@ -256,7 +254,8 @@ ${content}
     if ((_a = page.layout) == null ? void 0 : _a.css) {
       mdSections.push(tickWrap("css", page.layout.css));
     }
-    const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables);
+    const tableElements = page.groups.flatMap((group) => group.elements.filter((e) => typeof e !== "string" && e.type === "table"));
+    const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables, tableElements);
     for (const dataLoader of dataLoaders.filter((dl) => dl.type === "spec")) {
       mdSections.push(chartWrap(dataLoader.spec));
     }
@@ -267,8 +266,8 @@ ${content}
     const markdown = mdSections.join("\n\n");
     return markdown;
   }
-  function dataLoaderMarkdown(dataSources, variables) {
-    const spec = createSpecWithVariables(defaultCommonOptions.dataNameSelectedSuffix, variables);
+  function dataLoaderMarkdown(dataSources, variables, tableElements) {
+    const spec = createSpecWithVariables(variables, tableElements);
     const vegaScope = new VegaScope(spec);
     for (const dataSource of dataSources) {
       switch (dataSource.type) {
@@ -285,25 +284,23 @@ ${content}
           break;
         }
       }
-      if (!spec.data) {
-        spec.data = [];
-      }
-      spec.data.unshift({
-        name: dataSource.dataSourceName + defaultCommonOptions.dataNameSelectedSuffix
-      });
     }
     return vegaScope;
   }
   function groupMarkdown(group, variables, vegaScope) {
     var _a, _b, _c, _d;
     const mdElements = [];
+    const addSpec = (pluginName, spec) => {
+      mdElements.push(jsonWrap(pluginName, JSON.stringify(spec, null, 2)));
+    };
     for (const element of group.elements) {
       if (typeof element === "string") {
         mdElements.push(element);
       } else if (typeof element === "object") {
         switch (element.type) {
           case "chart": {
-            const chartFull = element.chart;
+            const { chart } = element;
+            const chartFull = chart;
             if (!chartFull.spec) {
               mdElements.push("![Chart Spinner](/img/chart-spinner.gif)");
             } else {
@@ -312,94 +309,85 @@ ${content}
             break;
           }
           case "checkbox": {
+            const { label, variableId } = element;
             const cbSpec = {
-              name: element.variableId,
-              value: (_a = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _a.initialValue,
-              label: element.label
+              variableId,
+              value: (_a = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _a.initialValue,
+              label
             };
-            mdElements.push(jsonWrap("checkbox", JSON.stringify(cbSpec, null, 2)));
+            addSpec("checkbox", cbSpec);
             break;
           }
           case "dropdown": {
+            const { label, variableId, options, dynamicOptions, multiple, size } = element;
             const ddSpec = {
-              name: element.variableId,
-              value: (_b = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _b.initialValue,
-              label: element.label
+              variableId,
+              value: (_b = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _b.initialValue,
+              label
             };
-            if (element.dynamicOptions) {
+            if (dynamicOptions) {
+              const { dataSourceName, fieldName } = dynamicOptions;
               ddSpec.dynamicOptions = {
-                dataSignalName: element.dynamicOptions.dataSourceName,
-                fieldName: element.dynamicOptions.fieldName
+                dataSourceName,
+                fieldName
               };
             } else {
-              ddSpec.options = element.options;
+              ddSpec.options = options;
             }
-            if (element.multiple) {
-              ddSpec.multiple = element.multiple;
-              ddSpec.size = element.size || 1;
+            if (multiple) {
+              ddSpec.multiple = multiple;
+              ddSpec.size = size || 1;
             }
-            mdElements.push(jsonWrap("dropdown", JSON.stringify(ddSpec, null, 2)));
+            addSpec("dropdown", ddSpec);
             break;
           }
           case "image": {
-            const urlSignal = vegaScope.createUrlSignal(element.urlRef);
+            const { urlRef, alt, width, height } = element;
+            const urlSignal = vegaScope.createUrlSignal(urlRef);
             const imageSpec = {
               srcSignalName: urlSignal.name,
-              alt: element.alt,
-              width: element.width,
-              height: element.height
+              alt,
+              width,
+              height
             };
-            mdElements.push(jsonWrap("image", JSON.stringify(imageSpec, null, 2)));
+            addSpec("image", imageSpec);
             break;
           }
           case "presets": {
-            const presetsSpec = element.presets;
-            mdElements.push(jsonWrap("presets", JSON.stringify(presetsSpec, null, 2)));
+            const { presets } = element;
+            const presetsSpec = presets;
+            addSpec("presets", presetsSpec);
             break;
           }
           case "slider": {
-            const spec = {
-              $schema,
-              signals: [
-                {
-                  name: element.variableId,
-                  value: (_c = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _c.initialValue,
-                  bind: {
-                    input: "range",
-                    min: element.min,
-                    max: element.max,
-                    step: element.step,
-                    debounce: 100
-                  }
-                }
-              ]
+            const { label, min, max, step, variableId } = element;
+            const sliderSpec = {
+              variableId,
+              value: (_c = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _c.initialValue,
+              label,
+              min,
+              max,
+              step
             };
-            mdElements.push(chartWrap(spec));
+            addSpec("slider", sliderSpec);
             break;
           }
           case "table": {
-            const tableSpec = {
-              dataSignalName: element.dataSourceName,
-              options: element.options
-            };
-            mdElements.push(jsonWrap("tabulator", JSON.stringify(tableSpec, null, 2)));
+            const { dataSourceName, variableId, tabulatorOptions, editable } = element;
+            const tableSpec = { dataSourceName, variableId, tabulatorOptions, editable };
+            addSpec("tabulator", tableSpec);
             break;
           }
           case "textbox": {
-            const spec = {
-              $schema,
-              signals: [
-                {
-                  name: element.variableId,
-                  value: (_d = variables.find((v2) => v2.variableId === element.variableId)) == null ? void 0 : _d.initialValue,
-                  bind: {
-                    input: "text",
-                    debounce: 100
-                  }
-                }
-              ]
+            const { variableId, label, multiline, placeholder } = element;
+            const textboxSpec = {
+              variableId,
+              value: (_d = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _d.initialValue,
+              label,
+              multiline,
+              placeholder
             };
-            mdElements.push(chartWrap(spec));
+            addSpec("textbox", textboxSpec);
             break;
           }
         }
@@ -462,7 +450,6 @@ var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { en
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   const defaultCommonOptions = {
-    dataNameSelectedSuffix: "_selected",
     dataSignalPrefix: "data_signal:",
     groupClassName: "group"
   };
@@ -771,7 +758,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   */
   const plugins = [];
   function registerMarkdownPlugin(plugin) {
-    plugins.push(plugin);
+    let insertIndex = plugins.length;
+    let minIndex = 0;
+    for (let i = 0; i < plugins.length; i++) {
+      if (plugins[i].hydratesBefore === plugin.name) {
+        minIndex = Math.max(minIndex, i + 1);
+      }
+    }
+    if (plugin.hydratesBefore) {
+      const targetIndex = plugins.findIndex((p) => p.name === plugin.hydratesBefore);
+      if (targetIndex !== -1) {
+        insertIndex = targetIndex;
+      }
+    }
+    insertIndex = Math.max(insertIndex, minIndex);
+    plugins.splice(insertIndex, 0, plugin);
     return "register";
   }
   function create() {
@@ -787,8 +788,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const token = tokens[idx];
       const info = token.info.trim();
       if (info.startsWith("json ")) {
-        const pluginName = info.slice(5).trim();
-        const plugin = plugins.find((p) => p.name === pluginName);
+        const pluginName2 = info.slice(5).trim();
+        const plugin = plugins.find((p) => p.name === pluginName2);
         if (plugin && plugin.fence) {
           return plugin.fence(token, idx);
         }
@@ -801,11 +802,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     };
     return md;
   }
-  function definePlugin(md, pluginName) {
-    md.block.ruler.before("fence", \`\${pluginName}_block\`, function(state, startLine, endLine) {
+  function definePlugin(md, pluginName2) {
+    md.block.ruler.before("fence", \`\${pluginName2}_block\`, function(state, startLine, endLine) {
       const start = state.bMarks[startLine] + state.tShift[startLine];
       const max = state.eMarks[startLine];
-      const marker = \`json \${pluginName}\`;
+      const marker = \`json \${pluginName2}\`;
       if (!state.src.slice(start, max).trim().startsWith("\`\`\`" + marker)) {
         return false;
       }
@@ -824,291 +825,139 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return true;
     });
   }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
-  var LogLevel = /* @__PURE__ */ ((LogLevel2) => {
-    LogLevel2[LogLevel2["none"] = 0] = "none";
-    LogLevel2[LogLevel2["some"] = 1] = "some";
-    LogLevel2[LogLevel2["all"] = 2] = "all";
-    return LogLevel2;
-  })(LogLevel || {});
-  class SignalBus {
-    constructor(dataSignalPrefix) {
-      __publicField(this, "broadcastingStack");
-      __publicField(this, "logLevel");
-      __publicField(this, "logWatchIds");
-      __publicField(this, "active");
-      __publicField(this, "peers");
-      __publicField(this, "signalDeps");
-      __publicField(this, "peerDependencies");
-      this.dataSignalPrefix = dataSignalPrefix;
-      this.logLevel = 0;
-      this.logWatchIds = [];
-      this.reset();
-    }
-    log(id, message, ...optionalParams) {
-      if (this.logLevel === 0) return;
-      if (this.logWatchIds.length > 0 && !this.logWatchIds.includes(id)) return;
-      console.log(\`[Signal Bus][\${id}] \${message}\`, ...optionalParams);
-    }
-    async broadcast(originId, batch) {
-      if (this.broadcastingStack.includes(originId)) {
-        this.log(originId, "Additional broadcast from", originId, this.broadcastingStack.join(" -> "));
-      }
-      this.log(originId, "Broadcasting batch from", originId, batch);
-      this.broadcastingStack.push(originId);
-      for (const peerId of this.peerDependencies[originId]) {
-        const peer = this.peers.find((p) => p.id === peerId);
-        if (!peer) continue;
-        const peerBatch = {};
-        let hasBatch = false;
-        for (const signalName in batch) {
-          if (peer.initialSignals.some((s) => s.name === signalName) && batch[signalName].value !== this.signalDeps[signalName].value) {
-            peerBatch[signalName] = batch[signalName];
-            hasBatch = true;
-          }
-        }
-        if (!hasBatch) continue;
-        peer.recieveBatch && await peer.recieveBatch(peerBatch, originId);
-      }
-      this.broadcastingStack.pop();
-      for (const signalName in batch) {
-        const signalDep = this.signalDeps[signalName];
-        signalDep.value = batch[signalName].value;
-      }
-      if (this.broadcastingStack.length === 0) {
-        for (const peer of this.peers) {
-          peer.broadcastComplete && await peer.broadcastComplete();
-        }
-      }
-    }
-    getPriorityPeer(signalName) {
-      const signalDep = this.signalDeps[signalName];
-      if (!signalDep) return null;
-      return this.peers.find((p) => p.id === signalDep.initialPriorityId);
-    }
-    registerPeer(peer) {
-      this.peers.push(peer);
-      for (const initialSignal of peer.initialSignals) {
-        if (!(initialSignal.name in this.signalDeps)) {
-          this.signalDeps[initialSignal.name] = {
-            deps: [peer],
-            priority: initialSignal.priority,
-            initialPriorityId: peer.id,
-            value: initialSignal.value,
-            isData: initialSignal.isData
-          };
-        } else {
-          const signalDep = this.signalDeps[initialSignal.name];
-          if (!signalDep.deps.includes(peer)) {
-            signalDep.deps.push(peer);
-          }
-          if (initialSignal.priority > signalDep.priority) {
-            signalDep.priority = initialSignal.priority;
-            signalDep.initialPriorityId = peer.id;
-            signalDep.value = initialSignal.value;
-            signalDep.isData = initialSignal.isData;
-          }
-        }
-      }
-    }
-    beginListening() {
-      this.log("beginListening", "begin initial batch", this.signalDeps);
-      for (const peer of this.peers) {
-        const batch = {};
-        for (const signalName in this.signalDeps) {
-          const signalDep = this.signalDeps[signalName];
-          const { value, isData } = signalDep;
-          batch[signalName] = { value, isData };
-        }
-        peer.recieveBatch && peer.recieveBatch(batch, "initial");
-      }
-      this.log("beginListening", "end initial batch");
-      const peerSignals = {};
-      for (const signalName in this.signalDeps) {
-        const signalDep = this.signalDeps[signalName];
-        if (signalDep.deps.length === 1) continue;
-        for (const peer of signalDep.deps) {
-          if (!(peer.id in peerSignals)) {
-            peerSignals[peer.id] = [];
-            this.peerDependencies[peer.id] = [];
-          }
-          peerSignals[peer.id].push({ signalName, isData: signalDep.isData });
-          for (const otherPeer of signalDep.deps) {
-            if (otherPeer.id !== peer.id && !this.peerDependencies[peer.id].includes(otherPeer.id)) {
-              this.peerDependencies[peer.id].push(otherPeer.id);
-            }
-          }
-        }
-      }
-      this.log("beginListening", "======= dependencies =========", peerSignals, this.peerDependencies);
-      for (const peer of this.peers) {
-        const sharedSignals = peerSignals[peer.id];
-        if (sharedSignals) {
-          this.log(peer.id, "Shared signals:", sharedSignals);
-          if (this.peerDependencies[peer.id]) {
-            this.log(peer.id, "Shared dependencies:", this.peerDependencies[peer.id]);
-          }
-          peer.beginListening && peer.beginListening(sharedSignals);
-        } else {
-          this.log(peer.id, "No shared signals");
-        }
-      }
-      this.active = true;
-    }
-    reset() {
-      this.signalDeps = {};
-      this.active = false;
-      this.peers = [];
-      this.broadcastingStack = [];
-      this.peerDependencies = {};
+  function urlParam(urlParamName, value) {
+    if (value === void 0 || value === null) return "";
+    if (Array.isArray(value)) {
+      return value.map((vn) => \`\${urlParamName}[]=\${encodeURIComponent(vn)}\`).join("&");
+    } else {
+      return \`\${urlParamName}=\${encodeURIComponent(value)}\`;
     }
   }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
-  const defaultRendererOptions = {
-    vegaRenderer: "canvas",
-    useShadowDom: false,
-    errorHandler: (error, pluginName, instanceIndex, phase) => {
-      console.error(\`Error in plugin \${pluginName} instance \${instanceIndex} phase \${phase}\`, error);
+  function getJsonScriptTag(container, errorHandler) {
+    const scriptTag = container.previousElementSibling;
+    if ((scriptTag == null ? void 0 : scriptTag.tagName) !== "SCRIPT" || scriptTag.getAttribute("type") !== "application/json") {
+      errorHandler(new Error("Invalid JSON script tag"));
+      return null;
     }
-  };
-  class Renderer {
-    constructor(_element, options) {
-      __publicField(this, "md");
-      __publicField(this, "instances");
-      __publicField(this, "signalBus");
-      __publicField(this, "options");
-      __publicField(this, "shadowRoot");
-      __publicField(this, "element");
-      this.options = { ...defaultRendererOptions, ...options };
-      this.signalBus = this.options.signalBus || new SignalBus(defaultCommonOptions.dataSignalPrefix);
-      this.instances = {};
-      if (this.options.useShadowDom) {
-        this.shadowRoot = _element.attachShadow({ mode: "open" });
-        this.element = this.shadowRoot;
-      } else {
-        this.element = _element;
-      }
+    if (!scriptTag.textContent) {
+      errorHandler(new Error("Empty JSON script tag"));
+      return null;
     }
-    ensureMd() {
-      if (!this.md) {
-        this.md = create();
-      }
-    }
-    async render(markdown) {
-      await this.reset();
-      const content = this.renderHtml(markdown);
-      this.element.innerHTML = content;
-      await this.hydrate();
-    }
-    renderHtml(markdown) {
-      this.ensureMd();
-      const parsedHTML = this.md.render(markdown);
-      let content = parsedHTML;
-      if (this.options.useShadowDom) {
-        content = \`<div class="body">\${content}</div>\`;
-      }
-      return content;
-    }
-    async hydrate() {
-      this.ensureMd();
-      this.signalBus.log("Renderer", "rendering DOM");
-      const hydrationPromises = [];
-      for (let i = 0; i < plugins.length; i++) {
-        const plugin = plugins[i];
-        if (plugin.hydrateComponent) {
-          hydrationPromises.push(plugin.hydrateComponent(this, this.options.errorHandler).then((instances) => {
-            return {
-              pluginName: plugin.name,
-              instances
-            };
-          }));
-        }
-      }
-      try {
-        const pluginHydrations = await Promise.all(hydrationPromises);
-        for (const hydration of pluginHydrations) {
-          if (hydration && hydration.instances) {
-            this.instances[hydration.pluginName] = hydration.instances;
-            for (const instance of hydration.instances) {
-              this.signalBus.registerPeer(instance);
-            }
-          }
-        }
-        this.signalBus.beginListening();
-      } catch (error) {
-        console.error("Error in rendering plugins", error);
-      }
-    }
-    reset() {
-      this.signalBus.reset();
-      for (const pluginName of Object.keys(this.instances)) {
-        const instances = this.instances[pluginName];
-        for (const instance of instances) {
-          instance.destroy && instance.destroy();
-        }
-      }
-      this.instances = {};
-      this.element.innerHTML = "";
+    try {
+      return JSON.parse(scriptTag.textContent);
+    } catch (error) {
+      errorHandler(error);
+      return null;
     }
   }
+  function pluginClassName(pluginName2) {
+    return \`chartifact-plugin-\${pluginName2}\`;
+  }
+  const newId = () => [...Date.now().toString(36) + Math.random().toString(36).slice(2)].sort(() => 0.5 - Math.random()).join("");
   /*!
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
-  function sanitizedHTML(tagName, attributes, content) {
+  function sanitizedHTML(tagName, attributes, content, precedeWithScriptTag) {
     const element = document.createElement(tagName);
     Object.keys(attributes).forEach((key) => {
       element.setAttribute(key, attributes[key]);
     });
-    element.textContent = content;
+    if (precedeWithScriptTag) {
+      const scriptElement = document.createElement("script");
+      scriptElement.setAttribute("type", "application/json");
+      const safeContent = content.replace(/<\\/script>/gi, "<\\\\/script>");
+      scriptElement.innerHTML = safeContent;
+      return scriptElement.outerHTML + element.outerHTML;
+    } else {
+      element.textContent = content;
+    }
     return element.outerHTML;
+  }
+  function flaggableJsonPlugin(pluginName2, className2, flagger, attrs) {
+    const plugin = {
+      name: pluginName2,
+      initializePlugin: (md) => definePlugin(md, pluginName2),
+      fence: (token, index2) => {
+        let json = token.content.trim();
+        let spec;
+        let flaggableSpec;
+        try {
+          spec = JSON.parse(json);
+        } catch (e) {
+          flaggableSpec = {
+            spec: null,
+            hasFlags: true,
+            reasons: [\`malformed JSON\`]
+          };
+        }
+        if (spec) {
+          if (flagger) {
+            flaggableSpec = flagger(spec);
+          } else {
+            flaggableSpec = { spec };
+          }
+        }
+        if (flaggableSpec) {
+          json = JSON.stringify(flaggableSpec);
+        }
+        return sanitizedHTML("div", { class: className2, id: \`\${pluginName2}-\${index2}\`, ...attrs }, json, true);
+      },
+      hydrateSpecs: (renderer, errorHandler) => {
+        var _a;
+        const flagged = [];
+        const containers = renderer.element.querySelectorAll(\`.\${className2}\`);
+        for (const [index2, container] of Array.from(containers).entries()) {
+          const flaggableSpec = getJsonScriptTag(container, (e) => errorHandler(e, pluginName2, index2, "parse", container));
+          if (!flaggableSpec) continue;
+          const f = { approvedSpec: null, pluginName: pluginName2, containerId: container.id };
+          if (flaggableSpec.hasFlags) {
+            f.blockedSpec = flaggableSpec.spec;
+            f.reason = ((_a = flaggableSpec.reasons) == null ? void 0 : _a.join(", ")) || "Unknown reason";
+          } else {
+            f.approvedSpec = flaggableSpec.spec;
+          }
+          flagged.push(f);
+        }
+        return flagged;
+      }
+    };
+    return plugin;
   }
   /*!
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
+  const pluginName$a = "checkbox";
+  const className$9 = pluginClassName(pluginName$a);
   const checkboxPlugin = {
-    name: "checkbox",
-    initializePlugin: (md) => definePlugin(md, "checkbox"),
-    fence: (token, idx) => {
-      const CheckboxId = \`Checkbox-\${idx}\`;
-      return sanitizedHTML("div", { id: CheckboxId, class: "checkbox" }, token.content.trim());
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
+    ...flaggableJsonPlugin(pluginName$a, className$9),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
       const checkboxInstances = [];
-      const containers = renderer.element.querySelectorAll(".checkbox");
-      for (const [index2, container] of Array.from(containers).entries()) {
-        if (!container.textContent) continue;
-        try {
-          const spec = JSON.parse(container.textContent);
-          const html = \`<form class="vega-bindings">
+      for (let index2 = 0; index2 < specs.length; index2++) {
+        const specReview = specs[index2];
+        if (!specReview.approvedSpec) {
+          continue;
+        }
+        const container = renderer.element.querySelector(\`#\${specReview.containerId}\`);
+        const spec = specReview.approvedSpec;
+        const html = \`<form class="vega-bindings">
                     <div class="vega-bind">
                         <label>
-                            <span class="vega-bind-name">\${spec.label || spec.name}</span>
-                            <input type="checkbox" class="vega-bind-checkbox" id="\${spec.name}" name="\${spec.name}" \${spec.value ? "checked" : ""}>
+                            <span class="vega-bind-name">\${spec.label || spec.variableId}</span>
+                            <input type="checkbox" class="vega-bind-checkbox" id="\${spec.variableId}" name="\${spec.variableId}" \${spec.value ? "checked" : ""}/>
                         </label>
                     </div>
                 </form>\`;
-          container.innerHTML = html;
-          const element = container.querySelector('input[type="checkbox"]');
-          const checkboxInstance = { id: container.id, spec, element };
-          checkboxInstances.push(checkboxInstance);
-        } catch (e) {
-          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
-          errorHandler(e, "Checkbox", index2, "parse", container);
-          continue;
-        }
+        container.innerHTML = html;
+        const element = container.querySelector('input[type="checkbox"]');
+        const checkboxInstance = { id: \`\${pluginName$a}-\${index2}\`, spec, element };
+        checkboxInstances.push(checkboxInstance);
       }
       const instances = checkboxInstances.map((checkboxInstance) => {
         const { element, spec } = checkboxInstance;
         const initialSignals = [{
-          name: spec.name,
+          name: spec.variableId,
           value: spec.value || false,
           priority: 1,
           isData: false
@@ -1117,8 +966,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           ...checkboxInstance,
           initialSignals,
           recieveBatch: async (batch) => {
-            if (batch[spec.name]) {
-              const value = batch[spec.name].value;
+            if (batch[spec.variableId]) {
+              const value = batch[spec.variableId].value;
               element.checked = value;
             }
           },
@@ -1126,7 +975,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             element.addEventListener("change", (e) => {
               const value = e.target.checked;
               const batch = {
-                [spec.name]: {
+                [spec.variableId]: {
                   value,
                   isData: false
                 }
@@ -1149,14 +998,220 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
+  function reconstituteAtRule(atRule) {
+    if (atRule.css) {
+      return atRule.flag ? \`/* \${atRule.css} - BLOCKED: \${atRule.reason} */\` : atRule.css;
+    }
+    if (!atRule.rules || atRule.rules.length === 0) return "";
+    const reconstitutedRules = [];
+    for (const rule of atRule.rules) {
+      const validDeclarations = rule.declarations.map((decl) => decl.css).filter((css) => css.trim() !== "");
+      if (validDeclarations.length > 0) {
+        reconstitutedRules.push(\`\${rule.selector} {
+  \${validDeclarations.join(";\\n  ")};
+}\`);
+      }
+    }
+    if (reconstitutedRules.length === 0) return "";
+    if (atRule.signature === "") {
+      return reconstitutedRules.join("\\n\\n");
+    } else {
+      return \`\${atRule.signature} {
+\${reconstitutedRules.join("\\n\\n")}
+}\`;
+    }
+  }
+  function reconstituteCss(atRules) {
+    const cssBlocks = [];
+    for (const atRule of Object.values(atRules)) {
+      const reconstructed = reconstituteAtRule(atRule);
+      if (reconstructed.trim()) {
+        cssBlocks.push(reconstructed);
+      }
+    }
+    return cssBlocks.join("\\n\\n");
+  }
+  function categorizeCss(cssContent) {
+    const spec = {
+      atRules: {}
+    };
+    const result = {
+      spec,
+      hasFlags: false,
+      reasons: []
+    };
+    const completeBlockAtRules = [
+      // Keyframes and variants
+      "keyframes",
+      "-webkit-keyframes",
+      "-moz-keyframes",
+      "-o-keyframes",
+      // Font-related at-rules
+      "font-face",
+      "font-feature-values",
+      "font-palette-values",
+      // Page and counter styling
+      "page",
+      "counter-style",
+      // CSS Houdini and newer features
+      "property",
+      "layer",
+      "container",
+      "scope",
+      "starting-style",
+      "position-try"
+    ];
+    function checkSecurityIssues(node) {
+      if (node.type === "Function" && node.name === "expression") {
+        return { flag: "scriptExec", reason: "CSS expression() function detected" };
+      }
+      if (node.type === "Url") {
+        const urlValue = node.value;
+        if (!urlValue) return null;
+        const url = urlValue.value || urlValue;
+        const urlStr = url.toLowerCase();
+        if (urlStr.startsWith("javascript:") || urlStr.startsWith("vbscript:")) {
+          return { flag: "scriptExec", reason: \`\${urlStr.split(":")[0]} URL detected\` };
+        }
+        if (urlStr.startsWith("data:")) {
+          if (urlStr.includes("data:image/svg+xml")) {
+            if (urlStr.includes("<script")) {
+              return { flag: "svgDataUrl", reason: "SVG data URL with script detected" };
+            }
+            return { flag: "svgDataUrl", reason: "SVG data URL detected - requires approval" };
+          }
+          return { flag: "externalResource", reason: "Data URL detected" };
+        }
+        if (urlStr.startsWith("http://")) {
+          return { flag: "insecureExternalResource", reason: "Insecure external URL (http) detected" };
+        } else if (urlStr.startsWith("https://")) {
+          return { flag: "externalResource", reason: "External URL detected" };
+        }
+      }
+      if (node.type === "String" || node.type === "Identifier") {
+        const value = node.value || node.name || "";
+        if (typeof value === "string") {
+          const valueStr = value.toLowerCase();
+          if (valueStr.includes("\\\\") && (valueStr.includes("3c") || valueStr.includes("3e") || valueStr.includes("22") || valueStr.includes("27"))) {
+            return { flag: "xss", reason: "Potential CSS-encoded XSS detected" };
+          }
+        }
+      }
+      return null;
+    }
+    try {
+      let addCurrentRule = function() {
+        if (currentRule && currentRule.declarations.length > 0) {
+          const targetAtRule = currentAtRuleSignature;
+          if (!spec.atRules[targetAtRule]) {
+            spec.atRules[targetAtRule] = {
+              signature: targetAtRule,
+              rules: []
+            };
+          }
+          if (spec.atRules[targetAtRule].rules) {
+            spec.atRules[targetAtRule].rules.push(currentRule);
+          } else {
+            spec.atRules[targetAtRule].rules = [currentRule];
+          }
+        }
+      };
+      const ast = csstree.parse(cssContent);
+      let currentRule = null;
+      let currentAtRuleSignature = "";
+      csstree.walk(ast, (node) => {
+        if (node.type === "Atrule") {
+          const atRuleSignature = \`@\${node.name}\${node.prelude ? \` \${csstree.generate(node.prelude)}\` : ""}\`;
+          if (node.name === "import") {
+            const ruleContent = csstree.generate(node);
+            const reason = "@import rule detected - requires approval";
+            spec.atRules[atRuleSignature] = {
+              signature: atRuleSignature,
+              css: ruleContent,
+              flag: "importRule",
+              reason
+            };
+            result.hasFlags = true;
+            result.reasons.push(reason);
+            return;
+          }
+          if (completeBlockAtRules.includes(node.name)) {
+            const ruleContent = csstree.generate(node);
+            spec.atRules[atRuleSignature] = {
+              signature: atRuleSignature,
+              css: ruleContent
+            };
+            return;
+          }
+          if (node.block) {
+            if (!spec.atRules[atRuleSignature]) {
+              spec.atRules[atRuleSignature] = {
+                signature: atRuleSignature,
+                rules: []
+              };
+            }
+            currentAtRuleSignature = atRuleSignature;
+          } else {
+            const ruleContent = csstree.generate(node);
+            spec.atRules[atRuleSignature] = {
+              signature: atRuleSignature,
+              css: ruleContent
+            };
+          }
+        } else if (node.type === "Rule") {
+          addCurrentRule();
+          const selector = csstree.generate(node.prelude);
+          currentRule = {
+            selector,
+            declarations: []
+          };
+        } else if (node.type === "Declaration" && currentRule) {
+          const declCss = csstree.generate(node);
+          const declaration = { css: declCss };
+          const securityCheck = checkSecurityIssues(node);
+          if (securityCheck) {
+            declaration.css = \`/* omitted (\${securityCheck.reason}) */\`;
+            declaration.unsafeCss = declCss;
+            declaration.flag = securityCheck.flag;
+            declaration.reason = securityCheck.reason;
+            result.hasFlags = true;
+            result.reasons.push(securityCheck.reason);
+          }
+          currentRule.declarations.push(declaration);
+        } else if (currentRule && (node.type === "Function" || node.type === "Url" || node.type === "String" || node.type === "Identifier")) {
+          const securityCheck = checkSecurityIssues(node);
+          if (securityCheck && currentRule.declarations.length > 0) {
+            const lastDecl = currentRule.declarations[currentRule.declarations.length - 1];
+            if (!lastDecl.flag) {
+              lastDecl.unsafeCss = lastDecl.css;
+              lastDecl.css = \`/* omitted (\${securityCheck.reason}) */\`;
+              lastDecl.flag = securityCheck.flag;
+              lastDecl.reason = securityCheck.reason;
+              result.hasFlags = true;
+              result.reasons.push(securityCheck.reason);
+            }
+          }
+        }
+      });
+      addCurrentRule();
+    } catch (parseError) {
+      throw new Error(\`CSS parsing failed: \${parseError.message}\`);
+    }
+    return result;
+  }
+  const pluginName$9 = "css";
+  const className$8 = pluginClassName(pluginName$9);
   const cssPlugin = {
-    name: "css",
+    ...flaggableJsonPlugin(pluginName$9, className$8),
     initializePlugin: (md) => {
-      definePlugin(md, "css");
+      if (typeof csstree === "undefined") {
+        throw new Error("css-tree library is required for CSS plugin. Please include the css-tree script.");
+      }
+      definePlugin(md, pluginName$9);
       md.block.ruler.before("fence", "css_block", function(state, startLine, endLine) {
         const start = state.bMarks[startLine] + state.tShift[startLine];
         const max = state.eMarks[startLine];
-        if (!state.src.slice(start, max).trim().startsWith("\`\`\`css")) {
+        if (!state.src.slice(start, max).trim().startsWith(\`\\\`\\\`\\\`\${pluginName$9}\`)) {
           return false;
         }
         let nextLine = startLine;
@@ -1168,7 +1223,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         state.line = nextLine + 1;
         const token = state.push("fence", "code", 0);
-        token.info = "css";
+        token.info = pluginName$9;
         token.content = state.getLines(startLine + 1, nextLine, state.blkIndent, true);
         token.map = [startLine, state.line];
         return true;
@@ -1177,9 +1232,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       md.renderer.rules.fence = function(tokens, idx, options, env, slf) {
         const token = tokens[idx];
         const info = token.info.trim();
-        if (info === "css") {
-          const cssId = \`css-\${idx}\`;
-          return sanitizedHTML("div", { id: cssId, class: "css-component" }, token.content.trim());
+        if (info === pluginName$9) {
+          const cssContent = token.content.trim();
+          const categorizedCss = categorizeCss(cssContent);
+          return sanitizedHTML("div", { id: \`\${pluginName$9}-\${idx}\`, class: className$8 }, JSON.stringify(categorizedCss), true);
         }
         if (originalFence) {
           return originalFence(tokens, idx, options, env, slf);
@@ -1188,28 +1244,33 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       };
     },
-    hydrateComponent: async (renderer, errorHandler) => {
+    hydrateComponent: async (renderer, errorHandler, specs) => {
       const cssInstances = [];
-      const containers = renderer.element.querySelectorAll(".css-component");
-      for (const [index2, container] of Array.from(containers).entries()) {
-        if (!container.textContent) continue;
-        try {
-          const cssContent = container.textContent.trim();
-          const styleElement = document.createElement("style");
-          styleElement.type = "text/css";
-          styleElement.id = \`idocs-css-\${container.id}\`;
-          styleElement.textContent = cssContent;
-          renderer.element.appendChild(styleElement);
-          container.innerHTML = \`<!-- CSS styles applied to document -->\`;
-          cssInstances.push({
-            id: container.id,
-            element: styleElement
-          });
-        } catch (e) {
-          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
-          errorHandler(e, "CSS", index2, "parse", container);
+      for (let index2 = 0; index2 < specs.length; index2++) {
+        const specReview = specs[index2];
+        if (!specReview.approvedSpec) {
           continue;
         }
+        const container = renderer.element.querySelector(\`#\${specReview.containerId}\`);
+        const categorizedCss = specReview.approvedSpec;
+        const comments = [];
+        const safeCss = reconstituteCss(categorizedCss.atRules);
+        if (safeCss.trim().length > 0) {
+          const styleElement = document.createElement("style");
+          styleElement.type = "text/css";
+          styleElement.id = \`idocs-css-\${index2}\`;
+          styleElement.textContent = safeCss;
+          const target = renderer.shadowRoot || document.head;
+          target.appendChild(styleElement);
+          comments.push(\`<!-- CSS styles applied to \${renderer.shadowRoot ? "shadow DOM" : "document"} -->\`);
+          cssInstances.push({
+            id: \`\${pluginName$9}-\${index2}\`,
+            element: styleElement
+          });
+        } else {
+          comments.push(\`<!-- No safe CSS styles to apply -->\`);
+        }
+        container.innerHTML = comments.join("\\n");
       }
       const instances = cssInstances.map((cssInstance) => {
         return {
@@ -1230,51 +1291,45 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
+  const pluginName$8 = "dropdown";
+  const className$7 = pluginClassName(pluginName$8);
   const dropdownPlugin = {
-    name: "dropdown",
-    initializePlugin: (md) => definePlugin(md, "dropdown"),
-    fence: (token, idx) => {
-      const DropdownId = \`Dropdown-\${idx}\`;
-      return sanitizedHTML("div", { id: DropdownId, class: "dropdown" }, token.content.trim());
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
+    ...flaggableJsonPlugin(pluginName$8, className$7),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
       const dropdownInstances = [];
-      const containers = renderer.element.querySelectorAll(".dropdown");
-      for (const [index2, container] of Array.from(containers).entries()) {
-        if (!container.textContent) continue;
-        try {
-          const spec = JSON.parse(container.textContent);
-          const html = \`<form class="vega-bindings">
+      for (let index2 = 0; index2 < specs.length; index2++) {
+        const specReview = specs[index2];
+        if (!specReview.approvedSpec) {
+          continue;
+        }
+        const container = renderer.element.querySelector(\`#\${specReview.containerId}\`);
+        const spec = specReview.approvedSpec;
+        const html = \`<form class="vega-bindings">
                     <div class="vega-bind">
                         <label>
-                            <span class="vega-bind-name">\${spec.label || spec.name}</span>
-                            <select class="vega-bind-select" id="\${spec.name}" name="\${spec.name}" \${spec.multiple ? "multiple" : ""} size="\${spec.size || 1}">
-\${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""))}
+                            <span class="vega-bind-name">\${spec.label || spec.variableId}</span>
+                            <select class="vega-bind-select" id="\${spec.variableId}" name="\${spec.variableId}" \${spec.multiple ? "multiple" : ""} size="\${spec.size || 1}">
                             </select>
                         </label>
                     </div>
                 </form>\`;
-          container.innerHTML = html;
-          const element = container.querySelector("select");
-          const dropdownInstance = { id: container.id, spec, element };
-          dropdownInstances.push(dropdownInstance);
-        } catch (e) {
-          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
-          errorHandler(e, "Dropdown", index2, "parse", container);
-          continue;
-        }
+        container.innerHTML = html;
+        const element = container.querySelector("select");
+        setSelectOptions(element, spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""));
+        const dropdownInstance = { id: \`\${pluginName$8}-\${index2}\`, spec, element };
+        dropdownInstances.push(dropdownInstance);
       }
       const instances = dropdownInstances.map((dropdownInstance, index2) => {
         const { element, spec } = dropdownInstance;
         const initialSignals = [{
-          name: spec.name,
+          name: spec.variableId,
           value: spec.value || null,
           priority: 1,
           isData: false
         }];
         if (spec.dynamicOptions) {
           initialSignals.push({
-            name: spec.dynamicOptions.dataSignalName,
+            name: spec.dynamicOptions.dataSourceName,
             value: null,
             priority: -1,
             isData: true
@@ -1286,8 +1341,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           recieveBatch: async (batch) => {
             var _a, _b;
             const { dynamicOptions } = spec;
-            if (dynamicOptions == null ? void 0 : dynamicOptions.dataSignalName) {
-              const newData = (_a = batch[dynamicOptions.dataSignalName]) == null ? void 0 : _a.value;
+            if (dynamicOptions == null ? void 0 : dynamicOptions.dataSourceName) {
+              const newData = (_a = batch[dynamicOptions.dataSourceName]) == null ? void 0 : _a.value;
               if (newData) {
                 let hasFieldName = false;
                 const uniqueOptions = /* @__PURE__ */ new Set();
@@ -1300,18 +1355,22 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 if (hasFieldName) {
                   const options = Array.from(uniqueOptions);
                   const existingSelection = spec.multiple ? Array.from(element.selectedOptions).map((option) => option.value) : element.value;
-                  element.innerHTML = getOptions(spec.multiple ?? false, options, existingSelection);
+                  setSelectOptions(element, spec.multiple ?? false, options, existingSelection);
                   if (!spec.multiple) {
-                    element.value = ((_b = batch[spec.name]) == null ? void 0 : _b.value) || options[0];
+                    element.value = ((_b = batch[spec.variableId]) == null ? void 0 : _b.value) || options[0];
                   }
                 } else {
-                  element.innerHTML = \`<option value="">Field "\${dynamicOptions.fieldName}" not found</option>\`;
+                  element.innerHTML = "";
+                  const errorOption = document.createElement("option");
+                  errorOption.value = "";
+                  errorOption.textContent = \`Field "\${dynamicOptions.fieldName}" not found\`;
+                  element.appendChild(errorOption);
                   element.value = "";
                 }
               }
             }
-            if (batch[spec.name]) {
-              const value = batch[spec.name].value;
+            if (batch[spec.variableId]) {
+              const value = batch[spec.variableId].value;
               if (spec.multiple) {
                 Array.from(element.options).forEach((option) => {
                   option.selected = !!(value && Array.isArray(value) && value.includes(option.value));
@@ -1325,7 +1384,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             element.addEventListener("change", (e) => {
               const value = spec.multiple ? Array.from(e.target.selectedOptions).map((option) => option.value) : e.target.value;
               const batch = {
-                [spec.name]: {
+                [spec.variableId]: {
                   value,
                   isData: false
                 }
@@ -1347,8 +1406,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return instances;
     }
   };
-  function getOptions(multiple, options, selected) {
-    if (!options) {
+  function setSelectOptions(selectElement, multiple, options, selected) {
+    selectElement.innerHTML = "";
+    if (!options || options.length === 0) {
       if (multiple) {
         if (Array.isArray(selected)) {
           options = selected;
@@ -1363,68 +1423,67 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
     }
-    if (!options) {
-      return "";
+    if (!options || options.length === 0) {
+      return;
     }
-    return options.map((option) => {
-      let attr = "";
+    options.forEach((optionValue) => {
+      const optionElement = document.createElement("option");
+      optionElement.value = optionValue;
+      optionElement.textContent = optionValue;
+      let isSelected = false;
       if (multiple) {
-        attr = (selected || []).includes(option) ? "selected" : "";
+        isSelected = (selected || []).includes(optionValue);
       } else {
-        attr = selected === option ? "selected" : "";
+        isSelected = selected === optionValue;
       }
-      return \`<option value="\${option}" \${attr}>\${option}</option>\`;
-    }).join("\\n");
+      optionElement.selected = isSelected;
+      selectElement.appendChild(optionElement);
+    });
   }
   /*!
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
+  const pluginName$7 = "image";
+  const className$6 = pluginClassName(pluginName$7);
   const imagePlugin = {
-    name: "image",
-    initializePlugin: (md) => definePlugin(md, "image"),
-    fence: (token, idx) => {
-      const ImageId = \`Image-\${idx}\`;
-      return sanitizedHTML("div", { id: ImageId, class: "image" }, token.content.trim());
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
+    ...flaggableJsonPlugin(pluginName$7, className$6),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
       const imageInstances = [];
-      const containers = renderer.element.querySelectorAll(".image");
-      for (const [index2, container] of Array.from(containers).entries()) {
-        if (!container.textContent) continue;
-        try {
-          const spec = JSON.parse(container.textContent);
-          const element = document.createElement("img");
-          const spinner = document.createElement("div");
-          spinner.innerHTML = \`
+      for (let index2 = 0; index2 < specs.length; index2++) {
+        const specReview = specs[index2];
+        if (!specReview.approvedSpec) {
+          continue;
+        }
+        const container = renderer.element.querySelector(\`#\${specReview.containerId}\`);
+        const spec = specReview.approvedSpec;
+        const element = document.createElement("img");
+        const spinner = document.createElement("div");
+        spinner.innerHTML = \`
                     <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="12" r="10" stroke="gray" stroke-width="2" fill="none" stroke-dasharray="31.4" stroke-dashoffset="0">
                             <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
                         </circle>
                     </svg>\`;
-          if (spec.alt) element.alt = spec.alt;
-          if (spec.width) element.width = spec.width;
-          if (spec.height) element.height = spec.height;
-          element.onload = () => {
-            spinner.style.display = "none";
-            element.style.opacity = "1";
-          };
-          element.onerror = () => {
-            spinner.style.display = "none";
-            element.style.opacity = "0.5";
-            errorHandler(new Error("Image failed to load"), "image", index2, "load", container, element.src);
-          };
-          container.style.position = "relative";
-          spinner.style.position = "absolute";
-          container.innerHTML = "";
-          container.appendChild(spinner);
-          container.appendChild(element);
-          const imageInstance = { id: container.id, spec, element, spinner };
-          imageInstances.push(imageInstance);
-        } catch (e) {
-          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
-          errorHandler(e, "Image", index2, "parse", container);
-        }
+        if (spec.alt) element.alt = spec.alt;
+        if (spec.width) element.width = spec.width;
+        if (spec.height) element.height = spec.height;
+        element.onload = () => {
+          spinner.style.display = "none";
+          element.style.opacity = "1";
+        };
+        element.onerror = () => {
+          spinner.style.display = "none";
+          element.style.opacity = "0.5";
+          errorHandler(new Error("Image failed to load"), pluginName$7, index2, "load", container, element.src);
+        };
+        container.style.position = "relative";
+        spinner.style.position = "absolute";
+        container.innerHTML = "";
+        container.appendChild(spinner);
+        container.appendChild(element);
+        const imageInstance = { id: \`\${pluginName$7}-\${index2}\`, spec, element, spinner };
+        imageInstances.push(imageInstance);
       }
       const instances = imageInstances.map((imageInstance, index2) => {
         const { element, spinner, id, spec } = imageInstance;
@@ -1494,8 +1553,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     return token;
   }
+  const pluginName$6 = "placeholders";
   const placeholdersPlugin = {
-    name: "placeholders",
+    name: pluginName$6,
     initializePlugin: async (md) => {
       md.use(function(md2) {
         md2.inline.ruler.after("emphasis", "dynamic_placeholder", function(state, silent) {
@@ -1583,7 +1643,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       });
       const instances = [
         {
-          id: "placeholders",
+          id: pluginName$6,
           initialSignals,
           recieveBatch: async (batch) => {
             var _a;
@@ -1630,28 +1690,20 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
+  const pluginName$5 = "presets";
+  const className$5 = pluginClassName(pluginName$5);
   const presetsPlugin = {
-    name: "presets",
-    initializePlugin: (md) => definePlugin(md, "presets"),
-    fence: (token, idx) => {
-      const spec = JSON.parse(token.content.trim());
-      const pluginId = \`preset-\${idx}\`;
-      return sanitizedHTML("div", { id: pluginId, class: "presets" }, JSON.stringify(spec));
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
+    ...flaggableJsonPlugin(pluginName$5, className$5),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
       const presetsInstances = [];
-      const containers = renderer.element.querySelectorAll(".presets");
-      for (const [index2, container] of Array.from(containers).entries()) {
-        if (!container.textContent) continue;
-        const id = \`presets\${index2}\`;
-        let presets;
-        try {
-          presets = JSON.parse(container.textContent);
-        } catch (e) {
-          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
-          errorHandler(e, "presets", index2, "parse", container);
+      for (let index2 = 0; index2 < specs.length; index2++) {
+        const specReview = specs[index2];
+        if (!specReview.approvedSpec) {
           continue;
         }
+        const container = renderer.element.querySelector(\`#\${specReview.containerId}\`);
+        const id = \`\${pluginName$5}-\${index2}\`;
+        const presets = specReview.approvedSpec;
         if (!Array.isArray(presets)) {
           container.innerHTML = '<div class="error">Expected an array of presets</div>';
           continue;
@@ -1736,106 +1788,295 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
-  const tabulatorPlugin = {
-    name: "tabulator",
-    initializePlugin: (md) => definePlugin(md, "tabulator"),
-    fence: (token, idx) => {
-      const tabulatorId = \`tabulator-\${idx}\`;
-      return sanitizedHTML("div", { id: tabulatorId, class: "tabulator", style: "box-sizing: border-box;" }, token.content.trim());
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
-      const tabulatorInstances = [];
-      const containers = renderer.element.querySelectorAll(".tabulator");
-      for (const [index2, container] of Array.from(containers).entries()) {
-        if (!container.textContent) continue;
-        if (!Tabulator) {
-          errorHandler(new Error("Tabulator not found"), "tabulator", index2, "init", container);
+  const pluginName$4 = "slider";
+  const className$4 = pluginClassName(pluginName$4);
+  const sliderPlugin = {
+    ...flaggableJsonPlugin(pluginName$4, className$4),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
+      const sliderInstances = [];
+      for (let index2 = 0; index2 < specs.length; index2++) {
+        const specReview = specs[index2];
+        if (!specReview.approvedSpec) {
           continue;
         }
-        try {
-          const spec = JSON.parse(container.textContent);
-          let options = {
-            autoColumns: true,
-            layout: "fitColumns",
-            maxHeight: "200px"
-          };
-          if (spec.options && Object.keys(spec.options).length > 0) {
-            options = spec.options;
-          }
-          const table = new Tabulator(container, options);
-          const tabulatorInstance = { id: container.id, spec, table, built: false };
-          table.on("tableBuilt", () => {
-            table.off("tableBuilt");
-            tabulatorInstance.built = true;
-          });
-          tabulatorInstances.push(tabulatorInstance);
-        } catch (e) {
-          container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
-          errorHandler(e, "tabulator", index2, "parse", container);
-          continue;
-        }
+        const container = renderer.element.querySelector(\`#\${specReview.containerId}\`);
+        const spec = specReview.approvedSpec;
+        const html = \`<form class="vega-bindings">
+                    <div class="vega-bind">
+                        <label>
+                            <span class="vega-bind-name">\${spec.label || spec.variableId}</span>
+                            <input type="range" class="vega-bind-range" id="\${spec.variableId}" name="\${spec.variableId}" 
+                                   min="\${spec.min}" max="\${spec.max}" step="\${spec.step}" value="\${spec.value || spec.min}"/>
+                            <span class="vega-bind-value">\${spec.value || spec.min}</span>
+                        </label>
+                    </div>
+                </form>\`;
+        container.innerHTML = html;
+        const element = container.querySelector('input[type="range"]');
+        const sliderInstance = { id: \`\${pluginName$4}-\${index2}\`, spec, element };
+        sliderInstances.push(sliderInstance);
       }
-      const dataNameSelectedSuffix = defaultCommonOptions.dataNameSelectedSuffix;
-      const instances = tabulatorInstances.map((tabulatorInstance, index2) => {
+      const instances = sliderInstances.map((sliderInstance) => {
         var _a;
+        const { element, spec } = sliderInstance;
+        const valueSpan = (_a = element.parentElement) == null ? void 0 : _a.querySelector(".vega-bind-value");
         const initialSignals = [{
-          name: tabulatorInstance.spec.dataSignalName,
+          name: spec.variableId,
+          value: spec.value || spec.min,
+          priority: 1,
+          isData: false
+        }];
+        return {
+          ...sliderInstance,
+          initialSignals,
+          recieveBatch: async (batch) => {
+            if (batch[spec.variableId]) {
+              const value = batch[spec.variableId].value;
+              element.value = value.toString();
+              if (valueSpan) {
+                valueSpan.textContent = value.toString();
+              }
+            }
+          },
+          beginListening() {
+            const updateValue = (e) => {
+              const value = parseFloat(e.target.value);
+              if (valueSpan) {
+                valueSpan.textContent = value.toString();
+              }
+              const batch = {
+                [spec.variableId]: {
+                  value,
+                  isData: false
+                }
+              };
+              renderer.signalBus.broadcast(sliderInstance.id, batch);
+            };
+            element.addEventListener("input", updateValue);
+            element.addEventListener("change", updateValue);
+          },
+          getCurrentSignalValue: () => {
+            return parseFloat(element.value);
+          },
+          destroy: () => {
+            element.removeEventListener("input", sliderInstance.element.oninput);
+            element.removeEventListener("change", sliderInstance.element.onchange);
+          }
+        };
+      });
+      return instances;
+    }
+  };
+  /*!
+  * Copyright (c) Microsoft Corporation.
+  * Licensed under the MIT License.
+  */
+  function inspectTabulatorSpec(spec) {
+    const flaggableSpec = {
+      spec
+    };
+    return flaggableSpec;
+  }
+  const pluginName$3 = "tabulator";
+  const className$3 = pluginClassName(pluginName$3);
+  const tabulatorPlugin = {
+    ...flaggableJsonPlugin(pluginName$3, className$3, inspectTabulatorSpec, { style: "box-sizing: border-box;" }),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
+      const tabulatorInstances = [];
+      const deleteFieldname = newId();
+      for (let index2 = 0; index2 < specs.length; index2++) {
+        const specReview = specs[index2];
+        if (!specReview.approvedSpec) {
+          continue;
+        }
+        const container = renderer.element.querySelector(\`#\${specReview.containerId}\`);
+        if (!container) {
+          continue;
+        }
+        const spec = specReview.approvedSpec;
+        const buttons = spec.editable ? \`<div class="tabulator-buttons">
+                        <button type="button" class="tabulator-add-row">Add Row</button>
+                        <button type="button" class="tabulator-reset">Reset</button>
+                   </div>\` : "";
+        container.innerHTML = \`<div class="tabulator-parent">
+                <div class="tabulator-nested"></div>
+                \${buttons}
+            </div>\`;
+        const nestedDiv = container.querySelector(".tabulator-nested");
+        if (!Tabulator && index2 === 0) {
+          errorHandler(new Error("Tabulator not found"), pluginName$3, index2, "init", container);
+          continue;
+        }
+        if (!spec.dataSourceName || !spec.variableId) {
+          errorHandler(new Error("Tabulator requires dataSourceName and variableId"), pluginName$3, index2, "init", container);
+          continue;
+        } else if (spec.dataSourceName === spec.variableId) {
+          errorHandler(new Error("Tabulator dataSourceName and variableId cannot be the same"), pluginName$3, index2, "init", container);
+          continue;
+        }
+        let options = {
+          autoColumns: true,
+          layout: "fitColumns",
+          maxHeight: "200px"
+        };
+        if (spec.tabulatorOptions && Object.keys(spec.tabulatorOptions).length > 0) {
+          options = spec.tabulatorOptions;
+        }
+        const selectableRows = !!(options == null ? void 0 : options.selectableRows) || false;
+        if (spec.editable && selectableRows) {
+          delete options.selectableRows;
+        }
+        const table = new Tabulator(nestedDiv, options);
+        const tabulatorInstance = {
+          id: \`\${pluginName$3}-\${index2}\`,
+          spec,
+          container,
+          table,
+          built: false,
+          selectableRows
+        };
+        table.on("tableBuilt", () => {
+          table.off("tableBuilt");
+          tabulatorInstance.built = true;
+        });
+        tabulatorInstances.push(tabulatorInstance);
+      }
+      const instances = tabulatorInstances.map((tabulatorInstance, index2) => {
+        const { container, spec, table, selectableRows } = tabulatorInstance;
+        const initialSignals = [{
+          name: spec.dataSourceName,
           value: null,
           priority: -1,
           isData: true
         }];
-        if ((_a = tabulatorInstance.spec.options) == null ? void 0 : _a.selectableRows) {
+        if (selectableRows || spec.editable) {
           initialSignals.push({
-            name: \`\${tabulatorInstance.spec.dataSignalName}\${dataNameSelectedSuffix}\`,
+            name: spec.variableId,
             value: [],
             priority: -1,
             isData: true
           });
         }
+        const outputData = () => {
+          let data;
+          if (selectableRows) {
+            data = table.getSelectedData();
+          } else {
+            data = table.getData();
+          }
+          data.forEach((row) => {
+            delete row[deleteFieldname];
+          });
+          const value = structuredClone(data);
+          const batch = {
+            [spec.variableId]: {
+              value,
+              isData: true
+            }
+          };
+          renderer.signalBus.log(tabulatorInstance.id, "sending batch", batch);
+          renderer.signalBus.broadcast(tabulatorInstance.id, batch);
+        };
+        const setData = (data) => {
+          table.setData(data).then(() => {
+            let columns = table.getColumnDefinitions().filter((cd) => cd.field !== deleteFieldname).filter((cd) => cd.formatter !== "rowSelection");
+            if (spec.editable) {
+              columns.unshift({
+                headerSort: false,
+                title: "Delete",
+                field: deleteFieldname,
+                titleFormatter: "tickCross",
+                width: 40,
+                formatter: "tickCross",
+                cellClick: (e, cell) => {
+                  cell.getRow().delete();
+                  outputData();
+                }
+              });
+              columns = columns.map((col) => {
+                if (col.editor === void 0) {
+                  const type = col.type || col.sorter;
+                  if (type === "number") {
+                    return { ...col, editor: "number" };
+                  }
+                  if (type === "date" || type === "datetime") {
+                    return { ...col, editor: "date" };
+                  }
+                  if (type === "boolean") {
+                    return { ...col, editor: "tickCross" };
+                  }
+                  return { ...col, editor: "input" };
+                }
+                return col;
+              });
+            }
+            table.setColumns(columns);
+            outputData();
+          }).catch((error) => {
+            console.error(\`Error setting data for Tabulator \${spec.variableId}:\`, error);
+          });
+        };
+        if (spec.editable) {
+          const addRowBtn = container.querySelector(".tabulator-add-row");
+          const resetBtn = container.querySelector(".tabulator-reset");
+          if (addRowBtn) {
+            addRowBtn.onclick = () => {
+              table.addRow({}).then((row) => {
+                row.scrollTo();
+              });
+            };
+          }
+          if (resetBtn) {
+            resetBtn.onclick = () => {
+              const value = renderer.signalBus.signalDeps[spec.dataSourceName].value;
+              if (Array.isArray(value)) {
+                setData(value);
+              }
+            };
+          }
+        }
         return {
           ...tabulatorInstance,
           initialSignals,
-          recieveBatch: async (batch) => {
-            var _a2;
-            const newData = (_a2 = batch[tabulatorInstance.spec.dataSignalName]) == null ? void 0 : _a2.value;
+          recieveBatch: async (batch, from) => {
+            var _a;
+            const newData = (_a = batch[spec.dataSourceName]) == null ? void 0 : _a.value;
             if (newData) {
               if (!tabulatorInstance.built) {
-                tabulatorInstance.table.off("tableBuilt");
-                tabulatorInstance.table.on("tableBuilt", () => {
+                table.off("tableBuilt");
+                table.on("tableBuilt", () => {
                   tabulatorInstance.built = true;
-                  tabulatorInstance.table.off("tableBuilt");
-                  tabulatorInstance.table.setData(newData);
+                  table.off("tableBuilt");
+                  setData(newData);
                 });
               } else {
-                tabulatorInstance.table.setData(newData);
+                setData(newData);
               }
             }
           },
           beginListening(sharedSignals) {
-            var _a2;
-            if ((_a2 = tabulatorInstance.spec.options) == null ? void 0 : _a2.selectableRows) {
-              for (const { isData, signalName } of sharedSignals) {
-                if (isData) {
-                  const matchData = signalName === \`\${tabulatorInstance.spec.dataSignalName}\${dataNameSelectedSuffix}\`;
-                  if (matchData) {
-                    tabulatorInstance.table.on("rowSelectionChanged", (e, rows) => {
-                      const selectedData = tabulatorInstance.table.getSelectedData();
-                      const batch = {
-                        [\`\${tabulatorInstance.spec.dataSignalName}\${dataNameSelectedSuffix}\`]: {
-                          value: selectedData,
-                          isData: true
-                        }
-                      };
-                      renderer.signalBus.log(tabulatorInstance.id, "sending batch", batch);
-                      renderer.signalBus.broadcast(tabulatorInstance.id, batch);
-                    });
-                  }
-                }
+            if (selectableRows) {
+              const hasMatchingSignal = sharedSignals.some(
+                ({ isData, signalName }) => isData && signalName === spec.variableId
+              );
+              if (hasMatchingSignal) {
+                table.on("rowSelectionChanged", (e, rows) => {
+                  outputData();
+                });
               }
+            }
+            if (spec.editable) {
+              table.on("cellEdited", (cell) => {
+                outputData();
+              });
             }
           },
           getCurrentSignalValue() {
-            return tabulatorInstance.table.getSelectedData();
+            if (selectableRows) {
+              return tabulatorInstance.table.getSelectedData();
+            } else {
+              return tabulatorInstance.table.getData();
+            }
           },
           destroy: () => {
             tabulatorInstance.table.destroy();
@@ -1849,65 +2090,218 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
-  const vegaLitePlugin = {
-    name: "vega-lite",
-    initializePlugin: (md) => definePlugin(md, "vega-lite"),
-    fence: (token, idx) => {
-      const vegaLiteId = \`vega-lite-\${idx}\`;
-      return sanitizedHTML("div", { id: vegaLiteId, class: "vega-chart" }, token.content.trim());
+  const pluginName$2 = "textbox";
+  const className$2 = pluginClassName(pluginName$2);
+  const textboxPlugin = {
+    ...flaggableJsonPlugin(pluginName$2, className$2),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
+      const textboxInstances = [];
+      for (let index2 = 0; index2 < specs.length; index2++) {
+        const specReview = specs[index2];
+        if (!specReview.approvedSpec) {
+          continue;
+        }
+        const container = renderer.element.querySelector(\`#\${specReview.containerId}\`);
+        const spec = specReview.approvedSpec;
+        const placeholderAttr = spec.placeholder ? \` placeholder="\${spec.placeholder}"\` : "";
+        const inputElement = spec.multiline ? \`<textarea class="vega-bind-text" id="\${spec.variableId}" name="\${spec.variableId}"\${placeholderAttr}>\${spec.value || ""}</textarea>\` : \`<input type="text" class="vega-bind-text" id="\${spec.variableId}" name="\${spec.variableId}" value="\${spec.value || ""}"\${placeholderAttr} />\`;
+        const html = \`<form class="vega-bindings">
+                    <div class="vega-bind">
+                        <label>
+                            <span class="vega-bind-name">\${spec.label || spec.variableId}</span>
+                            \${inputElement}
+                        </label>
+                    </div>
+                </form>\`;
+        container.innerHTML = html;
+        const element = container.querySelector(spec.multiline ? "textarea" : 'input[type="text"]');
+        const textboxInstance = { id: \`\${pluginName$2}-\${index2}\`, spec, element };
+        textboxInstances.push(textboxInstance);
+      }
+      const instances = textboxInstances.map((textboxInstance) => {
+        const { element, spec } = textboxInstance;
+        const initialSignals = [{
+          name: spec.variableId,
+          value: spec.value || "",
+          priority: 1,
+          isData: false
+        }];
+        return {
+          ...textboxInstance,
+          initialSignals,
+          recieveBatch: async (batch) => {
+            if (batch[spec.variableId]) {
+              const value = batch[spec.variableId].value;
+              element.value = value;
+            }
+          },
+          beginListening() {
+            const updateValue = (e) => {
+              const value = e.target.value;
+              const batch = {
+                [spec.variableId]: {
+                  value,
+                  isData: false
+                }
+              };
+              renderer.signalBus.broadcast(textboxInstance.id, batch);
+            };
+            element.addEventListener("input", updateValue);
+            element.addEventListener("change", updateValue);
+          },
+          getCurrentSignalValue: () => {
+            return element.value;
+          },
+          destroy: () => {
+            element.removeEventListener("input", textboxInstance.element.oninput);
+            element.removeEventListener("change", textboxInstance.element.onchange);
+          }
+        };
+      });
+      return instances;
     }
   };
-  async function resolveSpec(textContent) {
-    try {
-      const either = JSON.parse(textContent);
-      if (typeof either === "object") {
-        return resolveToVega(either);
-      } else {
-        return { error: new Error(\`Spec must be either a JSON object or a string url, found type \${typeof either}\`) };
+  /*!
+  * Copyright (c) Microsoft Corporation.
+  * Licensed under the MIT License.
+  */
+  var LogLevel = /* @__PURE__ */ ((LogLevel2) => {
+    LogLevel2[LogLevel2["none"] = 0] = "none";
+    LogLevel2[LogLevel2["some"] = 1] = "some";
+    LogLevel2[LogLevel2["all"] = 2] = "all";
+    return LogLevel2;
+  })(LogLevel || {});
+  class SignalBus {
+    constructor(dataSignalPrefix) {
+      __publicField(this, "broadcastingStack");
+      __publicField(this, "logLevel");
+      __publicField(this, "logWatchIds");
+      __publicField(this, "active");
+      __publicField(this, "peers");
+      __publicField(this, "signalDeps");
+      __publicField(this, "peerDependencies");
+      this.dataSignalPrefix = dataSignalPrefix;
+      this.logLevel = 0;
+      this.logWatchIds = [];
+      this.reset();
+    }
+    log(id, message, ...optionalParams) {
+      if (this.logLevel === 0) return;
+      if (this.logWatchIds.length > 0 && !this.logWatchIds.includes(id)) return;
+      console.log(\`[Signal Bus][\${id}] \${message}\`, ...optionalParams);
+    }
+    async broadcast(originId, batch) {
+      if (this.broadcastingStack.includes(originId)) {
+        this.log(originId, "Additional broadcast from", originId, this.broadcastingStack.join(" -> "));
       }
-    } catch (error) {
-      if (textContent.startsWith("http://") || textContent.startsWith("https://") || textContent.startsWith("//")) {
-        try {
-          const response = await fetch(textContent);
-          const either = await response.json();
-          if (typeof either === "object") {
-            return resolveToVega(either);
-          } else {
-            return { error: new Error(\`Expected a JSON object, found type \${typeof either}\`) };
+      this.log(originId, "Broadcasting batch from", originId, batch);
+      this.broadcastingStack.push(originId);
+      for (const peerId of this.peerDependencies[originId]) {
+        const peer = this.peers.find((p) => p.id === peerId);
+        if (!peer) continue;
+        const peerBatch = {};
+        let hasBatch = false;
+        for (const signalName in batch) {
+          if (peer.initialSignals.some((s) => s.name === signalName) && batch[signalName].value !== this.signalDeps[signalName].value) {
+            peerBatch[signalName] = batch[signalName];
+            hasBatch = true;
           }
-        } catch (error2) {
-          return { error: error2 };
         }
-      } else {
-        return { error: new Error("Spec string must be a url") };
+        if (!hasBatch) continue;
+        peer.recieveBatch && await peer.recieveBatch(peerBatch, originId);
+      }
+      this.broadcastingStack.pop();
+      for (const signalName in batch) {
+        const signalDep = this.signalDeps[signalName];
+        signalDep.value = batch[signalName].value;
+      }
+      if (this.broadcastingStack.length === 0) {
+        for (const peer of this.peers) {
+          peer.broadcastComplete && await peer.broadcastComplete();
+        }
       }
     }
-  }
-  function resolveToVega(either) {
-    if ("$schema" in either && typeof either.$schema === "string") {
-      if (either.$schema.includes("vega-lite")) {
-        try {
-          const runtime = vegaLite.compile(either);
-          const { spec } = runtime;
-          return { spec };
-        } catch (error) {
-          return { error };
-        }
-      } else if (either.$schema.includes("vega")) {
-        return { spec: either };
-      } else {
-        return { error: new Error("$schema property must be a string with vega or vega-lite version.") };
-      }
-    } else {
-      return { error: new Error("Missing $schema property, must be a string with vega or vega-lite version.") };
+    getPriorityPeer(signalName) {
+      const signalDep = this.signalDeps[signalName];
+      if (!signalDep) return null;
+      return this.peers.find((p) => p.id === signalDep.initialPriorityId);
     }
-  }
-  function urlParam(urlParamName, value) {
-    if (value === void 0 || value === null) return "";
-    if (Array.isArray(value)) {
-      return value.map((vn) => \`\${urlParamName}[]=\${encodeURIComponent(vn)}\`).join("&");
-    } else {
-      return \`\${urlParamName}=\${encodeURIComponent(value)}\`;
+    registerPeer(peer) {
+      this.log("registerPeer", "register", peer);
+      this.peers.push(peer);
+      for (const initialSignal of peer.initialSignals) {
+        if (!(initialSignal.name in this.signalDeps)) {
+          this.signalDeps[initialSignal.name] = {
+            deps: [peer],
+            priority: initialSignal.priority,
+            initialPriorityId: peer.id,
+            value: initialSignal.value,
+            isData: initialSignal.isData
+          };
+        } else {
+          const signalDep = this.signalDeps[initialSignal.name];
+          if (!signalDep.deps.includes(peer)) {
+            signalDep.deps.push(peer);
+          }
+          if (initialSignal.priority > signalDep.priority) {
+            signalDep.priority = initialSignal.priority;
+            signalDep.initialPriorityId = peer.id;
+            signalDep.value = initialSignal.value;
+            signalDep.isData = initialSignal.isData;
+          }
+        }
+      }
+    }
+    beginListening() {
+      this.log("beginListening", "begin initial batch", this.signalDeps);
+      for (const peer of this.peers) {
+        const batch = {};
+        for (const signalName in this.signalDeps) {
+          const signalDep = this.signalDeps[signalName];
+          const { value, isData } = signalDep;
+          batch[signalName] = { value, isData };
+        }
+        peer.recieveBatch && peer.recieveBatch(batch, "initial");
+      }
+      this.log("beginListening", "end initial batch");
+      const peerSignals = {};
+      for (const signalName in this.signalDeps) {
+        const signalDep = this.signalDeps[signalName];
+        if (signalDep.deps.length === 1) continue;
+        for (const peer of signalDep.deps) {
+          if (!(peer.id in peerSignals)) {
+            peerSignals[peer.id] = [];
+            this.peerDependencies[peer.id] = [];
+          }
+          peerSignals[peer.id].push({ signalName, isData: signalDep.isData });
+          for (const otherPeer of signalDep.deps) {
+            if (otherPeer.id !== peer.id && !this.peerDependencies[peer.id].includes(otherPeer.id)) {
+              this.peerDependencies[peer.id].push(otherPeer.id);
+            }
+          }
+        }
+      }
+      this.log("beginListening", "======= dependencies =========", peerSignals, this.peerDependencies);
+      for (const peer of this.peers) {
+        const sharedSignals = peerSignals[peer.id];
+        if (sharedSignals) {
+          this.log(peer.id, "Shared signals:", sharedSignals);
+          if (this.peerDependencies[peer.id]) {
+            this.log(peer.id, "Shared dependencies:", this.peerDependencies[peer.id]);
+          }
+          peer.beginListening && peer.beginListening(sharedSignals);
+        } else {
+          this.log(peer.id, "No shared signals");
+        }
+      }
+      this.active = true;
+    }
+    reset() {
+      this.signalDeps = {};
+      this.active = false;
+      this.peers = [];
+      this.broadcastingStack = [];
+      this.peerDependencies = {};
     }
   }
   /*!
@@ -1915,23 +2309,30 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   * Licensed under the MIT License.
   */
   const ignoredSignals = ["width", "height", "padding", "autosize", "background", "style", "parent", "datum", "item", "event", "cursor"];
+  const pluginName$1 = "vega";
+  const className$1 = pluginClassName(pluginName$1);
+  function inspectVegaSpec(spec) {
+    const flaggableSpec = {
+      spec
+    };
+    return flaggableSpec;
+  }
   const vegaPlugin = {
-    name: "vega",
-    initializePlugin: (md) => definePlugin(md, "vega"),
-    fence: (token, idx) => {
-      const vegaId = \`vega-\${idx}\`;
-      return sanitizedHTML("div", { id: vegaId, class: "vega-chart" }, token.content.trim());
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
+    ...flaggableJsonPlugin(pluginName$1, className$1, inspectVegaSpec),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
       if (!expressionsInitialized) {
         vega.expressionFunction("urlParam", urlParam);
         expressionsInitialized = true;
       }
       const vegaInstances = [];
-      const containers = renderer.element.querySelectorAll(".vega-chart");
       const specInits = [];
-      for (const [index2, container] of Array.from(containers).entries()) {
-        const specInit = await createSpecInit(container, index2, renderer, errorHandler);
+      for (let index2 = 0; index2 < specs.length; index2++) {
+        const specReview = specs[index2];
+        if (!specReview.approvedSpec) {
+          continue;
+        }
+        const container = renderer.element.querySelector(\`#\${specReview.containerId}\`);
+        const specInit = createSpecInit(container, index2, specReview.approvedSpec);
         if (specInit) {
           specInits.push(specInit);
         }
@@ -1947,10 +2348,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       for (const vegaInstance of vegaInstances) {
         if (!vegaInstance.spec.data) continue;
         for (const data of vegaInstance.spec.data) {
-          const dataSignal = dataSignals.find(
-            (signal) => signal.name === data.name || \`\${signal.name}\${defaultCommonOptions.dataNameSelectedSuffix}\` === data.name
-            //match a selection from Tabulator
-          );
+          const dataSignal = dataSignals.find((signal) => signal.name === data.name);
           if (dataSignal) {
             vegaInstance.initialSignals.push({
               name: data.name,
@@ -2109,30 +2507,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     return hasAnyChange;
   }
-  async function createSpecInit(container, index2, renderer, errorHandler) {
+  function createSpecInit(container, index2, spec) {
     var _a;
-    if (!container.textContent) {
-      container.innerHTML = '<div class="error">Expected a spec object or a url</div>';
-      return;
-    }
-    let result;
-    try {
-      result = await resolveSpec(container.textContent);
-    } catch (e) {
-      container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
-      errorHandler(e, "vega", index2, "resolve", container);
-      return;
-    }
-    if (result.error) {
-      container.innerHTML = \`<div class="error">\${result.error.toString()}</div>\`;
-      errorHandler(result.error, "vega", index2, "resolve", container);
-      return;
-    }
-    if (!result.spec) {
-      container.innerHTML = '<div class="error">Expected a spec object</div>';
-      return;
-    }
-    const { spec } = result;
     const initialSignals = ((_a = spec.signals) == null ? void 0 : _a.map((signal) => {
       if (ignoredSignals.includes(signal.name)) return;
       let isData = isSignalDataBridge(signal);
@@ -2151,14 +2527,14 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   }
   async function createVegaInstance(specInit, renderer, errorHandler) {
     const { container, index: index2, initialSignals, spec } = specInit;
-    const id = \`vega-\${index2}\`;
+    const id = \`\${pluginName$1}-\${index2}\`;
     let runtime;
     let view;
     try {
       runtime = vega.parse(spec);
     } catch (e) {
       container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
-      errorHandler(e, "vega", index2, "parse", container);
+      errorHandler(e, pluginName$1, index2, "parse", container);
       return;
     }
     try {
@@ -2166,7 +2542,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         container,
         renderer: renderer.options.vegaRenderer,
         logger: new VegaLogger((error) => {
-          errorHandler(error, "vega", index2, "view", container);
+          errorHandler(error, pluginName$1, index2, "view", container);
         })
       });
       view.run();
@@ -2180,7 +2556,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     } catch (e) {
       container.innerHTML = \`<div class="error">\${e.toString()}</div>\`;
-      errorHandler(e, "vega", index2, "view", container);
+      errorHandler(e, pluginName$1, index2, "view", container);
       return;
     }
     const dataSignals = initialSignals.filter((signal) => {
@@ -2254,6 +2630,46 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
+  const pluginName = "vega-lite";
+  const className = pluginClassName(pluginName);
+  const vegaLitePlugin = {
+    ...flaggableJsonPlugin(pluginName, className),
+    fence: (token, index2) => {
+      let json = token.content.trim();
+      let spec;
+      let flaggableSpec;
+      try {
+        spec = JSON.parse(json);
+      } catch (e) {
+        flaggableSpec = {
+          spec: null,
+          hasFlags: true,
+          reasons: [\`malformed JSON\`]
+        };
+      }
+      if (spec) {
+        try {
+          const vegaSpec = vegaLite.compile(spec);
+          flaggableSpec = inspectVegaSpec(vegaSpec.spec);
+        } catch (e) {
+          flaggableSpec = {
+            spec: null,
+            hasFlags: true,
+            reasons: [\`failed to compile vega spec\`]
+          };
+        }
+      }
+      if (flaggableSpec) {
+        json = JSON.stringify(flaggableSpec);
+      }
+      return sanitizedHTML("div", { class: pluginClassName(vegaPlugin.name), id: \`\${pluginName}-\${index2}\` }, json, true);
+    },
+    hydratesBefore: vegaPlugin.name
+  };
+  /*!
+  * Copyright (c) Microsoft Corporation.
+  * Licensed under the MIT License.
+  */
   function registerNativePlugins() {
     registerMarkdownPlugin(checkboxPlugin);
     registerMarkdownPlugin(cssPlugin);
@@ -2261,559 +2677,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     registerMarkdownPlugin(imagePlugin);
     registerMarkdownPlugin(placeholdersPlugin);
     registerMarkdownPlugin(presetsPlugin);
+    registerMarkdownPlugin(sliderPlugin);
     registerMarkdownPlugin(tabulatorPlugin);
+    registerMarkdownPlugin(textboxPlugin);
     registerMarkdownPlugin(vegaLitePlugin);
     registerMarkdownPlugin(vegaPlugin);
-  }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
-  registerNativePlugins();
-  const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
-    __proto__: null,
-    Renderer,
-    definePlugin,
-    plugins,
-    registerMarkdownPlugin,
-    sanitizedHTML
-  }, Symbol.toStringTag, { value: "Module" }));
-  exports2.common = index$1;
-  exports2.markdown = index;
-  Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
-});
-`;
-  const sandboxJs = `document.addEventListener('DOMContentLoaded', () => {
-    const renderer = new IDocs.markdown.Renderer(document.body, {
-        errorHandler: (error, pluginName, instanceIndex, phase, container, detail) => {
-            console.error(\`Error in plugin \${pluginName} at instance \${instanceIndex} during \${phase}:\`, error);
-            if (detail) {
-                console.error('Detail:', detail);
-            }
-            container.innerHTML = \`<div style="color: red;">Error: \${error.message}</div>\`;
-        }
-    });
-    function render(request) {
-        if (request.markdown) {
-            renderer.render(request.markdown);
-        }
-        else if (request.html) {
-            renderer.reset();
-            document.body.innerHTML = request.html;
-            renderer.hydrate();
-        }
-    }
-    render(renderRequest);
-    //add listener for postMessage
-    window.addEventListener('message', (event) => {
-        if (!event.data)
-            return;
-        render(event.data);
-    });
-});
-`;
-  const u = (e, t) => {
-    t && e.forEach(([s, n]) => {
-      switch (s) {
-        case "class":
-          t.attrJoin("class", n);
-          break;
-        case "css-module":
-          t.attrJoin("css-module", n);
-          break;
-        default:
-          t.attrPush([s, n]);
-      }
-    });
-  }, _ = ".", x = "#", v = /[^\t\n\f />"'=]/, O = " ", E = "=", d = (e, t, { left: s, right: n, allowed: o }) => {
-    let i = "", l = "", r = true, c = false;
-    const f = [];
-    for (let h = t + s.length; h < e.length; h++) {
-      if (e.slice(h, h + n.length) === n) {
-        i !== "" && f.push([i, l]);
-        break;
-      }
-      const a = e.charAt(h);
-      if (a === E && r) {
-        r = false;
-        continue;
-      }
-      if (a === _ && i === "") {
-        e.charAt(h + 1) === _ ? (i = "css-module", h++) : i = "class", r = false;
-        continue;
-      }
-      if (a === x && i === "") {
-        i = "id", r = false;
-        continue;
-      }
-      if (a === '"' && l === "" && !c) {
-        c = true;
-        continue;
-      }
-      if (a === '"' && c) {
-        c = false;
-        continue;
-      }
-      if (a === O && !c) {
-        if (i === "") continue;
-        f.push([i, l]), i = "", l = "", r = true;
-        continue;
-      }
-      if (!(r && a.search(v) === -1)) {
-        if (r) {
-          i += a;
-          continue;
-        }
-        l += a;
-      }
-    }
-    return o.length ? f.filter(([h]) => o.some((a) => a instanceof RegExp ? a.test(h) : a === h)) : f;
-  }, y = ({ left: e, right: t }, s) => {
-    if (!["start", "end", "only"].includes(s)) throw new Error(`Invalid 'where' parameter: ${s}. Expected 'start', 'end', or 'only'.`);
-    return (n) => {
-      const o = e.length, i = t.length, l = o + 1 + i, r = o + 1;
-      if (!n || typeof n != "string" || n.length < l) return false;
-      const c = (p) => [_, x].includes(p.charAt(o)) ? p.length >= l + 1 : p.length >= l;
-      let f, h, a, m;
-      return s === "start" ? (a = n.slice(0, o), f = a === e ? 0 : -1, h = f === -1 ? -1 : n.indexOf(t, r), m = n.charAt(h + i), m && t.includes(m) && (h = -1)) : s === "end" ? (f = n.lastIndexOf(e), h = f === -1 ? -1 : n.indexOf(t, f + r), h = h === n.length - i ? h : -1) : (a = n.slice(0, o), f = a === e ? 0 : -1, a = n.slice(n.length - i), h = a === t ? n.length - i : -1), f !== -1 && h !== -1 && c(n.substring(f, h + i));
-    };
-  }, g = (e, t) => {
-    const s = e[t];
-    if (s.type === "softbreak") return null;
-    if (s.nesting === 0) return s;
-    const n = s.level, o = s.type.replace("_close", "_open");
-    for (; t >= 0; ) {
-      const i = e[t];
-      if (i.type === o && i.level === n) return i;
-      t--;
-    }
-    /* istanbul ignore next -- @preserve */
-    return null;
-  }, b = (e) => e.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&"), w = (e, t, s) => {
-    const n = b(t), o = b(s), i = e.search(new RegExp(`[ \\n]?${n}[^${n}${o}]+${o}$`));
-    return i !== -1 ? e.slice(0, i) : e;
-  }, $ = (e, t) => t >= 0 ? e[t] : e[e.length + t], C = (e) => Array.isArray(e) && !!e.length && e.every((t) => typeof t == "function"), I = (e) => Array.isArray(e) && !!e.length && e.every((t) => typeof t == "object"), k = (e, t, s) => {
-    var _a, _b;
-    const n = { match: false, position: null }, o = s.shift !== void 0 ? t + s.shift : s.position;
-    if (s.shift !== void 0 && o < 0) return n;
-    const i = $(e, o);
-    if (!i) return n;
-    for (const l of Object.keys(s)) {
-      if (l === "shift" || l === "position") continue;
-      if (i[l] === void 0) return n;
-      if (l === "children" && I(s.children)) {
-        if (((_a = i.children) == null ? void 0 : _a.length) === 0) return n;
-        let c;
-        const f = s.children, h = i.children;
-        if (f.every((a) => a.position !== void 0)) {
-          if (c = f.every((a) => k(h, a.position, a).match), c) {
-            const a = ((_b = f[f.length - 1]) == null ? void 0 : _b.position) ?? 0;
-            n.position = a >= 0 ? a : h.length + a;
-          }
-        } else for (let a = 0; a < h.length; a++) if (c = f.every((m) => k(h, a, m).match), c) {
-          n.position = a;
-          break;
-        }
-        if (c === false) return n;
-        continue;
-      }
-      const r = s[l];
-      switch (typeof r) {
-        case "boolean":
-        case "number":
-        case "string": {
-          if (i[l] !== r) return n;
-          break;
-        }
-        case "function": {
-          if (!r(i[l])) return n;
-          break;
-        }
-        default: {
-          if (C(r)) {
-            if (!r.every((c) => c(i[l]))) return n;
-            break;
-          }
-          throw new Error(`Unknown type of pattern test (key: ${l}). Test should be of type boolean, number, string, function or array of functions.`);
-        }
-      }
-    }
-    return n.match = true, n;
-  }, S = (e) => ({ name: "end of block", tests: [{ shift: 0, type: "inline", children: [{ position: -1, content: y(e, "end"), type: (t) => t !== "code_inline" && t !== "math_inline" }] }], transform: (t, s, n) => {
-    const o = t[s].children[n], { content: i } = o, l = i.lastIndexOf(e.left), r = d(i, l, e);
-    let c = s + 1;
-    for (; t[c + 1] && t[c + 1].nesting === -1; ) c++;
-    const f = g(t, c);
-    u(r, f);
-    const h = i.slice(0, l), a = h[h.length - 1] === " ";
-    o.content = a ? h.slice(0, -1) : h;
-  } }), T = (e) => ({ name: "code-block", tests: [{ shift: 0, block: true, info: y(e, "end") }], transform: (t, s) => {
-    const n = t[s];
-    let o = "";
-    const i = /{(?:[\d,-]+)}/.exec(n.info);
-    i && (n.info = n.info.replace(i[0], ""), o = i[0]);
-    const l = n.info.lastIndexOf(e.left), r = d(n.info, l, e);
-    u(r, n);
-    const c = w(n.info, e.left, e.right);
-    n.info = `${c} ${o}`.trim();
-  } }), D = (e) => [{ name: "inline nesting self-close", tests: [{ shift: 0, type: "inline", children: [{ shift: -1, type: (t) => t === "image" || t === "code_inline" }, { shift: 0, type: "text", content: y(e, "start") }] }], transform: (t, s, n) => {
-    const o = e.right.length, i = t[s].children[n], l = i.content.indexOf(e.right), r = t[s].children[n - 1], c = d(i.content, 0, e);
-    u(c, r), i.content.length === l + o ? t[s].children.splice(n, 1) : i.content = i.content.slice(l + o);
-  } }, { name: "inline attributes", tests: [{ shift: 0, type: "inline", children: [{ shift: -1, nesting: -1 }, { shift: 0, type: "text", content: y(e, "start") }] }], transform: (t, s, n) => {
-    const o = t[s].children[n], { content: i } = o, l = d(i, 0, e), r = g(t[s].children, n - 1);
-    u(l, r);
-    const c = i.indexOf(e.right) + e.right.length;
-    o.content = i.slice(c);
-  } }], K = (e) => [{ name: "list softbreak", tests: [{ shift: -2, type: "list_item_open" }, { shift: 0, type: "inline", children: [{ position: -2, type: "softbreak" }, { position: -1, type: "text", content: y(e, "only") }] }], transform: (t, s, n) => {
-    const o = t[s].children[n], i = d(o.content, 0, e);
-    let l = s - 2;
-    for (; t[l - 1] && t[l - 1].type !== "ordered_list_open" && t[l - 1].type !== "bullet_list_open"; ) l--;
-    u(i, t[l - 1]), t[s].children = t[s].children.slice(0, -2);
-  } }, { name: "list double softbreak", tests: [{ shift: 0, type: (t) => t === "bullet_list_close" || t === "ordered_list_close" }, { shift: 1, type: "paragraph_open" }, { shift: 2, type: "inline", content: y(e, "only"), children: (t) => t.length === 1 }, { shift: 3, type: "paragraph_close" }], transform: (t, s) => {
-    const n = t[s + 2], o = d(n.content, 0, e), i = g(t, s);
-    u(o, i), t.splice(s + 1, 3);
-  } }, { name: "list item end", tests: [{ shift: -2, type: "list_item_open" }, { shift: 0, type: "inline", children: [{ position: -1, type: "text", content: y(e, "end") }] }], transform: (t, s, n) => {
-    const o = t[s].children[n], { content: i } = o, l = i.lastIndexOf(e.left), r = d(i, l, e);
-    u(r, t[s - 2]);
-    const c = i.slice(0, l), f = c[c.length - 1] === " ";
-    o.content = f ? c.slice(0, -1) : c;
-  } }], L = (e) => ({ name: `
-{.a} softbreak then curly in start`, tests: [{ shift: 0, type: "inline", children: [{ position: -2, type: "softbreak" }, { position: -1, type: "text", content: y(e, "only") }] }], transform: (t, s, n) => {
-    const o = t[s].children[n], i = d(o.content, 0, e);
-    let l = s + 1;
-    for (; t[l + 1] && t[l + 1].nesting === -1; ) l++;
-    const r = g(t, l);
-    u(i, r), t[s].children = t[s].children.slice(0, -2);
-  } }), M = (e) => ({ name: "horizontal rule", tests: [{ shift: 0, type: "paragraph_open" }, { shift: 1, type: "inline", children: (t) => t.length === 1, content: (t) => new RegExp(`^ {0,3}[-*_]{3,} ?${b(e.left)}[^${b(e.right)}]`).test(t) }, { shift: 2, type: "paragraph_close" }], transform: (t, s) => {
-    const n = t[s];
-    n.type = "hr", n.tag = "hr", n.nesting = 0;
-    const o = t[s + 1], { content: i } = o, l = i.lastIndexOf(e.left), r = d(i, l, e);
-    u(r, n), n.markup = i, t.splice(s + 1, 2);
-  } }), A = (e) => {
-    var _a;
-    e.hidden = true, (_a = e.children) == null ? void 0 : _a.forEach((t) => {
-      t.content = "", A(t);
-    });
-  }, P = (e, t, s, n, o, i) => {
-    let l = n - (o > 0 ? o : 1);
-    for (let r = t, c = i; r < s && c > 1; r++) if (e[r].type === "tr_open") {
-      const f = e[r];
-      f.meta ?? (f.meta = {}), f.meta.columnCount && (l -= 1), f.meta.columnCount = l, c--;
-    }
-  }, j = (e, t, s) => {
-    var _a;
-    const n = (_a = e[t].meta) == null ? void 0 : _a.columnCount;
-    if (n) for (let o = t, i = 0; o < s; o++) {
-      const l = e[o];
-      if (l.type === "td_open") i += 1;
-      else if (l.type === "tr_close") break;
-      i > n && !l.hidden && A(l);
-    }
-  }, N = (e, t, s, n, o, i) => {
-    var _a;
-    const l = [], r = e[t];
-    let c = t + 3, f = n;
-    for (let p = t; p > i; p--) if (e[p].type === "tr_open") {
-      f = ((_a = e[p].meta) == null ? void 0 : _a.columnCount) ?? f;
-      break;
-    } else e[p].type === "td_open" && l.unshift(p);
-    for (let p = t + 2; p < s; p++) if (e[p].type === "tr_close") {
-      c = p;
-      break;
-    } else e[p].type === "td_open" && l.push(p);
-    const h = l.indexOf(t), a = Math.min(o, f - h);
-    o > a && r.attrSet("colspan", a.toString());
-    const m = l.slice(f + 1 - n - a)[0];
-    for (let p = m; p < c; p++) e[p].hidden || A(e[p]);
-  }, B = (e) => [{ name: "table", tests: [{ shift: 0, type: "table_close" }, { shift: 1, type: "paragraph_open" }, { shift: 2, type: "inline", content: y(e, "only") }], transform: (t, s) => {
-    const n = t[s + 2], o = g(t, s), i = d(n.content, 0, e);
-    u(i, o), t.splice(s + 1, 3);
-  } }, { name: "table cell attributes", tests: [{ shift: -1, type: (t) => t === "td_open" || t === "th_open" }, { shift: 0, type: "inline", children: [{ shift: 0, type: "text", content: y(e, "end") }] }], transform: (t, s, n) => {
-    const o = t[s].children[n], i = t[s - 1], { content: l } = o, r = l.lastIndexOf(e.left), c = d(l, r, e);
-    u(c, i), o.content = l.substring(0, r).trim();
-  } }, { name: "table thead metadata", tests: [{ shift: 0, type: "tr_close" }, { shift: 1, type: "thead_close" }, { shift: 2, type: "tbody_open" }], transform: (t, s) => {
-    const n = g(t, s), o = t[s - 1];
-    let i = 0, l = s - 1;
-    for (; l > 0; ) {
-      const c = t[l];
-      if (c === n) {
-        const f = t[l - 1];
-        f.meta = { ...f.meta, columnCount: i };
-        break;
-      }
-      c.level === o.level && c.type === o.type && i++, l--;
-    }
-    const r = t[s + 2];
-    r.meta = { ...r.meta, columnCount: i };
-  } }, { name: "table tbody calculate", tests: [{ shift: 0, type: "tbody_close", hidden: false }], transform: (t, s) => {
-    var _a;
-    let n = s - 2;
-    for (; n > 0 && (n--, t[n].type !== "tbody_open"); ) ;
-    const o = Number(((_a = t[n].meta) == null ? void 0 : _a.columnCount) ?? 0);
-    if (o < 2) return;
-    const i = t[s].level + 2;
-    for (let l = n; l < s; l++) {
-      if (t[l].level > i) continue;
-      const r = t[l], c = r.hidden ? 0 : Number(r.attrGet("rowspan")), f = r.hidden ? 0 : Number(r.attrGet("colspan"));
-      c > 1 && P(t, l, s, o, f, c), r.type === "tr_open" && j(t, l, s), f > 1 && N(t, l, s, o, f, n);
-    }
-  } }], R$1 = ["fence", "inline", "table", "list", "hr", "softbreak", "block"], F = (e) => {
-    const t = e.rule === false ? [] : Array.isArray(e.rule) ? e.rule.filter((n) => R$1.includes(n)) : R$1, s = [];
-    return t.includes("fence") && s.push(T(e)), t.includes("inline") && s.push(...D(e)), t.includes("table") && s.push(...B(e)), t.includes("list") && s.push(...K(e)), t.includes("softbreak") && s.push(L(e)), t.includes("hr") && s.push(M(e)), t.includes("block") && s.push(S(e)), s;
-  }, G = (e, { left: t = "{", right: s = "}", allowed: n = [], rule: o = "all" } = {}) => {
-    const i = F({ left: t, right: s, allowed: n, rule: o }), l = ({ tokens: r }) => {
-      for (let c = 0; c < r.length; c++) for (let f = 0; f < i.length; f++) {
-        const h = i[f];
-        let a = null;
-        h.tests.every((m) => {
-          const p = k(r, c, m);
-          return p.position !== null && ({ position: a } = p), p.match;
-        }) && (h.transform(r, c, a), (h.name === "inline attributes" || h.name === "inline nesting self-close") && f--);
-      }
-    };
-    e.core.ruler.before("linkify", "attrs", l);
-  };
-  const R = (p, u2) => {
-    if (typeof u2 != "object" || !u2.name) throw new Error("[@mdit/plugin-container]: 'name' option is required.");
-    const { name: c, marker: l = ":", validate: $2 = (e) => e.trim().split(" ", 2)[0] === c, openRender: g2 = (e, t, n, k2, o) => (e[t].attrJoin("class", c), o.renderToken(e, t, n)), closeRender: C2 = (e, t, n, k2, o) => o.renderToken(e, t, n) } = u2, m = l[0], i = l.length, I2 = (e, t, n, k2) => {
-      const o = e.bMarks[t] + e.tShift[t], h = e.eMarks[t], d2 = e.sCount[t];
-      if (m !== e.src[o]) return false;
-      let r = o + 1;
-      for (; r <= h && l[(r - o) % i] === e.src[r]; ) r++;
-      const M2 = Math.floor((r - o) / i);
-      if (M2 < 3) return false;
-      r -= (r - o) % i;
-      const _2 = e.src.slice(o, r), T2 = e.src.slice(r, h);
-      if (!$2(T2, _2)) return false;
-      if (k2) return true;
-      let s = t + 1, x2 = false;
-      for (; s < n; s++) {
-        const a = e.bMarks[s] + e.tShift[s], b2 = e.eMarks[s];
-        if (a < b2 && e.sCount[s] < d2) break;
-        if (e.sCount[s] === d2 && m === e.src[a]) {
-          for (r = a + 1; r <= b2 && l[(r - a) % i] === e.src[r]; r++) ;
-          if (Math.floor((r - a) / i) >= M2 && (r -= (r - a) % i, r = e.skipSpaces(r), r >= b2)) {
-            x2 = true;
-            break;
-          }
-        }
-      }
-      const S2 = e.parentType, v2 = e.lineMax, w2 = e.blkIndent;
-      e.parentType = "container", e.lineMax = s, e.blkIndent = d2;
-      const f = e.push(`container_${c}_open`, "div", 1);
-      f.markup = _2, f.block = true, f.info = T2, f.map = [t, s], e.md.block.tokenize(e, t + 1, s);
-      const y2 = e.push(`container_${c}_close`, "div", -1);
-      return y2.markup = e.src.slice(o, r), y2.block = true, e.parentType = S2, e.lineMax = v2, e.blkIndent = w2, e.line = s + (x2 ? 1 : 0), true;
-    };
-    p.block.ruler.before("fence", `container_${c}`, I2, { alt: ["paragraph", "reference", "blockquote", "list"] }), p.renderer.rules[`container_${c}_open`] = g2, p.renderer.rules[`container_${c}_close`] = C2;
-  };
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
-  const plugins = [];
-  function registerMarkdownPlugin(plugin) {
-    plugins.push(plugin);
-    return "register";
-  }
-  function create() {
-    const md = new markdownit();
-    for (const plugin of plugins) {
-      plugin.initializePlugin(md);
-    }
-    md.use(G);
-    const containerOptions = { name: defaultCommonOptions.groupClassName };
-    md.use(R, containerOptions);
-    const originalFence = md.renderer.rules.fence;
-    md.renderer.rules.fence = function(tokens, idx, options, env, slf) {
-      const token = tokens[idx];
-      const info = token.info.trim();
-      if (info.startsWith("json ")) {
-        const pluginName = info.slice(5).trim();
-        const plugin = plugins.find((p) => p.name === pluginName);
-        if (plugin && plugin.fence) {
-          return plugin.fence(token, idx);
-        }
-      }
-      if (originalFence) {
-        return originalFence(tokens, idx, options, env, slf);
-      } else {
-        return "";
-      }
-    };
-    return md;
-  }
-  function definePlugin(md, pluginName) {
-    md.block.ruler.before("fence", `${pluginName}_block`, function(state, startLine, endLine) {
-      const start = state.bMarks[startLine] + state.tShift[startLine];
-      const max = state.eMarks[startLine];
-      const marker = `json ${pluginName}`;
-      if (!state.src.slice(start, max).trim().startsWith("```" + marker)) {
-        return false;
-      }
-      let nextLine = startLine;
-      while (nextLine < endLine) {
-        nextLine++;
-        if (state.src.slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine]).trim() === "```") {
-          break;
-        }
-      }
-      state.line = nextLine + 1;
-      const token = state.push("fence", "code", 0);
-      token.info = marker;
-      token.content = state.getLines(startLine + 1, nextLine, state.blkIndent, true);
-      token.map = [startLine, state.line];
-      return true;
-    });
-  }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
-  var LogLevel;
-  (function(LogLevel2) {
-    LogLevel2[LogLevel2["none"] = 0] = "none";
-    LogLevel2[LogLevel2["some"] = 1] = "some";
-    LogLevel2[LogLevel2["all"] = 2] = "all";
-  })(LogLevel || (LogLevel = {}));
-  class SignalBus {
-    constructor(dataSignalPrefix) {
-      __publicField(this, "dataSignalPrefix");
-      __publicField(this, "broadcastingStack");
-      __publicField(this, "logLevel");
-      __publicField(this, "logWatchIds");
-      __publicField(this, "active");
-      __publicField(this, "peers");
-      __publicField(this, "signalDeps");
-      __publicField(this, "peerDependencies");
-      this.dataSignalPrefix = dataSignalPrefix;
-      this.logLevel = LogLevel.none;
-      this.logWatchIds = [];
-      this.reset();
-    }
-    log(id, message, ...optionalParams) {
-      if (this.logLevel === LogLevel.none)
-        return;
-      if (this.logWatchIds.length > 0 && !this.logWatchIds.includes(id))
-        return;
-      console.log(`[Signal Bus][${id}] ${message}`, ...optionalParams);
-    }
-    async broadcast(originId, batch) {
-      if (this.broadcastingStack.includes(originId)) {
-        this.log(originId, "Additional broadcast from", originId, this.broadcastingStack.join(" -> "));
-      }
-      this.log(originId, "Broadcasting batch from", originId, batch);
-      this.broadcastingStack.push(originId);
-      for (const peerId of this.peerDependencies[originId]) {
-        const peer = this.peers.find((p) => p.id === peerId);
-        if (!peer)
-          continue;
-        const peerBatch = {};
-        let hasBatch = false;
-        for (const signalName in batch) {
-          if (peer.initialSignals.some((s) => s.name === signalName) && batch[signalName].value !== this.signalDeps[signalName].value) {
-            peerBatch[signalName] = batch[signalName];
-            hasBatch = true;
-          }
-        }
-        if (!hasBatch)
-          continue;
-        peer.recieveBatch && await peer.recieveBatch(peerBatch, originId);
-      }
-      this.broadcastingStack.pop();
-      for (const signalName in batch) {
-        const signalDep = this.signalDeps[signalName];
-        signalDep.value = batch[signalName].value;
-      }
-      if (this.broadcastingStack.length === 0) {
-        for (const peer of this.peers) {
-          peer.broadcastComplete && await peer.broadcastComplete();
-        }
-      }
-    }
-    getPriorityPeer(signalName) {
-      const signalDep = this.signalDeps[signalName];
-      if (!signalDep)
-        return null;
-      return this.peers.find((p) => p.id === signalDep.initialPriorityId);
-    }
-    registerPeer(peer) {
-      this.peers.push(peer);
-      for (const initialSignal of peer.initialSignals) {
-        if (!(initialSignal.name in this.signalDeps)) {
-          this.signalDeps[initialSignal.name] = {
-            deps: [peer],
-            priority: initialSignal.priority,
-            initialPriorityId: peer.id,
-            value: initialSignal.value,
-            isData: initialSignal.isData
-          };
-        } else {
-          const signalDep = this.signalDeps[initialSignal.name];
-          if (!signalDep.deps.includes(peer)) {
-            signalDep.deps.push(peer);
-          }
-          if (initialSignal.priority > signalDep.priority) {
-            signalDep.priority = initialSignal.priority;
-            signalDep.initialPriorityId = peer.id;
-            signalDep.value = initialSignal.value;
-            signalDep.isData = initialSignal.isData;
-          }
-        }
-      }
-    }
-    beginListening() {
-      this.log("beginListening", "begin initial batch", this.signalDeps);
-      for (const peer of this.peers) {
-        const batch = {};
-        for (const signalName in this.signalDeps) {
-          const signalDep = this.signalDeps[signalName];
-          const { value, isData } = signalDep;
-          batch[signalName] = { value, isData };
-        }
-        peer.recieveBatch && peer.recieveBatch(batch, "initial");
-      }
-      this.log("beginListening", "end initial batch");
-      const peerSignals = {};
-      for (const signalName in this.signalDeps) {
-        const signalDep = this.signalDeps[signalName];
-        if (signalDep.deps.length === 1)
-          continue;
-        for (const peer of signalDep.deps) {
-          if (!(peer.id in peerSignals)) {
-            peerSignals[peer.id] = [];
-            this.peerDependencies[peer.id] = [];
-          }
-          peerSignals[peer.id].push({ signalName, isData: signalDep.isData });
-          for (const otherPeer of signalDep.deps) {
-            if (otherPeer.id !== peer.id && !this.peerDependencies[peer.id].includes(otherPeer.id)) {
-              this.peerDependencies[peer.id].push(otherPeer.id);
-            }
-          }
-        }
-      }
-      this.log("beginListening", "======= dependencies =========", peerSignals, this.peerDependencies);
-      for (const peer of this.peers) {
-        const sharedSignals = peerSignals[peer.id];
-        if (sharedSignals) {
-          this.log(peer.id, "Shared signals:", sharedSignals);
-          if (this.peerDependencies[peer.id]) {
-            this.log(peer.id, "Shared dependencies:", this.peerDependencies[peer.id]);
-          }
-          peer.beginListening && peer.beginListening(sharedSignals);
-        } else {
-          this.log(peer.id, "No shared signals");
-        }
-      }
-      this.active = true;
-    }
-    reset() {
-      this.signalDeps = {};
-      this.active = false;
-      this.peers = [];
-      this.broadcastingStack = [];
-      this.peerDependencies = {};
-    }
   }
   /*!
   * Copyright (c) Microsoft Corporation.
@@ -2822,8 +2690,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   const defaultRendererOptions = {
     vegaRenderer: "canvas",
     useShadowDom: false,
-    errorHandler: (error, pluginName, instanceIndex, phase) => {
-      console.error(`Error in plugin ${pluginName} instance ${instanceIndex} phase ${phase}`, error);
+    errorHandler: (error, pluginName2, instanceIndex, phase) => {
+      console.error(\`Error in plugin \${pluginName2} instance \${instanceIndex} phase \${phase}\`, error);
     }
   };
   class Renderer {
@@ -2850,28 +2718,42 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
     async render(markdown) {
-      await this.reset();
-      const content = this.renderHtml(markdown);
-      this.element.innerHTML = content;
-      await this.hydrate();
+      this.reset();
+      const html = this.renderHtml(markdown);
+      this.element.innerHTML = html;
+      const specs = this.hydrateSpecs();
+      await this.hydrate(specs);
     }
     renderHtml(markdown) {
       this.ensureMd();
       const parsedHTML = this.md.render(markdown);
       let content = parsedHTML;
       if (this.options.useShadowDom) {
-        content = `<div class="body">${content}</div>`;
+        content = \`<div class="body">\${content}</div>\`;
       }
       return content;
     }
-    async hydrate() {
+    hydrateSpecs() {
       this.ensureMd();
-      this.signalBus.log("Renderer", "rendering DOM");
+      const specs = [];
+      this.signalBus.log("Renderer", "hydrate specs");
+      for (let i = 0; i < plugins.length; i++) {
+        const plugin = plugins[i];
+        if (plugin.hydrateSpecs) {
+          specs.push(...plugin.hydrateSpecs(this, this.options.errorHandler));
+        }
+      }
+      return specs;
+    }
+    async hydrate(specs) {
+      this.ensureMd();
+      this.signalBus.log("Renderer", "hydrate components");
       const hydrationPromises = [];
       for (let i = 0; i < plugins.length; i++) {
         const plugin = plugins[i];
         if (plugin.hydrateComponent) {
-          hydrationPromises.push(plugin.hydrateComponent(this, this.options.errorHandler).then((instances) => {
+          const specsForPlugin = specs.filter((spec) => spec.pluginName === plugin.name);
+          hydrationPromises.push(plugin.hydrateComponent(this, this.options.errorHandler, specsForPlugin).then((instances) => {
             return {
               pluginName: plugin.name,
               instances
@@ -2896,8 +2778,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     reset() {
       this.signalBus.reset();
-      for (const pluginName of Object.keys(this.instances)) {
-        const instances = this.instances[pluginName];
+      for (const pluginName2 of Object.keys(this.instances)) {
+        const instances = this.instances[pluginName2];
         for (const instance of instances) {
           instance.destroy && instance.destroy();
         }
@@ -2910,1240 +2792,92 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   * Copyright (c) Microsoft Corporation.
   * Licensed under the MIT License.
   */
-  function sanitizedHTML(tagName, attributes, content) {
-    const element = document.createElement(tagName);
-    Object.keys(attributes).forEach((key) => {
-      element.setAttribute(key, attributes[key]);
-    });
-    element.textContent = content;
-    return element.outerHTML;
-  }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
-  const checkboxPlugin = {
-    name: "checkbox",
-    initializePlugin: (md) => definePlugin(md, "checkbox"),
-    fence: (token, idx) => {
-      const CheckboxId = `Checkbox-${idx}`;
-      return sanitizedHTML("div", { id: CheckboxId, class: "checkbox" }, token.content.trim());
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
-      const checkboxInstances = [];
-      const containers = renderer.element.querySelectorAll(".checkbox");
-      for (const [index2, container] of Array.from(containers).entries()) {
-        if (!container.textContent)
-          continue;
-        try {
-          const spec = JSON.parse(container.textContent);
-          const html = `<form class="vega-bindings">
-                    <div class="vega-bind">
-                        <label>
-                            <span class="vega-bind-name">${spec.label || spec.name}</span>
-                            <input type="checkbox" class="vega-bind-checkbox" id="${spec.name}" name="${spec.name}" ${spec.value ? "checked" : ""}>
-                        </label>
-                    </div>
-                </form>`;
-          container.innerHTML = html;
-          const element = container.querySelector('input[type="checkbox"]');
-          const checkboxInstance = { id: container.id, spec, element };
-          checkboxInstances.push(checkboxInstance);
-        } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler(e, "Checkbox", index2, "parse", container);
-          continue;
-        }
-      }
-      const instances = checkboxInstances.map((checkboxInstance) => {
-        const { element, spec } = checkboxInstance;
-        const initialSignals = [{
-          name: spec.name,
-          value: spec.value || false,
-          priority: 1,
-          isData: false
-        }];
-        return {
-          ...checkboxInstance,
-          initialSignals,
-          recieveBatch: async (batch) => {
-            if (batch[spec.name]) {
-              const value = batch[spec.name].value;
-              element.checked = value;
-            }
-          },
-          beginListening() {
-            element.addEventListener("change", (e) => {
-              const value = e.target.checked;
-              const batch = {
-                [spec.name]: {
-                  value,
-                  isData: false
-                }
-              };
-              renderer.signalBus.broadcast(checkboxInstance.id, batch);
-            });
-          },
-          getCurrentSignalValue: () => {
-            return element.checked;
-          },
-          destroy: () => {
-            element.removeEventListener("change", checkboxInstance.element.onchange);
-          }
-        };
-      });
-      return instances;
-    }
-  };
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
-  const cssPlugin = {
-    name: "css",
-    initializePlugin: (md) => {
-      definePlugin(md, "css");
-      md.block.ruler.before("fence", "css_block", function(state, startLine, endLine) {
-        const start = state.bMarks[startLine] + state.tShift[startLine];
-        const max = state.eMarks[startLine];
-        if (!state.src.slice(start, max).trim().startsWith("```css")) {
-          return false;
-        }
-        let nextLine = startLine;
-        while (nextLine < endLine) {
-          nextLine++;
-          if (state.src.slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine]).trim() === "```") {
-            break;
-          }
-        }
-        state.line = nextLine + 1;
-        const token = state.push("fence", "code", 0);
-        token.info = "css";
-        token.content = state.getLines(startLine + 1, nextLine, state.blkIndent, true);
-        token.map = [startLine, state.line];
-        return true;
-      });
-      const originalFence = md.renderer.rules.fence;
-      md.renderer.rules.fence = function(tokens, idx, options, env, slf) {
-        const token = tokens[idx];
-        const info = token.info.trim();
-        if (info === "css") {
-          const cssId = `css-${idx}`;
-          return sanitizedHTML("div", { id: cssId, class: "css-component" }, token.content.trim());
-        }
-        if (originalFence) {
-          return originalFence(tokens, idx, options, env, slf);
-        } else {
-          return "";
-        }
-      };
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
-      const cssInstances = [];
-      const containers = renderer.element.querySelectorAll(".css-component");
-      for (const [index2, container] of Array.from(containers).entries()) {
-        if (!container.textContent)
-          continue;
-        try {
-          const cssContent = container.textContent.trim();
-          const styleElement = document.createElement("style");
-          styleElement.type = "text/css";
-          styleElement.id = `idocs-css-${container.id}`;
-          styleElement.textContent = cssContent;
-          renderer.element.appendChild(styleElement);
-          container.innerHTML = `<!-- CSS styles applied to document -->`;
-          cssInstances.push({
-            id: container.id,
-            element: styleElement
-          });
-        } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler(e, "CSS", index2, "parse", container);
-          continue;
-        }
-      }
-      const instances = cssInstances.map((cssInstance) => {
-        return {
-          id: cssInstance.id,
-          initialSignals: [],
-          // CSS doesn't need signals
-          destroy: () => {
-            if (cssInstance.element && cssInstance.element.parentNode) {
-              cssInstance.element.parentNode.removeChild(cssInstance.element);
-            }
-          }
-        };
-      });
-      return instances;
-    }
-  };
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
-  const dropdownPlugin = {
-    name: "dropdown",
-    initializePlugin: (md) => definePlugin(md, "dropdown"),
-    fence: (token, idx) => {
-      const DropdownId = `Dropdown-${idx}`;
-      return sanitizedHTML("div", { id: DropdownId, class: "dropdown" }, token.content.trim());
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
-      const dropdownInstances = [];
-      const containers = renderer.element.querySelectorAll(".dropdown");
-      for (const [index2, container] of Array.from(containers).entries()) {
-        if (!container.textContent)
-          continue;
-        try {
-          const spec = JSON.parse(container.textContent);
-          const html = `<form class="vega-bindings">
-                    <div class="vega-bind">
-                        <label>
-                            <span class="vega-bind-name">${spec.label || spec.name}</span>
-                            <select class="vega-bind-select" id="${spec.name}" name="${spec.name}" ${spec.multiple ? "multiple" : ""} size="${spec.size || 1}">
-${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""))}
-                            </select>
-                        </label>
-                    </div>
-                </form>`;
-          container.innerHTML = html;
-          const element = container.querySelector("select");
-          const dropdownInstance = { id: container.id, spec, element };
-          dropdownInstances.push(dropdownInstance);
-        } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler(e, "Dropdown", index2, "parse", container);
-          continue;
-        }
-      }
-      const instances = dropdownInstances.map((dropdownInstance, index2) => {
-        const { element, spec } = dropdownInstance;
-        const initialSignals = [{
-          name: spec.name,
-          value: spec.value || null,
-          priority: 1,
-          isData: false
-        }];
-        if (spec.dynamicOptions) {
-          initialSignals.push({
-            name: spec.dynamicOptions.dataSignalName,
-            value: null,
-            priority: -1,
-            isData: true
-          });
-        }
-        return {
-          ...dropdownInstance,
-          initialSignals,
-          recieveBatch: async (batch) => {
-            var _a, _b;
-            const { dynamicOptions } = spec;
-            if (dynamicOptions == null ? void 0 : dynamicOptions.dataSignalName) {
-              const newData = (_a = batch[dynamicOptions.dataSignalName]) == null ? void 0 : _a.value;
-              if (newData) {
-                let hasFieldName = false;
-                const uniqueOptions = /* @__PURE__ */ new Set();
-                newData.forEach((d2) => {
-                  if (d2.hasOwnProperty(dynamicOptions.fieldName)) {
-                    hasFieldName = true;
-                    uniqueOptions.add(d2[dynamicOptions.fieldName]);
-                  }
-                });
-                if (hasFieldName) {
-                  const options = Array.from(uniqueOptions);
-                  const existingSelection = spec.multiple ? Array.from(element.selectedOptions).map((option) => option.value) : element.value;
-                  element.innerHTML = getOptions(spec.multiple ?? false, options, existingSelection);
-                  if (!spec.multiple) {
-                    element.value = ((_b = batch[spec.name]) == null ? void 0 : _b.value) || options[0];
-                  }
-                } else {
-                  element.innerHTML = `<option value="">Field "${dynamicOptions.fieldName}" not found</option>`;
-                  element.value = "";
-                }
-              }
-            }
-            if (batch[spec.name]) {
-              const value = batch[spec.name].value;
-              if (spec.multiple) {
-                Array.from(element.options).forEach((option) => {
-                  option.selected = !!(value && Array.isArray(value) && value.includes(option.value));
-                });
-              } else {
-                element.value = value;
-              }
-            }
-          },
-          beginListening() {
-            element.addEventListener("change", (e) => {
-              const value = spec.multiple ? Array.from(e.target.selectedOptions).map((option) => option.value) : e.target.value;
-              const batch = {
-                [spec.name]: {
-                  value,
-                  isData: false
-                }
-              };
-              renderer.signalBus.broadcast(dropdownInstance.id, batch);
-            });
-          },
-          getCurrentSignalValue: () => {
-            if (spec.multiple) {
-              return Array.from(element.selectedOptions).map((option) => option.value);
-            }
-            return element.value;
-          },
-          destroy: () => {
-            element.removeEventListener("change", dropdownInstance.element.onchange);
-          }
-        };
-      });
-      return instances;
-    }
-  };
-  function getOptions(multiple, options, selected) {
-    if (!options) {
-      if (multiple) {
-        if (Array.isArray(selected)) {
-          options = selected;
-        } else {
-          if (selected) {
-            options = [selected];
-          }
-        }
-      } else {
-        if (selected) {
-          options = [selected];
-        }
-      }
-    }
-    if (!options) {
-      return "";
-    }
-    return options.map((option) => {
-      let attr = "";
-      if (multiple) {
-        attr = (selected || []).includes(option) ? "selected" : "";
-      } else {
-        attr = selected === option ? "selected" : "";
-      }
-      return `<option value="${option}" ${attr}>${option}</option>`;
-    }).join("\n");
-  }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
-  var ImageOpacity;
-  (function(ImageOpacity2) {
-    ImageOpacity2["full"] = "1";
-    ImageOpacity2["loading"] = "0.1";
-    ImageOpacity2["error"] = "0.5";
-  })(ImageOpacity || (ImageOpacity = {}));
-  const imagePlugin = {
-    name: "image",
-    initializePlugin: (md) => definePlugin(md, "image"),
-    fence: (token, idx) => {
-      const ImageId = `Image-${idx}`;
-      return sanitizedHTML("div", { id: ImageId, class: "image" }, token.content.trim());
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
-      const imageInstances = [];
-      const containers = renderer.element.querySelectorAll(".image");
-      for (const [index2, container] of Array.from(containers).entries()) {
-        if (!container.textContent)
-          continue;
-        try {
-          const spec = JSON.parse(container.textContent);
-          const element = document.createElement("img");
-          const spinner = document.createElement("div");
-          spinner.innerHTML = `
-                    <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="10" stroke="gray" stroke-width="2" fill="none" stroke-dasharray="31.4" stroke-dashoffset="0">
-                            <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
-                        </circle>
-                    </svg>`;
-          if (spec.alt)
-            element.alt = spec.alt;
-          if (spec.width)
-            element.width = spec.width;
-          if (spec.height)
-            element.height = spec.height;
-          element.onload = () => {
-            spinner.style.display = "none";
-            element.style.opacity = ImageOpacity.full;
-          };
-          element.onerror = () => {
-            spinner.style.display = "none";
-            element.style.opacity = ImageOpacity.error;
-            errorHandler(new Error("Image failed to load"), "image", index2, "load", container, element.src);
-          };
-          container.style.position = "relative";
-          spinner.style.position = "absolute";
-          container.innerHTML = "";
-          container.appendChild(spinner);
-          container.appendChild(element);
-          const imageInstance = { id: container.id, spec, element, spinner };
-          imageInstances.push(imageInstance);
-        } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler(e, "Image", index2, "parse", container);
-        }
-      }
-      const instances = imageInstances.map((imageInstance, index2) => {
-        const { element, spinner, id, spec } = imageInstance;
-        return {
-          id,
-          initialSignals: [
-            {
-              name: spec.srcSignalName,
-              value: null,
-              priority: -1,
-              isData: false
-            }
-          ],
-          destroy: () => {
-            if (element) {
-              element.remove();
-            }
-            if (spinner) {
-              spinner.remove();
-            }
-          },
-          recieveBatch: async (batch, from) => {
-            if (spec.srcSignalName in batch) {
-              const src = batch[spec.srcSignalName].value;
-              if (src) {
-                spinner.style.display = "";
-                element.src = src.toString();
-                element.style.opacity = ImageOpacity.loading;
-              } else {
-                element.src = "";
-                spinner.style.display = "none";
-                element.style.opacity = ImageOpacity.full;
-              }
-            }
-          }
-        };
-      });
-      return instances;
-    }
-  };
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
-  function createTemplateFunction(template) {
-    const parts = template.split(/(%7B%7B.*?%7D%7D)/g).map((part) => {
-      if (part.startsWith("%7B%7B") && part.endsWith("%7D%7D")) {
-        const key = part.slice(6, -6);
-        return (batch) => {
-          var _a, _b;
-          return ((_b = (_a = batch[key]) == null ? void 0 : _a.value) == null ? void 0 : _b.toString()) || "";
-        };
-      } else {
-        return () => part;
-      }
-    });
-    return (batch) => parts.map((fn) => fn(batch)).join("");
-  }
-  function handleDynamicUrl(tokens, idx, attrName, elementType) {
-    const token = tokens[idx];
-    const attrValue = token.attrGet(attrName);
-    if (attrValue && attrValue.includes("%7B%7B")) {
-      if (!token.attrs) {
-        token.attrs = [];
-      }
-      token.attrSet("data-template-url", attrValue);
-    }
-    return token;
-  }
-  const placeholdersPlugin = {
-    name: "placeholders",
-    initializePlugin: async (md) => {
-      md.use(function(md2) {
-        md2.inline.ruler.after("emphasis", "dynamic_placeholder", function(state, silent) {
-          let token;
-          const max = state.posMax;
-          const start = state.pos;
-          if (state.src.charCodeAt(start) !== 123 || state.src.charCodeAt(start + 1) !== 123) {
-            return false;
-          }
-          for (let pos = start + 2; pos < max; pos++) {
-            if (state.src.charCodeAt(pos) === 125 && state.src.charCodeAt(pos + 1) === 125) {
-              if (!silent) {
-                state.pos = start + 2;
-                state.posMax = pos;
-                token = state.push("dynamic_placeholder", "", 0);
-                token.markup = state.src.slice(start, pos + 2);
-                token.content = state.src.slice(state.pos, state.posMax);
-                state.pos = pos + 2;
-                state.posMax = max;
-              }
-              return true;
-            }
-          }
-          return false;
-        });
-        md2.renderer.rules["dynamic_placeholder"] = function(tokens, idx) {
-          const key = tokens[idx].content.trim();
-          return `<span class="dynamic-placeholder" data-key="${key}">{${key}}</span>`;
-        };
-      });
-      md.renderer.rules["link_open"] = function(tokens, idx, options, env, slf) {
-        handleDynamicUrl(tokens, idx, "href");
-        return slf.renderToken(tokens, idx, options);
-      };
-      md.renderer.rules["image"] = function(tokens, idx, options, env, slf) {
-        handleDynamicUrl(tokens, idx, "src");
-        return slf.renderToken(tokens, idx, options);
-      };
-    },
-    hydrateComponent: async (renderer) => {
-      const templateFunctionMap = /* @__PURE__ */ new WeakMap();
-      const placeholders = renderer.element.querySelectorAll(".dynamic-placeholder");
-      const dynamicUrls = renderer.element.querySelectorAll("[data-template-url]");
-      const elementsByKeys = /* @__PURE__ */ new Map();
-      for (const placeholder of Array.from(placeholders)) {
-        const key = placeholder.getAttribute("data-key");
-        if (!key) {
-          continue;
-        }
-        if (elementsByKeys.has(key)) {
-          elementsByKeys.get(key).push(placeholder);
-        } else {
-          elementsByKeys.set(key, [placeholder]);
-        }
-      }
-      for (const element of Array.from(dynamicUrls)) {
-        const templateUrl = element.getAttribute("data-template-url");
-        if (!templateUrl) {
-          continue;
-        }
-        const keys = [];
-        const regex = /%7B%7B(.*?)%7D%7D/g;
-        let match;
-        while ((match = regex.exec(templateUrl)) !== null) {
-          keys.push(match[1]);
-        }
-        const templateFunction = createTemplateFunction(templateUrl);
-        templateFunctionMap.set(element, { templateFunction, batch: {} });
-        for (const key of keys) {
-          if (elementsByKeys.has(key)) {
-            elementsByKeys.get(key).push(element);
-          } else {
-            elementsByKeys.set(key, [element]);
-          }
-        }
-      }
-      const initialSignals = Array.from(elementsByKeys.keys()).map((name) => {
-        const prioritizedSignal = {
-          name,
-          value: null,
-          priority: -1,
-          isData: false
-        };
-        return prioritizedSignal;
-      });
-      const instances = [
-        {
-          id: "placeholders",
-          initialSignals,
-          recieveBatch: async (batch) => {
-            var _a;
-            for (const key of Object.keys(batch)) {
-              const elements = elementsByKeys.get(key) || [];
-              for (const element of elements) {
-                if (element.classList.contains("dynamic-placeholder")) {
-                  const markdownContent = ((_a = batch[key].value) == null ? void 0 : _a.toString()) || "";
-                  const parsedMarkdown = isMarkdownInline(markdownContent) ? renderer.md.renderInline(markdownContent) : renderer.md.render(markdownContent);
-                  element.innerHTML = parsedMarkdown;
-                } else if (element.hasAttribute("data-template-url")) {
-                  const templateData = templateFunctionMap.get(element);
-                  if (templateData) {
-                    templateData.batch = { ...templateData.batch, ...batch };
-                    const updatedUrl = templateData.templateFunction(templateData.batch);
-                    if (element.tagName === "A") {
-                      element.setAttribute("href", updatedUrl);
-                    } else if (element.tagName === "IMG") {
-                      element.setAttribute("src", updatedUrl);
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      ];
-      return instances;
-    }
-  };
-  function isMarkdownInline(markdown) {
-    if (!markdown.includes("\n")) {
-      return true;
-    }
-    const blockElements = ["#", "-", "*", ">", "```", "~~~"];
-    for (const element of blockElements) {
-      if (markdown.trim().startsWith(element)) {
-        return false;
-      }
-    }
-    return true;
-  }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
-  const presetsPlugin = {
-    name: "presets",
-    initializePlugin: (md) => definePlugin(md, "presets"),
-    fence: (token, idx) => {
-      const spec = JSON.parse(token.content.trim());
-      const pluginId = `preset-${idx}`;
-      return sanitizedHTML("div", { id: pluginId, class: "presets" }, JSON.stringify(spec));
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
-      const presetsInstances = [];
-      const containers = renderer.element.querySelectorAll(".presets");
-      for (const [index2, container] of Array.from(containers).entries()) {
-        if (!container.textContent)
-          continue;
-        const id = `presets${index2}`;
-        let presets;
-        try {
-          presets = JSON.parse(container.textContent);
-        } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler(e, "presets", index2, "parse", container);
-          continue;
-        }
-        if (!Array.isArray(presets)) {
-          container.innerHTML = '<div class="error">Expected an array of presets</div>';
-          continue;
-        }
-        container.innerHTML = "";
-        const ul = document.createElement("ul");
-        const presetsInstance = { id, presets, element: ul };
-        container.appendChild(ul);
-        for (const preset of presets) {
-          const li = document.createElement("li");
-          if (!preset.name || !preset.state) {
-            const span = document.createElement("span");
-            span.className = "error";
-            span.textContent = "Each preset must have a name and state";
-            li.appendChild(span);
-          } else {
-            const button = document.createElement("button");
-            button.textContent = preset.name;
-            button.onclick = () => {
-              const batch = {};
-              for (const [signalName, value] of Object.entries(preset.state)) {
-                batch[signalName] = { value, isData: false };
-              }
-              renderer.signalBus.broadcast(id, batch);
-            };
-            li.appendChild(button);
-            li.appendChild(document.createTextNode(" "));
-            if (preset.description) {
-              button.title = preset.description;
-            }
-          }
-          ul.appendChild(li);
-        }
-        presetsInstances.push(presetsInstance);
-      }
-      const instances = presetsInstances.map((presetsInstance, index2) => {
-        const initialSignals = presetsInstance.presets.flatMap((preset) => {
-          return Object.keys(preset.state).map((signalName) => {
-            return {
-              name: signalName,
-              value: null,
-              priority: -1,
-              isData: void 0
-              // we do not know if it is data or not
-            };
-          });
-        });
-        return {
-          ...presetsInstance,
-          initialSignals,
-          broadcastComplete: async () => {
-            const state = {};
-            for (const signalName of Object.keys(renderer.signalBus.signalDeps)) {
-              state[signalName] = renderer.signalBus.signalDeps[signalName].value;
-            }
-            setAllPresetsActiveState(presetsInstance, state);
-          }
-        };
-      });
-      return instances;
-    }
-  };
-  function isPresetActive(preset, state) {
-    for (const [signalName, value] of Object.entries(preset.state)) {
-      if (state[signalName] !== value) {
-        return false;
-      }
-    }
-    return true;
-  }
-  function setAllPresetsActiveState(presetsInstance, state) {
-    for (const [presetIndex, preset] of presetsInstance.presets.entries()) {
-      const { classList } = presetsInstance.element.children[presetIndex];
-      if (isPresetActive(preset, state)) {
-        classList.add("active");
-      } else {
-        classList.remove("active");
-      }
-    }
-  }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
-  const tabulatorPlugin = {
-    name: "tabulator",
-    initializePlugin: (md) => definePlugin(md, "tabulator"),
-    fence: (token, idx) => {
-      const tabulatorId = `tabulator-${idx}`;
-      return sanitizedHTML("div", { id: tabulatorId, class: "tabulator", style: "box-sizing: border-box;" }, token.content.trim());
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
-      const tabulatorInstances = [];
-      const containers = renderer.element.querySelectorAll(".tabulator");
-      for (const [index2, container] of Array.from(containers).entries()) {
-        if (!container.textContent)
-          continue;
-        if (!Tabulator) {
-          errorHandler(new Error("Tabulator not found"), "tabulator", index2, "init", container);
-          continue;
-        }
-        try {
-          const spec = JSON.parse(container.textContent);
-          let options = {
-            autoColumns: true,
-            layout: "fitColumns",
-            maxHeight: "200px"
-          };
-          if (spec.options && Object.keys(spec.options).length > 0) {
-            options = spec.options;
-          }
-          const table = new Tabulator(container, options);
-          const tabulatorInstance = { id: container.id, spec, table, built: false };
-          table.on("tableBuilt", () => {
-            table.off("tableBuilt");
-            tabulatorInstance.built = true;
-          });
-          tabulatorInstances.push(tabulatorInstance);
-        } catch (e) {
-          container.innerHTML = `<div class="error">${e.toString()}</div>`;
-          errorHandler(e, "tabulator", index2, "parse", container);
-          continue;
-        }
-      }
-      const dataNameSelectedSuffix = defaultCommonOptions.dataNameSelectedSuffix;
-      const instances = tabulatorInstances.map((tabulatorInstance, index2) => {
-        var _a;
-        const initialSignals = [{
-          name: tabulatorInstance.spec.dataSignalName,
-          value: null,
-          priority: -1,
-          isData: true
-        }];
-        if ((_a = tabulatorInstance.spec.options) == null ? void 0 : _a.selectableRows) {
-          initialSignals.push({
-            name: `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`,
-            value: [],
-            priority: -1,
-            isData: true
-          });
-        }
-        return {
-          ...tabulatorInstance,
-          initialSignals,
-          recieveBatch: async (batch) => {
-            var _a2;
-            const newData = (_a2 = batch[tabulatorInstance.spec.dataSignalName]) == null ? void 0 : _a2.value;
-            if (newData) {
-              if (!tabulatorInstance.built) {
-                tabulatorInstance.table.off("tableBuilt");
-                tabulatorInstance.table.on("tableBuilt", () => {
-                  tabulatorInstance.built = true;
-                  tabulatorInstance.table.off("tableBuilt");
-                  tabulatorInstance.table.setData(newData);
-                });
-              } else {
-                tabulatorInstance.table.setData(newData);
-              }
-            }
-          },
-          beginListening(sharedSignals) {
-            var _a2;
-            if ((_a2 = tabulatorInstance.spec.options) == null ? void 0 : _a2.selectableRows) {
-              for (const { isData, signalName } of sharedSignals) {
-                if (isData) {
-                  const matchData = signalName === `${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`;
-                  if (matchData) {
-                    tabulatorInstance.table.on("rowSelectionChanged", (e, rows) => {
-                      const selectedData = tabulatorInstance.table.getSelectedData();
-                      const batch = {
-                        [`${tabulatorInstance.spec.dataSignalName}${dataNameSelectedSuffix}`]: {
-                          value: selectedData,
-                          isData: true
-                        }
-                      };
-                      renderer.signalBus.log(tabulatorInstance.id, "sending batch", batch);
-                      renderer.signalBus.broadcast(tabulatorInstance.id, batch);
-                    });
-                  }
-                }
-              }
-            }
-          },
-          getCurrentSignalValue() {
-            return tabulatorInstance.table.getSelectedData();
-          },
-          destroy: () => {
-            tabulatorInstance.table.destroy();
-          }
-        };
-      });
-      return instances;
-    }
-  };
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
-  const vegaLitePlugin = {
-    name: "vega-lite",
-    initializePlugin: (md) => definePlugin(md, "vega-lite"),
-    fence: (token, idx) => {
-      const vegaLiteId = `vega-lite-${idx}`;
-      return sanitizedHTML("div", { id: vegaLiteId, class: "vega-chart" }, token.content.trim());
-    }
-  };
-  async function resolveSpec(textContent) {
-    try {
-      const either = JSON.parse(textContent);
-      if (typeof either === "object") {
-        return resolveToVega(either);
-      } else {
-        return { error: new Error(`Spec must be either a JSON object or a string url, found type ${typeof either}`) };
-      }
-    } catch (error) {
-      if (textContent.startsWith("http://") || textContent.startsWith("https://") || textContent.startsWith("//")) {
-        try {
-          const response = await fetch(textContent);
-          const either = await response.json();
-          if (typeof either === "object") {
-            return resolveToVega(either);
-          } else {
-            return { error: new Error(`Expected a JSON object, found type ${typeof either}`) };
-          }
-        } catch (error2) {
-          return { error: error2 };
-        }
-      } else {
-        return { error: new Error("Spec string must be a url") };
-      }
-    }
-  }
-  function resolveToVega(either) {
-    if ("$schema" in either && typeof either.$schema === "string") {
-      if (either.$schema.includes("vega-lite")) {
-        try {
-          const runtime = vegaLite.compile(either);
-          const { spec } = runtime;
-          return { spec };
-        } catch (error) {
-          return { error };
-        }
-      } else if (either.$schema.includes("vega")) {
-        return { spec: either };
-      } else {
-        return { error: new Error("$schema property must be a string with vega or vega-lite version.") };
-      }
-    } else {
-      return { error: new Error("Missing $schema property, must be a string with vega or vega-lite version.") };
-    }
-  }
-  function urlParam(urlParamName, value) {
-    if (value === void 0 || value === null)
-      return "";
-    if (Array.isArray(value)) {
-      return value.map((vn) => `${urlParamName}[]=${encodeURIComponent(vn)}`).join("&");
-    } else {
-      return `${urlParamName}=${encodeURIComponent(value)}`;
-    }
-  }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
-  const ignoredSignals = ["width", "height", "padding", "autosize", "background", "style", "parent", "datum", "item", "event", "cursor"];
-  const vegaPlugin = {
-    name: "vega",
-    initializePlugin: (md) => definePlugin(md, "vega"),
-    fence: (token, idx) => {
-      const vegaId = `vega-${idx}`;
-      return sanitizedHTML("div", { id: vegaId, class: "vega-chart" }, token.content.trim());
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
-      if (!expressionsInitialized) {
-        vega.expressionFunction("urlParam", urlParam);
-        expressionsInitialized = true;
-      }
-      const vegaInstances = [];
-      const containers = renderer.element.querySelectorAll(".vega-chart");
-      const specInits = [];
-      for (const [index2, container] of Array.from(containers).entries()) {
-        const specInit = await createSpecInit(container, index2, renderer, errorHandler);
-        if (specInit) {
-          specInits.push(specInit);
-        }
-      }
-      prioritizeSignalValues(specInits);
-      for (const specInit of specInits) {
-        const vegaInstance = await createVegaInstance(specInit, renderer, errorHandler);
-        if (vegaInstance) {
-          vegaInstances.push(vegaInstance);
-        }
-      }
-      const dataSignals = vegaInstances.map((vegaInstance) => vegaInstance.initialSignals.filter((signal) => signal.isData)).flat();
-      for (const vegaInstance of vegaInstances) {
-        if (!vegaInstance.spec.data)
-          continue;
-        for (const data of vegaInstance.spec.data) {
-          const dataSignal = dataSignals.find((signal) => signal.name === data.name || `${signal.name}${defaultCommonOptions.dataNameSelectedSuffix}` === data.name);
-          if (dataSignal) {
-            vegaInstance.initialSignals.push({
-              name: data.name,
-              value: data.values,
-              priority: data.values ? 1 : 0,
-              isData: true
-            });
-          }
-        }
-      }
-      const instances = vegaInstances.map((vegaInstance) => {
-        const { spec, view, initialSignals } = vegaInstance;
-        const startBatch = (from) => {
-          if (!vegaInstance.batch) {
-            renderer.signalBus.log(vegaInstance.id, "starting batch", from);
-            vegaInstance.batch = {};
-            view.runAfter(() => {
-              const { batch } = vegaInstance;
-              vegaInstance.batch = void 0;
-              renderer.signalBus.log(vegaInstance.id, "sending batch", batch);
-              renderer.signalBus.broadcast(vegaInstance.id, batch);
-            });
-          }
-        };
-        return {
-          ...vegaInstance,
-          initialSignals,
-          recieveBatch: async (batch, from) => {
-            renderer.signalBus.log(vegaInstance.id, "recieved batch", batch, from);
-            return new Promise((resolve) => {
-              view.runAfter(async () => {
-                if (recieveBatch(batch, renderer, vegaInstance)) {
-                  renderer.signalBus.log(vegaInstance.id, "running after _pulse, changes from", from);
-                  vegaInstance.needToRun = true;
-                } else {
-                  renderer.signalBus.log(vegaInstance.id, "no changes");
-                }
-                renderer.signalBus.log(vegaInstance.id, "running view after _pulse finished");
-                resolve();
-              });
-            });
-          },
-          broadcastComplete: async () => {
-            renderer.signalBus.log(vegaInstance.id, "broadcastComplete");
-            if (vegaInstance.needToRun) {
-              view.runAfter(() => {
-                view.runAsync();
-                vegaInstance.needToRun = false;
-                renderer.signalBus.log(vegaInstance.id, "running view after broadcastComplete");
-              });
-            }
-          },
-          beginListening: (sharedSignals) => {
-            var _a, _b, _c;
-            for (const { isData, signalName } of sharedSignals) {
-              if (ignoredSignals.includes(signalName))
-                return;
-              if (isData) {
-                const matchData = (_a = spec.data) == null ? void 0 : _a.find((data) => data.name === signalName);
-                if (matchData && vegaInstance.dataSignals.includes(matchData.name)) {
-                  renderer.signalBus.log(vegaInstance.id, "listening to data", signalName);
-                  if (renderer.signalBus.signalDeps[signalName].value === void 0 && ((_b = view.data(signalName)) == null ? void 0 : _b.length) > 0) {
-                    renderer.signalBus.log(vegaInstance.id, "un-initialized", signalName);
-                    const batch = {};
-                    batch[signalName] = { value: view.data(signalName), isData: true };
-                    renderer.signalBus.broadcast(vegaInstance.id, batch);
-                  }
-                  view.addDataListener(signalName, async (name, value) => {
-                    startBatch(`data:${signalName}`);
-                    vegaInstance.batch[name] = { value, isData };
-                  });
-                }
-              }
-              const matchSignal = (_c = spec.signals) == null ? void 0 : _c.find((signal) => signal.name === signalName);
-              if (matchSignal) {
-                const isChangeSource = matchSignal.on || // event streams
-                matchSignal.bind || // ui elements
-                matchSignal.update;
-                if (isChangeSource) {
-                  renderer.signalBus.log(vegaInstance.id, "listening to signal", signalName);
-                  view.addSignalListener(signalName, async (name, value) => {
-                    startBatch(`signal:${signalName}`);
-                    vegaInstance.batch[name] = { value, isData };
-                  });
-                }
-              }
-            }
-          },
-          getCurrentSignalValue: (signalName) => {
-            var _a;
-            const matchSignal = (_a = spec.signals) == null ? void 0 : _a.find((signal) => signal.name === signalName);
-            if (matchSignal) {
-              return view.signal(signalName);
-            } else {
-              return void 0;
-            }
-          },
-          destroy: () => {
-            vegaInstance.view.finalize();
-          }
-        };
-      });
-      return instances;
-    }
-  };
-  function recieveBatch(batch, renderer, vegaInstance) {
-    var _a, _b;
-    const { spec, view } = vegaInstance;
-    const doLog = renderer.signalBus.logLevel === LogLevel.all;
-    doLog && renderer.signalBus.log(vegaInstance.id, "recieveBatch", batch);
-    let hasAnyChange = false;
-    for (const signalName in batch) {
-      const batchItem = batch[signalName];
-      if (ignoredSignals.includes(signalName)) {
-        doLog && renderer.signalBus.log(vegaInstance.id, "ignoring reverved signal name", signalName, batchItem.value);
-        continue;
-      }
-      if (batchItem.isData) {
-        let logReason2;
-        if (!batchItem.value) {
-          logReason2 = "not updating data, no value";
-        } else {
-          const matchData = (_a = spec.data) == null ? void 0 : _a.find((data) => data.name === signalName);
-          if (!matchData) {
-            logReason2 = "not updating data, no match";
-          } else {
-            logReason2 = "updating data";
-            view.change(signalName, vega.changeset().remove(() => true).insert(batchItem.value));
-            hasAnyChange = true;
-          }
-        }
-        doLog && renderer.signalBus.log(vegaInstance.id, `(isData) ${logReason2}`, signalName, batchItem.value);
-      }
-      let logReason = "";
-      const matchSignal = (_b = spec.signals) == null ? void 0 : _b.find((signal) => signal.name === signalName);
-      if (!matchSignal) {
-        logReason = "not updating signal, no match";
-      } else {
-        if (matchSignal.update) {
-          logReason = "not updating signal, it is a calculation";
-        } else {
-          if (isSignalDataBridge(matchSignal)) {
-            logReason = "not updating signal, data bridge";
-          } else {
-            const oldValue = view.signal(signalName);
-            if (oldValue === batchItem.value) {
-              logReason = "not updating signal, same value";
-            } else {
-              logReason = "updating signal";
-              view.signal(signalName, batchItem.value);
-              hasAnyChange = true;
-            }
-          }
-        }
-      }
-      doLog && renderer.signalBus.log(vegaInstance.id, logReason, signalName, batchItem.value);
-    }
-    return hasAnyChange;
-  }
-  async function createSpecInit(container, index2, renderer, errorHandler) {
-    var _a;
-    if (!container.textContent) {
-      container.innerHTML = '<div class="error">Expected a spec object or a url</div>';
-      return;
-    }
-    let result;
-    try {
-      result = await resolveSpec(container.textContent);
-    } catch (e) {
-      container.innerHTML = `<div class="error">${e.toString()}</div>`;
-      errorHandler(e, "vega", index2, "resolve", container);
-      return;
-    }
-    if (result.error) {
-      container.innerHTML = `<div class="error">${result.error.toString()}</div>`;
-      errorHandler(result.error, "vega", index2, "resolve", container);
-      return;
-    }
-    if (!result.spec) {
-      container.innerHTML = '<div class="error">Expected a spec object</div>';
-      return;
-    }
-    const { spec } = result;
-    const initialSignals = ((_a = spec.signals) == null ? void 0 : _a.map((signal) => {
-      if (ignoredSignals.includes(signal.name))
-        return;
-      let isData = isSignalDataBridge(signal);
-      if (signal.name.startsWith(defaultCommonOptions.dataSignalPrefix)) {
-        isData = true;
-      }
-      return {
-        name: signal.name,
-        value: signal.value,
-        priority: signal.bind ? 1 : 0,
-        isData
-      };
-    }).filter(Boolean)) || [];
-    const specInit = { container, index: index2, initialSignals, spec };
-    return specInit;
-  }
-  async function createVegaInstance(specInit, renderer, errorHandler) {
-    const { container, index: index2, initialSignals, spec } = specInit;
-    const id = `vega-${index2}`;
-    let runtime;
-    let view;
-    try {
-      runtime = vega.parse(spec);
-    } catch (e) {
-      container.innerHTML = `<div class="error">${e.toString()}</div>`;
-      errorHandler(e, "vega", index2, "parse", container);
-      return;
-    }
-    try {
-      view = new vega.View(runtime, {
-        container,
-        renderer: renderer.options.vegaRenderer,
-        logger: new VegaLogger((error) => {
-          errorHandler(error, "vega", index2, "view", container);
-        })
-      });
-      view.run();
-      for (const signal of initialSignals) {
-        if (signal.isData)
-          continue;
-        const currentValue = view.signal(signal.name);
-        if (currentValue !== signal.value) {
-          renderer.signalBus.log(id, "re-setting initial signal", signal.name, signal.value, currentValue);
-          signal.value = currentValue;
-        }
-      }
-    } catch (e) {
-      container.innerHTML = `<div class="error">${e.toString()}</div>`;
-      errorHandler(e, "vega", index2, "view", container);
-      return;
-    }
-    const dataSignals = initialSignals.filter((signal) => {
-      var _a;
-      return signal.isData && ((_a = spec.data) == null ? void 0 : _a.some((data) => data.name === signal.name));
-    }).map((signal) => signal.name);
-    const instance = { ...specInit, view, id, dataSignals };
-    return instance;
-  }
-  function isSignalDataBridge(signal) {
-    return signal.update === `data('${signal.name}')`;
-  }
-  function prioritizeSignalValues(specInits) {
-    var _a;
-    const highPrioritySignals = specInits.map((specInit) => specInit.initialSignals.filter((signal) => signal.priority > 0)).flat();
-    for (const specInit of specInits) {
-      for (const prioritySignal of highPrioritySignals) {
-        const matchSignal = (_a = specInit.spec.signals) == null ? void 0 : _a.find((signal) => signal.name === prioritySignal.name);
-        if (matchSignal && matchSignal.value !== void 0 && matchSignal.value !== prioritySignal.value) {
-          matchSignal.value = prioritySignal.value;
-        }
-      }
-    }
-  }
-  let expressionsInitialized = false;
-  class VegaLogger {
-    constructor(errorHandler) {
-      __publicField(this, "errorHandler");
-      __publicField(this, "logLevel", 0);
-      this.errorHandler = errorHandler;
-      this.error = this.error.bind(this);
-      this.warn = this.warn.bind(this);
-      this.info = this.info.bind(this);
-      this.debug = this.debug.bind(this);
-    }
-    level(level) {
-      if (level === void 0) {
-        return this.logLevel;
-      }
-      this.logLevel = level;
-      return this;
-    }
-    error(...args) {
-      if (this.errorHandler) {
-        this.errorHandler(args[0]);
-      }
-      if (this.logLevel >= 1) {
-        console.error(...args);
-      }
-      return this;
-    }
-    warn(...args) {
-      if (this.logLevel >= 2) {
-        console.warn(...args);
-      }
-      return this;
-    }
-    info(...args) {
-      if (this.logLevel >= 3) {
-        console.info(...args);
-      }
-      return this;
-    }
-    debug(...args) {
-      if (this.logLevel >= 4) {
-        console.debug(...args);
-      }
-      return this;
-    }
-  }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
-  function registerNativePlugins() {
-    registerMarkdownPlugin(checkboxPlugin);
-    registerMarkdownPlugin(cssPlugin);
-    registerMarkdownPlugin(dropdownPlugin);
-    registerMarkdownPlugin(imagePlugin);
-    registerMarkdownPlugin(placeholdersPlugin);
-    registerMarkdownPlugin(presetsPlugin);
-    registerMarkdownPlugin(tabulatorPlugin);
-    registerMarkdownPlugin(vegaLitePlugin);
-    registerMarkdownPlugin(vegaPlugin);
-  }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   registerNativePlugins();
+  const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+    __proto__: null,
+    Renderer,
+    definePlugin,
+    plugins,
+    registerMarkdownPlugin,
+    sanitizedHTML
+  }, Symbol.toStringTag, { value: "Module" }));
+  exports2.common = index$1;
+  exports2.markdown = index;
+  Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
+});
+`;
+  const sandboxedJs = `let renderer;
+document.addEventListener('DOMContentLoaded', () => {
+    let transactionIndex = 0;
+    const transactions = {};
+    renderer = new IDocs.markdown.Renderer(document.body, {
+        errorHandler: (error, pluginName, instanceIndex, phase, container, detail) => {
+            console.error(\`Error in plugin \${pluginName} at instance \${instanceIndex} during \${phase}:\`, error);
+            if (detail) {
+                console.error('Detail:', detail);
+            }
+            container.innerHTML = \`<div style="color: red;">Error: \${error.message}</div>\`;
+        }
+    });
+    function render(request) {
+        if (request.markdown) {
+            renderer.reset();
+            //debugger;
+            const html = renderer.renderHtml(request.markdown);
+            renderer.element.innerHTML = html;
+            const specs = renderer.hydrateSpecs();
+            const transactionId = transactionIndex++;
+            transactions[transactionId] = specs;
+            //send message to parent to ask for whitelist
+            const sandboxedPreRenderMessage = {
+                type: 'sandboxedPreHydrate',
+                transactionId,
+                specs,
+            };
+            window.parent.postMessage(sandboxedPreRenderMessage, '*');
+        }
+    }
+    render(renderRequest);
+    //add listener for postMessage
+    window.addEventListener('message', (event) => {
+        if (!event.data)
+            return;
+        const message = event.data;
+        switch (message.type) {
+            case 'sandboxRender': {
+                render(message);
+                break;
+            }
+            case 'sandboxApproval': {
+                //debugger;
+                //only handle if the transactionId is the latest
+                if (message.transactionId === transactionIndex - 1) {
+                    //todo: console.warn of unapproved
+                    //hydrate the renderer
+                    const flags = transactions[message.transactionId];
+                    if (flags) {
+                        renderer.hydrate(flags);
+                    }
+                }
+                else {
+                    console.debug('Received sandbox approval for an outdated transaction:', message.transactionId, transactionIndex);
+                }
+                break;
+            }
+        }
+    });
+});
+`;
   class Sandbox extends Previewer {
     constructor(elementOrSelector, markdown, options) {
       super(elementOrSelector, markdown, options);
+      __publicField(this, "options");
       __publicField(this, "iframe");
-      __publicField(this, "renderer");
-      this.renderer = new Renderer(null, { useShadowDom: false });
-      const renderRequest = this.createRenderRequest(markdown);
+      this.options = options;
+      const renderRequest = {
+        type: "sandboxRender",
+        markdown
+      };
       const { iframe } = createIframe(this.getDependencies(), renderRequest);
       this.iframe = iframe;
       this.element.appendChild(this.iframe);
@@ -4156,6 +2890,21 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
         console.error("Error loading iframe:", error);
         (_a = options == null ? void 0 : options.onError) == null ? void 0 : _a.call(options, new Error("Failed to load iframe"));
       });
+      window.addEventListener("message", (event) => {
+        var _a;
+        if (event.source === this.iframe.contentWindow) {
+          const message = event.data;
+          if (message.type == "sandboxedPreHydrate") {
+            const specs = this.options.onApprove(message);
+            const sandboxedApprovalMessage = {
+              type: "sandboxApproval",
+              transactionId: message.transactionId,
+              specs
+            };
+            (_a = this.iframe.contentWindow) == null ? void 0 : _a.postMessage(sandboxedApprovalMessage, "*");
+          }
+        }
+      });
     }
     destroy() {
       var _a;
@@ -4165,19 +2914,19 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       });
       (_a = this.iframe) == null ? void 0 : _a.remove();
     }
-    createRenderRequest(markdown) {
-      const html = this.renderer.renderHtml(markdown);
-      const doc = new DOMParser().parseFromString(html, "text/html");
-      return { html: doc.body.innerHTML };
-    }
     send(markdown) {
       var _a;
-      (_a = this.iframe.contentWindow) == null ? void 0 : _a.postMessage(this.createRenderRequest(markdown), "*");
+      const message = {
+        type: "sandboxRender",
+        markdown
+      };
+      (_a = this.iframe.contentWindow) == null ? void 0 : _a.postMessage(message, "*");
     }
     getDependencies() {
       return `
 <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"><\/script>
+<script src="https://unpkg.com/css-tree/dist/csstree.js"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"><\/script>
 <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"><\/script>
@@ -4186,7 +2935,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
   }
   function createIframe(dependencies, renderRequest) {
     const title = "Interactive Document Sandbox";
-    const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDER_REQUEST}}", () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};<\/script>`).replace("{{SANDBOX_JS}}", () => `<script>${sandboxJs}<\/script>`);
+    const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDER_REQUEST}}", () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};<\/script>`).replace("{{SANDBOX_JS}}", () => `<script>${sandboxedJs}<\/script>`);
     const htmlBlob = new Blob([html], { type: "text/html" });
     const blobUrl = URL.createObjectURL(htmlBlob);
     const iframe = document.createElement("iframe");
@@ -4415,43 +3164,79 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
   function checkUrlForFile(host) {
     const urlParams = new URLSearchParams(window.location.search);
     const loadUrl = urlParams.get(host.options.urlParamName);
-    const isValidUrl = (url) => isSameOrigin(url) || isHttps(url);
-    if (loadUrl && !isValidUrl(loadUrl)) {
+    if (!loadUrl) {
+      return false;
+    }
+    if (!isValidLoadUrl(loadUrl)) {
       host.errorHandler(
-        new Error(`Invalid URL: ${loadUrl}`),
+        new Error("Invalid URL format"),
+        "The URL provided has an invalid format or contains suspicious characters."
+      );
+      return false;
+    }
+    const isValidUrl = (url) => isSameOrigin(url) || isHttps(url);
+    if (!isValidUrl(loadUrl)) {
+      host.errorHandler(
+        new Error(`Invalid URL provided`),
         "The URL provided is not valid. Please ensure it is on the same origin or uses HTTPS."
       );
       return false;
     }
-    if (loadUrl) {
-      try {
-        fetch(loadUrl).then((response) => {
-          if (!response.ok) {
-            throw new Error(`Failed to load ${loadUrl}`);
-          }
-          return response.text();
-        }).then((content) => {
-          determineContent(content, host);
-        }).catch((error) => {
-          host.errorHandler(error, `Error loading file: ${loadUrl}`);
-        });
-      } catch (error) {
-        host.errorHandler(error, `Error loading file: ${loadUrl}`);
+    try {
+      fetch(loadUrl).then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to load content from URL`);
+        }
+        return response.text();
+      }).then((content) => {
+        determineContent(content, host);
+      }).catch((error) => {
+        host.errorHandler(error, `Error loading file from the provided URL`);
+      });
+    } catch (error) {
+      host.errorHandler(error, `Error loading file from the provided URL`);
+    }
+    return true;
+  }
+  function isSameOrigin(url) {
+    try {
+      if (!url.includes("://")) {
+        return true;
       }
-      return true;
-    } else {
+      const parsedUrl = new URL(url);
+      return parsedUrl.origin === window.location.origin;
+    } catch {
       return false;
     }
   }
-  function isSameOrigin(url) {
-    const link = document.createElement("a");
-    link.href = url;
-    return link.origin === window.location.origin;
-  }
   function isHttps(url) {
-    const link = document.createElement("a");
-    link.href = url;
-    return link.protocol === "https:";
+    try {
+      if (!url.includes("://")) {
+        return window.location.protocol === "https:";
+      }
+      const parsedUrl = new URL(url);
+      return parsedUrl.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }
+  function isValidLoadUrl(url) {
+    try {
+      const parsedUrl = new URL(url, window.location.href);
+      if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+        return false;
+      }
+      if (parsedUrl.protocol === "javascript:" || parsedUrl.protocol === "vbscript:" || parsedUrl.protocol === "data:") {
+        return false;
+      }
+      const hostname = parsedUrl.hostname.toLowerCase();
+      if (hostname.includes("<") || hostname.includes(">") || hostname.includes('"') || hostname.includes("'")) {
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
   }
   function setupPostMessageHandling(host) {
     window.addEventListener("message", (event) => {
@@ -4463,12 +3248,14 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
           );
           return;
         }
-        const data = event.data;
-        if (data.markdown) {
-          host.render(data.markdown, void 0);
-        } else if (data.interactiveDocument) {
-          host.render(void 0, data.interactiveDocument);
-        } else {
+        const message = event.data;
+        if (message.type == "hostRenderRequest") {
+          if (message.markdown) {
+            host.render(message.markdown, void 0);
+          } else if (message.interactiveDocument) {
+            host.render(void 0, message.interactiveDocument);
+          } else {
+          }
         }
       } catch (error) {
         host.errorHandler(
@@ -4480,11 +3267,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
   }
   function postStatus(target, message) {
     if (target) {
-      const messageWithTimestamp = {
-        ...message,
-        timestamp: Date.now()
-      };
-      target.postMessage(messageWithTimestamp, "*");
+      target.postMessage(message, "*");
     }
   }
   function getElement(elementOrSelector) {
@@ -4518,9 +3301,11 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       __publicField(this, "fileInput");
       __publicField(this, "textarea");
       __publicField(this, "sandbox");
+      __publicField(this, "onApprove");
       __publicField(this, "removeInteractionHandlers");
       __publicField(this, "sandboxReady", false);
       this.options = { ...defaultOptions, ...options == null ? void 0 : options.options };
+      this.onApprove = options.onApprove;
       this.removeInteractionHandlers = [];
       this.appDiv = getElement(options.app);
       this.loadingDiv = getElement(options.loading);
@@ -4559,19 +3344,30 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       this.sandbox = new Sandbox(this.appDiv, markdown, {
         onReady: () => {
           this.sandboxReady = true;
-          postStatus(this.options.postMessageTarget, { status: "ready" });
+          postStatus(this.options.postMessageTarget, { type: "hostStatus", hostStatus: "ready" });
         },
         onError: () => {
           this.errorHandler(new Error("Sandbox initialization failed"), "Sandbox could not be initialized");
-        }
+        },
+        onApprove: this.onApprove
       });
     }
     errorHandler(error, detailsHtml) {
       show(this.loadingDiv, false);
-      this.appDiv.innerHTML = `<div style="color: red; padding: 20px;">
-    <strong>Error:</strong> ${error.message}<br>
-      ${detailsHtml}
-    </div>`;
+      const errorDiv = document.createElement("div");
+      errorDiv.style.color = "red";
+      errorDiv.style.padding = "20px";
+      const errorLabel = document.createElement("strong");
+      errorLabel.textContent = "Error:";
+      const errorMessage = document.createTextNode(` ${error.message}`);
+      const lineBreak = document.createElement("br");
+      const details = document.createTextNode(detailsHtml);
+      errorDiv.appendChild(errorLabel);
+      errorDiv.appendChild(errorMessage);
+      errorDiv.appendChild(lineBreak);
+      errorDiv.appendChild(details);
+      this.appDiv.innerHTML = "";
+      this.appDiv.appendChild(errorDiv);
     }
     bindTextareaToCompiler() {
       const render = () => {
@@ -4622,7 +3418,7 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
       this.removeInteractionHandlers = [];
     }
     renderInteractiveDocument(content) {
-      postStatus(this.options.postMessageTarget, { status: "compiling", details: "Starting interactive document compilation" });
+      postStatus(this.options.postMessageTarget, { type: "hostStatus", hostStatus: "compiling", details: "Starting interactive document compilation" });
       const markdown = targetMarkdown(content);
       this.renderMarkdown(markdown);
     }
@@ -4633,19 +3429,19 @@ ${getOptions(spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.mul
     renderMarkdown(markdown) {
       this.hideLoadingAndHelp();
       try {
-        postStatus(this.options.postMessageTarget, { status: "rendering", details: "Starting markdown rendering" });
+        postStatus(this.options.postMessageTarget, { type: "hostStatus", hostStatus: "rendering", details: "Starting markdown rendering" });
         if (!this.sandbox || !this.sandboxReady) {
           this.createSandbox(markdown);
         } else {
           this.sandbox.send(markdown);
         }
-        postStatus(this.options.postMessageTarget, { status: "rendered", details: "Markdown rendering completed successfully" });
+        postStatus(this.options.postMessageTarget, { type: "hostStatus", hostStatus: "rendered", details: "Markdown rendering completed successfully" });
       } catch (error) {
         this.errorHandler(
           error,
           "Error rendering markdown content"
         );
-        postStatus(this.options.postMessageTarget, { status: "error", details: `Rendering failed: ${error.message}` });
+        postStatus(this.options.postMessageTarget, { type: "hostStatus", hostStatus: "error", details: `Rendering failed: ${error.message}` });
       }
     }
   }

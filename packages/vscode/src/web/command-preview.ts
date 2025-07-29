@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
 import { link, script } from './html';
 import { getResourceContent } from './resources';
-import type { ListenOptions, RenderRequestMessage } from '@microsoft/interactive-document-host' with { 'resolution-mode': 'import' };
+import type { ListenOptions } from '@microsoft/interactive-document-host' with { 'resolution-mode': 'import' };
+import type { HostRenderRequestMessage, HostStatusMessage } from 'common' with { 'resolution-mode': 'import' };
 
 /**
  * Manages the preview functionality for Interactive Documents
@@ -69,11 +70,13 @@ export class PreviewManager {
 	/**
 	 * Handles messages from the webview
 	 */
-	private handleWebviewMessage(message: any, fileUri: vscode.Uri, uriFsPath: string) {
-		switch (message.status) {
-			case 'ready': {
-				this.getFileContentAndRender(fileUri, uriFsPath);
-				break;
+	private handleWebviewMessage(message: HostStatusMessage, fileUri: vscode.Uri, uriFsPath: string) {
+		if (message.type === 'hostStatus') {
+			switch (message.hostStatus) {
+				case 'ready': {
+					this.getFileContentAndRender(fileUri, uriFsPath);
+					break;
+				}
 			}
 		}
 	}
@@ -84,13 +87,19 @@ export class PreviewManager {
 			// If the file is a markdown file, we can send the markdown content
 			if (uriFsPath.endsWith('.md')) {
 				const markdown = new TextDecoder().decode(uint8array);
-				this.render({ markdown });
+				this.render({
+					type: 'hostRenderRequest',
+					markdown,
+				});
 			} else if (uriFsPath.endsWith('.json')) {
 				// If the file is a JSON file, we can send the JSON content
 				const jsonContent = new TextDecoder().decode(uint8array);
 				try {
 					const interactiveDocument = JSON.parse(jsonContent);
-					this.render({ interactiveDocument });
+					this.render({
+						type: 'hostRenderRequest',
+						interactiveDocument,
+					});
 				} catch (error) {
 					vscode.window.showErrorMessage(`Failed to parse JSON: ${error}`);
 				}
@@ -99,7 +108,7 @@ export class PreviewManager {
 		});
 	}
 
-	public render(renderRequestMessage: RenderRequestMessage) {
+	public render(renderRequestMessage: HostRenderRequestMessage) {
 		if (this.current && this.current.panel.visible) {
 			this.current.panel.webview.postMessage(renderRequestMessage);
 		}

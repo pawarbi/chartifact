@@ -6,5 +6,11 @@ window.addEventListener('DOMContentLoaded', () => {
         app: '#app',
         loading: '#loading',
         options,
+        onApprove: (message: IDocs.common.SandboxedPreHydrateMessage) => {
+            // TODO look through each and override policy to approve unapproved
+            // policy from vscode settings
+            const { specs } = message;
+            return specs;
+        },
     });
 });

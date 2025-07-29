@@ -1,11 +1,12 @@
 import { InteractiveDocument } from "schema";
-import { EditorMessage, PageMessage, ReadyMessage } from "./types.js";
 import { SandboxDocumentPreview } from "./sandbox.js";
 import { Previewer } from '@microsoft/chartifact-sandbox';
+import { EditorPageMessage, EditorReadyMessage, SpecReview, SandboxedPreHydrateMessage } from "common";
 
 export interface EditorProps {
     postMessageTarget?: Window;
-    previewer: typeof Previewer;
+    previewer?: typeof Previewer;
+    onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
 const devmode = false; // Set to true to use DevDocumentPreview, false for SandboxDocumentPreview
@@ -35,13 +36,13 @@ export function Editor(props: EditorProps) {
     }));
 
     React.useEffect(() => {
-        const handleMessage = (event: MessageEvent<EditorMessage>) => {
+        const handleMessage = (event: MessageEvent<EditorReadyMessage | EditorPageMessage>) => {
             // Optionally add origin validation here for security
             // if (event.origin !== 'expected-origin') return;
 
             // Only process messages that are not from us (editor)
             if (event.data && event.data.sender !== 'editor') {
-                if (event.data.type === 'page' && event.data.page) {
+                if (event.data.type === 'editorPage' && event.data.page) {
                     setPage(event.data.page);
                 }
             }
@@ -56,28 +57,36 @@ export function Editor(props: EditorProps) {
 
     React.useEffect(() => {
         // Send ready message when the editor is mounted and ready
-        const readyMessage: ReadyMessage = {
-            type: 'ready',
+        const readyMessage: EditorReadyMessage = {
+            type: 'editorReady',
             sender: 'editor'
         };
         postMessageTarget.postMessage(readyMessage, '*');
     }, []);
 
-    return <EditorView page={page} postMessageTarget={postMessageTarget} previewer={props.previewer} />;
+    return (
+        <EditorView
+            page={page}
+            postMessageTarget={postMessageTarget}
+            previewer={props.previewer}
+            onApprove={props.onApprove}
+        />
+    );
 }
 
 export interface EditorViewProps {
     page: InteractiveDocument;
     postMessageTarget: Window;
-    previewer: typeof Previewer;
+    previewer?: typeof Previewer;
+    onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
 export function EditorView(props: EditorViewProps) {
-    const { page, postMessageTarget, previewer } = props;
+    const { page, postMessageTarget, previewer, onApprove } = props;
 
     const sendEditToApp = (newPage: InteractiveDocument) => {
-        const pageMessage: PageMessage = {
-            type: 'page',
+        const pageMessage: EditorPageMessage = {
+            type: 'editorPage',
             page: newPage,
             sender: 'editor'
         };
@@ -188,6 +197,7 @@ export function EditorView(props: EditorViewProps) {
                 <SandboxDocumentPreview
                     page={page}
                     previewer={previewer}
+                    onApprove={onApprove}
                 />
             </div>
         </div>
