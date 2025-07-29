@@ -156,9 +156,22 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                         const columns1 = table.getColumnDefinitions();
 
                         //if selectable, remove the first column
-                        // if (selectableRows) {
-                        //     columns1.shift();
-                        // }
+                        if (selectableRows) {
+                            columns1.shift();
+                        }
+
+                        //inject a column at the beginning for delete
+                        columns1.unshift({
+                            title: "Delete",
+                            field: "delete",
+                            width: 100,
+                            formatter: "tickCross",
+                            cellClick: (e, cell) => {
+                                cell.getRow().delete();
+                                outputData();
+                            }
+                        });
+
                         const columns: ColumnDefinition[] = columns1.map(col => {
                             // Only set editor if not already defined
                             if (col.editor === undefined) {
@@ -179,19 +192,9 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                             return col;
                         });
 
-                        // Add delete action column at the end
-                        columns.push({
-                            title: "",
-                            field: "_actions",
-                            width: 60,
-                            hozAlign: "center",
-                            headerSort: false,
-                            formatter: () => "🗑️",
-                            cellClick: (e, cell) => {
-                                cell.getRow().delete();
-                                outputData();
-                            }
-                        });
+                        //remove the final column
+                        columns.pop();
+
 
                         table.setColumns(columns);
                     }
