@@ -4,8 +4,8 @@
 */
 
 import { Batch, IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
-import { Tabulator as TabulatorType, Options as TabulatorOptions, ColumnDefinition } from 'tabulator-tables';
-import { pluginClassName } from './util.js';
+import { Tabulator as TabulatorType, Options as TabulatorOptions } from 'tabulator-tables';
+import { newId, pluginClassName } from './util.js';
 import { TableElementProps } from 'schema';
 import { flaggableJsonPlugin } from './config.js';
 import { PluginNames } from './interfaces.js';
@@ -40,6 +40,10 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
     ...flaggableJsonPlugin<TabulatorSpec>(pluginName, className, inspectTabulatorSpec, { style: 'box-sizing: border-box;' }),
     hydrateComponent: async (renderer, errorHandler, specs) => {
         const tabulatorInstances: TabulatorInstance[] = [];
+
+        // Generate a unique field name for the delete column, used for all tables in this hydration
+        const deleteFieldname = newId();
+
         for (let index = 0; index < specs.length; index++) {
             const specReview = specs[index];
             if (!specReview.approvedSpec) {
@@ -133,6 +137,12 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     data = table.getData();
                 }
 
+                //remove the delete column if it exists
+                data.forEach(row => {
+                    delete row[deleteFieldname];
+                });
+
+
                 // Use structuredClone to ensure deep copy
                 // vega may efficiently have symbols on data to cache a datum's values
                 // so this needs to appear to be new data
@@ -149,22 +159,21 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
             }
             const setData = (data: object[]) => {
                 table.setData(data).then(() => {
-                    console.log(`Tabulator ${spec.variableId} data set`, table.getColumnDefinitions());
+
+                    // Get current column definitions
+                    let columns = table.getColumnDefinitions()
+                        .filter(cd => cd.field !== deleteFieldname)
+                        .filter(cd => cd.formatter !== 'rowSelection');
 
                     if (spec.editable) {
-                        // Get current column definitions
-                        const columns1 = table.getColumnDefinitions();
-
-                        //if selectable, remove the first column
-                        if (selectableRows) {
-                            columns1.shift();
-                        }
 
                         //inject a column at the beginning for delete
-                        columns1.unshift({
+                        columns.unshift({
+                            headerSort: false,
                             title: "Delete",
-                            field: "delete",
-                            width: 100,
+                            field: deleteFieldname,
+                            titleFormatter: 'tickCross',
+                            width: 40,
                             formatter: "tickCross",
                             cellClick: (e, cell) => {
                                 cell.getRow().delete();
@@ -172,7 +181,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                             }
                         });
 
-                        const columns: ColumnDefinition[] = columns1.map(col => {
+                        columns = columns.map(col => {
                             // Only set editor if not already defined
                             if (col.editor === undefined) {
                                 // Prefer explicit type, fallback to sorter
@@ -191,15 +200,12 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                             }
                             return col;
                         });
-
-                        //remove the final column
-                        columns.pop();
-
-
-                        table.setColumns(columns);
                     }
+                    table.setColumns(columns);
+
 
                     outputData();
+
                 }).catch((error) => {
                     console.error(`Error setting data for Tabulator ${spec.variableId}:`, error);
                     // errorHandler(error, pluginName, index, 'setData', container);
@@ -212,7 +218,9 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
 
                 if (addRowBtn) {
                     addRowBtn.onclick = () => {
-                        table.addRow({});
+                        table.addRow({}).then((row) => {
+                            row.scrollTo();
+                        });
                     };
                 }
                 if (resetBtn) {
@@ -231,7 +239,6 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                 recieveBatch: async (batch, from) => {
                     const newData = batch[spec.dataSourceName]?.value as object[];
                     if (newData) {
-                        console.log(`Tabulator ${spec.variableId} received batch from ${from}`, batch);
                         //make sure tabulator is ready before setting data
                         if (!tabulatorInstance.built) {
                             table.off('tableBuilt');
