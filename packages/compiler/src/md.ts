@@ -3,7 +3,7 @@ import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
 import { ChartFull, DataSource, ElementGroup, InteractiveDocument, TableElement, Variable } from 'schema';
 import { getChartType } from './util.js';
 import { addDynamicDataLoaderToSpec, addStaticDataLoaderToSpec } from './loader.js';
-import { Plugins } from '@microsoft/interactive-document-markdown';
+import { Plugins } from '@microsoft/chartifact-markdown';
 import { VegaScope } from './scope.js';
 import { createSpecWithVariables } from './spec.js';
 import { defaultCommonOptions } from 'common';

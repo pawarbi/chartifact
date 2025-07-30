@@ -3,7 +3,7 @@ import * as common from 'common';
 import * as compiler from '@microsoft/interactive-document-compiler';
 import * as sandbox from '@microsoft/chartifact-sandbox';
 import * as host from '@microsoft/interactive-document-host';
-import * as markdown from '@microsoft/interactive-document-markdown';
+import * as markdown from '@microsoft/chartifact-markdown';
 import * as schema from 'schema';
 
 export as namespace IDocs;

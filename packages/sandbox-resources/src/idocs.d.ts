@@ -1,4 +1,4 @@
-import * as markdown from '@microsoft/interactive-document-markdown';
+import * as markdown from '@microsoft/chartifact-markdown';
 import * as common from 'common';
 
 export as namespace IDocs;
