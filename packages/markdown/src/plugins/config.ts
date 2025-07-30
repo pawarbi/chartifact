@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { definePlugin, Plugin, RawFlaggableSpec } from "../factory.js";
 import { sanitizedHTML } from "../sanitize.js";
 import { getJsonScriptTag } from "./util.js";

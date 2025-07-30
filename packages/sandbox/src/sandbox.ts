@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { Previewer, PreviewerOptions } from './preview.js';
 import { rendererHtml } from './resources/rendererHtml.js';
 import { rendererUmdJs } from './resources/rendererUmdJs.js';

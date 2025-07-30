@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { Spec as VegaSpec } from 'vega-typings';
 import { Variable, DataLoader, TableElement } from '@microsoft/chartifact-schema';
 import { SourceData, ValuesData, Signal, NewSignal } from "vega";

@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { DataSourceBase, VariableType, UrlRef } from './common.js';
 
 export interface ReturnType {

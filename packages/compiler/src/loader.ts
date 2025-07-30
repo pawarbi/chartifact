@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { DataSourceByDynamicURL, DataSourceByFile, DataSourceByJSON } from '@microsoft/chartifact-schema';
 import { SignalRef, ValuesData } from 'vega';
 import { VegaScope } from './scope.js';

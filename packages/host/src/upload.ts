@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { readFile } from "./file.js";
 import { Listener } from "./listener.js";
 

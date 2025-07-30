@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { SpecReview, SandboxedPreHydrateMessage } from "common";
 
 export interface PreviewerOptions {

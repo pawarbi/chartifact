@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { Sandbox } from '../src/index.ts';
 const textarea = document.getElementById('md') as HTMLTextAreaElement;
 const sandbox = new Sandbox(document.body, textarea.value, {

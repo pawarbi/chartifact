@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 window.addEventListener('DOMContentLoaded', () => {
     const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
     let sandbox: Chartifact.sandbox.Sandbox;

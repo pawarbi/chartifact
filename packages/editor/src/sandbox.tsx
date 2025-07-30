@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import React from 'react';
 import { InteractiveDocument } from '@microsoft/chartifact-schema';
 import { targetMarkdown } from '@microsoft/chartifact-compiler';

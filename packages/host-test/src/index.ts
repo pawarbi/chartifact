@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 const iframe = document.getElementById('host') as HTMLIFrameElement;
 
 window.addEventListener('message', (event) => {

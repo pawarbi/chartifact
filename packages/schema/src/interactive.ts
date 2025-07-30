@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { DataSourceBase, VariableID, VariableControl, ElementBase, UrlRef } from './common.js';
 
 /**

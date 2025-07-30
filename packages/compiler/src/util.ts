@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { DataSourceBaseFormat, DataSourceByDynamicURL, ImageElement, InteractiveElement, InteractiveDocument, PageElement, UrlRef } from '@microsoft/chartifact-schema';
 import { Spec as VegaSpec } from 'vega-typings';
 import { TopLevelSpec as VegaLiteSpec } from "vega-lite";

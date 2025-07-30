@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { InteractiveElement } from './interactive.js';
 import { DataLoader } from './datasource.js';
 import { Variable } from './common.js';

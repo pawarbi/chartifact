@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { Sandbox } from '@microsoft/chartifact-sandbox';
 import { targetMarkdown } from '@microsoft/chartifact-compiler';
 import { setupClipboardHandling } from './clipboard.js';

@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { Renderer } from '@microsoft/chartifact-markdown';
 import { Previewer, PreviewerOptions } from '@microsoft/chartifact-sandbox';
 

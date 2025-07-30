@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 // Pure type definitions without DOM dependencies
 // This module can be safely imported by VS Code extensions
 

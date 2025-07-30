@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { Listener } from "./listener.js";
 
 export function readFile(file: File, host: Listener) {
