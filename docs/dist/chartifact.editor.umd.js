@@ -2934,7 +2934,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   function createIframe(dependencies, renderRequest) {
-    const title = "Interactive Document Sandbox";
+    const title = "Chartifact Interactive Document Sandbox";
     const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDER_REQUEST}}", () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};<\/script>`).replace("{{SANDBOX_JS}}", () => `<script>${sandboxedJs}<\/script>`);
     const htmlBlob = new Blob([html], { type: "text/html" });
     const blobUrl = URL.createObjectURL(htmlBlob);
