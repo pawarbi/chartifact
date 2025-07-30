@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 export function urlParam(urlParamName: string, value: any) {
     if (value === undefined || value === null) return '';
     if (Array.isArray(value)) {

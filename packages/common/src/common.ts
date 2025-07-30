@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 export interface RendererCommonOptions {
     /* dataSignalPrefix will set `isData` to true in the Signal Bus */
     dataSignalPrefix?: string;

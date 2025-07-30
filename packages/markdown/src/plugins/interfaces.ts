@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 export { CheckboxSpec } from './checkbox.js';
 export { DropdownSpec } from './dropdown.js';
 export { ImageSpec } from './image.js';

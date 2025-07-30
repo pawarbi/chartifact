@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import * as vscode from 'vscode';
 import { findAvailableFileName } from './file';
 import { getResourceContent } from './resources';

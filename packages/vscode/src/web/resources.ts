@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import * as vscode from 'vscode';
 
 // Cache for resource contents - can be string content or Error object

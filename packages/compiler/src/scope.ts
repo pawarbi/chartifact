@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { Spec as VegaSpec } from 'vega-typings';
 import { MappedNameValuePairs, UrlRef } from '@microsoft/chartifact-schema';
 import { NewSignal } from "vega";

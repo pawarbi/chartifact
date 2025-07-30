@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { Variable } from '@microsoft/chartifact-schema';
 
 export function topologicalSort(list: Variable[]) {

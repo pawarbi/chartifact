@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import * as vscode from 'vscode';
 import { getResourceContent } from './resources';
 import { escapeTextareaContent } from './html';

@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 // Imports mocha for the browser, defining the `mocha` global.
 import 'mocha/mocha';
 
