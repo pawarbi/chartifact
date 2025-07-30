@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
 import { link, script } from './html';
 import { getResourceContent } from './resources';
-import type { ListenOptions } from '@microsoft/interactive-document-host' with { 'resolution-mode': 'import' };
+import type { ListenOptions } from '@microsoft/chartifact-host' with { 'resolution-mode': 'import' };
 import type { HostRenderRequestMessage, HostStatusMessage } from 'common' with { 'resolution-mode': 'import' };
 
 /**

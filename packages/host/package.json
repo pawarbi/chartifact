@@ -1,5 +1,5 @@
 {
-  "name": "@microsoft/interactive-document-host",
+  "name": "@microsoft/chartifact-host",
   "private": true,
   "version": "1.0.0",
   "description": "ost page to render interactive documents",
