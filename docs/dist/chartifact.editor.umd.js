@@ -1,5 +1,5 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("react")) : typeof define === "function" && define.amd ? define(["exports", "react"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.IDocs = global.IDocs || {}, global.React));
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("react")) : typeof define === "function" && define.amd ? define(["exports", "react"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Chartifact = global.Chartifact || {}, global.React));
 })(this, function(exports2, React$1) {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
@@ -443,7 +443,7 @@ ${content}
 
 </html>`;
   const rendererUmdJs = `(function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.IDocs = global.IDocs || {}, global.vega, global.vegaLite));
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Chartifact = global.Chartifact || {}, global.vega, global.vegaLite));
 })(this, function(exports2, vega, vegaLite) {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
@@ -1258,7 +1258,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (safeCss.trim().length > 0) {
           const styleElement = document.createElement("style");
           styleElement.type = "text/css";
-          styleElement.id = \`idocs-css-\${index2}\`;
+          styleElement.id = \`chartifact-css-\${index2}\`;
           styleElement.textContent = safeCss;
           const target = renderer.shadowRoot || document.head;
           target.appendChild(styleElement);
@@ -2810,7 +2810,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
 document.addEventListener('DOMContentLoaded', () => {
     let transactionIndex = 0;
     const transactions = {};
-    renderer = new IDocs.markdown.Renderer(document.body, {
+    renderer = new Chartifact.markdown.Renderer(document.body, {
         errorHandler: (error, pluginName, instanceIndex, phase, container, detail) => {
             console.error(\`Error in plugin \${pluginName} at instance \${instanceIndex} during \${phase}:\`, error);
             if (detail) {
