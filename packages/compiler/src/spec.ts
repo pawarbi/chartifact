@@ -1,5 +1,5 @@
 import { Spec as VegaSpec } from 'vega-typings';
-import { Variable, DataLoader, TableElement } from "schema";
+import { Variable, DataLoader, TableElement } from '@microsoft/chartifact-schema';
 import { SourceData, ValuesData, Signal, NewSignal } from "vega";
 import { topologicalSort } from "./sort.js";
 

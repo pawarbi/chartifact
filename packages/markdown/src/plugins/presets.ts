@@ -3,7 +3,7 @@
 * Licensed under the MIT License.
 */
 
-import { Preset } from 'schema';
+import { Preset } from '@microsoft/chartifact-schema';
 import { Batch, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
 import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';

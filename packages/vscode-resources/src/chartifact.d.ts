@@ -4,7 +4,7 @@ import * as compiler from '@microsoft/interactive-document-compiler';
 import * as sandbox from '@microsoft/chartifact-sandbox';
 import * as host from '@microsoft/interactive-document-host';
 import * as markdown from '@microsoft/chartifact-markdown';
-import * as schema from 'schema';
+import * as schema from '@microsoft/chartifact-schema';
 
 export as namespace IDocs;
 

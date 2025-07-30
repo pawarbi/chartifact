@@ -5,7 +5,7 @@ import { setupDragDropHandling } from './dragdrop.js';
 import { setupFileUpload } from './upload.js';
 import { checkUrlForFile } from './url.js';
 import { setupPostMessageHandling } from './post-receive.js';
-import { InteractiveDocument, InteractiveDocumentWithSchema } from 'schema';
+import { InteractiveDocument, InteractiveDocumentWithSchema } from '@microsoft/chartifact-schema';
 import { postStatus } from './post-send.js';
 import { ListenOptions } from './types.js';
 import { SpecReview, SandboxedPreHydrateMessage } from 'common';

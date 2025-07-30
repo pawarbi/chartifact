@@ -1,5 +1,5 @@
 {
-  "name": "schema",
+  "name": "@microsoft/chartifact-schema",
   "version": "1.0.0",
   "main": "index.js",
   "types": "dist/idoc.d.ts",
