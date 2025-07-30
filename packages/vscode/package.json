@@ -7,14 +7,14 @@
   "publisher": "msrvida",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/microsoft/interactive-documents.git"
+    "url": "git+https://github.com/microsoft/chartifact.git"
   },
   "author": "Dan Marshall",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/microsoft/interactive-documents/issues"
+    "url": "https://github.com/microsoft/chartifact/issues"
   },
-  "homepage": "https://github.com/microsoft/interactive-documents#readme",
+  "homepage": "https://github.com/microsoft/chartifact#readme",
   "engines": {
     "vscode": "^1.101.0"
   },
@@ -67,42 +67,42 @@
         {
           "command": "chartifact.newIdocJson",
           "when": "explorerResourceIsFolder",
-          "group": "interactive-documents"
+          "group": "chartifact"
         },
         {
           "command": "chartifact.newIdocMarkdown",
           "when": "explorerResourceIsFolder",
-          "group": "interactive-documents"
+          "group": "chartifact"
         },
         {
           "command": "chartifact.previewIdoc",
           "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.md$/",
-          "group": "interactive-documents"
+          "group": "chartifact"
         },
         {
           "command": "chartifact.previewIdoc",
           "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
-          "group": "interactive-documents"
+          "group": "chartifact"
         },
         {
           "command": "chartifact.convertToHtml",
           "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.md$/",
-          "group": "interactive-documents"
+          "group": "chartifact"
         },
         {
           "command": "chartifact.convertToHtml",
           "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
-          "group": "interactive-documents"
+          "group": "chartifact"
         },
         {
           "command": "chartifact.convertToMarkdown",
           "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
-          "group": "interactive-documents"
+          "group": "chartifact"
         },
         {
           "command": "chartifact.editIdoc",
           "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
-          "group": "interactive-documents"
+          "group": "chartifact"
         }
       ],
       "editor/title": [
@@ -121,37 +121,37 @@
         {
           "command": "chartifact.previewIdoc",
           "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.md$/",
-          "group": "interactive-documents"
+          "group": "chartifact"
         },
         {
           "command": "chartifact.previewIdoc",
           "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
-          "group": "interactive-documents"
+          "group": "chartifact"
         },
         {
           "command": "chartifact.convertToHtml",
           "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.md$/",
-          "group": "interactive-documents"
+          "group": "chartifact"
         },
         {
           "command": "chartifact.convertToHtml",
           "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
-          "group": "interactive-documents"
+          "group": "chartifact"
         },
         {
           "command": "chartifact.convertToMarkdown",
           "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
-          "group": "interactive-documents"
+          "group": "chartifact"
         },
         {
           "command": "chartifact.editIdoc",
           "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.md$/",
-          "group": "interactive-documents"
+          "group": "chartifact"
         },
         {
           "command": "chartifact.editIdoc",
           "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
-          "group": "interactive-documents"
+          "group": "chartifact"
         }
       ]
     }
