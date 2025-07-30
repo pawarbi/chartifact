@@ -116,7 +116,7 @@ export class SignalBus {
         }
     }
 
-    beginListening() {
+    async beginListening() {
         //set the initial batch on each peer
         this.log('beginListening', 'begin initial batch', this.signalDeps);
 
@@ -128,6 +128,11 @@ export class SignalBus {
                 batch[signalName] = { value, isData };
             }
             peer.recieveBatch && peer.recieveBatch(batch, 'initial');
+        }
+
+        //need to call broadcast complete to ensure that all peers have the initial values
+        for (const peer of this.peers) {
+            peer.broadcastComplete && await peer.broadcastComplete();
         }
 
         this.log('beginListening', 'end initial batch');
