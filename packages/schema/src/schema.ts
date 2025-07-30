@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 // Schema generation entry point
 import { InteractiveDocument } from './page.js';
 

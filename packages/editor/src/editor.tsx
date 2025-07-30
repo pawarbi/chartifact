@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { InteractiveDocument } from '@microsoft/chartifact-schema';
 import { SandboxDocumentPreview } from "./sandbox.js";
 import { Previewer } from '@microsoft/chartifact-sandbox';

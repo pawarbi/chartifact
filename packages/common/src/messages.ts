@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { InteractiveDocument } from "@microsoft/chartifact-schema";
 
 export interface SandboxRenderMessage {

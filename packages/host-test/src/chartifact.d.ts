@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import * as common from 'common';
 import * as compiler from '@microsoft/chartifact-compiler';
 import * as host from '@microsoft/chartifact-host';

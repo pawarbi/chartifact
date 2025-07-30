@@ -1,3 +1,7 @@
+/*!
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { Listener } from "./listener.js";
 
 export function determineContent(content: string, host: Listener) {
