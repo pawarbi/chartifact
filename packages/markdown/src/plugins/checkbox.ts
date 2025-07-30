@@ -3,7 +3,7 @@
 * Licensed under the MIT License.
 */
 
-import { VariableControl } from 'schema';
+import { VariableControl } from '@microsoft/chartifact-schema';
 import { Batch, IInstance, Plugin } from '../factory.js';
 import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';

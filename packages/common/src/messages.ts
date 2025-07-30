@@ -1,4 +1,4 @@
-import { InteractiveDocument } from "schema";
+import { InteractiveDocument } from "@microsoft/chartifact-schema";
 
 export interface SandboxRenderMessage {
     type: 'sandboxRender';

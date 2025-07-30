@@ -394,7 +394,7 @@ export const cssPlugin: Plugin<CategorizedCss> = {
             if (safeCss.trim().length > 0) {
                 const styleElement = document.createElement('style');
                 styleElement.type = 'text/css';
-                styleElement.id = `idocs-css-${index}`;
+                styleElement.id = `chartifact-css-${index}`;
                 styleElement.textContent = safeCss;
 
                 // Apply to shadow DOM if available, otherwise document

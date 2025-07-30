@@ -1,4 +1,4 @@
-import { Variable } from "schema";
+import { Variable } from '@microsoft/chartifact-schema';
 
 export function topologicalSort(list: Variable[]) {
     const nameToObject = new Map<string, Variable>();

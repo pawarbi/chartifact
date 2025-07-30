@@ -1,4 +1,4 @@
-import { Renderer } from '@microsoft/interactive-document-markdown';
+import { Renderer } from '@microsoft/chartifact-markdown';
 import { Previewer, PreviewerOptions } from '@microsoft/chartifact-sandbox';
 
 export class DevPreviewer extends Previewer {

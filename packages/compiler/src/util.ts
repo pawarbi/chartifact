@@ -1,4 +1,4 @@
-import { DataSourceBaseFormat, DataSourceByDynamicURL, ImageElement, InteractiveElement, InteractiveDocument, PageElement, UrlRef } from "schema";
+import { DataSourceBaseFormat, DataSourceByDynamicURL, ImageElement, InteractiveElement, InteractiveDocument, PageElement, UrlRef } from '@microsoft/chartifact-schema';
 import { Spec as VegaSpec } from 'vega-typings';
 import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
 

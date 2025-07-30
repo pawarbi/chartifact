@@ -20,7 +20,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		try {
 			await createNewDocument(uri, 'markdown');
 		} catch (error) {
-			vscode.window.showErrorMessage(`Failed to create Interactive Document (Markdown): ${error}`);
+			vscode.window.showErrorMessage(`Failed to create Chartifact Interactive Document (Markdown): ${error}`);
 		}
 	});
 
@@ -31,7 +31,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		try {
 			await createNewDocument(uri, 'json');
 		} catch (error) {
-			vscode.window.showErrorMessage(`Failed to create Interactive Document (JSON): ${error}`);
+			vscode.window.showErrorMessage(`Failed to create Chartifact Interactive Document (JSON): ${error}`);
 		}
 	});
 

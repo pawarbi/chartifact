@@ -13,7 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
     <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
 
-    <script src="../dist/umd/idocs.markdown.umd.js"></script>
+    <script src="../dist/umd/chartifact.markdown.umd.js"></script>
 
     <style>
         #markdown-input {
@@ -342,7 +342,7 @@ Click the map above to show related data.
 
     <script>
         const textarea = document.getElementById('markdown-input');
-        const renderer = new IDocs.markdown.Renderer(document.getElementById('content'));
+        const renderer = new Chartifact.markdown.Renderer(document.getElementById('content'));
 
         function render() {
             //renderer.render(textarea.value);

@@ -4,7 +4,7 @@ import commonjs from '@rollup/plugin-commonjs';
 
 const commonOutputConfig = {
   format: 'umd',
-  name: 'IDocs',
+  name: 'Chartifact',
   extend: true,
   globals: {
     'markdown-it': 'markdownit',
@@ -12,7 +12,7 @@ const commonOutputConfig = {
     'vega-lite': 'vegaLite',
     'css-tree': 'csstree',
   },
-  entryFileNames: 'idocs.sandbox.umd.js',
+  entryFileNames: 'chartifact.sandbox.umd.js',
 };
 
 export default defineConfig({
@@ -32,7 +32,7 @@ export default defineConfig({
         },
         {
           ...commonOutputConfig,
-          dir: '../../docs/dist',
+          dir: '../../docs/dist/v1',
         },
       ],
       plugins: [

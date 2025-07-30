@@ -73,7 +73,7 @@ export class Sandbox extends Previewer {
 }
 
 function createIframe(dependencies: string, renderRequest: SandboxRenderMessage) {
-    const title = 'Interactive Document Sandbox';
+    const title = 'Chartifact Interactive Document Sandbox';
     const html = rendererHtml
         .replace('{{TITLE}}', () => title)
         .replace('{{DEPENDENCIES}}', () => dependencies)

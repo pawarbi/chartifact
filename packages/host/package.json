@@ -1,5 +1,6 @@
 {
-  "name": "@microsoft/interactive-document-host",
+  "name": "@microsoft/chartifact-host",
+  "private": true,
   "version": "1.0.0",
   "description": "ost page to render interactive documents",
   "main": "dist/esnext/index.js",
@@ -19,12 +20,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/microsoft/interactive-documents.git"
+    "url": "git+https://github.com/microsoft/chartifact.git"
   },
   "author": "Dan Marshall",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/microsoft/interactive-documents/issues"
+    "url": "https://github.com/microsoft/chartifact/issues"
   },
-  "homepage": "https://github.com/microsoft/interactive-documents#readme"
+  "homepage": "https://github.com/microsoft/chartifact#readme"
 }
