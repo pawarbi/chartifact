@@ -1,4 +1,4 @@
-import { DataSourceByDynamicURL, DataSourceByFile, DataSourceByJSON } from 'schema';
+import { DataSourceByDynamicURL, DataSourceByFile, DataSourceByJSON } from '@microsoft/chartifact-schema';
 import { SignalRef, ValuesData } from 'vega';
 import { VegaScope } from './scope.js';
 import { dataAsSignal, ensureDataAndSignalsArray } from './spec.js';

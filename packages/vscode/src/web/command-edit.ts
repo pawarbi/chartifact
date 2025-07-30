@@ -31,7 +31,7 @@ export class EditManager {
 			this.current.panel.reveal(columnToShowIn);
 		} else {
 			// Otherwise, create a new panel
-			this.current = newPanel(this.context, uriFsPath, undefined, columnToShowIn, "Interactive Document Editor");
+			this.current = newPanel(this.context, uriFsPath, undefined, columnToShowIn, "Chartifact Interactive Document Editor");
 			const { panel } = this.current;
 
 			panel.webview.html = getWebviewContent(panel.webview, this.context);
@@ -203,7 +203,7 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 	const resourceLinks = [
 		script(resourceUrl('react.production.min.js')),
 		script(resourceUrl('react-dom.production.min.js')),
-		script(resourceUrl('idocs.editor.umd.js')),
+		script(resourceUrl('chartifact.editor.umd.js')),
 		script(resourceUrl('edit.js')),
 	].join('\n    ');
 

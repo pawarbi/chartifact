@@ -1,5 +1,5 @@
 import { Spec as VegaSpec } from 'vega-typings';
-import { MappedNameValuePairs, UrlRef } from "schema";
+import { MappedNameValuePairs, UrlRef } from '@microsoft/chartifact-schema';
 import { NewSignal } from "vega";
 import { safeVariableName } from "./util.js";
 

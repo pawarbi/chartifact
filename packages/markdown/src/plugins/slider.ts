@@ -3,7 +3,7 @@
 * Licensed under the MIT License.
 */
 
-import { VariableControl, SliderElementProps } from 'schema';
+import { VariableControl, SliderElementProps } from '@microsoft/chartifact-schema';
 import { Batch, IInstance, Plugin } from '../factory.js';
 import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';

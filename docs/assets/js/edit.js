@@ -7,5 +7,5 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     };
     const root = ReactDOM.createRoot(document.getElementById("app"));
-    root.render(React.createElement(IDocs.editor.App, appProps));
+    root.render(React.createElement(Chartifact.editor.App, appProps));
 });

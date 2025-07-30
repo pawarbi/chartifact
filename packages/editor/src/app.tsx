@@ -1,4 +1,4 @@
-import { InteractiveDocument } from "schema";
+import { InteractiveDocument } from '@microsoft/chartifact-schema';
 import { Editor } from './editor.js';
 import { Previewer } from '@microsoft/chartifact-sandbox';
 import { EditorPageMessage, EditorReadyMessage, SpecReview, SandboxedPreHydrateMessage } from "common";

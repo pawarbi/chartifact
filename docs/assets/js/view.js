@@ -1,5 +1,5 @@
 window.addEventListener('DOMContentLoaded', () => {
-    host = new IDocs.host.Listener({
+    host = new Chartifact.host.Listener({
         app: 'main',
         loading: '#loading',
         help: '#help',

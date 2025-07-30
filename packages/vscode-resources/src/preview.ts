@@ -1,12 +1,12 @@
-declare const hostOptions: IDocs.host.ListenOptions;
+declare const hostOptions: Chartifact.host.ListenOptions;
 
 window.addEventListener('DOMContentLoaded', () => {
-    const options: IDocs.host.ListenOptions = { ...hostOptions, ...{ postMessageTarget: acquireVsCodeApi() } };
-    const host = new IDocs.host.Listener({
+    const options: Chartifact.host.ListenOptions = { ...hostOptions, ...{ postMessageTarget: acquireVsCodeApi() } };
+    const host = new Chartifact.host.Listener({
         app: '#app',
         loading: '#loading',
         options,
-        onApprove: (message: IDocs.common.SandboxedPreHydrateMessage) => {
+        onApprove: (message: Chartifact.common.SandboxedPreHydrateMessage) => {
             // TODO look through each and override policy to approve unapproved
             // policy from vscode settings
             const { specs } = message;

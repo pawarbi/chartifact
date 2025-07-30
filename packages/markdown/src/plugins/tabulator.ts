@@ -6,7 +6,7 @@
 import { Batch, IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
 import { Tabulator as TabulatorType, Options as TabulatorOptions } from 'tabulator-tables';
 import { newId, pluginClassName } from './util.js';
-import { TableElementProps } from 'schema';
+import { TableElementProps } from '@microsoft/chartifact-schema';
 import { flaggableJsonPlugin } from './config.js';
 import { PluginNames } from './interfaces.js';
 

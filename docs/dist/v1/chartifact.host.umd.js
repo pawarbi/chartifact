@@ -1,6 +1,6 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("react")) : typeof define === "function" && define.amd ? define(["exports", "react"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.IDocs = global.IDocs || {}, global.React));
-})(this, function(exports2, React$1) {
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Chartifact = global.Chartifact || {}));
+})(this, function(exports2) {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
@@ -443,7 +443,7 @@ ${content}
 
 </html>`;
   const rendererUmdJs = `(function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.IDocs = global.IDocs || {}, global.vega, global.vegaLite));
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Chartifact = global.Chartifact || {}, global.vega, global.vegaLite));
 })(this, function(exports2, vega, vegaLite) {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
@@ -1258,7 +1258,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         if (safeCss.trim().length > 0) {
           const styleElement = document.createElement("style");
           styleElement.type = "text/css";
-          styleElement.id = \`idocs-css-\${index2}\`;
+          styleElement.id = \`chartifact-css-\${index2}\`;
           styleElement.textContent = safeCss;
           const target = renderer.shadowRoot || document.head;
           target.appendChild(styleElement);
@@ -2810,7 +2810,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
 document.addEventListener('DOMContentLoaded', () => {
     let transactionIndex = 0;
     const transactions = {};
-    renderer = new IDocs.markdown.Renderer(document.body, {
+    renderer = new Chartifact.markdown.Renderer(document.body, {
         errorHandler: (error, pluginName, instanceIndex, phase, container, detail) => {
             console.error(\`Error in plugin \${pluginName} at instance \${instanceIndex} during \${phase}:\`, error);
             if (detail) {
@@ -2934,7 +2934,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   function createIframe(dependencies, renderRequest) {
-    const title = "Interactive Document Sandbox";
+    const title = "Chartifact Interactive Document Sandbox";
     const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDER_REQUEST}}", () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};<\/script>`).replace("{{SANDBOX_JS}}", () => `<script>${sandboxedJs}<\/script>`);
     const htmlBlob = new Blob([html], { type: "text/html" });
     const blobUrl = URL.createObjectURL(htmlBlob);
@@ -2952,474 +2952,508 @@ document.addEventListener('DOMContentLoaded', () => {
     Previewer,
     Sandbox
   }, Symbol.toStringTag, { value: "Module" }));
-  class SandboxDocumentPreview extends React$1.Component {
-    constructor(props) {
-      super(props);
-      __publicField(this, "containerRef");
-      __publicField(this, "sandboxRef");
-      __publicField(this, "isSandboxReady");
-      __publicField(this, "pendingUpdate");
-      this.containerRef = React$1.createRef();
-      this.sandboxRef = null;
-      this.isSandboxReady = false;
-      this.pendingUpdate = null;
-    }
-    componentDidMount() {
-      if (this.containerRef.current && !this.sandboxRef) {
-        try {
-          const markdown = targetMarkdown(this.props.page);
-          this.sandboxRef = new (this.props.previewer || Sandbox)(
-            this.containerRef.current,
-            markdown,
-            {
-              onReady: () => {
-                this.isSandboxReady = true;
-                if (this.pendingUpdate) {
-                  this.processUpdate(this.pendingUpdate);
-                  this.pendingUpdate = null;
-                }
-              },
-              onError: (error) => console.error("Sandbox initialization failed:", error),
-              onApprove: this.props.onApprove
-            }
+  function readFile(file, host) {
+    if (file.name.endsWith(".json") || file.name.endsWith(".md")) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        var _a;
+        let content = (_a = e.target) == null ? void 0 : _a.result;
+        if (!content) {
+          host.errorHandler(
+            new Error("File content is empty"),
+            "The file is empty. Please use a valid markdown or JSON file."
           );
-        } catch (error) {
-          console.error("Failed to initialize sandbox:", error);
+          return;
         }
-      }
-    }
-    componentDidUpdate(prevProps) {
-      if (this.props.page !== prevProps.page) {
-        if (this.isSandboxReady) {
-          this.processUpdate(this.props.page);
-        } else {
-          this.pendingUpdate = this.props.page;
+        content = content.trim();
+        if (!content) {
+          host.errorHandler(
+            new Error("File content is empty"),
+            "The file is empty or contains only whitespace. Please use a valid markdown or JSON file."
+          );
+          return;
         }
-      }
-    }
-    processUpdate(page) {
-      if (this.sandboxRef) {
-        try {
-          const markdown = targetMarkdown(page);
-          this.sandboxRef.send(markdown);
-        } catch (error) {
-          if (this.containerRef.current) {
-            this.containerRef.current.innerHTML = `<div style="color: red; padding: 10px; border: 1px solid red; background-color: #ffe6e6; border-radius: 4px;">
-                        <strong>Error:</strong> ${error instanceof Error ? error.message : String(error)}
-                    </div>`;
+        if (file.name.endsWith(".json")) {
+          try {
+            const idoc = JSON.parse(content);
+            host.render(void 0, idoc);
+            return;
+          } catch (jsonError) {
+            host.errorHandler(
+              new Error("Invalid JSON content"),
+              "The file content is not valid JSON."
+            );
+            return;
           }
+        } else if (file.name.endsWith(".md")) {
+          host.render(content);
         }
-      }
-    }
-    componentWillUnmount() {
-      if (this.sandboxRef) {
-        this.sandboxRef = null;
-      }
-    }
-    render() {
-      return /* @__PURE__ */ React$1.createElement(
-        "div",
-        {
-          style: { display: "grid" },
-          ref: this.containerRef
-        }
+      };
+      reader.onerror = (e) => {
+        host.errorHandler(new Error("Failed to read file"), "Error reading file");
+      };
+      reader.readAsText(file);
+    } else {
+      host.errorHandler(
+        new Error("Invalid file type"),
+        "Only markdown (.md) or JSON (.json) files are supported."
       );
     }
   }
-  function Editor(props) {
-    const postMessageTarget = props.postMessageTarget || window.parent;
-    const [page, setPage] = React.useState(() => ({
-      title: "Initializing...",
-      layout: {
-        css: ""
-      },
-      dataLoaders: [],
-      groups: [
-        {
-          groupId: "init",
-          elements: [
-            "# 🔄 Editor Initializing",
-            "Please wait while the editor loads...",
-            "",
-            "The editor is ready and waiting for content from the host application.",
-            "",
-            "📡 **Status**: Ready to receive documents"
-          ]
-        }
-      ],
-      variables: []
-    }));
-    React.useEffect(() => {
-      const handleMessage = (event) => {
-        if (event.data && event.data.sender !== "editor") {
-          if (event.data.type === "editorPage" && event.data.page) {
-            setPage(event.data.page);
-          }
-        }
-      };
-      window.addEventListener("message", handleMessage);
-      return () => {
-        window.removeEventListener("message", handleMessage);
-      };
-    }, []);
-    React.useEffect(() => {
-      const readyMessage = {
-        type: "editorReady",
-        sender: "editor"
-      };
-      postMessageTarget.postMessage(readyMessage, "*");
-    }, []);
-    return /* @__PURE__ */ React.createElement(
-      EditorView,
-      {
-        page,
-        postMessageTarget,
-        previewer: props.previewer,
-        onApprove: props.onApprove
-      }
-    );
-  }
-  function EditorView(props) {
-    const { page, postMessageTarget, previewer, onApprove } = props;
-    const sendEditToApp = (newPage) => {
-      const pageMessage = {
-        type: "editorPage",
-        page: newPage,
-        sender: "editor"
-      };
-      postMessageTarget.postMessage(pageMessage, "*");
-    };
-    const deleteElement = (groupIndex, elementIndex) => {
-      const newPage = {
-        ...page,
-        groups: page.groups.map((group, gIdx) => {
-          if (gIdx === groupIndex) {
-            return {
-              ...group,
-              elements: group.elements.filter((_, eIdx) => eIdx !== elementIndex)
-            };
-          }
-          return group;
-        })
-      };
-      sendEditToApp(newPage);
-    };
-    const deleteGroup = (groupIndex) => {
-      const newPage = {
-        ...page,
-        groups: page.groups.filter((_, gIdx) => gIdx !== groupIndex)
-      };
-      sendEditToApp(newPage);
-    };
-    return /* @__PURE__ */ React.createElement("div", { style: {
-      display: "grid",
-      gridTemplateColumns: "320px 1fr",
-      height: "100vh",
-      overflow: "hidden"
-    } }, /* @__PURE__ */ React.createElement("div", { style: {
-      padding: "10px",
-      borderRight: "1px solid #ccc",
-      overflowY: "auto"
-    } }, /* @__PURE__ */ React.createElement("h3", null, "Tree View"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", null, "📄 ", page.title), /* @__PURE__ */ React.createElement("div", { style: { marginLeft: "20px" } }, page.groups.map((group, groupIndex) => /* @__PURE__ */ React.createElement("div", { key: groupIndex, style: { marginBottom: "10px" } }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: "5px" } }, "📁 ", group.groupId, /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: () => deleteGroup(groupIndex),
-        style: {
-          background: "#ff4444",
-          color: "white",
-          border: "none",
-          borderRadius: "3px",
-          padding: "2px 6px",
-          fontSize: "10px",
-          cursor: "pointer"
-        },
-        title: "Delete group"
-      },
-      "✕"
-    )), /* @__PURE__ */ React.createElement("div", { style: { marginLeft: "20px" } }, group.elements.map((element, elementIndex) => /* @__PURE__ */ React.createElement("div", { key: elementIndex, style: { display: "flex", alignItems: "center", gap: "5px", marginBottom: "2px" } }, /* @__PURE__ */ React.createElement("span", null, typeof element === "string" ? `📝 ${element.slice(0, 30)}${element.length > 30 ? "..." : ""}` : `🎨 ${element.type}`), /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: () => deleteElement(groupIndex, elementIndex),
-        style: {
-          background: "#ff4444",
-          color: "white",
-          border: "none",
-          borderRadius: "3px",
-          padding: "2px 6px",
-          fontSize: "10px",
-          cursor: "pointer"
-        },
-        title: "Delete element"
-      },
-      "✕"
-    ))))))))), /* @__PURE__ */ React.createElement("div", { style: {
-      display: "grid",
-      gridTemplateRows: "auto 1fr",
-      padding: "10px",
-      overflowY: "auto"
-    } }, /* @__PURE__ */ React.createElement("h3", null, "Document Preview"), /* @__PURE__ */ React.createElement(
-      SandboxDocumentPreview,
-      {
-        page,
-        previewer,
-        onApprove
-      }
-    )));
-  }
-  function App(props) {
-    const { previewer } = props;
-    const [history, setHistory] = React.useState([initialPage]);
-    const [historyIndex, setHistoryIndex] = React.useState(0);
-    const [currentPage, setCurrentPage] = React.useState(initialPage);
-    const editorContainerRef = React.useRef(null);
-    const [isEditorReady, setIsEditorReady] = React.useState(false);
-    const undo = () => {
-      if (historyIndex > 0) {
-        const newIndex = historyIndex - 1;
-        setHistoryIndex(newIndex);
-        const page = history[newIndex];
-        setCurrentPage(page);
-        sendPageToEditor(page);
-      }
-    };
-    const redo = () => {
-      if (historyIndex < history.length - 1) {
-        const newIndex = historyIndex + 1;
-        setHistoryIndex(newIndex);
-        const page = history[newIndex];
-        setCurrentPage(page);
-        sendPageToEditor(page);
-      }
-    };
-    const sendPageToEditor = (page, skipReadyCheck = false) => {
-      if (!skipReadyCheck && !isEditorReady) {
+  function determineContent(content, host) {
+    if (!content) {
+      host.errorHandler(
+        new Error("Content is empty"),
+        "The content was empty. Please use valid markdown content or JSON."
+      );
+      return;
+    }
+    if (typeof content !== "string") {
+      host.errorHandler(
+        new Error("Invalid content type"),
+        "The content is not a string. Please use valid markdown content or JSON."
+      );
+      return;
+    }
+    content = content.trim();
+    if (!content) {
+      host.errorHandler(
+        new Error("Content is empty"),
+        "The content was only whitespace. Please use valid markdown content or JSON."
+      );
+      return;
+    }
+    if (content.startsWith("{") && content.endsWith("}")) {
+      try {
+        const idoc = JSON.parse(content);
+        host.render(void 0, idoc);
+      } catch (jsonError) {
+        host.errorHandler(
+          new Error("Invalid JSON content in clipboard"),
+          "The pasted content is not valid JSON. Please copy a valid interactive document JSON file."
+        );
         return;
       }
-      const pageMessage = {
-        type: "editorPage",
-        page,
-        sender: "app"
-      };
-      window.postMessage(pageMessage, "*");
-    };
-    React.useEffect(() => {
-      const handleMessage = (event) => {
-        if (event.data && event.data.sender === "editor") {
-          if (event.data.type === "editorReady") {
-            setIsEditorReady(true);
-            sendPageToEditor(currentPage);
-          } else if (event.data.type === "editorPage" && event.data.page) {
-            const pageMessage = event.data;
-            setHistoryIndex((prevIndex) => {
-              setHistory((prevHistory) => {
-                const newHistory = prevHistory.slice(0, prevIndex + 1);
-                newHistory.push(pageMessage.page);
-                return newHistory;
-              });
-              setCurrentPage(pageMessage.page);
-              sendPageToEditor(pageMessage.page, true);
-              return prevIndex + 1;
-            });
-          }
-        }
-      };
-      window.addEventListener("message", handleMessage);
-      return () => {
-        window.removeEventListener("message", handleMessage);
-      };
-    }, []);
-    React.useEffect(() => {
-      if (isEditorReady) {
-        sendPageToEditor(currentPage);
-      }
-    }, [isEditorReady]);
-    return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", height: "100vh" } }, /* @__PURE__ */ React.createElement("div", { style: {
-      padding: "10px",
-      backgroundColor: "#f5f5f5",
-      borderBottom: "1px solid #ccc",
-      display: "flex",
-      gap: "10px",
-      alignItems: "center"
-    } }, /* @__PURE__ */ React.createElement("h2", { style: { margin: 0 } }, "Document Editor"), /* @__PURE__ */ React.createElement("div", { style: { display: "flex", gap: "5px", alignItems: "center" } }, /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: undo,
-        disabled: historyIndex <= 0,
-        style: {
-          padding: "5px 10px",
-          backgroundColor: historyIndex <= 0 ? "#ccc" : "#007acc",
-          color: "white",
-          border: "none",
-          borderRadius: "3px",
-          cursor: historyIndex <= 0 ? "not-allowed" : "pointer"
-        }
-      },
-      "↶ Undo"
-    ), /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: redo,
-        disabled: historyIndex >= history.length - 1,
-        style: {
-          padding: "5px 10px",
-          backgroundColor: historyIndex >= history.length - 1 ? "#ccc" : "#007acc",
-          color: "white",
-          border: "none",
-          borderRadius: "3px",
-          cursor: historyIndex >= history.length - 1 ? "not-allowed" : "pointer"
-        }
-      },
-      "↷ Redo"
-    ), /* @__PURE__ */ React.createElement("span", { style: { marginLeft: "10px", fontSize: "12px", color: "#666" } }, "History: ", historyIndex + 1, " / ", history.length))), /* @__PURE__ */ React.createElement("div", { ref: editorContainerRef, style: { flex: 1 } }, /* @__PURE__ */ React.createElement(
-      Editor,
-      {
-        previewer,
-        onApprove: props.onApprove
-      }
-    )));
+    } else {
+      host.render(content);
+    }
   }
-  const initialPage = {
-    "title": "Seattle Weather",
-    "dataLoaders": [
-      {
-        "type": "url",
-        "urlRef": {
-          "origin": "https://vega.github.io",
-          "urlPath": "/editor/data/seattle-weather.csv"
-        },
-        "dataSourceName": "seattle_weather",
-        "format": "csv",
-        "dataFrameTransformations": []
-      }
-    ],
-    "groups": [
-      {
-        "groupId": "main",
-        "elements": [
-          "# Seattle Weather\n\nData table:",
-          {
-            "type": "table",
-            "dataSourceName": "seattle_weather",
-            "variableId": "seattle_weather_selected",
-            "tabulatorOptions": {}
-          },
-          "Here is a stacked bar chart of Seattle weather:\nEach bar represents the count of weather types for each month.\nThe colors distinguish between different weather conditions such as sun, fog, drizzle, rain, and snow.",
-          {
-            "type": "chart",
-            "chart": {
-              "dataSourceBase": {
-                "dataSourceName": "data"
-              },
-              "chartTemplateKey": "bar",
-              "chartIntent": "A bar chart showing the distribution of weather types over months.",
-              "spec": {
-                "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-                "data": {
-                  "name": "seattle_weather"
-                },
-                "mark": "bar",
-                "encoding": {
-                  "x": {
-                    "timeUnit": "month",
-                    "field": "date",
-                    "type": "ordinal",
-                    "title": "Month of the year"
-                  },
-                  "y": {
-                    "aggregate": "count",
-                    "type": "quantitative"
-                  },
-                  "color": {
-                    "field": "weather",
-                    "type": "nominal",
-                    "scale": {
-                      "domain": [
-                        "sun",
-                        "fog",
-                        "drizzle",
-                        "rain",
-                        "snow"
-                      ],
-                      "range": [
-                        "#e7ba52",
-                        "#c7c7c7",
-                        "#aec7e8",
-                        "#1f77b4",
-                        "#9467bd"
-                      ]
-                    },
-                    "title": "Weather type"
-                  }
-                }
+  function setupClipboardHandling(host) {
+    const pasteHandler = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const clipboardData = e.clipboardData;
+      if (clipboardData && clipboardData.files.length > 0) {
+        const file = clipboardData.files[0];
+        readFile(file, host);
+      } else if (clipboardData && clipboardData.items) {
+        let handled = false;
+        for (let i = 0; i < clipboardData.items.length; i++) {
+          const item = clipboardData.items[i];
+          if (item.kind === "string" && item.type === "text/plain") {
+            item.getAsString((content) => {
+              if (!content) {
+                host.errorHandler(
+                  new Error("Pasted content is empty"),
+                  "The pasted content was empty. Please paste valid markdown content or JSON."
+                );
+                return;
               }
-            }
-          },
-          "This section introduces a heatmap visualization for the Seattle weather dataset.\nThe heatmap is designed to display the distribution and intensity of weather-related variables,\nsuch as temperature, precipitation, or frequency of weather events, across different time periods or categories.\nIt provides an intuitive way to identify patterns, trends, and anomalies in the dataset.",
-          {
-            "type": "chart",
-            "chart": {
-              "dataSourceBase": {
-                "dataSourceName": "data"
-              },
-              "chartTemplateKey": "heatmap",
-              "chartIntent": "A heatmap showing the distribution of daily maximum temperatures in Seattle.",
-              "spec": {
-                "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-                "data": {
-                  "name": "seattle_weather"
-                },
-                "title": "Daily Max Temperatures (C) in Seattle, WA",
-                "config": {
-                  "view": {
-                    "strokeWidth": 0,
-                    "step": 13
-                  },
-                  "axis": {
-                    "domain": false
-                  }
-                },
-                "mark": "rect",
-                "encoding": {
-                  "x": {
-                    "field": "date",
-                    "timeUnit": "date",
-                    "type": "ordinal",
-                    "title": "Day",
-                    "axis": {
-                      "labelAngle": 0,
-                      "format": "%e"
-                    }
-                  },
-                  "y": {
-                    "field": "date",
-                    "timeUnit": "month",
-                    "type": "ordinal",
-                    "title": "Month"
-                  },
-                  "color": {
-                    "field": "temp_max",
-                    "aggregate": "max",
-                    "type": "quantitative",
-                    "legend": {
-                      "title": null
-                    }
-                  }
-                }
+              content = content.trim();
+              if (!content) {
+                host.errorHandler(
+                  new Error("Pasted content is empty"),
+                  "The pasted content was only whitespace. Please paste valid markdown content or JSON."
+                );
+                return;
               }
-            }
+              determineContent(content, host);
+            });
+            handled = true;
+            break;
           }
-        ]
+        }
+        if (!handled) {
+          host.errorHandler(
+            new Error("Unsupported clipboard content"),
+            "Please paste a markdown file, JSON file, or valid text content."
+          );
+        }
+      } else {
+        host.errorHandler(
+          new Error("Unsupported clipboard content"),
+          "Please paste a markdown file, JSON file, or valid text content."
+        );
       }
-    ]
+    };
+    document.addEventListener("paste", pasteHandler);
+    return () => {
+      document.removeEventListener("paste", pasteHandler);
+    };
+  }
+  function setupDragDropHandling(host) {
+    const dragHandler = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    const dropHandler = (e) => {
+      var _a, _b;
+      e.preventDefault();
+      e.stopPropagation();
+      const files = (_a = e.dataTransfer) == null ? void 0 : _a.files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        readFile(file, host);
+      } else if ((_b = e.dataTransfer) == null ? void 0 : _b.types.includes("text/plain")) {
+        let content = e.dataTransfer.getData("text/plain");
+        if (!content) {
+          host.errorHandler(
+            new Error("Dropped content is empty"),
+            "The dropped content was empty. Please drop valid markdown content or JSON."
+          );
+          return;
+        }
+        content = content.trim();
+        if (!content) {
+          host.errorHandler(
+            new Error("Dropped content is empty"),
+            "The dropped content was only whitespace. Please drop valid markdown content or JSON."
+          );
+          return;
+        }
+        determineContent(content, host);
+      } else {
+        host.errorHandler(
+          new Error("Unsupported drop content"),
+          "Please drop a markdown file, JSON file, or valid text content."
+        );
+      }
+    };
+    document.addEventListener("drop", dropHandler);
+    document.addEventListener("dragover", dragHandler);
+    return () => {
+      document.removeEventListener("drop", dropHandler);
+      document.removeEventListener("dragover", dragHandler);
+    };
+  }
+  function setupFileUpload(host) {
+    const { uploadButton, fileInput } = host;
+    if (!uploadButton || !fileInput) {
+      host.errorHandler(
+        new Error("Upload button or file input not found"),
+        "Please ensure the upload button and file input elements are present in the HTML."
+      );
+      return;
+    }
+    uploadButton == null ? void 0 : uploadButton.addEventListener("click", () => {
+      fileInput == null ? void 0 : fileInput.click();
+    });
+    fileInput == null ? void 0 : fileInput.addEventListener("change", (event) => {
+      var _a;
+      const file = (_a = event.target.files) == null ? void 0 : _a[0];
+      if (file) {
+        readFile(file, host);
+      } else {
+        host.errorHandler(
+          new Error("No file selected"),
+          "Please select a markdown or JSON file to upload."
+        );
+      }
+    });
+  }
+  function checkUrlForFile(host) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const loadUrl = urlParams.get(host.options.urlParamName);
+    if (!loadUrl) {
+      return false;
+    }
+    if (!isValidLoadUrl(loadUrl)) {
+      host.errorHandler(
+        new Error("Invalid URL format"),
+        "The URL provided has an invalid format or contains suspicious characters."
+      );
+      return false;
+    }
+    const isValidUrl = (url) => isSameOrigin(url) || isHttps(url);
+    if (!isValidUrl(loadUrl)) {
+      host.errorHandler(
+        new Error(`Invalid URL provided`),
+        "The URL provided is not valid. Please ensure it is on the same origin or uses HTTPS."
+      );
+      return false;
+    }
+    try {
+      fetch(loadUrl).then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to load content from URL`);
+        }
+        return response.text();
+      }).then((content) => {
+        determineContent(content, host);
+      }).catch((error) => {
+        host.errorHandler(error, `Error loading file from the provided URL`);
+      });
+    } catch (error) {
+      host.errorHandler(error, `Error loading file from the provided URL`);
+    }
+    return true;
+  }
+  function isSameOrigin(url) {
+    try {
+      if (!url.includes("://")) {
+        return true;
+      }
+      const parsedUrl = new URL(url);
+      return parsedUrl.origin === window.location.origin;
+    } catch {
+      return false;
+    }
+  }
+  function isHttps(url) {
+    try {
+      if (!url.includes("://")) {
+        return window.location.protocol === "https:";
+      }
+      const parsedUrl = new URL(url);
+      return parsedUrl.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }
+  function isValidLoadUrl(url) {
+    try {
+      const parsedUrl = new URL(url, window.location.href);
+      if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+        return false;
+      }
+      if (parsedUrl.protocol === "javascript:" || parsedUrl.protocol === "vbscript:" || parsedUrl.protocol === "data:") {
+        return false;
+      }
+      const hostname = parsedUrl.hostname.toLowerCase();
+      if (hostname.includes("<") || hostname.includes(">") || hostname.includes('"') || hostname.includes("'")) {
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  function setupPostMessageHandling(host) {
+    window.addEventListener("message", (event) => {
+      try {
+        if (!event.data || typeof event.data !== "object") {
+          host.errorHandler(
+            new Error("Invalid message format"),
+            "Received message is not an object or is undefined."
+          );
+          return;
+        }
+        const message = event.data;
+        if (message.type == "hostRenderRequest") {
+          if (message.markdown) {
+            host.render(message.markdown, void 0);
+          } else if (message.interactiveDocument) {
+            host.render(void 0, message.interactiveDocument);
+          } else {
+          }
+        }
+      } catch (error) {
+        host.errorHandler(
+          error,
+          "Error processing postMessage event"
+        );
+      }
+    });
+  }
+  function postStatus(target, message) {
+    if (target) {
+      target.postMessage(message, "*");
+    }
+  }
+  function getElement(elementOrSelector) {
+    if (typeof elementOrSelector === "string") {
+      return document.querySelector(elementOrSelector);
+    }
+    return elementOrSelector;
+  }
+  function show(element, shown) {
+    if (!element) {
+      return;
+    }
+    element.style.display = shown ? "" : "none";
+  }
+  const defaultOptions = {
+    clipboard: true,
+    dragDrop: true,
+    fileUpload: true,
+    postMessage: true,
+    postMessageTarget: window.opener || window.parent || window,
+    url: true,
+    urlParamName: "load"
   };
+  class Listener {
+    constructor(options) {
+      __publicField(this, "options");
+      __publicField(this, "appDiv");
+      __publicField(this, "loadingDiv");
+      __publicField(this, "helpDiv");
+      __publicField(this, "uploadButton");
+      __publicField(this, "fileInput");
+      __publicField(this, "textarea");
+      __publicField(this, "sandbox");
+      __publicField(this, "onApprove");
+      __publicField(this, "removeInteractionHandlers");
+      __publicField(this, "sandboxReady", false);
+      this.options = { ...defaultOptions, ...options == null ? void 0 : options.options };
+      this.onApprove = options.onApprove;
+      this.removeInteractionHandlers = [];
+      this.appDiv = getElement(options.app);
+      this.loadingDiv = getElement(options.loading);
+      this.helpDiv = getElement(options.help);
+      this.uploadButton = getElement(options.uploadButton);
+      this.fileInput = getElement(options.fileInput);
+      this.textarea = getElement(options.textarea);
+      if (!this.appDiv) {
+        throw new Error("App container not found");
+      }
+      show(this.loadingDiv, true);
+      show(this.helpDiv, false);
+      this.createSandbox("");
+      if (this.options.clipboard) {
+        this.removeInteractionHandlers.push(setupClipboardHandling(this));
+      }
+      if (this.options.dragDrop) {
+        this.removeInteractionHandlers.push(setupDragDropHandling(this));
+      }
+      if (this.options.fileUpload) {
+        setupFileUpload(this);
+      }
+      if (this.options.postMessage) {
+        setupPostMessageHandling(this);
+      }
+      if (!this.options.url || this.options.url && !checkUrlForFile(this)) {
+        show(this.loadingDiv, false);
+        show(this.helpDiv, true);
+      }
+    }
+    createSandbox(markdown) {
+      if (this.sandbox) {
+        this.sandbox.destroy();
+      }
+      this.sandboxReady = false;
+      this.sandbox = new Sandbox(this.appDiv, markdown, {
+        onReady: () => {
+          this.sandboxReady = true;
+          postStatus(this.options.postMessageTarget, { type: "hostStatus", hostStatus: "ready" });
+        },
+        onError: () => {
+          this.errorHandler(new Error("Sandbox initialization failed"), "Sandbox could not be initialized");
+        },
+        onApprove: this.onApprove
+      });
+    }
+    errorHandler(error, detailsHtml) {
+      show(this.loadingDiv, false);
+      const errorDiv = document.createElement("div");
+      errorDiv.style.color = "red";
+      errorDiv.style.padding = "20px";
+      const errorLabel = document.createElement("strong");
+      errorLabel.textContent = "Error:";
+      const errorMessage = document.createTextNode(` ${error.message}`);
+      const lineBreak = document.createElement("br");
+      const details = document.createTextNode(detailsHtml);
+      errorDiv.appendChild(errorLabel);
+      errorDiv.appendChild(errorMessage);
+      errorDiv.appendChild(lineBreak);
+      errorDiv.appendChild(details);
+      this.appDiv.innerHTML = "";
+      this.appDiv.appendChild(errorDiv);
+    }
+    bindTextareaToCompiler() {
+      const render = () => {
+        const json = this.textarea.value;
+        try {
+          const interactiveDocument = JSON.parse(json);
+          if (typeof interactiveDocument !== "object") {
+            this.errorHandler(new Error("Invalid JSON format"), "Please provide a valid Interactive Document JSON.");
+            return;
+          }
+          this.renderInteractiveDocument(interactiveDocument);
+        } catch (error) {
+          this.errorHandler(error, "Failed to parse Interactive Document JSON");
+        }
+      };
+      this.textarea.addEventListener("input", render);
+      render();
+    }
+    bindTextareaToMarkdown() {
+      const render = () => {
+        const markdown = this.textarea.value;
+        this.renderMarkdown(markdown);
+      };
+      this.textarea.addEventListener("input", render);
+      render();
+    }
+    render(markdown, interactiveDocument) {
+      if (interactiveDocument) {
+        if (this.textarea) {
+          this.textarea.value = JSON.stringify(interactiveDocument, null, 2);
+          this.hideLoadingAndHelp();
+          this.bindTextareaToCompiler();
+        } else {
+          this.renderInteractiveDocument(interactiveDocument);
+        }
+      } else if (markdown) {
+        if (this.textarea) {
+          this.textarea.value = markdown;
+          this.hideLoadingAndHelp();
+          this.bindTextareaToMarkdown();
+        } else {
+          this.renderMarkdown(markdown);
+        }
+      } else {
+        this.errorHandler(new Error("No content provided"), "Please provide either markdown or an interactive document to render.");
+      }
+      this.removeInteractionHandlers.forEach((removeHandler) => removeHandler());
+      this.removeInteractionHandlers = [];
+    }
+    renderInteractiveDocument(content) {
+      postStatus(this.options.postMessageTarget, { type: "hostStatus", hostStatus: "compiling", details: "Starting interactive document compilation" });
+      const markdown = targetMarkdown(content);
+      this.renderMarkdown(markdown);
+    }
+    hideLoadingAndHelp() {
+      show(this.loadingDiv, false);
+      show(this.helpDiv, false);
+    }
+    renderMarkdown(markdown) {
+      this.hideLoadingAndHelp();
+      try {
+        postStatus(this.options.postMessageTarget, { type: "hostStatus", hostStatus: "rendering", details: "Starting markdown rendering" });
+        if (!this.sandbox || !this.sandboxReady) {
+          this.createSandbox(markdown);
+        } else {
+          this.sandbox.send(markdown);
+        }
+        postStatus(this.options.postMessageTarget, { type: "hostStatus", hostStatus: "rendered", details: "Markdown rendering completed successfully" });
+      } catch (error) {
+        this.errorHandler(
+          error,
+          "Error rendering markdown content"
+        );
+        postStatus(this.options.postMessageTarget, { type: "hostStatus", hostStatus: "error", details: `Rendering failed: ${error.message}` });
+      }
+    }
+  }
   const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
-    App,
-    Editor
+    Listener,
+    compiler: index$2,
+    sandbox: index$1
   }, Symbol.toStringTag, { value: "Module" }));
   exports2.common = index$3;
   exports2.compiler = index$2;
-  exports2.editor = index;
+  exports2.host = index;
   exports2.sandbox = index$1;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 });

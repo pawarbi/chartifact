@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
 import { link, script } from './html';
 import { getResourceContent } from './resources';
-import type { ListenOptions } from '@microsoft/interactive-document-host' with { 'resolution-mode': 'import' };
+import type { ListenOptions } from '@microsoft/chartifact-host' with { 'resolution-mode': 'import' };
 import type { HostRenderRequestMessage, HostStatusMessage } from 'common' with { 'resolution-mode': 'import' };
 
 /**
@@ -47,7 +47,7 @@ export class PreviewManager {
 			this.current.panel.reveal(columnToShowIn);
 		} else {
 			// Otherwise, create a new panel
-			this.current = newPanel(this.context, uriFsPath, undefined, columnToShowIn, "Interactive Document Preview");
+			this.current = newPanel(this.context, uriFsPath, undefined, columnToShowIn, "Chartifact Interactive Document Preview");
 			const { panel } = this.current;
 
 			panel.webview.html = getWebviewContent(panel.webview, this.context);
@@ -188,7 +188,7 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 		script(resourceUrl('vega.min.js')),
 		script(resourceUrl('vega-lite.min.js')),
 		script(resourceUrl('tabulator.min.js')),
-		script(resourceUrl('idocs.host.umd.js')),
+		script(resourceUrl('chartifact.host.umd.js')),
 		script(resourceUrl('preview.js')),
 	].join('\n    ');
 

@@ -10,7 +10,7 @@ export interface WebViewWithUri {
 export function newPanel(context: vscode.ExtensionContext, uriFsPath: string, uriTabName?: string, viewColumn?: vscode.ViewColumn, titlePrefix?: string) {
     const webViewWithUri: WebViewWithUri = {
         panel: vscode.window.createWebviewPanel(
-            'idocsPreview',
+            'ChartifactPreview',
             `${titlePrefix}: ${(uriTabName || uriFsPath).split(/[/\\]/).pop() || 'Document'}`,
             viewColumn || vscode.ViewColumn.One,
             {

@@ -10,14 +10,14 @@ Chartifact is a low-code document format for creating interactive, data-driven p
 This extension works with two file formats: `*.idoc.md` and `*.idoc.json`.
 
 ### Create Documents
-- **Explorer View**: Right-click on a folder and select "New Interactive Document (JSON)" or "New Interactive Document (Markdown)".
+- **Explorer View**: Right-click on a folder and select "New Chartifact Interactive Document (JSON)" or "New Chartifact Interactive Document (Markdown)".
 
 ### Preview Documents
-- **Explorer View**: Right-click on a `*.idoc.md` or `*.idoc.json` file and select "Preview Interactive Document".
-- **Editor Title Bar**: Open a document and select "Preview Interactive Document (Split View)" for side-by-side editing and previewing.
+- **Explorer View**: Right-click on a `*.idoc.md` or `*.idoc.json` file and select "Preview Chartifact Interactive Document".
+- **Editor Title Bar**: Open a document and select "Preview Chartifact Interactive Document (Split View)" for side-by-side editing and previewing.
 
 ### Edit Documents
-- **Explorer View**: Right-click on a `*.idoc.md` or `*.idoc.json` file and select "Edit Document with the GUI".
+- **Explorer View**: Right-click on a `*.idoc.md` or `*.idoc.json` file and select "Edit Chartifact Interactive Document".
 
 ### Convert Documents
 - **Explorer View**: Convert between formats:
