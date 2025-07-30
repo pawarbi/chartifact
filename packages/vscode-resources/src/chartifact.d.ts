@@ -1,4 +1,4 @@
-import * as editor from 'editor';
+import * as editor from '@microsoft/chartifact-editor';
 import * as common from 'common';
 import * as compiler from '@microsoft/interactive-document-compiler';
 import * as sandbox from '@microsoft/chartifact-sandbox';
