@@ -4,15 +4,17 @@
 
 Chartifact is a low-code document format for creating interactive, data-driven pages such as reports, dashboards, and presentations. It travels like a document and works like an app. Easily editable and remixable, it’s a file type for an AI-native world.
 
-## Features
+## Ecosystem
 
-* A **library of components** — charts, inputs, tables, images, text, and layout elements — defined declaratively and wired together with reactive variables:
+The Chartifact GitHub repo has source code for these interoperating members:
 
-  * **Inputs** – Textboxes, checkboxes, sliders, dropdowns
-  * **Charts** – Vega and Vega-Lite visualizations
-  * **Tables** – Sortable, filterable, and selectable data grids
-  * **Images** – Dynamic image URLs based on variables
+* A **document schema** that defines plugins and components that communicate together with reactive variables:
+
   * **Text** – Markdown with dynamic placeholders
+  * **Inputs** – Textboxes, checkboxes, sliders, dropdowns
+  * **Tables** – Sortable, selectable, and editable data grids
+  * **Charts** – Vega and Vega-Lite visualizations
+  * **Images** – Dynamic image URLs based on variables
   * **Presets** – Named sets of variable values for quick scenario switching
 
 * A **VS Code extension** for editing, previewing, and exporting documents, with optional AI assistance.
@@ -20,8 +22,6 @@ Chartifact is a low-code document format for creating interactive, data-driven p
 * A **web-based viewer and editor** for quick edits and sharing.
 
 * Tools to **export standalone HTML** documents you can share or embed anywhere.
-
----
 
 ## Authoring Formats
 
@@ -56,13 +56,7 @@ Chartifact documents behave like small reactive systems — without custom JavaS
 
 ## Styling
 
-Styling is done using scoped CSS blocks embedded in the document. This allows flexible layout and visual design without global side effects:
-
-* Style documents as articles, dashboards, or slides
-* Use CSS to control layout and theming
-* No raw HTML injection or global styles
-
-The predictable, declarative nature of the styling model makes it easy for both humans and LLMs to work with.
+Styling is done using standard CSS. Examples provided to style documents as articles, dashboards, or slides.
 
 ## Security
 
@@ -71,6 +65,7 @@ Chartifact is designed to be safe by default:
 * No custom JavaScript execution
 * CSP-compliant via Vega expression language
 * No raw HTML in Markdown
+* XSS-Defensive CSS parsing
 * Rendered in sandboxed iframes to isolate execution
 
 These constraints help ensure portability and safe embedding in various environments.
