@@ -1,5 +1,5 @@
 {
-  "name": "@microsoft/interactive-document-compiler",
+  "name": "@microsoft/chartifact-compiler",
   "private": true,
   "version": "1.0.0",
   "main": "dist/esnext/index.js",

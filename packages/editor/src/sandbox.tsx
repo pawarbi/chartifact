@@ -1,6 +1,6 @@
 import React from 'react';
 import { InteractiveDocument } from '@microsoft/chartifact-schema';
-import { targetMarkdown } from '@microsoft/interactive-document-compiler';
+import { targetMarkdown } from '@microsoft/chartifact-compiler';
 import { Previewer, Sandbox } from '@microsoft/chartifact-sandbox';
 import { SpecReview, SandboxedPreHydrateMessage } from 'common';
 

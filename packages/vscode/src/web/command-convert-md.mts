@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { targetMarkdown } from '@microsoft/interactive-document-compiler';
+import { targetMarkdown } from '@microsoft/chartifact-compiler';
 import { InteractiveDocument } from '@microsoft/chartifact-schema';
 import { findAvailableFileName } from './file.js';
 
