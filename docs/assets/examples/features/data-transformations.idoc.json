@@ -62,7 +62,8 @@
                 {
                     "type": "table",
                     "dataSourceName": "rawData",
-                    "options": {
+                    "variableId": "filteredTable",
+                    "tabulatorOptions": {
                         "autoColumns": true,
                         "layout": "fitColumns",
                         "maxHeight": "200px"
@@ -72,7 +73,8 @@
                 {
                     "type": "table",
                     "dataSourceName": "categoryStats",
-                    "options": {
+                    "variableId": "categoryStatsTable",
+                    "tabulatorOptions": {
                         "autoColumns": true,
                         "layout": "fitColumns",
                         "maxHeight": "150px"

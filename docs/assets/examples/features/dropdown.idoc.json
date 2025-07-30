@@ -43,7 +43,8 @@
                 {
                     "type": "table",
                     "dataSourceName": "productData",
-                    "options": {
+                    "variableId": "productTable",
+                    "tabulatorOptions": {
                         "autoColumns": true,
                         "layout": "fitColumns",
                         "maxHeight": "200px"
