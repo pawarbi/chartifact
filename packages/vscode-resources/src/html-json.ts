@@ -1,6 +1,6 @@
 window.addEventListener('DOMContentLoaded', () => {
     const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-    let sandbox: IDocs.sandbox.Sandbox;
+    let sandbox: Chartifact.sandbox.Sandbox;
     const render = () => {
         const json = textarea.value;
         let markdown: string;
@@ -9,13 +9,13 @@ window.addEventListener('DOMContentLoaded', () => {
             if (typeof interactiveDocument !== 'object') {
                 markdown = 'Invalid Interactive Document JSON';
             } else {
-                markdown = IDocs.compiler.targetMarkdown(interactiveDocument);
+                markdown = Chartifact.compiler.targetMarkdown(interactiveDocument);
             }
         } catch (error) {
             markdown = 'Failed to parse Interactive Document JSON';
         }
         if (!sandbox) {
-            sandbox = new IDocs.sandbox.Sandbox('main', markdown, {
+            sandbox = new Chartifact.sandbox.Sandbox('main', markdown, {
                 onApprove: (message) => {
                     //Here you can approve unapproved specs per your own policy
                     const { specs } = message;

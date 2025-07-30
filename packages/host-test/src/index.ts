@@ -1,9 +1,9 @@
 const iframe = document.getElementById('host') as HTMLIFrameElement;
 
 window.addEventListener('message', (event) => {
-  const hostStatusMessage = event.data as IDocs.common.HostStatusMessage;
+  const hostStatusMessage = event.data as Chartifact.common.HostStatusMessage;
   if (hostStatusMessage.type === 'hostStatus' && hostStatusMessage.hostStatus === 'ready') {
-    const message: IDocs.common.HostRenderRequestMessage = {
+    const message: Chartifact.common.HostRenderRequestMessage = {
       type: 'hostRenderRequest',
       markdown: `# Auto-loaded Content
 

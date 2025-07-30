@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 
 const commonOutputConfig = {
   format: 'umd',
-  name: 'IDocs',
+  name: 'Chartifact',
   extend: true,
   globals: {
     'react': 'React',
@@ -14,7 +14,7 @@ const commonOutputConfig = {
     'vega': 'vega',
     'vega-lite': 'vegaLite',
   },
-  entryFileNames: 'idocs.editor.umd.js',
+  entryFileNames: 'chartifact.editor.umd.js',
 };
 
 export default defineConfig({

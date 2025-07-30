@@ -1,13 +1,13 @@
-declare const renderRequest: IDocs.common.SandboxRenderMessage;
+declare const renderRequest: Chartifact.common.SandboxRenderMessage;
 
-let renderer: IDocs.markdown.Renderer;
+let renderer: Chartifact.markdown.Renderer;
 
 document.addEventListener('DOMContentLoaded', () => {
     let transactionIndex = 0;
 
-    const transactions: Record<number, IDocs.common.SpecReview<{}>[]> = {};
+    const transactions: Record<number, Chartifact.common.SpecReview<{}>[]> = {};
 
-    renderer = new IDocs.markdown.Renderer(document.body, {
+    renderer = new Chartifact.markdown.Renderer(document.body, {
         errorHandler: (error: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string) => {
             console.error(`Error in plugin ${pluginName} at instance ${instanceIndex} during ${phase}:`, error);
             if (detail) {
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function render(request: IDocs.common.SandboxRenderMessage) {
+    function render(request: Chartifact.common.SandboxRenderMessage) {
         if (request.markdown) {
             renderer.reset();
 
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
             transactions[transactionId] = specs;
 
             //send message to parent to ask for whitelist
-            const sandboxedPreRenderMessage: IDocs.common.SandboxedPreHydrateMessage = {
+            const sandboxedPreRenderMessage: Chartifact.common.SandboxedPreHydrateMessage = {
                 type: 'sandboxedPreHydrate',
                 transactionId,
                 specs,
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('message', (event) => {
         if (!event.data) return;
 
-        const message = event.data as IDocs.common.SandboxApprovalMessage | IDocs.common.SandboxRenderMessage;
+        const message = event.data as Chartifact.common.SandboxApprovalMessage | Chartifact.common.SandboxRenderMessage;
 
         switch (message.type) {
             case 'sandboxRender': {

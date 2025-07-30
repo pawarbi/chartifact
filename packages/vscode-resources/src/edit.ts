@@ -6,11 +6,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
         let offlineDeps = '<script>console.log("offline deps not loaded!");</script>';
 
-        const message = event.data as IDocs.common.EditorSetOfflineDependenciesMessage;
+        const message = event.data as Chartifact.common.EditorSetOfflineDependenciesMessage;
 
         if (message.type === 'editorSetOfflineDependencies') {
             offlineDeps = message.offlineDeps;
-            class OfflineSandbox extends IDocs.sandbox.Sandbox {
+            class OfflineSandbox extends Chartifact.sandbox.Sandbox {
                 constructor(element, markdown, options) {
                     super(element, markdown, options);
                 }
@@ -18,7 +18,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     return offlineDeps;
                 }
             }
-            const editorProps: IDocs.editor.EditorProps = {
+            const editorProps: Chartifact.editor.EditorProps = {
                 previewer: OfflineSandbox,
                 postMessageTarget: vscode as any,
                 onApprove: (message) => {
@@ -29,11 +29,11 @@ window.addEventListener('DOMContentLoaded', () => {
                 }
             };
             const root = ReactDOM.createRoot(document.getElementById("app"));
-            root.render(React.createElement(IDocs.editor.Editor, editorProps));
+            root.render(React.createElement(Chartifact.editor.Editor, editorProps));
         }
     });
 
-    const editorGetOfflineDependenciesMessage: IDocs.common.EditorGetOfflineDependenciesMessage = {
+    const editorGetOfflineDependenciesMessage: Chartifact.common.EditorGetOfflineDependenciesMessage = {
         type: 'editorGetOfflineDependencies',
         sender: 'webview',
     };

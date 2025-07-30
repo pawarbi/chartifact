@@ -4,6 +4,6 @@ import * as host from '@microsoft/chartifact-host';
 import * as sandbox from '@microsoft/chartifact-sandbox';
 import type * as schema from '@microsoft/chartifact-schema';
 
-export as namespace IDocs;
+export as namespace Chartifact;
 
 export { common, compiler, host, sandbox, schema };

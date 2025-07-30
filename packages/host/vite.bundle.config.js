@@ -4,13 +4,13 @@ import commonjs from '@rollup/plugin-commonjs';
 
 const commonOutputConfig = {
   format: 'umd',
-  name: 'IDocs',
+  name: 'Chartifact',
   extend: true,
   globals: {
     'vega': 'vega',
     'vega-lite': 'vegaLite',
   },
-  entryFileNames: 'idocs.host.umd.js',
+  entryFileNames: 'chartifact.host.umd.js',
 };
 
 export default defineConfig({

@@ -8,8 +8,8 @@ export const initializeResources = async (context: vscode.ExtensionContext): Pro
   const resourcesToLoad: string[] = [
 
     //TODO - remove these once we have a proper CDN
-    'idocs.sandbox.umd.js',
-    'idocs.compiler.umd.js',
+    'chartifact.sandbox.umd.js',
+    'chartifact.compiler.umd.js',
 
     //offline copies for editor sandbox (which can't access via vscode resources url)
     'tabulator.min.css',
