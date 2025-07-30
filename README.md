@@ -6,7 +6,7 @@ Chartifact is a low-code document format for creating interactive, data-driven p
 
 ## Ecosystem
 
-The Chartifact GitHub repo has source code for these interoperating members:
+The Chartifact GitHub repo has source code for these interoperating modules:
 
 * A **document schema** that defines plugins and components that communicate together with reactive variables:
 
@@ -67,5 +67,3 @@ Chartifact is designed to be safe by default:
 * No raw HTML in Markdown
 * XSS-Defensive CSS parsing
 * Rendered in sandboxed iframes to isolate execution
-
-These constraints help ensure portability and safe embedding in various environments.
