@@ -31,7 +31,7 @@ export class EditManager {
 			this.current.panel.reveal(columnToShowIn);
 		} else {
 			// Otherwise, create a new panel
-			this.current = newPanel(this.context, uriFsPath, undefined, columnToShowIn, "Interactive Document Editor");
+			this.current = newPanel(this.context, uriFsPath, undefined, columnToShowIn, "Chartifact Interactive Document Editor");
 			const { panel } = this.current;
 
 			panel.webview.html = getWebviewContent(panel.webview, this.context);

@@ -27,38 +27,38 @@
     "commands": [
       {
         "command": "chartifact.newIdocJson",
-        "title": "New Interactive Document (json)",
-        "category": "Interactive Documents"
+        "title": "New Chartifact Interactive Document (json)",
+        "category": "Chartifact Interactive Documents"
       },
       {
         "command": "chartifact.newIdocMarkdown",
-        "title": "New Interactive Document (markdown)",
-        "category": "Interactive Documents"
+        "title": "New Chartifact Interactive Document (markdown)",
+        "category": "Chartifact Interactive Documents"
       },
       {
         "command": "chartifact.previewIdoc",
-        "title": "Preview Interactive Document",
-        "category": "Interactive Documents"
+        "title": "Preview Chartifact Interactive Document",
+        "category": "Chartifact Interactive Documents"
       },
       {
         "command": "chartifact.convertToHtml",
         "title": "Convert to HTML",
-        "category": "Interactive Documents"
+        "category": "Chartifact Interactive Documents"
       },
       {
         "command": "chartifact.convertToMarkdown",
         "title": "Convert to Markdown",
-        "category": "Interactive Documents"
+        "category": "Chartifact Interactive Documents"
       },
       {
         "command": "chartifact.editIdoc",
-        "title": "Edit Interactive Document",
-        "category": "Interactive Documents"
+        "title": "Edit Chartifact Interactive Document",
+        "category": "Chartifact Interactive Documents"
       },
       {
         "command": "chartifact.previewIdocSplit",
-        "title": "Preview Interactive Document (Split View)",
-        "category": "Interactive Documents",
+        "title": "Preview Chartifact Interactive Document (Split View)",
+        "category": "Chartifact Interactive Documents",
         "icon": "$(preview)"
       }
     ],
