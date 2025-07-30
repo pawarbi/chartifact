@@ -1,5 +1,6 @@
 {
   "name": "@microsoft/interactive-document-host",
+  "private": true,
   "version": "1.0.0",
   "description": "ost page to render interactive documents",
   "main": "dist/esnext/index.js",

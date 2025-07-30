@@ -1,5 +1,6 @@
 {
   "name": "@microsoft/interactive-document-compiler",
+  "private": true,
   "version": "1.0.0",
   "main": "dist/esnext/index.js",
   "type": "module",
