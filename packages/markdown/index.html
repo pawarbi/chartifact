@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mdv test</title>
+    
+    <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+    <script src="https://unpkg.com/css-tree/dist/csstree.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
+    <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
+
+    <style>
+        #markdown-input {
+            background-color: snow;
+            visibility: hidden;
+            opacity: 0;
+            position: fixed;
+            top: 0;
+            left: -50%;
+            width: 50%;
+            height: 100vh;
+            resize: none;
+            padding: 20px;
+            box-sizing: border-box;
+            pointer-events: none;
+            transition: left 0.3s ease-in-out, opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+
+        body.edit #markdown-input {
+            visibility: visible;
+            opacity: 1;
+            left: 0%;
+            pointer-events: auto;
+        }
+
+        #content {
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        body.edit #content {
+            margin-left: 50%;
+            padding-left: 8px;  /* mimic the body margin */
+        }
+    </style>
+</head>
+
+<body class="edit">
+
+    <textarea id="markdown-input" placeholder="Type your Interactive Document markdown here...">
+```json vega
+{
+    "$schema": "https://vega.github.io/schema/vega/v5.json",
+    "signals": [
+        {
+            "name": "origins",
+            "value": {
+                "https://vega.github.io": "https://vega.github.io"
+            }
+        },
+        {
+            "name": "seattle_weather_selected",
+            "update": "data('seattle_weather_selected')"
+        },
+        {
+            "name": "url:0:https___vega_github_io_editor_data_seattle_weather_csv",
+            "update": "origins[\"https://vega.github.io\"]+'/editor/data/seattle-weather.csv'"
+        },
+        {
+            "name": "seattle_weather",
+            "update": "data('seattle_weather')"
+        }
+    ],
+    "data": [
+        {
+            "name": "seattle_weather",
+            "values": [
+    {
+        "date": "2015-12-22",
+        "precipitation": "4.6",
+        "temp_max": "7.8",
+        "temp_min": "2.8",
+        "wind": "5.0",
+        "weather": "rain"
+    },
+    {
+        "date": "2015-12-23",
+        "precipitation": "6.1",
+        "temp_max": "5.0",
+        "temp_min": "2.8",
+        "wind": "7.6",
+        "weather": "rain"
+    },
+    {
+        "date": "2015-12-24",
+        "precipitation": "2.5",
+        "temp_max": "5.6",
+        "temp_min": "2.2",
+        "wind": "4.3",
+        "weather": "rain"
+    },
+    {
+        "date": "2015-12-25",
+        "precipitation": "5.8",
+        "temp_max": "5.0",
+        "temp_min": "2.2",
+        "wind": "1.5",
+        "weather": "rain"
+    },
+    {
+        "date": "2015-12-26",
+        "precipitation": "0.0",
+        "temp_max": "4.4",
+        "temp_min": "0.0",
+        "wind": "2.5",
+        "weather": "sun"
+    },
+    {
+        "date": "2015-12-27",
+        "precipitation": "8.6",
+        "temp_max": "4.4",
+        "temp_min": "1.7",
+        "wind": "2.9",
+        "weather": "rain"
+    },
+    {
+        "date": "2015-12-28",
+        "precipitation": "1.5",
+        "temp_max": "5.0",
+        "temp_min": "1.7",
+        "wind": "1.3",
+        "weather": "rain"
+    },
+    {
+        "date": "2015-12-29",
+        "precipitation": "0.0",
+        "temp_max": "7.2",
+        "temp_min": "0.6",
+        "wind": "2.6",
+        "weather": "fog"
+    },
+    {
+        "date": "2015-12-30",
+        "precipitation": "0.0",
+        "temp_max": "5.6",
+        "temp_min": "-1.0",
+        "wind": "3.4",
+        "weather": "sun"
+    },
+    {
+        "date": "2015-12-31",
+        "precipitation": "0.0",
+        "temp_max": "5.6",
+        "temp_min": "-2.1",
+        "wind": "3.5",
+        "weather": "sun"
+    }
+],
+            "transform": []
+        },
+        {
+            "name": "seattle_weather_selected",
+            "values": []
+        }
+    ]
+}
+```
+
+::: group {#main}
+# Seattle Weather
+
+Here is a stacked bar chart of Seattle weather:
+Each bar represents the count of weather types for each month.
+The colors distinguish between different weather conditions such as sun, fog, drizzle, rain, and snow.
+
+```json vega-lite
+{
+    "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+    "data": {
+        "name": "seattle_weather"
+    },
+    "mark": "bar",
+    "encoding": {
+        "x": {
+            "timeUnit": "month",
+            "field": "date",
+            "type": "ordinal",
+            "title": "Month of the year"
+        },
+        "y": {
+            "aggregate": "count",
+            "type": "quantitative"
+        },
+        "color": {
+            "field": "weather",
+            "type": "nominal",
+            "scale": {
+                "domain": [
+                    "sun",
+                    "fog",
+                    "drizzle",
+                    "rain",
+                    "snow"
+                ],
+                "range": [
+                    "#e7ba52",
+                    "#c7c7c7",
+                    "#aec7e8",
+                    "#1f77b4",
+                    "#9467bd"
+                ]
+            },
+            "title": "Weather type"
+        }
+    }
+}
+```
+
+This section introduces a heatmap visualization for the Seattle weather dataset.
+The heatmap is designed to display the distribution and intensity of weather-related variables,
+such as temperature, precipitation, or frequency of weather events, across different time periods or categories.
+It provides an intuitive way to identify patterns, trends, and anomalies in the dataset.
+
+```json vega-lite
+{
+    "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+    "data": {
+        "name": "seattle_weather"
+    },
+    "title": "Daily Max Temperatures (C) in Seattle, WA",
+    "config": {
+        "view": {
+            "strokeWidth": 0,
+            "step": 13
+        },
+        "axis": {
+            "domain": false
+        }
+    },
+    "mark": "rect",
+    "encoding": {
+        "x": {
+            "field": "date",
+            "timeUnit": "date",
+            "type": "ordinal",
+            "title": "Day",
+            "axis": {
+                "labelAngle": 0,
+                "format": "%e"
+            }
+        },
+        "y": {
+            "field": "date",
+            "timeUnit": "month",
+            "type": "ordinal",
+            "title": "Month"
+        },
+        "color": {
+            "field": "temp_max",
+            "aggregate": "max",
+            "type": "quantitative",
+            "legend": {
+                "title": null
+            }
+        }
+    }
+}
+```
+:::
+fin
+
+</textarea>
+
+    <div id="content"></div>
+
+    <script type="module">
+        import { Renderer } from './src/index.ts';
+
+        const textarea = document.getElementById('markdown-input');
+        const renderer = new Renderer(document.getElementById('content'));
+
+        function render() {
+            //renderer.render(textarea.value);
+            
+            renderer.reset();
+            const html = renderer.renderHtml(textarea.value);
+            renderer.element.innerHTML = html;
+            const specs = renderer.hydrateSpecs();
+            console.log('Specs:', specs);
+            renderer.hydrate(specs);
+        }
+
+        textarea.addEventListener('input', render);
+
+        render();
+
+    </script>
+
+</body>
+
+</html>
