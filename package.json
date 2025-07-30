@@ -1,5 +1,5 @@
 {
-  "name": "@microsoft/interactive-documents",
+  "name": "@microsoft/chartifact-workspace",
   "private": true,
   "version": "1.0.0",
   "scripts": {
@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/microsoft/interactive-documents.git"
+    "url": "git+https://github.com/microsoft/chartifact.git"
   },
   "author": "Dan Marshall",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/microsoft/interactive-documents/issues"
+    "url": "https://github.com/microsoft/chartifact/issues"
   },
-  "homepage": "https://github.com/microsoft/interactive-documents#readme",
+  "homepage": "https://github.com/microsoft/chartifact#readme",
   "workspaces": [
     "packages/*"
   ],
