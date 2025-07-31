@@ -5,7 +5,7 @@
 import { Spec as VegaSpec } from 'vega-typings';
 import { MappedNameValuePairs, UrlRef } from '@microsoft/chartifact-schema';
 import { NewSignal } from "vega";
-import { safeVariableName } from "./util.js";
+import { encodeTemplateVariables, safeVariableName } from "./util.js";
 
 export class VegaScope {
     private urlCount = 0;
@@ -36,7 +36,9 @@ export class VegaScope {
 
         this.addOrigin(origin);
 
-        signal.update = `origins[${JSON.stringify(origin)}]+'${urlPath}'`;
+        // Build a string expression for urlPath, replacing variables with encodeURIComponent
+        const urlPathExpr = encodeTemplateVariables(urlPath);
+        signal.update = `origins[${JSON.stringify(origin)}]` + (urlPathExpr ? ` + ${urlPathExpr}` : '');
 
         if (mappedParams && mappedParams.length > 0) {
             signal.update += ` + '?' + ${mappedParams.map(p => `urlParam('${p.name}', ${variableValueExpression(p)})`).join(` + '&' + `)}`;
