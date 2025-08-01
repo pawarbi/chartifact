@@ -1,3 +1,7 @@
+/**
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import { Transforms } from 'vega';
 /**
  * VariableID
@@ -7,7 +11,7 @@ import { Transforms } from 'vega';
  * - Do NOT use space characters in the VariableID, but you may use underscores.
  * - Do NOT prefix the VariableID with a digit.
  * - Do NOT prefix/suffix the VariableID with the type, e.g. "value_number" is bad.
- * - The following names are not allowed as VariableIDs: "width", "height", "padding", "autosize", "background", "style", "parent", "datum", "item", "event", "cursor", "origins"
+ * - The following names are not allowed as VariableIDs: "width", "height", "padding", "autosize", "background", "style", "parent", "datum", "item", "event", "cursor", "encodeUriComponent"
  */
 type VariableID = string;
 type VariableType = 'number' | 'string' | 'boolean' | 'object';
@@ -28,23 +32,8 @@ interface Calculation {
     /** If a variable type is object and isArray is true, the calculation must be a DataFrameTransformation */
     dataFrameTransformations?: Transforms[];
 }
-interface NameValuePairs {
-    /** case-sensitive, do not rename */
-    name: string;
-    value: VariableValue;
-}
-interface MappedNameValuePairs extends NameValuePairs {
-    /** IMPORTANT! map to a variable whenever possible */
-    variableId?: VariableID;
-    /** a calculated value */
-    calculation?: Calculation;
-}
-interface UrlRef {
-    origin: string;
-    urlPath: string;
-    /** these become query parameters in the URL */
-    mappedParams?: MappedNameValuePairs[];
-}
+/** A url, it may contain template variables, e.g. https://example.com/{{category}}/{{item}} */
+type TemplatedUrl = string;
 interface DataSourceBase {
     /** name of the data source, used to reference it in the UI, has same constraints as VariableID */
     dataSourceName: VariableID;
@@ -80,7 +69,7 @@ interface DataSourceByFile extends DataSourceBase {
 /** User references a data source by URL, may be either static or dynamic */
 interface DataSourceByDynamicURL extends DataSourceBase {
     type: 'url';
-    urlRef: UrlRef;
+    url: TemplatedUrl;
     returnType?: ReturnType;
     /** Assistant should not populate this. */
     docString?: string;
@@ -181,9 +170,9 @@ interface ChartElement extends ElementBase {
  */
 interface ImageElement extends ElementBase, ImageElementProps {
     type: 'image';
-    urlRef: UrlRef;
 }
 interface ImageElementProps {
+    url: TemplatedUrl;
     alt?: string;
     height?: number;
     width?: number;
@@ -256,4 +245,4 @@ type PageElement = MarkdownElement | InteractiveElement;
 type InteractiveDocumentWithSchema = InteractiveDocument & {
     $schema?: string;
 };
-export type { Calculation, ChartElement, ChartFull, ChartPlaceholder, ChartValue, CheckboxElement, CheckboxProps, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceByJSON, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, Layout, MappedNameValuePairs, MarkdownElement, NameValuePairs, PageElement, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TableElement, TableElementProps, TextboxElement, TextboxElementProps, UrlRef, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive };
+export type { Calculation, ChartElement, ChartFull, ChartPlaceholder, ChartValue, CheckboxElement, CheckboxProps, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceByJSON, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, Layout, MarkdownElement, PageElement, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TableElement, TableElementProps, TemplatedUrl, TextboxElement, TextboxElementProps, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive };

@@ -9,9 +9,132 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     dataSignalPrefix: "data_signal:",
     groupClassName: "group"
   };
+  function collectIdentifiers(ast) {
+    const identifiers = /* @__PURE__ */ new Set();
+    function walk(node) {
+      if (!node || typeof node !== "object")
+        return;
+      switch (node.type) {
+        case "Identifier":
+          if (!VEGA_BUILTIN_FUNCTIONS.includes(node.name)) {
+            identifiers.add(node.name);
+          }
+          break;
+        case "CallExpression":
+          walk(node.callee);
+          (node.arguments || []).forEach(walk);
+          break;
+        case "MemberExpression":
+          walk(node.object);
+          break;
+        case "BinaryExpression":
+        case "LogicalExpression":
+          walk(node.left);
+          walk(node.right);
+          break;
+        case "ConditionalExpression":
+          walk(node.test);
+          walk(node.consequent);
+          walk(node.alternate);
+          break;
+        case "ArrayExpression":
+          (node.elements || []).forEach(walk);
+          break;
+        default:
+          for (const key in node) {
+            if (node.hasOwnProperty(key)) {
+              const value = node[key];
+              if (Array.isArray(value))
+                value.forEach(walk);
+              else if (typeof value === "object")
+                walk(value);
+            }
+          }
+      }
+    }
+    walk(ast);
+    return identifiers;
+  }
+  const VEGA_BUILTIN_FUNCTIONS = Object.freeze([
+    // Built-ins from Vega Expression docs
+    "abs",
+    "acos",
+    "asin",
+    "atan",
+    "atan2",
+    "ceil",
+    "clamp",
+    "cos",
+    "exp",
+    "expm1",
+    "floor",
+    "hypot",
+    "log",
+    "log1p",
+    "max",
+    "min",
+    "pow",
+    "random",
+    "round",
+    "sign",
+    "sin",
+    "sqrt",
+    "tan",
+    "trunc",
+    "length",
+    "isNaN",
+    "isFinite",
+    "parseFloat",
+    "parseInt",
+    "Date",
+    "now",
+    "time",
+    "utc",
+    "timezoneOffset",
+    "quarter",
+    "month",
+    "day",
+    "hours",
+    "minutes",
+    "seconds",
+    "milliseconds",
+    "year"
+  ]);
+  function tokenizeTemplate(input) {
+    const allVars = /{{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*}}/g;
+    const tokens = [];
+    let lastIndex = 0;
+    input.replace(allVars, (match, varName, offset) => {
+      const staticPart = input.slice(lastIndex, offset);
+      if (staticPart) {
+        tokens.push({ type: "literal", value: staticPart });
+      }
+      tokens.push({ type: "variable", name: varName });
+      lastIndex = offset + match.length;
+      return match;
+    });
+    const tail = input.slice(lastIndex);
+    if (tail) {
+      tokens.push({ type: "literal", value: tail });
+    }
+    return tokens;
+  }
+  function renderVegaExpression(tokens, funcName = "encodeURIComponent") {
+    const escape = (str) => `'${str.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`;
+    return tokens.map((token) => token.type === "literal" ? escape(token.value) : `${funcName}(${token.name})`).join(" + ");
+  }
+  function encodeTemplateVariables(input) {
+    const tokens = tokenizeTemplate(input);
+    return renderVegaExpression(tokens);
+  }
   const index$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
-    defaultCommonOptions
+    VEGA_BUILTIN_FUNCTIONS,
+    collectIdentifiers,
+    defaultCommonOptions,
+    encodeTemplateVariables,
+    renderVegaExpression,
+    tokenizeTemplate
   }, Symbol.toStringTag, { value: "Module" }));
   class Previewer {
     constructor(elementOrSelector, markdown, options) {
@@ -64,9 +187,132 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     dataSignalPrefix: "data_signal:",
     groupClassName: "group"
   };
+  function collectIdentifiers(ast) {
+    const identifiers = /* @__PURE__ */ new Set();
+    function walk(node) {
+      if (!node || typeof node !== "object")
+        return;
+      switch (node.type) {
+        case "Identifier":
+          if (!VEGA_BUILTIN_FUNCTIONS.includes(node.name)) {
+            identifiers.add(node.name);
+          }
+          break;
+        case "CallExpression":
+          walk(node.callee);
+          (node.arguments || []).forEach(walk);
+          break;
+        case "MemberExpression":
+          walk(node.object);
+          break;
+        case "BinaryExpression":
+        case "LogicalExpression":
+          walk(node.left);
+          walk(node.right);
+          break;
+        case "ConditionalExpression":
+          walk(node.test);
+          walk(node.consequent);
+          walk(node.alternate);
+          break;
+        case "ArrayExpression":
+          (node.elements || []).forEach(walk);
+          break;
+        default:
+          for (const key in node) {
+            if (node.hasOwnProperty(key)) {
+              const value = node[key];
+              if (Array.isArray(value))
+                value.forEach(walk);
+              else if (typeof value === "object")
+                walk(value);
+            }
+          }
+      }
+    }
+    walk(ast);
+    return identifiers;
+  }
+  const VEGA_BUILTIN_FUNCTIONS = Object.freeze([
+    // Built-ins from Vega Expression docs
+    "abs",
+    "acos",
+    "asin",
+    "atan",
+    "atan2",
+    "ceil",
+    "clamp",
+    "cos",
+    "exp",
+    "expm1",
+    "floor",
+    "hypot",
+    "log",
+    "log1p",
+    "max",
+    "min",
+    "pow",
+    "random",
+    "round",
+    "sign",
+    "sin",
+    "sqrt",
+    "tan",
+    "trunc",
+    "length",
+    "isNaN",
+    "isFinite",
+    "parseFloat",
+    "parseInt",
+    "Date",
+    "now",
+    "time",
+    "utc",
+    "timezoneOffset",
+    "quarter",
+    "month",
+    "day",
+    "hours",
+    "minutes",
+    "seconds",
+    "milliseconds",
+    "year"
+  ]);
+  function tokenizeTemplate(input) {
+    const allVars = /{{\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*}}/g;
+    const tokens = [];
+    let lastIndex = 0;
+    input.replace(allVars, (match, varName, offset) => {
+      const staticPart = input.slice(lastIndex, offset);
+      if (staticPart) {
+        tokens.push({ type: "literal", value: staticPart });
+      }
+      tokens.push({ type: "variable", name: varName });
+      lastIndex = offset + match.length;
+      return match;
+    });
+    const tail = input.slice(lastIndex);
+    if (tail) {
+      tokens.push({ type: "literal", value: tail });
+    }
+    return tokens;
+  }
+  function renderVegaExpression(tokens, funcName = "encodeURIComponent") {
+    const escape = (str) => \`'\${str.replace(/\\\\/g, "\\\\\\\\").replace(/'/g, "\\\\'")}'\`;
+    return tokens.map((token) => token.type === "literal" ? escape(token.value) : \`\${funcName}(\${token.name})\`).join(" + ");
+  }
+  function encodeTemplateVariables(input) {
+    const tokens = tokenizeTemplate(input);
+    return renderVegaExpression(tokens);
+  }
   const index$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
-    defaultCommonOptions
+    VEGA_BUILTIN_FUNCTIONS,
+    collectIdentifiers,
+    defaultCommonOptions,
+    encodeTemplateVariables,
+    renderVegaExpression,
+    tokenizeTemplate
   }, Symbol.toStringTag, { value: "Module" }));
   const u = (e, t) => {
     t && e.forEach(([s, n]) => {
@@ -363,10 +609,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     };
     p.block.ruler.before("fence", \`container_\${c}\`, I2, { alt: ["paragraph", "reference", "blockquote", "list"] }), p.renderer.rules[\`container_\${c}_open\`] = g2, p.renderer.rules[\`container_\${c}_close\`] = C2;
   };
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   const plugins = [];
   function registerMarkdownPlugin(plugin) {
     let insertIndex = plugins.length;
@@ -436,14 +678,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return true;
     });
   }
-  function urlParam(urlParamName, value) {
-    if (value === void 0 || value === null) return "";
-    if (Array.isArray(value)) {
-      return value.map((vn) => \`\${urlParamName}[]=\${encodeURIComponent(vn)}\`).join("&");
-    } else {
-      return \`\${urlParamName}=\${encodeURIComponent(value)}\`;
-    }
-  }
   function getJsonScriptTag(container, errorHandler) {
     const scriptTag = container.previousElementSibling;
     if ((scriptTag == null ? void 0 : scriptTag.tagName) !== "SCRIPT" || scriptTag.getAttribute("type") !== "application/json") {
@@ -465,10 +699,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return \`chartifact-plugin-\${pluginName2}\`;
   }
   const newId = () => [...Date.now().toString(36) + Math.random().toString(36).slice(2)].sort(() => 0.5 - Math.random()).join("");
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   function sanitizedHTML(tagName, attributes, content, precedeWithScriptTag) {
     const element = document.createElement(tagName);
     Object.keys(attributes).forEach((key) => {
@@ -535,10 +765,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     };
     return plugin;
   }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   const pluginName$a = "checkbox";
   const className$9 = pluginClassName(pluginName$a);
   const checkboxPlugin = {
@@ -576,7 +802,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return {
           ...checkboxInstance,
           initialSignals,
-          recieveBatch: async (batch) => {
+          receiveBatch: async (batch) => {
             if (batch[spec.variableId]) {
               const value = batch[spec.variableId].value;
               element.checked = value;
@@ -605,10 +831,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return instances;
     }
   };
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   function reconstituteAtRule(atRule) {
     if (atRule.css) {
       return atRule.flag ? \`/* \${atRule.css} - BLOCKED: \${atRule.reason} */\` : atRule.css;
@@ -898,10 +1120,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return instances;
     }
   };
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   const pluginName$8 = "dropdown";
   const className$7 = pluginClassName(pluginName$8);
   const dropdownPlugin = {
@@ -949,7 +1167,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return {
           ...dropdownInstance,
           initialSignals,
-          recieveBatch: async (batch) => {
+          receiveBatch: async (batch) => {
             var _a, _b;
             const { dynamicOptions } = spec;
             if (dynamicOptions == null ? void 0 : dynamicOptions.dataSourceName) {
@@ -1051,10 +1269,59 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       selectElement.appendChild(optionElement);
     });
   }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
+  class DynamicUrl {
+    constructor(templateUrl, onChange) {
+      __publicField(this, "signals");
+      __publicField(this, "tokens");
+      __publicField(this, "lastUrl");
+      this.templateUrl = templateUrl;
+      this.onChange = onChange;
+      this.signals = {};
+      this.tokens = tokenizeTemplate(templateUrl);
+      const signalNames = this.tokens.filter((token) => token.type === "variable").map((token) => token.name);
+      if (signalNames.length === 0) {
+        onChange(templateUrl);
+        this.lastUrl = templateUrl;
+        return;
+      }
+      signalNames.forEach((signalName) => {
+        this.signals[signalName] = void 0;
+      });
+    }
+    makeUrl() {
+      const signalNames = Object.keys(this.signals);
+      if (signalNames.length === 0) {
+        return this.templateUrl;
+      }
+      const urlParts = [];
+      this.tokens.forEach((token) => {
+        if (token.type === "literal") {
+          urlParts.push(token.value);
+        } else if (token.type === "variable") {
+          const signalValue = this.signals[token.name];
+          if (signalValue !== void 0) {
+            urlParts.push(encodeURIComponent(signalValue));
+          }
+        }
+      });
+      return urlParts.join("");
+    }
+    receiveBatch(batch) {
+      for (const [signalName, batchItem] of Object.entries(batch)) {
+        if (signalName in this.signals) {
+          if (batchItem.isData || batchItem.value === void 0) {
+            continue;
+          }
+          this.signals[signalName] = batchItem.value.toString();
+        }
+      }
+      const newUrl = this.makeUrl();
+      if (newUrl !== this.lastUrl) {
+        this.onChange(newUrl);
+        this.lastUrl = newUrl;
+      }
+    }
+  }
   const pluginName$7 = "image";
   const className$6 = pluginClassName(pluginName$7);
   const imagePlugin = {
@@ -1068,7 +1335,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         const container = renderer.element.querySelector(\`#\${specReview.containerId}\`);
         const spec = specReview.approvedSpec;
-        const element = document.createElement("img");
+        const img = document.createElement("img");
         const spinner = document.createElement("div");
         spinner.innerHTML = \`
                     <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -1076,69 +1343,64 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                             <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
                         </circle>
                     </svg>\`;
-        if (spec.alt) element.alt = spec.alt;
-        if (spec.width) element.width = spec.width;
-        if (spec.height) element.height = spec.height;
-        element.onload = () => {
+        if (spec.alt) img.alt = spec.alt;
+        if (spec.width) img.width = spec.width;
+        if (spec.height) img.height = spec.height;
+        img.onload = () => {
           spinner.style.display = "none";
-          element.style.opacity = "1";
+          img.style.opacity = "1";
         };
-        element.onerror = () => {
+        img.onerror = () => {
           spinner.style.display = "none";
-          element.style.opacity = "0.5";
-          errorHandler(new Error("Image failed to load"), pluginName$7, index2, "load", container, element.src);
+          img.style.opacity = "0.5";
+          errorHandler(new Error("Image failed to load"), pluginName$7, index2, "load", container, img.src);
         };
         container.style.position = "relative";
         spinner.style.position = "absolute";
         container.innerHTML = "";
         container.appendChild(spinner);
-        container.appendChild(element);
-        const imageInstance = { id: \`\${pluginName$7}-\${index2}\`, spec, element, spinner };
+        container.appendChild(img);
+        const imageInstance = { id: \`\${pluginName$7}-\${index2}\`, spec, img, spinner };
         imageInstances.push(imageInstance);
       }
       const instances = imageInstances.map((imageInstance, index2) => {
-        const { element, spinner, id, spec } = imageInstance;
+        const { img, spinner, id, spec } = imageInstance;
+        const dynamicUrl = new DynamicUrl(spec.url, (src) => {
+          if (src) {
+            spinner.style.display = "";
+            img.src = src.toString();
+            img.style.opacity = "0.1";
+          } else {
+            img.src = "";
+            spinner.style.display = "none";
+            img.style.opacity = "1";
+          }
+        });
+        const signalNames = Object.keys(dynamicUrl.signals);
         return {
           id,
-          initialSignals: [
-            {
-              name: spec.srcSignalName,
-              value: null,
-              priority: -1,
-              isData: false
-            }
-          ],
+          initialSignals: Array.from(signalNames).map((name) => ({
+            name,
+            value: null,
+            priority: -1,
+            isData: false
+          })),
           destroy: () => {
-            if (element) {
-              element.remove();
+            if (img) {
+              img.remove();
             }
             if (spinner) {
               spinner.remove();
             }
           },
-          recieveBatch: async (batch, from) => {
-            if (spec.srcSignalName in batch) {
-              const src = batch[spec.srcSignalName].value;
-              if (src) {
-                spinner.style.display = "";
-                element.src = src.toString();
-                element.style.opacity = "0.1";
-              } else {
-                element.src = "";
-                spinner.style.display = "none";
-                element.style.opacity = "1";
-              }
-            }
+          receiveBatch: async (batch, from) => {
+            dynamicUrl.receiveBatch(batch);
           }
         };
       });
       return instances;
     }
   };
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   function createTemplateFunction(template) {
     const parts = template.split(/(%7B%7B.*?%7D%7D)/g).map((part) => {
       if (part.startsWith("%7B%7B") && part.endsWith("%7D%7D")) {
@@ -1256,7 +1518,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         {
           id: pluginName$6,
           initialSignals,
-          recieveBatch: async (batch) => {
+          receiveBatch: async (batch) => {
             var _a;
             for (const key of Object.keys(batch)) {
               const elements = elementsByKeys.get(key) || [];
@@ -1297,10 +1559,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     return true;
   }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   const pluginName$5 = "presets";
   const className$5 = pluginClassName(pluginName$5);
   const presetsPlugin = {
@@ -1395,10 +1653,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       }
     }
   }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   const pluginName$4 = "slider";
   const className$4 = pluginClassName(pluginName$4);
   const sliderPlugin = {
@@ -1440,7 +1694,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return {
           ...sliderInstance,
           initialSignals,
-          recieveBatch: async (batch) => {
+          receiveBatch: async (batch) => {
             if (batch[spec.variableId]) {
               const value = batch[spec.variableId].value;
               element.value = value.toString();
@@ -1478,10 +1732,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return instances;
     }
   };
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   function inspectTabulatorSpec(spec) {
     const flaggableSpec = {
       spec
@@ -1649,7 +1899,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return {
           ...tabulatorInstance,
           initialSignals,
-          recieveBatch: async (batch, from) => {
+          receiveBatch: async (batch, from) => {
             var _a;
             const newData = (_a = batch[spec.dataSourceName]) == null ? void 0 : _a.value;
             if (newData) {
@@ -1697,10 +1947,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return instances;
     }
   };
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   const pluginName$2 = "textbox";
   const className$2 = pluginClassName(pluginName$2);
   const textboxPlugin = {
@@ -1740,7 +1986,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return {
           ...textboxInstance,
           initialSignals,
-          recieveBatch: async (batch) => {
+          receiveBatch: async (batch) => {
             if (batch[spec.variableId]) {
               const value = batch[spec.variableId].value;
               element.value = value;
@@ -1772,10 +2018,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return instances;
     }
   };
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   var LogLevel = /* @__PURE__ */ ((LogLevel2) => {
     LogLevel2[LogLevel2["none"] = 0] = "none";
     LogLevel2[LogLevel2["some"] = 1] = "some";
@@ -1819,7 +2061,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         }
         if (!hasBatch) continue;
-        peer.recieveBatch && await peer.recieveBatch(peerBatch, originId);
+        peer.receiveBatch && await peer.receiveBatch(peerBatch, originId);
       }
       this.broadcastingStack.pop();
       for (const signalName in batch) {
@@ -1863,7 +2105,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
       }
     }
-    beginListening() {
+    async beginListening() {
       this.log("beginListening", "begin initial batch", this.signalDeps);
       for (const peer of this.peers) {
         const batch = {};
@@ -1872,7 +2114,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           const { value, isData } = signalDep;
           batch[signalName] = { value, isData };
         }
-        peer.recieveBatch && peer.recieveBatch(batch, "initial");
+        peer.receiveBatch && peer.receiveBatch(batch, "initial");
+      }
+      for (const peer of this.peers) {
+        peer.broadcastComplete && await peer.broadcastComplete();
       }
       this.log("beginListening", "end initial batch");
       const peerSignals = {};
@@ -1915,10 +2160,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this.peerDependencies = {};
     }
   }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   const ignoredSignals = ["width", "height", "padding", "autosize", "background", "style", "parent", "datum", "item", "event", "cursor"];
   const pluginName$1 = "vega";
   const className$1 = pluginClassName(pluginName$1);
@@ -1932,7 +2173,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     ...flaggableJsonPlugin(pluginName$1, className$1, inspectVegaSpec),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       if (!expressionsInitialized) {
-        vega.expressionFunction("urlParam", urlParam);
+        vega.expressionFunction("encodeURIComponent", encodeURIComponent);
         expressionsInitialized = true;
       }
       const vegaInstances = [];
@@ -1987,11 +2228,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return {
           ...vegaInstance,
           initialSignals,
-          recieveBatch: async (batch, from) => {
-            renderer.signalBus.log(vegaInstance.id, "recieved batch", batch, from);
+          receiveBatch: async (batch, from) => {
+            renderer.signalBus.log(vegaInstance.id, "received batch", batch, from);
             return new Promise((resolve) => {
               view.runAfter(async () => {
-                if (recieveBatch(batch, renderer, vegaInstance)) {
+                if (receiveBatch(batch, renderer, vegaInstance)) {
                   renderer.signalBus.log(vegaInstance.id, "running after _pulse, changes from", from);
                   vegaInstance.needToRun = true;
                 } else {
@@ -2064,16 +2305,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return instances;
     }
   };
-  function recieveBatch(batch, renderer, vegaInstance) {
+  function receiveBatch(batch, renderer, vegaInstance) {
     var _a, _b;
     const { spec, view } = vegaInstance;
     const doLog = renderer.signalBus.logLevel === LogLevel.all;
-    doLog && renderer.signalBus.log(vegaInstance.id, "recieveBatch", batch);
+    doLog && renderer.signalBus.log(vegaInstance.id, "receiveBatch", batch);
     let hasAnyChange = false;
     for (const signalName in batch) {
       const batchItem = batch[signalName];
       if (ignoredSignals.includes(signalName)) {
-        doLog && renderer.signalBus.log(vegaInstance.id, "ignoring reverved signal name", signalName, batchItem.value);
+        doLog && renderer.signalBus.log(vegaInstance.id, "ignoring reserved signal name", signalName, batchItem.value);
         continue;
       }
       if (batchItem.isData) {
@@ -2237,10 +2478,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return this;
     }
   }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   const pluginName = "vega-lite";
   const className = pluginClassName(pluginName);
   const vegaLitePlugin = {
@@ -2277,10 +2514,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     },
     hydratesBefore: vegaPlugin.name
   };
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   function registerNativePlugins() {
     registerMarkdownPlugin(checkboxPlugin);
     registerMarkdownPlugin(cssPlugin);
@@ -2294,10 +2527,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     registerMarkdownPlugin(vegaLitePlugin);
     registerMarkdownPlugin(vegaPlugin);
   }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   const defaultRendererOptions = {
     vegaRenderer: "canvas",
     useShadowDom: false,
@@ -2382,7 +2611,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
             }
           }
         }
-        this.signalBus.beginListening();
+        await this.signalBus.beginListening();
       } catch (error) {
         console.error("Error in rendering plugins", error);
       }
@@ -2399,10 +2628,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       this.element.innerHTML = "";
     }
   }
-  /*!
-  * Copyright (c) Microsoft Corporation.
-  * Licensed under the MIT License.
-  */
   registerNativePlugins();
   const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
