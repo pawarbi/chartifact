@@ -63,7 +63,7 @@ export class SignalBus {
             }
 
             if (!hasBatch) continue;
-            peer.recieveBatch && await peer.recieveBatch(peerBatch, originId);
+            peer.receiveBatch && await peer.receiveBatch(peerBatch, originId);
         }
         this.broadcastingStack.pop();
 
@@ -116,7 +116,7 @@ export class SignalBus {
         }
     }
 
-    beginListening() {
+    async beginListening() {
         //set the initial batch on each peer
         this.log('beginListening', 'begin initial batch', this.signalDeps);
 
@@ -127,7 +127,12 @@ export class SignalBus {
                 const { value, isData } = signalDep;
                 batch[signalName] = { value, isData };
             }
-            peer.recieveBatch && peer.recieveBatch(batch, 'initial');
+            peer.receiveBatch && peer.receiveBatch(batch, 'initial');
+        }
+
+        //need to call broadcast complete to ensure that all peers have the initial values
+        for (const peer of this.peers) {
+            peer.broadcastComplete && await peer.broadcastComplete();
         }
 
         this.log('beginListening', 'end initial batch');

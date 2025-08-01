@@ -1,15 +1,13 @@
 {
-  "name": "common",
+  "name": "web-frontend",
   "private": true,
   "version": "1.0.0",
-  "type": "module",
-  "main": "dist/esnext/index.js",
+  "main": "index.js",
   "scripts": {
     "clean": "rimraf dist",
-    "watch": "tsc -p . -w",
     "tsc": "tsc -p .",
     "build": "npm run tsc",
-    "build:01": "npm run build"
+    "build:07": "npm run build"
   },
   "author": "Dan Marshall",
   "license": "MIT",

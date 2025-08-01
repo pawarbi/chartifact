@@ -50,7 +50,7 @@ export const checkboxPlugin: Plugin<CheckboxSpec> = {
             checkboxInstances.push(checkboxInstance);
         }
 
-        const instances: IInstance[] = checkboxInstances.map((checkboxInstance) => {
+        const instances = checkboxInstances.map((checkboxInstance): IInstance => {
             const { element, spec } = checkboxInstance;
             const initialSignals = [{
                 name: spec.variableId,
@@ -62,7 +62,7 @@ export const checkboxPlugin: Plugin<CheckboxSpec> = {
             return {
                 ...checkboxInstance,
                 initialSignals,
-                recieveBatch: async (batch) => {
+                receiveBatch: async (batch) => {
                     if (batch[spec.variableId]) {
                         const value = batch[spec.variableId].value as boolean;
                         element.checked = value;

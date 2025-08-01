@@ -52,7 +52,7 @@ export const sliderPlugin: Plugin<SliderSpec> = {
             sliderInstances.push(sliderInstance);
         }
 
-        const instances: IInstance[] = sliderInstances.map((sliderInstance) => {
+        const instances = sliderInstances.map((sliderInstance): IInstance => {
             const { element, spec } = sliderInstance;
             const valueSpan = element.parentElement?.querySelector('.vega-bind-value') as HTMLSpanElement;
 
@@ -66,7 +66,7 @@ export const sliderPlugin: Plugin<SliderSpec> = {
             return {
                 ...sliderInstance,
                 initialSignals,
-                recieveBatch: async (batch) => {
+                receiveBatch: async (batch) => {
                     if (batch[spec.variableId]) {
                         const value = batch[spec.variableId].value as number;
                         element.value = value.toString();

@@ -1,0 +1,11 @@
+[
+    {"category":"D", "group": "x", "value":1.2},
+    {"category":"D", "group": "y", "value":2.3},
+    {"category":"D", "group": "z", "value":3.4},
+    {"category":"E", "group": "x", "value":4.5},
+    {"category":"E", "group": "y", "value":5.6},
+    {"category":"E", "group": "z", "value":6.7},
+    {"category":"F", "group": "x", "value":7.8},
+    {"category":"F", "group": "y", "value":8.9},
+    {"category":"F", "group": "z", "value":9.0}
+]

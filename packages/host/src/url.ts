@@ -13,21 +13,11 @@ export function checkUrlForFile(host: Listener) {
     return false; // No load parameter found
   }
 
-  // First, validate the URL format and security
-  if (!isValidLoadUrl(loadUrl)) {
+  // Allow same-origin (including relative) URLs, or validate external URLs
+  if (!isSameOrigin(loadUrl) && !isValidLoadUrl(loadUrl)) {
     host.errorHandler(
       new Error('Invalid URL format'),
-      'The URL provided has an invalid format or contains suspicious characters.'
-    );
-    return false;
-  }
-
-  // Then check origin/protocol requirements
-  const isValidUrl = (url: string) => isSameOrigin(url) || isHttps(url);
-  if (!isValidUrl(loadUrl)) {
-    host.errorHandler(
-      new Error(`Invalid URL provided`),
-      'The URL provided is not valid. Please ensure it is on the same origin or uses HTTPS.'
+      'The URL provided is not same-origin or has an invalid format, protocol, or contains suspicious characters.'
     );
     return false;
   }
@@ -89,13 +79,16 @@ function isValidLoadUrl(url: string): boolean {
     // Resolve relative URLs against current location
     const parsedUrl = new URL(url, window.location.href);
 
-    // Only allow http and https protocols
-    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+    // Only allow http and https protocols, but allow http for localhost
+    if (
+      parsedUrl.protocol !== 'https:' &&
+      !(parsedUrl.protocol === 'http:' && (parsedUrl.hostname === 'localhost' || parsedUrl.hostname === '127.0.0.1'))
+    ) {
       return false;
     }
 
     // Prevent javascript:, vbscript:, and data: URLs (redundant check but good for clarity)
-    if (parsedUrl.protocol === 'javascript:' || parsedUrl.protocol === 'vbscript:' || parsedUrl.protocol === 'data:') {
+    if (['javascript:', 'vbscript:', 'data:'].includes(parsedUrl.protocol)) {
       return false;
     }
 

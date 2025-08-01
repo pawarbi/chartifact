@@ -8,15 +8,15 @@ import { IInstance, Plugin } from '../factory.js';
 import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';
 import { PluginNames } from './interfaces.js';
+import { DynamicUrl } from './url.js';
 
 export interface ImageSpec extends ImageElementProps {
-    srcSignalName: string;
 }
 
 interface ImageInstance {
     id: string;
     spec: ImageSpec;
-    element: HTMLImageElement;
+    img: HTMLImageElement;
     spinner: HTMLDivElement;
 }
 
@@ -41,7 +41,7 @@ export const imagePlugin: Plugin<ImageSpec> = {
             const container = renderer.element.querySelector(`#${specReview.containerId}`);
 
             const spec: ImageSpec = specReview.approvedSpec;
-            const element = document.createElement('img');
+            const img = document.createElement('img');
             const spinner = document.createElement('div');
             spinner.innerHTML = `
                     <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -50,61 +50,63 @@ export const imagePlugin: Plugin<ImageSpec> = {
                         </circle>
                     </svg>`;
 
-            if (spec.alt) element.alt = spec.alt;
-            if (spec.width) element.width = spec.width;
-            if (spec.height) element.height = spec.height;
-            element.onload = () => {
+            if (spec.alt) img.alt = spec.alt;
+            if (spec.width) img.width = spec.width;
+            if (spec.height) img.height = spec.height;
+            img.onload = () => {
                 spinner.style.display = 'none';
-                element.style.opacity = ImageOpacity.full;
+                img.style.opacity = ImageOpacity.full;
             };
-            element.onerror = () => {
+            img.onerror = () => {
                 spinner.style.display = 'none';
-                element.style.opacity = ImageOpacity.error;
-                errorHandler(new Error('Image failed to load'), pluginName, index, 'load', container, element.src);
+                img.style.opacity = ImageOpacity.error;
+                errorHandler(new Error('Image failed to load'), pluginName, index, 'load', container, img.src);
             };
 
             (container as HTMLElement).style.position = 'relative';
             spinner.style.position = 'absolute';
             container.innerHTML = '';
             container.appendChild(spinner);
-            container.appendChild(element);
+            container.appendChild(img);
 
-            const imageInstance: ImageInstance = { id: `${pluginName}-${index}`, spec, element, spinner };
+            const imageInstance: ImageInstance = { id: `${pluginName}-${index}`, spec, img, spinner };
             imageInstances.push(imageInstance);
         }
-        const instances: IInstance[] = imageInstances.map((imageInstance, index) => {
-            const { element, spinner, id, spec } = imageInstance;
+        const instances = imageInstances.map((imageInstance, index): IInstance => {
+            const { img, spinner, id, spec } = imageInstance;
+
+            const dynamicUrl = new DynamicUrl(spec.url, (src) => {
+                if (src) {
+                    spinner.style.display = '';
+                    img.src = src.toString();
+                    img.style.opacity = ImageOpacity.loading;
+                } else {
+                    img.src = '';   //TODO placeholder image
+                    spinner.style.display = 'none';
+                    img.style.opacity = ImageOpacity.full;
+                }
+            });
+
+            const signalNames = Object.keys(dynamicUrl.signals);
+
             return {
                 id,
-                initialSignals: [
-                    {
-                        name: spec.srcSignalName,
-                        value: null,
-                        priority: -1,
-                        isData: false,
-                    },
-                ],
+                initialSignals: Array.from(signalNames).map(name => ({
+                    name,
+                    value: null,
+                    priority: -1,
+                    isData: false,
+                })),
                 destroy: () => {
-                    if (element) {
-                        element.remove();
+                    if (img) {
+                        img.remove();
                     }
                     if (spinner) {
                         spinner.remove();
                     }
                 },
-                recieveBatch: async (batch, from) => {
-                    if (spec.srcSignalName in batch) {
-                        const src = batch[spec.srcSignalName].value;
-                        if (src) {
-                            spinner.style.display = '';
-                            element.src = src.toString();
-                            element.style.opacity = ImageOpacity.loading;
-                        } else {
-                            element.src = '';   //TODO placeholder image
-                            spinner.style.display = 'none';
-                            element.style.opacity = ImageOpacity.full;
-                        }
-                    }
+                receiveBatch: async (batch, from) => {
+                    dynamicUrl.receiveBatch(batch);
                 },
             };
         });

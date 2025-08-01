@@ -138,7 +138,7 @@ export class Renderer {
                     }
                 }
             }
-            this.signalBus.beginListening();
+            await this.signalBus.beginListening();
         } catch (error) {
             console.error('Error in rendering plugins', error);
         }

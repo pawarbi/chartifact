@@ -113,7 +113,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
             });
             tabulatorInstances.push(tabulatorInstance);
         }
-        const instances: IInstance[] = tabulatorInstances.map((tabulatorInstance, index) => {
+        const instances = tabulatorInstances.map((tabulatorInstance, index): IInstance => {
             const { container, spec, table, selectableRows } = tabulatorInstance;
             const initialSignals = [{
                 name: spec.dataSourceName,
@@ -236,7 +236,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
             return {
                 ...tabulatorInstance,
                 initialSignals,
-                recieveBatch: async (batch, from) => {
+                receiveBatch: async (batch, from) => {
                     const newData = batch[spec.dataSourceName]?.value as object[];
                     if (newData) {
                         //make sure tabulator is ready before setting data

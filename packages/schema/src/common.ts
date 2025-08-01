@@ -12,7 +12,7 @@ import { Transforms } from 'vega';
  * - Do NOT use space characters in the VariableID, but you may use underscores.
  * - Do NOT prefix the VariableID with a digit.
  * - Do NOT prefix/suffix the VariableID with the type, e.g. "value_number" is bad.
- * - The following names are not allowed as VariableIDs: "width", "height", "padding", "autosize", "background", "style", "parent", "datum", "item", "event", "cursor", "origins"
+ * - The following names are not allowed as VariableIDs: "width", "height", "padding", "autosize", "background", "style", "parent", "datum", "item", "event", "cursor"
  */
 export type VariableID = string;
 
@@ -39,27 +39,8 @@ export interface Calculation {
   dataFrameTransformations?: Transforms[];
 }
 
-export interface NameValuePairs {
-  /** case-sensitive, do not rename */
-  name: string;
-  value: VariableValue;
-}
-
-export interface MappedNameValuePairs extends NameValuePairs {
-  /** IMPORTANT! map to a variable whenever possible */
-  variableId?: VariableID;
-
-  /** a calculated value */
-  calculation?: Calculation;
-}
-
-export interface UrlRef {
-  origin: string;
-  urlPath: string;
-
-  /** these become query parameters in the URL */
-  mappedParams?: MappedNameValuePairs[];
-}
+  /** A url, it may contain template variables, e.g. https://example.com/{{category}}/{{item}} */
+export type TemplatedUrl = string;
 
 export interface DataSourceBase {
   /** name of the data source, used to reference it in the UI, has same constraints as VariableID */

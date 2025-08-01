@@ -30,7 +30,7 @@ export interface Batch {
 export interface IInstance {
     id: string;
     initialSignals: PrioritizedSignal[];
-    recieveBatch?: (batch: Batch, from: string) => Promise<void>;
+    receiveBatch?: (batch: Batch, from: string) => Promise<void>;
     beginListening?: (sharedSignals: { signalName: string, isData: boolean }[]) => void;
     broadcastComplete?: () => Promise<void>;
     destroy?: () => void;

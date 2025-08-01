@@ -38,7 +38,7 @@ export function addDynamicDataLoaderToSpec(vegaScope: VegaScope, dataSource: Dat
     const { spec } = vegaScope;
     const { dataSourceName } = dataSource;
 
-    const urlSignal = vegaScope.createUrlSignal(dataSource.urlRef);
+    const urlSignal = vegaScope.createUrlSignal(dataSource.url);
     const url: SignalRef = { signal: urlSignal.name };
 
     ensureDataAndSignalsArray(spec);

@@ -55,7 +55,7 @@ export const textboxPlugin: Plugin<TextboxSpec> = {
             textboxInstances.push(textboxInstance);
         }
 
-        const instances: IInstance[] = textboxInstances.map((textboxInstance) => {
+        const instances = textboxInstances.map((textboxInstance): IInstance => {
             const { element, spec } = textboxInstance;
             const initialSignals = [{
                 name: spec.variableId,
@@ -67,7 +67,7 @@ export const textboxPlugin: Plugin<TextboxSpec> = {
             return {
                 ...textboxInstance,
                 initialSignals,
-                recieveBatch: async (batch) => {
+                receiveBatch: async (batch) => {
                     if (batch[spec.variableId]) {
                         const value = batch[spec.variableId].value as string;
                         element.value = value;

@@ -2,7 +2,7 @@
 * Copyright (c) Microsoft Corporation.
 * Licensed under the MIT License.
 */
-import { DataSourceBase, VariableType, UrlRef } from './common.js';
+import { DataSourceBase, TemplatedUrl, VariableType } from './common.js';
 
 export interface ReturnType {
   type: VariableType;
@@ -29,7 +29,7 @@ export interface DataSourceByFile extends DataSourceBase {
 /** User references a data source by URL, may be either static or dynamic */
 export interface DataSourceByDynamicURL extends DataSourceBase {
   type: 'url';
-  urlRef: UrlRef;
+  url: TemplatedUrl;
   returnType?: ReturnType;
 
   /** Assistant should not populate this. */

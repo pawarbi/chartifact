@@ -4,10 +4,7 @@
   "dataLoaders": [
     {
       "type": "url",
-      "urlRef": {
-        "origin": "https://vega.github.io",
-        "urlPath": "/editor/data/seattle-weather.csv"
-      },
+      "url": "https://vega.github.io/editor/data/seattle-weather.csv",
       "dataSourceName": "seattle_weather",
       "format": "csv",
       "dataFrameTransformations": [
