@@ -147,10 +147,9 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                     break;
                 }
                 case 'image': {
-                    const { urlRef, alt, width, height } = element;
-                    const urlSignal = vegaScope.createUrlSignal(urlRef);
+                    const { url, alt, width, height } = element;
                     const imageSpec: Plugins.ImageSpec = {
-                        srcSignalName: urlSignal.name,
+                        url,
                         alt,
                         width,
                         height,

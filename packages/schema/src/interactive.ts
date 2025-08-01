@@ -2,7 +2,7 @@
 * Copyright (c) Microsoft Corporation.
 * Licensed under the MIT License.
 */
-import { DataSourceBase, VariableID, VariableControl, ElementBase, UrlRef } from './common.js';
+import { DataSourceBase, VariableID, VariableControl, ElementBase, TemplatedUrl } from './common.js';
 
 /**
  * Interactive Elements
@@ -103,9 +103,9 @@ export interface ChartElement extends ElementBase {
  */
 export interface ImageElement extends ElementBase, ImageElementProps {
   type: 'image';
-  urlRef: UrlRef;
 }
 export interface ImageElementProps {
+  url: TemplatedUrl;
   alt?: string;
   height?: number;
   width?: number;

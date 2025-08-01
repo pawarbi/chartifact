@@ -8,7 +8,7 @@ import { Batch, IInstance, Plugin, PrioritizedSignal, RawFlaggableSpec } from '.
 import { BaseSignal, InitSignal, NewSignal, Runtime, Spec, ValuesData } from 'vega-typings';
 import { ErrorHandler, Renderer } from '../renderer.js';
 import { LogLevel } from '../signalbus.js';
-import { pluginClassName, urlParam } from './util.js';
+import { pluginClassName } from './util.js';
 import { defaultCommonOptions } from 'common';
 import { flaggableJsonPlugin, } from './config.js';
 import { PluginNames } from './interfaces.js';
@@ -46,7 +46,7 @@ export const vegaPlugin: Plugin<Spec> = {
     hydrateComponent: async (renderer, errorHandler, specs) => {
         //initialize the expressionFunction only once
         if (!expressionsInitialized) {
-            expressionFunction('urlParam', urlParam);
+            expressionFunction('encodeURIComponent', encodeURIComponent);
             expressionsInitialized = true;
         }
 

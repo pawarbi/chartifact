@@ -3,4 +3,3 @@
 * Licensed under the MIT License.
 */
 export { targetMarkdown } from './md.js';
-export { changePageOrigin } from './util.js';

@@ -12,7 +12,6 @@ export interface AppProps {
   onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
-// Alternative implementation using same-origin communication
 export function App(props: AppProps) {
   const { previewer } = props;
 
@@ -165,10 +164,7 @@ const initialPage: InteractiveDocument = {
   "dataLoaders": [
     {
       "type": "url",
-      "urlRef": {
-        "origin": "https://vega.github.io",
-        "urlPath": "/editor/data/seattle-weather.csv"
-      },
+      "url": "https://vega.github.io/editor/data/seattle-weather.csv",
       "dataSourceName": "seattle_weather",
       "format": "csv",
       "dataFrameTransformations": []
@@ -182,8 +178,7 @@ const initialPage: InteractiveDocument = {
         {
           "type": "table",
           "dataSourceName": "seattle_weather",
-          "variableId": "seattle_weather_selected",
-          "tabulatorOptions": {}
+          "variableId": "seattle_weather_selected"
         },
         "Here is a stacked bar chart of Seattle weather:\nEach bar represents the count of weather types for each month.\nThe colors distinguish between different weather conditions such as sun, fog, drizzle, rain, and snow.",
         {
