@@ -48,6 +48,11 @@ export function tokenizeTemplate(input: string) {
  * @returns A string representing the rendered Vega expression.
  */
 export function renderVegaExpression(tokens: TemplateToken[], funcName = 'encodeURIComponent'): string {
+    // If there's only one token and it's a variable, return just the variable name
+    if (tokens.length === 1 && tokens[0].type === 'variable') {
+        return tokens[0].name;
+    }
+
     const escape = (str: string) => `'${str.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`;
 
     return tokens
@@ -82,7 +87,7 @@ const tests = [
     ["foo{{bar}}", "'foo' + encodeURIComponent(bar)"],
 
     // ✅ Only a variable
-    ["{{bar}}", "encodeURIComponent(bar)"],
+    ["{{bar}}", "bar"],
 
     // ✅ Starts with single quote in static text
     ["'quote{{bar}}", "'\\'quote' + encodeURIComponent(bar)"],
@@ -117,8 +122,8 @@ const tests = [
     // 🧪 Single quotes in middle with variables
     ["{{x}}'middle'{{y}}", "encodeURIComponent(x) + '\\'middle\\'' + encodeURIComponent(y)"],
 
-    // 🧪 Backslashes in static part (not escaped here, just preserved)
-    ["path\\to\\file{{var}}", "'path\\to\\file' + encodeURIComponent(var)"],
+    // 🧪 Backslashes in static part (should be escaped in output)
+    ["path\\to\\file{{var}}", "'path\\\\to\\\\file' + encodeURIComponent(var)"],
 ];
 
 tests.forEach(([input, expected], i) => {
@@ -129,8 +134,9 @@ tests.forEach(([input, expected], i) => {
         `${pass ? '✅' : '❌'} Test ${i + 1}: ${pass ? 'PASS' : `FAIL\n  Input: ${input}\n  Got: ${output}\n  Expected: ${expected}`}`
     );
 });
+*/
 
-
+/*
 const escapeTests = [
     // Only literal, no escaping needed
     ["foo", "'foo'"],
