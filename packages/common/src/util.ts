@@ -4,46 +4,40 @@
 */
 
 export type TemplateToken =
-  | { type: 'literal'; value: string }
-  | { type: 'variable'; name: string };
+    | { type: 'literal'; value: string }
+    | { type: 'variable'; name: string };
 
-  /**
-   * Tokenizes a template string into an array of tokens.
-   * @param input - The input string containing template variables in the format {{variableName}}.
-   * @returns An array of template tokens.
-   */
-export function tokenizeTemplate(input: string): TemplateToken[] {
-  const allVars = /{{\s*(.*?)\s*}}/g;
-  const validVar = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+/**
+ * Tokenizes a template string into an array of tokens.
+ * @param input - The input string containing template variables in the format {{variableName}}.
+ * @returns An array of template tokens.
+ */
+export function tokenizeTemplate(input: string) {
+    const allVars = /{{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*}}/g;
 
-  const tokens: TemplateToken[] = [];
-  let lastIndex = 0;
-  let buffer = '';
+    const tokens: TemplateToken[] = [];
+    let lastIndex = 0;
 
-  input.replace(allVars, (match, varName, offset) => {
-    const staticPart = input.slice(lastIndex, offset);
-    buffer += staticPart;
-    lastIndex = offset + match.length;
+    input.replace(allVars, (match, varName, offset) => {
+        // Static part before the match
+        const staticPart = input.slice(lastIndex, offset);
+        if (staticPart) {
+            tokens.push({ type: 'literal', value: staticPart });
+        }
 
-    if (validVar.test(varName)) {
-      if (buffer) {
-        tokens.push({ type: 'literal', value: buffer });
-        buffer = '';
-      }
-      tokens.push({ type: 'variable', name: varName });
-    } else {
-      buffer += match; // Keep invalid var in the buffer
+        tokens.push({ type: 'variable', name: varName });
+        lastIndex = offset + match.length;
+
+        return match;
+    });
+
+    // Remainder after last match
+    const tail = input.slice(lastIndex);
+    if (tail) {
+        tokens.push({ type: 'literal', value: tail });
     }
 
-    return match;
-  });
-
-  buffer += input.slice(lastIndex);
-  if (buffer) {
-    tokens.push({ type: 'literal', value: buffer });
-  }
-
-  return tokens;
+    return tokens;
 }
 
 /**
@@ -71,7 +65,7 @@ export function encodeTemplateVariables(input: string): string {
 }
 
 /*
-    const tests = [
+const tests = [
     // ✅ No variables
     ["foobar", "'foobar'"],
 
