@@ -48,7 +48,7 @@ export function tokenizeTemplate(input: string) {
  * @returns A string representing the rendered Vega expression.
  */
 export function renderVegaExpression(tokens: TemplateToken[], funcName = 'encodeURIComponent'): string {
-    const escape = (str: string) => `'${str.replace(/'/g, "\\'")}'`;
+    const escape = (str: string) => `'${str.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`;
 
     return tokens
         .map(token =>
