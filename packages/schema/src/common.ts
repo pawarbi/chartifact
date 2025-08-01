@@ -12,7 +12,7 @@ import { Transforms } from 'vega';
  * - Do NOT use space characters in the VariableID, but you may use underscores.
  * - Do NOT prefix the VariableID with a digit.
  * - Do NOT prefix/suffix the VariableID with the type, e.g. "value_number" is bad.
- * - The following names are not allowed as VariableIDs: "width", "height", "padding", "autosize", "background", "style", "parent", "datum", "item", "event", "cursor"
+ * - The following names are not allowed as VariableIDs: "width", "height", "padding", "autosize", "background", "style", "parent", "datum", "item", "event", "cursor", "encodeUriComponent"
  */
 export type VariableID = string;
 
