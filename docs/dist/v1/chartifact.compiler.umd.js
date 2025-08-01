@@ -9,9 +9,132 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     dataSignalPrefix: "data_signal:",
     groupClassName: "group"
   };
+  function collectIdentifiers(ast) {
+    const identifiers = /* @__PURE__ */ new Set();
+    function walk(node) {
+      if (!node || typeof node !== "object")
+        return;
+      switch (node.type) {
+        case "Identifier":
+          if (!VEGA_BUILTIN_FUNCTIONS.includes(node.name)) {
+            identifiers.add(node.name);
+          }
+          break;
+        case "CallExpression":
+          walk(node.callee);
+          (node.arguments || []).forEach(walk);
+          break;
+        case "MemberExpression":
+          walk(node.object);
+          break;
+        case "BinaryExpression":
+        case "LogicalExpression":
+          walk(node.left);
+          walk(node.right);
+          break;
+        case "ConditionalExpression":
+          walk(node.test);
+          walk(node.consequent);
+          walk(node.alternate);
+          break;
+        case "ArrayExpression":
+          (node.elements || []).forEach(walk);
+          break;
+        default:
+          for (const key in node) {
+            if (node.hasOwnProperty(key)) {
+              const value = node[key];
+              if (Array.isArray(value))
+                value.forEach(walk);
+              else if (typeof value === "object")
+                walk(value);
+            }
+          }
+      }
+    }
+    walk(ast);
+    return identifiers;
+  }
+  const VEGA_BUILTIN_FUNCTIONS = Object.freeze([
+    // Built-ins from Vega Expression docs
+    "abs",
+    "acos",
+    "asin",
+    "atan",
+    "atan2",
+    "ceil",
+    "clamp",
+    "cos",
+    "exp",
+    "expm1",
+    "floor",
+    "hypot",
+    "log",
+    "log1p",
+    "max",
+    "min",
+    "pow",
+    "random",
+    "round",
+    "sign",
+    "sin",
+    "sqrt",
+    "tan",
+    "trunc",
+    "length",
+    "isNaN",
+    "isFinite",
+    "parseFloat",
+    "parseInt",
+    "Date",
+    "now",
+    "time",
+    "utc",
+    "timezoneOffset",
+    "quarter",
+    "month",
+    "day",
+    "hours",
+    "minutes",
+    "seconds",
+    "milliseconds",
+    "year"
+  ]);
+  function tokenizeTemplate(input) {
+    const allVars = /{{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*}}/g;
+    const tokens = [];
+    let lastIndex = 0;
+    input.replace(allVars, (match, varName, offset) => {
+      const staticPart = input.slice(lastIndex, offset);
+      if (staticPart) {
+        tokens.push({ type: "literal", value: staticPart });
+      }
+      tokens.push({ type: "variable", name: varName });
+      lastIndex = offset + match.length;
+      return match;
+    });
+    const tail = input.slice(lastIndex);
+    if (tail) {
+      tokens.push({ type: "literal", value: tail });
+    }
+    return tokens;
+  }
+  function renderVegaExpression(tokens, funcName = "encodeURIComponent") {
+    const escape = (str) => `'${str.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`;
+    return tokens.map((token) => token.type === "literal" ? escape(token.value) : `${funcName}(${token.name})`).join(" + ");
+  }
+  function encodeTemplateVariables(input) {
+    const tokens = tokenizeTemplate(input);
+    return renderVegaExpression(tokens);
+  }
   const index$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
-    defaultCommonOptions
+    VEGA_BUILTIN_FUNCTIONS,
+    collectIdentifiers,
+    defaultCommonOptions,
+    encodeTemplateVariables,
+    renderVegaExpression,
+    tokenizeTemplate
   }, Symbol.toStringTag, { value: "Module" }));
   function safeVariableName(name) {
     return name.replace(/[^a-zA-Z0-9_]/g, "_");
@@ -22,40 +145,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return "vega-lite";
     }
     return $schema.includes("vega-lite") ? "vega-lite" : "vega";
-  }
-  function changePageOrigin(page, oldOrigin, newOriginUrl) {
-    const newPage = {
-      ...page,
-      dataLoaders: page.dataLoaders.map((loader) => {
-        if (loader.type === "url" && loader.urlRef.origin === oldOrigin) {
-          return {
-            ...loader,
-            urlRef: {
-              ...loader.urlRef,
-              origin: newOriginUrl.origin
-            }
-          };
-        }
-        return loader;
-      }),
-      groups: page.groups.map((group) => ({
-        ...group,
-        elements: group.elements.map((element) => {
-          if (typeof element === "object" && element.type === "image" && element.urlRef.origin === oldOrigin) {
-            const newImageElement = {
-              ...element,
-              urlRef: {
-                ...element.urlRef,
-                origin: newOriginUrl.origin
-              }
-            };
-            return newImageElement;
-          }
-          return element;
-        })
-      }))
-    };
-    return newPage;
   }
   function topologicalSort(list) {
     var _a;
@@ -172,7 +261,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   function addDynamicDataLoaderToSpec(vegaScope, dataSource) {
     const { spec } = vegaScope;
     const { dataSourceName } = dataSource;
-    const urlSignal = vegaScope.createUrlSignal(dataSource.urlRef);
+    const urlSignal = vegaScope.createUrlSignal(dataSource.url);
     const url = { signal: urlSignal.name };
     ensureDataAndSignalsArray(spec);
     spec.signals.push(dataAsSignal(dataSourceName));
@@ -188,43 +277,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       __publicField(this, "urlCount", 0);
       this.spec = spec;
     }
-    addOrigin(origin) {
-      if (!this.spec.signals) {
-        this.spec.signals = [];
-      }
-      let origins = this.spec.signals.find((d) => d.name === "origins");
-      if (!origins) {
-        origins = {
-          name: "origins",
-          value: {}
-        };
-        this.spec.signals.unshift(origins);
-      }
-      origins.value[origin] = origin;
-    }
-    createUrlSignal(urlRef) {
-      const { origin, urlPath, mappedParams } = urlRef;
-      const name = `url:${this.urlCount++}:${safeVariableName(origin + urlPath)}`;
+    createUrlSignal(url) {
+      const name = `url:${this.urlCount++}:${safeVariableName(url)}`;
       const signal = { name };
-      this.addOrigin(origin);
-      signal.update = `origins[${JSON.stringify(origin)}]+'${urlPath}'`;
-      if (mappedParams && mappedParams.length > 0) {
-        signal.update += ` + '?' + ${mappedParams.map((p) => `urlParam('${p.name}', ${variableValueExpression(p)})`).join(` + '&' + `)}`;
-      }
+      signal.update = encodeTemplateVariables(url);
       if (!this.spec.signals) {
         this.spec.signals = [];
       }
       this.spec.signals.push(signal);
       return signal;
-    }
-  }
-  function variableValueExpression(param) {
-    if (param.variableId) {
-      return param.variableId;
-    } else if (param.calculation) {
-      return "(" + param.calculation.vegaExpression + ")";
-    } else {
-      return JSON.stringify(param.value);
     }
   }
   function tickWrap(tick, content) {
@@ -258,7 +319,7 @@ ${content}
       mdSections.push(chartWrap(dataLoader.spec));
     }
     for (const group of page.groups) {
-      mdSections.push(mdContainerWrap(defaultCommonOptions.groupClassName, group.groupId, groupMarkdown(group, variables, vegaScope)));
+      mdSections.push(mdContainerWrap(defaultCommonOptions.groupClassName, group.groupId, groupMarkdown(group, variables)));
     }
     mdSections.unshift(chartWrap(vegaScope.spec));
     const markdown = mdSections.join("\n\n");
@@ -340,10 +401,9 @@ ${content}
             break;
           }
           case "image": {
-            const { urlRef, alt, width, height } = element;
-            const urlSignal = vegaScope.createUrlSignal(urlRef);
+            const { url, alt, width, height } = element;
             const imageSpec = {
-              srcSignalName: urlSignal.name,
+              url,
               alt,
               width,
               height
@@ -396,7 +456,6 @@ ${content}
   }
   const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
-    changePageOrigin,
     targetMarkdown
   }, Symbol.toStringTag, { value: "Module" }));
   exports2.common = index$1;

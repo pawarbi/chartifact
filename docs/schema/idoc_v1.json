@@ -695,14 +695,14 @@
               "const": "url",
               "type": "string"
             },
-            "urlRef": {
-              "$ref": "#/definitions/UrlRef"
+            "url": {
+              "$ref": "#/definitions/TemplatedUrl"
             }
           },
           "required": [
             "dataSourceName",
             "type",
-            "urlRef"
+            "url"
           ],
           "type": "object"
         }
@@ -1668,8 +1668,8 @@
           "const": "image",
           "type": "string"
         },
-        "urlRef": {
-          "$ref": "#/definitions/UrlRef"
+        "url": {
+          "$ref": "#/definitions/TemplatedUrl"
         },
         "width": {
           "type": "number"
@@ -1677,7 +1677,7 @@
       },
       "required": [
         "type",
-        "urlRef"
+        "url"
       ],
       "type": "object"
     },
@@ -2289,31 +2289,6 @@
       ],
       "type": "object"
     },
-    "MappedNameValuePairs": {
-      "additionalProperties": false,
-      "properties": {
-        "calculation": {
-          "$ref": "#/definitions/Calculation",
-          "description": "a calculated value"
-        },
-        "name": {
-          "description": "case-sensitive, do not rename",
-          "type": "string"
-        },
-        "value": {
-          "$ref": "#/definitions/VariableValue"
-        },
-        "variableId": {
-          "$ref": "#/definitions/VariableID",
-          "description": "IMPORTANT! map to a variable whenever possible"
-        }
-      },
-      "required": [
-        "name",
-        "value"
-      ],
-      "type": "object"
-    },
     "MarkdownElement": {
       "description": "Use markdown elements to be verbose and descriptive. Do not use as labels for interactive elements. Embed dynamic variables in markdown using double curly braces {{variableId}} as a placeholder for their values.",
       "type": "string"
@@ -2850,6 +2825,10 @@
       ],
       "type": "object"
     },
+    "TemplatedUrl": {
+      "description": "A url, it may contain template variables, e.g. https://example.com/{{category}}/{{item}}",
+      "type": "string"
+    },
     "TextboxElement": {
       "additionalProperties": false,
       "description": "Textbox use sparingly - typically only for text input",
@@ -3225,29 +3204,6 @@
       ],
       "type": "object"
     },
-    "UrlRef": {
-      "additionalProperties": false,
-      "properties": {
-        "mappedParams": {
-          "description": "these become query parameters in the URL",
-          "items": {
-            "$ref": "#/definitions/MappedNameValuePairs"
-          },
-          "type": "array"
-        },
-        "origin": {
-          "type": "string"
-        },
-        "urlPath": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "origin",
-        "urlPath"
-      ],
-      "type": "object"
-    },
     "Variable": {
       "additionalProperties": false,
       "properties": {
@@ -3275,7 +3231,7 @@
       "type": "object"
     },
     "VariableID": {
-      "description": "VariableID\n\n- The VariableID is an identifier for a variable.\n- Do NOT use operator characters in the VariableID, such as /|\\\\\\'\"`,.;:~-=+?!@#$%^&*()[]{}<> \n- Do NOT use space characters in the VariableID, but you may use underscores.\n- Do NOT prefix the VariableID with a digit.\n- Do NOT prefix/suffix the VariableID with the type, e.g. \"value_number\" is bad.\n- The following names are not allowed as VariableIDs: \"width\", \"height\", \"padding\", \"autosize\", \"background\", \"style\", \"parent\", \"datum\", \"item\", \"event\", \"cursor\", \"origins\"",
+      "description": "VariableID\n\n- The VariableID is an identifier for a variable.\n- Do NOT use operator characters in the VariableID, such as /|\\\\\\'\"`,.;:~-=+?!@#$%^&*()[]{}<> \n- Do NOT use space characters in the VariableID, but you may use underscores.\n- Do NOT prefix the VariableID with a digit.\n- Do NOT prefix/suffix the VariableID with the type, e.g. \"value_number\" is bad.\n- The following names are not allowed as VariableIDs: \"width\", \"height\", \"padding\", \"autosize\", \"background\", \"style\", \"parent\", \"datum\", \"item\", \"event\", \"cursor\", \"encodeUriComponent\"",
       "type": "string"
     },
     "VariableType": {
