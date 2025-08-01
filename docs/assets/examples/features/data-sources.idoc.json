@@ -24,10 +24,7 @@
             "dataSourceName": "csvData",
             "type": "url",
             "format": "csv",
-            "urlRef": {
-                "origin": "https://vega.github.io",
-                "urlPath": "/editor/data/stocks.csv"
-            }
+            "url": "https://vega.github.io/editor/data/stocks.csv"
         }
     ],
     "groups": [
