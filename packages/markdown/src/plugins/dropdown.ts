@@ -53,7 +53,7 @@ export const dropdownPlugin: Plugin<DropdownSpec> = {
             const dropdownInstance: DropdownInstance = { id: `${pluginName}-${index}`, spec, element };
             dropdownInstances.push(dropdownInstance);
         }
-        const instances: IInstance[] = dropdownInstances.map((dropdownInstance, index) => {
+        const instances = dropdownInstances.map((dropdownInstance, index) : IInstance => {
             const { element, spec } = dropdownInstance;
             const initialSignals = [{
                 name: spec.variableId,
@@ -72,7 +72,7 @@ export const dropdownPlugin: Plugin<DropdownSpec> = {
             return {
                 ...dropdownInstance,
                 initialSignals,
-                recieveBatch: async (batch) => {
+                receiveBatch: async (batch) => {
                     const { dynamicOptions } = spec;
                     if (dynamicOptions?.dataSourceName) {
                         const newData = batch[dynamicOptions.dataSourceName]?.value as object[];

@@ -152,7 +152,7 @@ export const placeholdersPlugin: Plugin = {
             {
                 id: pluginName,
                 initialSignals,
-                recieveBatch: async (batch) => {
+                receiveBatch: async (batch) => {
                     for (const key of Object.keys(batch)) {
                         const elements = elementsByKeys.get(key) || [];
                         for (const element of elements) {

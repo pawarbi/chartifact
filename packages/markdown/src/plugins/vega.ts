@@ -92,7 +92,7 @@ export const vegaPlugin: Plugin<Spec> = {
             }
         }
 
-        const instances: IInstance[] = vegaInstances.map((vegaInstance) => {
+        const instances = vegaInstances.map((vegaInstance): IInstance => {
             const { spec, view, initialSignals } = vegaInstance;
             const startBatch = (from: string) => {
                 if (!vegaInstance.batch) {
@@ -109,11 +109,11 @@ export const vegaPlugin: Plugin<Spec> = {
             return {
                 ...vegaInstance,
                 initialSignals,
-                recieveBatch: async (batch, from) => {
-                    renderer.signalBus.log(vegaInstance.id, 'recieved batch', batch, from);
+                receiveBatch: async (batch, from) => {
+                    renderer.signalBus.log(vegaInstance.id, 'received batch', batch, from);
                     return new Promise<void>(resolve => {
                         view.runAfter(async () => {
-                            if (recieveBatch(batch, renderer, vegaInstance)) {
+                            if (receiveBatch(batch, renderer, vegaInstance)) {
                                 renderer.signalBus.log(vegaInstance.id, 'running after _pulse, changes from', from);
                                 vegaInstance.needToRun = true;
                             } else {
@@ -196,15 +196,15 @@ export const vegaPlugin: Plugin<Spec> = {
     },
 };
 
-function recieveBatch(batch: Batch, renderer: Renderer, vegaInstance: VegaInstance) {
+function receiveBatch(batch: Batch, renderer: Renderer, vegaInstance: VegaInstance) {
     const { spec, view } = vegaInstance;
     const doLog = renderer.signalBus.logLevel === LogLevel.all;
-    doLog && renderer.signalBus.log(vegaInstance.id, 'recieveBatch', batch);
+    doLog && renderer.signalBus.log(vegaInstance.id, 'receiveBatch', batch);
     let hasAnyChange = false;
     for (const signalName in batch) {
         const batchItem = batch[signalName];
         if (ignoredSignals.includes(signalName)) {
-            doLog && renderer.signalBus.log(vegaInstance.id, 'ignoring reverved signal name', signalName, batchItem.value);
+            doLog && renderer.signalBus.log(vegaInstance.id, 'ignoring reserved signal name', signalName, batchItem.value);
             continue;
         }
         if (batchItem.isData) {
