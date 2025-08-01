@@ -130,4 +130,45 @@ tests.forEach(([input, expected], i) => {
     );
 });
 
+
+const escapeTests = [
+    // Only literal, no escaping needed
+    ["foo", "'foo'"],
+
+    // Literal with single quote
+    ["foo'bar", "'foo\\'bar'"],
+
+    // Literal with backslash
+    ["foo\\bar", "'foo\\\\bar'"],
+
+    // Literal with both single quote and backslash
+    ["a\\'b", "'a\\\\\\'b'"],
+
+    // Literal with multiple single quotes
+    ["a'b'c", "'a\\'b\\'c'"],
+
+    // Literal with multiple backslashes
+    ["a\\\\b", "'a\\\\\\\\b'"],
+
+    // Literal and variable, with escapes
+    ["foo'{{bar}}\\baz", "'foo\\'' + encodeURIComponent(bar) + '\\\\baz'"],
+
+    // Literal with both escapes, variable in middle
+    ["'start\\{{x}}\\'end", "'\\'start\\\\' + encodeURIComponent(x) + '\\\\\\'end'"],
+
+    // Two single quotes in a row
+    ["foo''bar", "'foo\\'\\'bar'"],
+
+    // Three single quotes in a row
+    ["foo'''bar", "'foo\\'\\'\\'bar'"],
+];
+
+escapeTests.forEach(([input, expected], i) => {
+    const output = encodeTemplateVariables(input);
+    const pass = output === expected;
+    console.log(
+        `${pass ? '✅' : '❌'} Escape Test ${i + 1}: ${pass ? 'PASS' : `FAIL\n  Input: ${input}\n  Got: ${output}\n  Expected: ${expected}`}`
+    );
+});
+
 */
