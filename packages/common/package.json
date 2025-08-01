@@ -6,7 +6,7 @@
   "main": "dist/esnext/index.js",
   "scripts": {
     "clean": "rimraf dist",
-    "dev": "tsc -p . -w",
+    "watch": "tsc -p . -w",
     "tsc": "tsc -p .",
     "build": "npm run tsc",
     "build:01": "npm run build"
