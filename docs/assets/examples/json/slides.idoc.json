@@ -1,6 +1,9 @@
 {
-    "$schema": "../../schema/idoc_v1.json",
+    "$schema": "../../../schema/idoc_v1.json",
     "title": "Select Items to Buy",
+    "style": {
+        "css": "html, body {\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  scroll-behavior: smooth;\n  overflow-y: auto;\n}\n\nbody {\n  scroll-snap-type: y mandatory;\n}\n\n.group {\n  color: white;\n  scroll-snap-align: start;\n  height: 100vh;\n  margin: 0;\n  padding: 1em;\n  box-sizing: border-box;\n}\n\n#slide1 { background: #1abc9c; }\n#slide2 { background: #3498db; }\n#slide3 { background: #9b59b6; }\n#slide4 { background: #e74c3c; }\n"
+    },
     "dataLoaders": [
         {
             "dataSourceName": "itemsData",
@@ -65,13 +68,34 @@
     ],
     "groups": [
         {
-            "groupId": "main",
+            "groupId": "slide1",
+            "elements": [
+                "## Welcome to the Shopping List App\n"
+            ]
+        },
+        {
+            "groupId": "slide2",
+            "elements": [
+                "## Here you can select items to buy from a variety of categories.\n",
+                "### Categories include Fruits, Bakery, Dairy, Meat, Vegetables, and Pantry items.\n",
+                "### You can select multiple items and see the total price calculated automatically."
+            ]
+        },
+        {
+            "groupId": "slide3",
+            "elements": [
+                "## Let's start by selecting some items from the list below.\n",
+                "### Click on the checkboxes next to the items you want to add to your shopping list."
+            ]
+        },
+        {
+            "groupId": "slide4",
             "elements": [
                 "## Select the items you want to buy\n",
                 {
                     "type": "table",
-                    "variableId": "itemsData_selected",
                     "dataSourceName": "itemsData",
+                    "variableId": "itemsData_selected",
                     "tabulatorOptions": {
                         "autoColumns": true,
                         "layout": "fitColumns",
