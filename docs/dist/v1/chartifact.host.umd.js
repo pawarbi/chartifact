@@ -1,6 +1,6 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Chartifact = global.Chartifact || {}));
-})(this, function(exports2) {
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega")) : typeof define === "function" && define.amd ? define(["exports", "vega"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Chartifact = global.Chartifact || {}, global.vega));
+})(this, function(exports2, vega) {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
@@ -120,6 +120,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return tokens;
   }
   function renderVegaExpression(tokens, funcName = "encodeURIComponent") {
+    if (tokens.length === 1 && tokens[0].type === "variable") {
+      return tokens[0].name;
+    }
     const escape = (str) => `'${str.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`;
     return tokens.map((token) => token.type === "literal" ? escape(token.value) : `${funcName}(${token.name})`).join(" + ");
   }
@@ -249,8 +252,21 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       values: [],
       transform: dataSource.dataFrameTransformations || []
     };
-    if (dataSource.type === "json") {
-      newData.values = dataSource.content;
+    if (dataSource.type === "inline") {
+      if (dataSource.format === "json") {
+        newData.values = dataSource.content;
+      } else if (typeof dataSource.content === "string") {
+        const data = vega.read(dataSource.content, {
+          type: dataSource.format
+        });
+        if (Array.isArray(data)) {
+          newData.values = data;
+        } else {
+          console.warn(`Unsupported inline data format: ${dataSource.format}, type is ${typeof dataSource.content}`);
+        }
+      } else {
+        console.warn(`Unsupported inline data format: ${dataSource.format}, type is ${typeof dataSource.content}`);
+      }
     } else if (dataSource.type === "file") {
       newData.format = {
         type: dataSource.format
@@ -332,7 +348,7 @@ ${content}
     const vegaScope = new VegaScope(spec);
     for (const dataSource of dataSources) {
       switch (dataSource.type) {
-        case "json": {
+        case "inline": {
           addStaticDataLoaderToSpec(vegaScope, dataSource);
           break;
         }
@@ -623,6 +639,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return tokens;
   }
   function renderVegaExpression(tokens, funcName = "encodeURIComponent") {
+    if (tokens.length === 1 && tokens[0].type === "variable") {
+      return tokens[0].name;
+    }
     const escape = (str) => \`'\${str.replace(/\\\\/g, "\\\\\\\\").replace(/'/g, "\\\\'")}'\`;
     return tokens.map((token) => token.type === "literal" ? escape(token.value) : \`\${funcName}(\${token.name})\`).join(" + ");
   }
@@ -1617,6 +1636,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const signalNames = Object.keys(this.signals);
       if (signalNames.length === 0) {
         return this.templateUrl;
+      }
+      if (this.tokens.length === 1 && this.tokens[0].type === "variable") {
+        return this.signals[this.tokens[0].name] || "";
       }
       const urlParts = [];
       this.tokens.forEach((token) => {

@@ -600,10 +600,17 @@
           "additionalProperties": false,
           "properties": {
             "content": {
-              "items": {
-                "type": "object"
-              },
-              "type": "array"
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "string"
+                }
+              ]
             },
             "dataFrameTransformations": {
               "items": {
@@ -620,7 +627,7 @@
               "description": "optional, default is 'json'"
             },
             "type": {
-              "const": "json",
+              "const": "inline",
               "type": "string"
             }
           },
