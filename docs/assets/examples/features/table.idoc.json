@@ -4,7 +4,8 @@
     "dataLoaders": [
         {
             "dataSourceName": "sampleData",
-            "type": "json",
+            "type": "inline",
+            "format": "json",
             "content": [
                 {"name": "Alice", "age": 25, "city": "New York"},
                 {"name": "Bob", "age": 30, "city": "Chicago"},

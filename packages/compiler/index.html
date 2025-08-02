@@ -60,7 +60,8 @@
     "dataLoaders": [
         {
             "dataSourceName": "jsonData",
-            "type": "json",
+            "type": "inline",
+            "format": "json",
             "content": [
                 {"item": "Stapler", "category": "Office Tools", "price": 12.99, "inStock": true, "quantity": 25},
                 {"item": "Printer Paper", "category": "Paper", "price": 8.50, "inStock": true, "quantity": 150},
@@ -83,16 +84,15 @@
             "url": "https://vega.github.io/editor/data/stocks.csv"
         },
         {
-            "dataSourceName": "csvUrlVariable",
+            "dataSourceName": "jsonUrlVariable",
             "type": "url",
             "format": "json",
             "url": "{{json_url}}"
         },
         {
             "dataSourceName": "inlineCsvData",
-            "type": "file",
+            "type": "inline",
             "format": "csv",
-            "filename": "inline_data.csv",
             "content": "item,price\nStapler,12.99\nPen,1.25\nLamp,29.99"
         }
     ],
@@ -154,8 +154,8 @@
                 },
                 {
                     "type": "table",
-                    "dataSourceName": "csvUrlVariable",
-                    "variableId": "csvUrlTable",
+                    "dataSourceName": "jsonUrlVariable",
+                    "variableId": "jsonUrlTable",
                     "tabulatorOptions": {
                         "autoColumns": true,
                         "layout": "fitColumns",

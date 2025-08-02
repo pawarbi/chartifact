@@ -14,9 +14,11 @@ export interface ReturnType {
 /** Data source types */
 
 /** JSON data */
-export interface DataSourceByJSON extends DataSourceBase {
-  type: 'json';
-  content: object[];
+export interface DataSourceInline extends DataSourceBase {
+  type: 'inline';
+
+  /* handles JSON arrays or a string of CSV / TSV */
+  content: object[] | string;
 }
 
 /** User uploaded their own data file */
@@ -37,7 +39,7 @@ export interface DataSourceByDynamicURL extends DataSourceBase {
 }
 
 /** Union type for DataSource */
-export type DataSource<T = {}> = (DataSourceByJSON | DataSourceByFile | DataSourceByDynamicURL) & T;
+export type DataSource<T = {}> = (DataSourceInline | DataSourceByFile | DataSourceByDynamicURL) & T;
 
 /** LLM Should not use this type */
 export interface DataLoaderBySpec {

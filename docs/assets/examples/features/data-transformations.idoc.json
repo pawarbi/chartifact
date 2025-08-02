@@ -4,7 +4,8 @@
     "dataLoaders": [
         {
             "dataSourceName": "rawData",
-            "type": "json",
+            "type": "inline",
+            "format": "json",
             "content": [
                 {"name": "Product A", "category": "Electronics", "price": 299, "inStock": true},
                 {"name": "Product B", "category": "Electronics", "price": 199, "inStock": false},

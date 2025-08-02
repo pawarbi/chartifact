@@ -4,7 +4,8 @@
     "dataLoaders": [
         {
             "dataSourceName": "chartData",
-            "type": "json",
+            "type": "inline",
+            "format": "json",
             "content": [
                 {"category": "A", "value": 20},
                 {"category": "B", "value": 34},

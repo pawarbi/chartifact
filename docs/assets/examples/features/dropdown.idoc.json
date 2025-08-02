@@ -4,7 +4,8 @@
     "dataLoaders": [
         {
             "dataSourceName": "productData",
-            "type": "json",
+            "type": "inline",
+            "format": "json",
             "content": [
                 {"name": "Laptop Pro", "category": "Electronics", "price": 1299},
                 {"name": "Wireless Mouse", "category": "Electronics", "price": 49},
