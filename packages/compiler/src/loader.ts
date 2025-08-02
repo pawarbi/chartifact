@@ -28,12 +28,12 @@ export function addStaticDataLoaderToSpec(vegaScope: VegaScope, dataSource: Data
         } else if (typeof dataSource.content === 'string') {
 
             //csv / tsv
-            const x = read(dataSource.content, {
+            const data = read(dataSource.content, {
                 type: dataSource.format,
             });
 
-            if (Array.isArray(x)) {
-                newData.values = x;
+            if (Array.isArray(data)) {
+                newData.values = data;
             } else {
                 console.warn(`Unsupported inline data format: ${dataSource.format}, type is ${typeof dataSource.content}`);
             }
