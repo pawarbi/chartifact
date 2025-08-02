@@ -52,10 +52,7 @@
                     "alt": "Dynamic image example",
                     "width": 400,
                     "height": 300,
-                    "urlRef": {
-                        "origin": "https://picsum.photos",
-                        "urlPath": "/{{imageSize}}"
-                    }
+                    "url": "https://picsum.photos/{{imageSize}}"
                 },
                 "Current URL: `https://picsum.photos/{{imageSize}}`",
                 "### URL with Query Parameters",
@@ -65,22 +62,7 @@
                     "alt": "Image with query parameters",
                     "width": 400,
                     "height": 300,
-                    "urlRef": {
-                        "origin": "https://picsum.photos",
-                        "urlPath": "/{{imageSize}}",
-                        "mappedParams": [
-                            {
-                                "name": "category",
-                                "value": "{{imageCategory}}",
-                                "variableId": "imageCategory"
-                            },
-                            {
-                                "name": "seed",
-                                "value": "{{seed}}",
-                                "variableId": "seed"
-                            }
-                        ]
-                    }
+                    "url": "https://picsum.photo/{{imageSize}}?category={{imageCategory}}&seed={{seed}}"
                 },
                 "Current URL: `https://picsum.photos/{{imageSize}}?category={{imageCategory}}&seed={{seed}}`",
                 "### Usage in Data Sources",
