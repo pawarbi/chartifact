@@ -212,9 +212,6 @@ interface TableElementProps extends VariableControl {
  * Union type for all possible interactive elements
  */
 type InteractiveElement = ChartElement | CheckboxElement | DropdownElement | ImageElement | PresetsElement | SliderElement | TableElement | TextboxElement;
-interface Layout {
-    css: string;
-}
 interface ElementGroup {
     groupId: string;
     elements: PageElement[];
@@ -231,8 +228,7 @@ interface InteractiveDocument {
      */
     dataLoaders?: DataLoader[];
     variables?: Variable[];
-    /** Assistant should not populate these during the initial create phase. */
-    layout?: Layout;
+    style?: PageStyle;
 }
 /**
  * Use markdown elements to be verbose and descriptive. Do not use as labels for interactive elements.
@@ -241,8 +237,29 @@ interface InteractiveDocument {
 type MarkdownElement = string;
 /** Union type for all possible elements */
 type PageElement = MarkdownElement | InteractiveElement;
+interface PageStyle {
+    css: string;
+    googleFonts?: GoogleFontsSpec;
+}
+interface GoogleFontsSpec {
+    googleFontsUrl: string;
+    mapping?: {
+        body?: string;
+        hero?: string;
+        headings?: string;
+        code?: string;
+        table?: string;
+    };
+    sizing?: {
+        body?: number;
+        hero?: number;
+        headings?: number;
+        code?: number;
+        table?: number;
+    };
+}
 /** JSON Schema version with $schema property for validation */
 type InteractiveDocumentWithSchema = InteractiveDocument & {
     $schema?: string;
 };
-export type { Calculation, ChartElement, ChartFull, ChartPlaceholder, ChartValue, CheckboxElement, CheckboxProps, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceInline, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, Layout, MarkdownElement, PageElement, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TableElement, TableElementProps, TemplatedUrl, TextboxElement, TextboxElementProps, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive };
+export type { Calculation, ChartElement, ChartFull, ChartPlaceholder, ChartValue, CheckboxElement, CheckboxProps, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceInline, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, GoogleFontsSpec, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, MarkdownElement, PageElement, PageStyle, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TableElement, TableElementProps, TemplatedUrl, TextboxElement, TextboxElementProps, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive };

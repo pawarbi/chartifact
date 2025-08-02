@@ -4,10 +4,11 @@
 */
 import { definePlugin, Plugin, RawFlaggableSpec } from "../factory.js";
 import { sanitizedHTML } from "../sanitize.js";
+import { PluginNames } from "./interfaces.js";
 import { getJsonScriptTag } from "./util.js";
 import { SpecReview } from 'common';
 
-export function flaggableJsonPlugin<T>(pluginName: string, className: string, flagger?: (spec: T) => RawFlaggableSpec<T>, attrs?: object) {
+export function flaggableJsonPlugin<T>(pluginName: PluginNames, className: string, flagger?: (spec: T) => RawFlaggableSpec<T>, attrs?: object) {
     const plugin: Plugin<T> = {
         name: pluginName,
         initializePlugin: (md) => definePlugin(md, pluginName),

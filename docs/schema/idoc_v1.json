@@ -1554,6 +1554,60 @@
       ],
       "type": "object"
     },
+    "GoogleFontsSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "googleFontsUrl": {
+          "type": "string"
+        },
+        "mapping": {
+          "additionalProperties": false,
+          "properties": {
+            "body": {
+              "type": "string"
+            },
+            "code": {
+              "type": "string"
+            },
+            "headings": {
+              "type": "string"
+            },
+            "hero": {
+              "type": "string"
+            },
+            "table": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "sizing": {
+          "additionalProperties": false,
+          "properties": {
+            "body": {
+              "type": "number"
+            },
+            "code": {
+              "type": "number"
+            },
+            "headings": {
+              "type": "number"
+            },
+            "hero": {
+              "type": "number"
+            },
+            "table": {
+              "type": "number"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "googleFontsUrl"
+      ],
+      "type": "object"
+    },
     "GraticuleTransform": {
       "additionalProperties": false,
       "properties": {
@@ -1754,9 +1808,8 @@
           },
           "type": "array"
         },
-        "layout": {
-          "$ref": "#/definitions/Layout",
-          "description": "Assistant should not populate these during the initial create phase."
+        "style": {
+          "$ref": "#/definitions/PageStyle"
         },
         "title": {
           "type": "string"
@@ -2151,18 +2204,6 @@
       ],
       "type": "object"
     },
-    "Layout": {
-      "additionalProperties": false,
-      "properties": {
-        "css": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "css"
-      ],
-      "type": "object"
-    },
     "LineLabelAnchor": {
       "enum": [
         "start",
@@ -2363,6 +2404,21 @@
         }
       ],
       "description": "Union type for all possible elements"
+    },
+    "PageStyle": {
+      "additionalProperties": false,
+      "properties": {
+        "css": {
+          "type": "string"
+        },
+        "googleFonts": {
+          "$ref": "#/definitions/GoogleFontsSpec"
+        }
+      },
+      "required": [
+        "css"
+      ],
+      "type": "object"
     },
     "PartitionTransform": {
       "additionalProperties": false,

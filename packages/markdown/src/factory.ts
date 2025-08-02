@@ -8,6 +8,7 @@ import { attrs } from '@mdit/plugin-attrs';
 import { container, MarkdownItContainerOptions } from '@mdit/plugin-container';
 import { ErrorHandler, Renderer } from './renderer.js';
 import { defaultCommonOptions, SpecReview } from 'common';
+import { PluginNames } from './plugins/interfaces.js';
 
 declare const markdownit: typeof MarkdownIt;
 
@@ -49,7 +50,7 @@ export interface SpecContainer<T> {
 }
 
 export interface Plugin<T = {}> {
-    name: string;
+    name: PluginNames;
     hydratesBefore?: string;
     initializePlugin: (md: MarkdownIt) => void;
     fence?: (token: Token, idx: number) => string;

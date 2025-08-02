@@ -304,6 +304,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return signal;
     }
   }
+  const JsonIndent = 2;
   function tickWrap(tick, content) {
     return `\`\`\`${tick}
 ${content}
@@ -314,7 +315,7 @@ ${content}
   }
   function chartWrap(spec) {
     const chartType = getChartType(spec);
-    return jsonWrap(chartType, JSON.stringify(spec, null, 4));
+    return jsonWrap(chartType, JSON.stringify(spec, null, JsonIndent));
   }
   function mdContainerWrap(classname, id, content) {
     return `::: ${classname} {#${id}}
@@ -322,12 +323,17 @@ ${content}
 :::`;
   }
   function targetMarkdown(page) {
-    var _a;
     const mdSections = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
-    if ((_a = page.layout) == null ? void 0 : _a.css) {
-      mdSections.push(tickWrap("css", page.layout.css));
+    if (page.style) {
+      const { style } = page;
+      if (style.css) {
+        mdSections.push(tickWrap("css", page.style.css));
+      }
+      if (style.googleFonts) {
+        mdSections.push(jsonWrap("google-fonts", JSON.stringify(style.googleFonts, null, 2)));
+      }
     }
     const tableElements = page.groups.flatMap((group) => group.elements.filter((e) => typeof e !== "string" && e.type === "table"));
     const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables, tableElements);
@@ -366,7 +372,7 @@ ${content}
     var _a, _b, _c, _d;
     const mdElements = [];
     const addSpec = (pluginName, spec) => {
-      mdElements.push(jsonWrap(pluginName, JSON.stringify(spec, null, 2)));
+      mdElements.push(jsonWrap(pluginName, JSON.stringify(spec, null, JsonIndent)));
     };
     for (const element of group.elements) {
       if (typeof element === "string") {

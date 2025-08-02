@@ -12,6 +12,8 @@ import { VegaScope } from './scope.js';
 import { createSpecWithVariables } from './spec.js';
 import { defaultCommonOptions } from 'common';
 
+const JsonIndent = 2;
+
 function tickWrap(tick: string, content: string) {
     return `\`\`\`${tick}\n${content}\n\`\`\``;
 }
@@ -22,7 +24,7 @@ function jsonWrap(type: string, content: string) {
 
 function chartWrap(spec: VegaSpec | VegaLiteSpec) {
     const chartType = getChartType(spec);
-    return jsonWrap(chartType, JSON.stringify(spec, null, 4));
+    return jsonWrap(chartType, JSON.stringify(spec, null, JsonIndent));
 }
 
 function mdContainerWrap(classname: string, id: string, content: string) {
@@ -31,15 +33,19 @@ ${content}
 :::`;
 }
 
-const $schema = "https://vega.github.io/schema/vega/v5.json";
-
 export function targetMarkdown(page: InteractiveDocument) {
     const mdSections: string[] = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
 
-    if (page.layout?.css) {
-        mdSections.push(tickWrap('css', page.layout.css));
+    if (page.style) {
+        const { style } = page;
+        if (style.css) {
+            mdSections.push(tickWrap('css', page.style.css));
+        }
+        if (style.googleFonts) {
+            mdSections.push(jsonWrap('google-fonts', JSON.stringify(style.googleFonts, null, 2)));
+        }
     }
 
     const tableElements = page.groups.flatMap(group => group.elements.filter(e => typeof e !== 'string' && e.type === 'table'));
@@ -93,7 +99,7 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
     const mdElements: string[] = [];
 
     const addSpec = (pluginName: Plugins.PluginNames, spec: pluginSpecs) => {
-        mdElements.push(jsonWrap(pluginName, JSON.stringify(spec, null, 2)));
+        mdElements.push(jsonWrap(pluginName, JSON.stringify(spec, null, JsonIndent)));
     }
 
     for (const element of group.elements) {

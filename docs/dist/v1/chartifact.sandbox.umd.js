@@ -771,10 +771,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     };
     return plugin;
   }
-  const pluginName$a = "checkbox";
-  const className$9 = pluginClassName(pluginName$a);
+  const pluginName$b = "checkbox";
+  const className$a = pluginClassName(pluginName$b);
   const checkboxPlugin = {
-    ...flaggableJsonPlugin(pluginName$a, className$9),
+    ...flaggableJsonPlugin(pluginName$b, className$a),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const checkboxInstances = [];
       for (let index2 = 0; index2 < specs.length; index2++) {
@@ -794,7 +794,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 </form>\`;
         container.innerHTML = html;
         const element = container.querySelector('input[type="checkbox"]');
-        const checkboxInstance = { id: \`\${pluginName$a}-\${index2}\`, spec, element };
+        const checkboxInstance = { id: \`\${pluginName$b}-\${index2}\`, spec, element };
         checkboxInstances.push(checkboxInstance);
       }
       const instances = checkboxInstances.map((checkboxInstance) => {
@@ -1038,19 +1038,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     return result;
   }
-  const pluginName$9 = "css";
-  const className$8 = pluginClassName(pluginName$9);
+  const pluginName$a = "css";
+  const className$9 = pluginClassName(pluginName$a);
   const cssPlugin = {
-    ...flaggableJsonPlugin(pluginName$9, className$8),
+    ...flaggableJsonPlugin(pluginName$a, className$9),
     initializePlugin: (md) => {
       if (typeof csstree === "undefined") {
         throw new Error("css-tree library is required for CSS plugin. Please include the css-tree script.");
       }
-      definePlugin(md, pluginName$9);
+      definePlugin(md, pluginName$a);
       md.block.ruler.before("fence", "css_block", function(state, startLine, endLine) {
         const start = state.bMarks[startLine] + state.tShift[startLine];
         const max = state.eMarks[startLine];
-        if (!state.src.slice(start, max).trim().startsWith(\`\\\`\\\`\\\`\${pluginName$9}\`)) {
+        if (!state.src.slice(start, max).trim().startsWith(\`\\\`\\\`\\\`\${pluginName$a}\`)) {
           return false;
         }
         let nextLine = startLine;
@@ -1062,7 +1062,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         state.line = nextLine + 1;
         const token = state.push("fence", "code", 0);
-        token.info = pluginName$9;
+        token.info = pluginName$a;
         token.content = state.getLines(startLine + 1, nextLine, state.blkIndent, true);
         token.map = [startLine, state.line];
         return true;
@@ -1071,10 +1071,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       md.renderer.rules.fence = function(tokens, idx, options, env, slf) {
         const token = tokens[idx];
         const info = token.info.trim();
-        if (info === pluginName$9) {
+        if (info === pluginName$a) {
           const cssContent = token.content.trim();
           const categorizedCss = categorizeCss(cssContent);
-          return sanitizedHTML("div", { id: \`\${pluginName$9}-\${idx}\`, class: className$8 }, JSON.stringify(categorizedCss), true);
+          return sanitizedHTML("div", { id: \`\${pluginName$a}-\${idx}\`, class: className$9 }, JSON.stringify(categorizedCss), true);
         }
         if (originalFence) {
           return originalFence(tokens, idx, options, env, slf);
@@ -1103,7 +1103,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           target.appendChild(styleElement);
           comments.push(\`<!-- CSS styles applied to \${renderer.shadowRoot ? "shadow DOM" : "document"} -->\`);
           cssInstances.push({
-            id: \`\${pluginName$9}-\${index2}\`,
+            id: \`\${pluginName$a}-\${index2}\`,
             element: styleElement
           });
         } else {
@@ -1119,6 +1119,182 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           destroy: () => {
             if (cssInstance.element && cssInstance.element.parentNode) {
               cssInstance.element.parentNode.removeChild(cssInstance.element);
+            }
+          }
+        };
+      });
+      return instances;
+    }
+  };
+  function isValidGoogleFontsUrl(url) {
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === "https:" && parsed.hostname === "fonts.googleapis.com" && parsed.pathname === "/css2";
+    } catch {
+      return false;
+    }
+  }
+  function sanitizeFontFamily(fontName) {
+    return fontName.replace(/[^a-zA-Z0-9\\s\\-_]/g, "").trim();
+  }
+  function sanitizeSizing(sizeValue) {
+    if (typeof sizeValue !== "number" || isNaN(sizeValue) || !isFinite(sizeValue)) {
+      console.warn("Invalid sizing value - must be a finite number:", sizeValue);
+      return null;
+    }
+    if (sizeValue < 0.1 || sizeValue >= 10) {
+      console.warn("Sizing value out of safe range (0.1 to 9.999):", sizeValue);
+      return null;
+    }
+    return Math.round(sizeValue * 1e3) / 1e3;
+  }
+  function extractFontFamilies(googleFontsUrl) {
+    const families = [];
+    try {
+      const url = new URL(googleFontsUrl);
+      const params = url.searchParams;
+      const familyParams = params.getAll("family");
+      for (const value of familyParams) {
+        const rawFamilyName = value.split(":")[0].replace(/\\+/g, " ");
+        const familyName = sanitizeFontFamily(rawFamilyName);
+        if (!familyName) {
+          console.warn("Skipped invalid font family name:", rawFamilyName);
+          continue;
+        }
+        families.push(familyName);
+      }
+    } catch (error) {
+      console.error("Failed to parse Google Fonts URL:", error);
+    }
+    return families;
+  }
+  function generateSemanticCSS(spec, families, scopeId) {
+    const cssRules = [];
+    const generateRule = (elementType, selectors) => {
+      var _a, _b;
+      const fontFamily = (_a = spec.mapping) == null ? void 0 : _a[elementType];
+      const sizeValue = (_b = spec.sizing) == null ? void 0 : _b[elementType];
+      if (!fontFamily && !sizeValue) return;
+      let css = \`\${selectors} {\`;
+      if (fontFamily) {
+        const sanitizedName = sanitizeFontFamily(fontFamily);
+        const family = families.find((f) => f === sanitizedName);
+        if (family) {
+          css += \`
+  font-family: '\${family}';\`;
+        }
+      }
+      if (sizeValue) {
+        const sanitizedSize = sanitizeSizing(sizeValue);
+        if (sanitizedSize !== null) {
+          css += \`
+  font-size: \${sanitizedSize}em;\`;
+        }
+      }
+      css += "\\n}";
+      cssRules.push(css);
+    };
+    generateRule("body", "body");
+    generateRule("headings", "h1, h2, h3, h4, h5, h6");
+    generateRule("code", "code, pre, kbd, samp, tt, .hljs");
+    generateRule("table", "table, .tabulator");
+    generateRule("hero", "h1");
+    return cssRules.join("\\n\\n");
+  }
+  const pluginName$9 = "google-fonts";
+  const className$8 = pluginClassName(pluginName$9);
+  function inspectGoogleFontsSpec(spec) {
+    var _a, _b;
+    const reasons = [];
+    let hasFlags = false;
+    if (!spec.googleFontsUrl) {
+      reasons.push("googleFontsUrl is required");
+      hasFlags = true;
+    } else if (!isValidGoogleFontsUrl(spec.googleFontsUrl)) {
+      reasons.push("Invalid googleFontsUrl - must be HTTPS and point to fonts.googleapis.com/css2");
+      hasFlags = true;
+    }
+    for (const key of ["body", "hero", "headings", "code", "table"]) {
+      if (((_a = spec.mapping) == null ? void 0 : _a[key]) && typeof spec.mapping[key] !== "string") {
+        reasons.push(\`Invalid mapping for \${key} - must be a string\`);
+        hasFlags = true;
+      }
+      if (((_b = spec.sizing) == null ? void 0 : _b[key]) && typeof spec.sizing[key] !== "number") {
+        reasons.push(\`Invalid sizing for \${key} - must be a number\`);
+        hasFlags = true;
+      }
+    }
+    return {
+      spec,
+      hasFlags,
+      reasons
+    };
+  }
+  const googleFontsPlugin = {
+    ...flaggableJsonPlugin(pluginName$9, className$8, inspectGoogleFontsSpec),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
+      const googleFontsInstances = [];
+      let emitted = false;
+      for (let index2 = 0; index2 < specs.length; index2++) {
+        const specReview = specs[index2];
+        if (!specReview.approvedSpec) {
+          continue;
+        }
+        const container = renderer.element.querySelector(\`#\${specReview.containerId}\`);
+        if (emitted) {
+          container.innerHTML = "<!-- Additional Google Fonts blocks ignored - only one per page allowed -->";
+          continue;
+        }
+        try {
+          const spec = specReview.approvedSpec;
+          if (!spec.googleFontsUrl) {
+            container.innerHTML = "<!-- Google Fonts Error: googleFontsUrl is required -->";
+            continue;
+          }
+          if (!isValidGoogleFontsUrl(spec.googleFontsUrl)) {
+            container.innerHTML = "<!-- Google Fonts Error: Only HTTPS Google Fonts URLs (https://fonts.googleapis.com/css2) are allowed -->";
+            continue;
+          }
+          const families = extractFontFamilies(spec.googleFontsUrl);
+          if (families.length === 0) {
+            container.innerHTML = "<!-- Google Fonts Error: No font families found in URL -->";
+            return [];
+          }
+          const instanceId = \`gf-\${Date.now()}-0\`;
+          const importCSS = \`@import url('\${spec.googleFontsUrl}');\`;
+          const semanticCSS = generateSemanticCSS(spec, families, instanceId);
+          const fullCSS = importCSS + "\\n\\n" + semanticCSS;
+          const styleElement = document.createElement("style");
+          styleElement.type = "text/css";
+          styleElement.id = \`idocs-google-fonts-\${container.id}\`;
+          styleElement.textContent = fullCSS;
+          const target = renderer.shadowRoot || document.head;
+          target.appendChild(styleElement);
+          const googleFontsInstance = {
+            id: container.id,
+            spec,
+            styleElement
+          };
+          googleFontsInstances.push(googleFontsInstance);
+          emitted = true;
+          const fontsList = families.join(", ");
+          container.innerHTML = \`<!-- Google Fonts loaded: \${fontsList} -->\`;
+        } catch (e) {
+          container.innerHTML = \`<!-- Google Fonts Error: \${e.toString()} -->\`;
+          errorHandler(e, "Google Fonts", 0, "parse", container);
+        }
+      }
+      const instances = googleFontsInstances.map((googleFontsInstance) => {
+        return {
+          id: googleFontsInstance.id,
+          initialSignals: [],
+          // Google Fonts doesn't need signals
+          destroy: () => {
+            if (googleFontsInstance.styleElement && googleFontsInstance.styleElement.parentNode) {
+              googleFontsInstance.styleElement.parentNode.removeChild(googleFontsInstance.styleElement);
+            }
+            if (googleFontsInstance.linkElement && googleFontsInstance.linkElement.parentNode) {
+              googleFontsInstance.linkElement.parentNode.removeChild(googleFontsInstance.linkElement);
             }
           }
         };
@@ -1347,29 +1523,66 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const img = document.createElement("img");
         const spinner = document.createElement("div");
         spinner.innerHTML = \`
-                    <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="10" stroke="gray" stroke-width="2" fill="none" stroke-dasharray="31.4" stroke-dashoffset="0">
-                            <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
-                        </circle>
-                    </svg>\`;
+                <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="gray" stroke-width="2" fill="none" stroke-dasharray="31.4" stroke-dashoffset="0">
+                        <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+                    </circle>
+                </svg>
+            \`;
+        const retryBtn = document.createElement("button");
+        retryBtn.textContent = "Retry";
+        const buttonStyles = {
+          display: "none",
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          zIndex: "2"
+        };
+        Object.assign(retryBtn.style, buttonStyles);
+        container.style.position = "relative";
+        spinner.style.position = "absolute";
+        container.innerHTML = "";
+        container.appendChild(spinner);
+        container.appendChild(img);
+        container.appendChild(retryBtn);
         if (spec.alt) img.alt = spec.alt;
         if (spec.width) img.width = spec.width;
         if (spec.height) img.height = spec.height;
         img.onload = () => {
           spinner.style.display = "none";
           img.style.opacity = "1";
+          img.style.display = "";
+          retryBtn.style.display = "none";
+          imageInstance.hasImage = true;
         };
         img.onerror = () => {
           spinner.style.display = "none";
           img.style.opacity = "0.5";
+          img.style.display = "none";
+          retryBtn.style.display = "";
+          retryBtn.disabled = false;
+          imageInstance.hasImage = false;
           errorHandler(new Error("Image failed to load"), pluginName$7, index2, "load", container, img.src);
         };
-        container.style.position = "relative";
-        spinner.style.position = "absolute";
-        container.innerHTML = "";
-        container.appendChild(spinner);
-        container.appendChild(img);
-        const imageInstance = { id: \`\${pluginName$7}-\${index2}\`, spec, img, spinner };
+        retryBtn.onclick = () => {
+          retryBtn.disabled = true;
+          spinner.style.display = "";
+          img.style.opacity = "0.1";
+          img.style.display = imageInstance.hasImage ? "" : "none";
+          const src = img.src;
+          img.src = "";
+          setTimeout(() => {
+            img.src = src;
+          }, 100);
+        };
+        const imageInstance = {
+          id: \`\${pluginName$7}-\${index2}\`,
+          spec,
+          img,
+          spinner,
+          hasImage: false
+        };
         imageInstances.push(imageInstance);
       }
       const instances = imageInstances.map((imageInstance, index2) => {
@@ -2526,6 +2739,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   function registerNativePlugins() {
     registerMarkdownPlugin(checkboxPlugin);
     registerMarkdownPlugin(cssPlugin);
+    registerMarkdownPlugin(googleFontsPlugin);
     registerMarkdownPlugin(dropdownPlugin);
     registerMarkdownPlugin(imagePlugin);
     registerMarkdownPlugin(placeholdersPlugin);
