@@ -1,3 +1,10 @@
+```
+    A     I
+C H A   T
+C H A R T
+    A R T I F A C T
+C H A R T I F A C T
+```
 # Chartifact
 
 **Declarative, interactive data documents**

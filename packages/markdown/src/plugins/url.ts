@@ -43,6 +43,12 @@ export class DynamicUrl {
         if (signalNames.length === 0) {
             return this.templateUrl;
         }
+
+        /// If there's only one token and it's a variable, return just the variable signal value but dont encode it
+        if (this.tokens.length === 1 && this.tokens[0].type === 'variable') {
+            return this.signals[this.tokens[0].name] || '';
+        }
+
         const urlParts: string[] = [];
         this.tokens.forEach(token => {
             if (token.type === 'literal') {

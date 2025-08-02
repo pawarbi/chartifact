@@ -120,6 +120,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return tokens;
   }
   function renderVegaExpression(tokens, funcName = "encodeURIComponent") {
+    if (tokens.length === 1 && tokens[0].type === "variable") {
+      return tokens[0].name;
+    }
     const escape = (str) => `'${str.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`;
     return tokens.map((token) => token.type === "literal" ? escape(token.value) : `${funcName}(${token.name})`).join(" + ");
   }
@@ -298,6 +301,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     return tokens;
   }
   function renderVegaExpression(tokens, funcName = "encodeURIComponent") {
+    if (tokens.length === 1 && tokens[0].type === "variable") {
+      return tokens[0].name;
+    }
     const escape = (str) => \`'\${str.replace(/\\\\/g, "\\\\\\\\").replace(/'/g, "\\\\'")}'\`;
     return tokens.map((token) => token.type === "literal" ? escape(token.value) : \`\${funcName}(\${token.name})\`).join(" + ");
   }
@@ -1292,6 +1298,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       const signalNames = Object.keys(this.signals);
       if (signalNames.length === 0) {
         return this.templateUrl;
+      }
+      if (this.tokens.length === 1 && this.tokens[0].type === "variable") {
+        return this.signals[this.tokens[0].name] || "";
       }
       const urlParts = [];
       this.tokens.forEach((token) => {

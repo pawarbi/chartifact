@@ -69,7 +69,7 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], ta
 
     for (const dataSource of dataSources) {
         switch (dataSource.type) {
-            case 'json': {
+            case 'inline': {
                 addStaticDataLoaderToSpec(vegaScope, dataSource);
                 break;
             }

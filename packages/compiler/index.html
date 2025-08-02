@@ -1,3 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mdv test</title>
+
+    <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+    <script src="https://unpkg.com/css-tree/dist/csstree.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
+    <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
+
+    <style>
+        #editor {
+            background-color: snow;
+            visibility: hidden;
+            opacity: 0;
+            position: fixed;
+            top: 0;
+            left: -50%;
+            width: 50%;
+            height: 100vh;
+            resize: none;
+            padding: 20px;
+            box-sizing: border-box;
+            pointer-events: none;
+            transition: left 0.3s ease-in-out, opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            display: grid;
+        }
+
+        body.edit #editor {
+            visibility: visible;
+            opacity: 1;
+            left: 0%;
+            pointer-events: auto;
+        }
+
+        #content {
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        body.edit #content {
+            margin-left: 50%;
+            padding-left: 8px;
+            /* mimic the body margin */
+        }
+    </style>
+</head>
+
+<body class="edit">
+
+    <div id="editor">
+        <textarea id="json-input" placeholder="Type your Interactive Document json here...">
 {
     "$schema": "../../../schema/idoc_v1.json",
     "title": "Feature: Data Sources",
@@ -127,3 +183,55 @@
         }
     ]
 }
+</textarea>
+        <textarea id="markdown-input" placeholder="Type your Interactive Document markdown here..."></textarea>
+    </div>
+    <div id="content"></div>
+
+    <script type="module">
+        import { targetMarkdown } from './src/index.ts';
+        import { Renderer } from '../markdown/src/index.js';
+
+        const textareaJson = document.getElementById('json-input');
+        const textareaMarkdown = document.getElementById('markdown-input');
+        const renderer = new Renderer(document.getElementById('content'));
+
+        window.renderer = renderer;
+
+        function renderJson() {
+            const json = textareaJson.value;
+            // Convert JSON to Markdown
+            try {
+                const idoc = JSON.parse(json);
+                const markdown = targetMarkdown(idoc);
+                textareaMarkdown.value = markdown;
+
+                renderMarkdown();
+            } catch (e) {
+                console.error('Invalid JSON:', e);
+                return;
+            }
+        }
+
+        function renderMarkdown() {
+            //renderer.render(textarea.value);
+
+            renderer.reset();
+            const html = renderer.renderHtml(textareaMarkdown.value);
+            renderer.element.innerHTML = html;
+            const specs = renderer.hydrateSpecs();
+            console.log('Specs:', specs);
+            renderer.hydrate(specs);
+
+        }
+
+        textareaJson.addEventListener('input', renderJson);
+        textareaMarkdown.addEventListener('input', renderMarkdown);
+
+        renderJson();
+
+    </script>
+
+</body>
+
+</html>

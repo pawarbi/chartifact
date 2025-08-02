@@ -2,6 +2,13 @@
 layout: default
 title: "Chartifact Home"
 ---
+```
+    A     I
+C H A   T
+C H A R T
+    A R T I F A C T
+C H A R T I F A C T
+```
 # Chartifact
 
 **Declarative, interactive data documents**
@@ -66,8 +73,7 @@ Styling is done using standard CSS. Examples provided to style documents as arti
 
 Chartifact is designed to be safe by default:
 
+* Rendered in sandboxed iframes to isolate execution
 * No custom JavaScript execution
-* CSP-compliant via Vega expression language
 * No raw HTML in Markdown
 * XSS-Defensive CSS parsing
-* Rendered in sandboxed iframes to isolate execution

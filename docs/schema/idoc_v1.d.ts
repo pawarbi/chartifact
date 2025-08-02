@@ -56,9 +56,9 @@ interface ReturnType {
 }
 /** Data source types */
 /** JSON data */
-interface DataSourceByJSON extends DataSourceBase {
-    type: 'json';
-    content: object[];
+interface DataSourceInline extends DataSourceBase {
+    type: 'inline';
+    content: object[] | string;
 }
 /** User uploaded their own data file */
 interface DataSourceByFile extends DataSourceBase {
@@ -75,7 +75,7 @@ interface DataSourceByDynamicURL extends DataSourceBase {
     docString?: string;
 }
 /** Union type for DataSource */
-type DataSource<T = {}> = (DataSourceByJSON | DataSourceByFile | DataSourceByDynamicURL) & T;
+type DataSource<T = {}> = (DataSourceInline | DataSourceByFile | DataSourceByDynamicURL) & T;
 /** LLM Should not use this type */
 interface DataLoaderBySpec {
     type: 'spec';
@@ -245,4 +245,4 @@ type PageElement = MarkdownElement | InteractiveElement;
 type InteractiveDocumentWithSchema = InteractiveDocument & {
     $schema?: string;
 };
-export type { Calculation, ChartElement, ChartFull, ChartPlaceholder, ChartValue, CheckboxElement, CheckboxProps, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceByJSON, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, Layout, MarkdownElement, PageElement, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TableElement, TableElementProps, TemplatedUrl, TextboxElement, TextboxElementProps, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive };
+export type { Calculation, ChartElement, ChartFull, ChartPlaceholder, ChartValue, CheckboxElement, CheckboxProps, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceInline, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, Layout, MarkdownElement, PageElement, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TableElement, TableElementProps, TemplatedUrl, TextboxElement, TextboxElementProps, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive };
