@@ -1,5 +1,5 @@
 {
-    "$schema": "../../../schema/idoc_v1.json",
+    "$schema": "../../../../schema/idoc_v1.json",
     "title": "Feature: Presets",
     "variables": [
         {
