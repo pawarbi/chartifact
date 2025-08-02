@@ -4,7 +4,8 @@
     "dataLoaders": [
         {
             "dataSourceName": "jsonData",
-            "type": "json",
+            "type": "inline",
+            "format": "json",
             "content": [
                 {"item": "Stapler", "category": "Office Tools", "price": 12.99, "inStock": true, "quantity": 25},
                 {"item": "Printer Paper", "category": "Paper", "price": 8.50, "inStock": true, "quantity": 150},
@@ -25,14 +26,33 @@
             "type": "url",
             "format": "csv",
             "url": "https://vega.github.io/editor/data/stocks.csv"
+        },
+        {
+            "dataSourceName": "jsonUrlVariable",
+            "type": "url",
+            "format": "json",
+            "url": "{{json_url}}"
+        },
+        {
+            "dataSourceName": "inlineCsvData",
+            "type": "inline",
+            "format": "csv",
+            "content": "item,price\nStapler,12.99\nPen,1.25\nLamp,29.99"
+        }
+    ],
+    "variables": [
+        {
+            "variableId": "json_url",
+            "type": "string",
+            "initialValue": "https://vega.github.io/editor/data/barley.json"
         }
     ],
     "groups": [
         {
-            "groupId": "main",
+            "groupId": "json_data",
             "elements": [
-                "## Data Sources\nLoad data from JSON, CSV, TSV, or URLs with optional transformations.",
-                "### JSON Data",
+                "## JSON Data",
+                "Load data from a static JSON array.",
                 {
                     "type": "table",
                     "dataSourceName": "jsonData",
@@ -42,8 +62,14 @@
                         "layout": "fitColumns",
                         "maxHeight": "100px"
                     }
-                },
-                "### CSV from URL",
+                }
+            ]
+        },
+        {
+            "groupId": "csv_url",
+            "elements": [
+                "## CSV from URL",
+                "Load CSV data from a fixed URL.",
                 {
                     "type": "table",
                     "dataSourceName": "csvData",
@@ -52,6 +78,49 @@
                         "autoColumns": true,
                         "layout": "fitColumns",
                         "maxHeight": "200px"
+                    }
+                }
+            ]
+        },
+        {
+            "groupId": "csv_url_variable",
+            "elements": [
+                "## Complete URL Variable (JSON)",
+                "You can use a single variable for the entire JSON URL. No URL encoding is applied to the value.",
+                "Note: You can also construct URLs from multiple segments (e.g., `{{host}}/{{path}}`). In that case, each segment is encoded using `encodeURIComponent`.",
+                {
+                    "type": "dropdown",
+                    "variableId": "json_url",
+                    "options": [
+                        "https://vega.github.io/editor/data/barley.json",
+                        "https://vega.github.io/editor/data/cars.json"
+                    ]
+                },
+                {
+                    "type": "table",
+                    "dataSourceName": "jsonUrlVariable",
+                    "variableId": "jsonUrlTable",
+                    "tabulatorOptions": {
+                        "autoColumns": true,
+                        "layout": "fitColumns",
+                        "maxHeight": "200px"
+                    }
+                }
+            ]
+        },
+        {
+            "groupId": "inline_csv",
+            "elements": [
+                "## Inline CSV Data",
+                "You can provide CSV data directly as a single string.",
+                {
+                    "type": "table",
+                    "dataSourceName": "inlineCsvData",
+                    "variableId": "inlineCsvTable",
+                    "tabulatorOptions": {
+                        "autoColumns": true,
+                        "layout": "fitColumns",
+                        "maxHeight": "100px"
                     }
                 }
             ]
