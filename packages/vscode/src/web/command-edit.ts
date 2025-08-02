@@ -207,6 +207,7 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 	const resourceLinks = [
 		script(resourceUrl('react.production.min.js')),
 		script(resourceUrl('react-dom.production.min.js')),
+		script(resourceUrl('vega.min.js')),
 		script(resourceUrl('chartifact.editor.umd.js')),
 		script(resourceUrl('edit.js')),
 	].join('\n    ');
