@@ -196,6 +196,8 @@
         const textareaMarkdown = document.getElementById('markdown-input');
         const renderer = new Renderer(document.getElementById('content'));
 
+        window.renderer = renderer;
+
         function renderJson() {
             const json = textareaJson.value;
             // Convert JSON to Markdown
