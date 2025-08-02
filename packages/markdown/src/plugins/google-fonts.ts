@@ -3,39 +3,17 @@
 * Licensed under the MIT License.
 */
 
+import { GoogleFontsSpec } from '@microsoft/chartifact-schema';
 import { IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
 import { flaggableJsonPlugin } from './config.js';
 import { PluginNames } from './interfaces.js';
 import { pluginClassName } from './util.js';
-
-export interface GoogleFontsSpec {
-    googleFontsUrl: string;
-    mapping?: {
-        body?: string;      // Base font - applies to everything if others not specified
-        hero?: string;      // H1 only - the main hero title
-        headings?: string;  // all headings
-        code?: string;      // Code blocks and inline code
-        table?: string;     // Tables and tabulator
-    };
-    sizing?: {
-        body?: number;      // 1.0 = normal, 1.1 = 10% larger, 0.9 = 10% smaller
-        hero?: number;      // Relative size multiplier for H1
-        headings?: number;  // Relative size multiplier for all headings
-        code?: number;      // Relative size multiplier for code elements
-        table?: number;     // Relative size multiplier for tables
-    };
-}
 
 interface GoogleFontsInstance {
     id: string;
     spec: GoogleFontsSpec;
     styleElement: HTMLStyleElement;
     linkElement?: HTMLLinkElement;
-}
-
-interface FontFamily {
-    name: string;
-    fallback: string;
 }
 
 // Helper function to validate Google Fonts URL
@@ -76,8 +54,8 @@ function sanitizeSizing(sizeValue: number): number | null {
 }
 
 // Helper function to extract font families from Google Fonts URL
-function extractFontFamilies(googleFontsUrl: string): FontFamily[] {
-    const families: FontFamily[] = [];
+function extractFontFamilies(googleFontsUrl: string) {
+    const families: string[] = [];
 
     try {
         const url = new URL(googleFontsUrl);
@@ -97,16 +75,7 @@ function extractFontFamilies(googleFontsUrl: string): FontFamily[] {
                 continue;
             }
 
-            // Determine fallback based on font name patterns
-            let fallback = 'sans-serif';
-            const lowerName = familyName.toLowerCase();
-            if (lowerName.includes('mono') || lowerName.includes('code') || lowerName.includes('consola')) {
-                fallback = 'monospace';
-            } else if (lowerName.includes('serif') && !lowerName.includes('sans')) {
-                fallback = 'serif';
-            }
-
-            families.push({ name: familyName, fallback });
+            families.push(familyName);
         }
     } catch (error) {
         console.error('Failed to parse Google Fonts URL:', error);
@@ -116,7 +85,7 @@ function extractFontFamilies(googleFontsUrl: string): FontFamily[] {
 }
 
 // Helper function to generate scoped CSS for semantic elements
-function generateSemanticCSS(spec: GoogleFontsSpec, families: FontFamily[], scopeId: string): string {
+function generateSemanticCSS(spec: GoogleFontsSpec, families: string[], scopeId: string): string {
     const cssRules: string[] = [];
 
     // Helper to generate CSS rule for a specific element type
@@ -132,9 +101,9 @@ function generateSemanticCSS(spec: GoogleFontsSpec, families: FontFamily[], scop
         // Add font-family if mapping exists
         if (fontFamily) {
             const sanitizedName = sanitizeFontFamily(fontFamily);
-            const family = families.find(f => f.name === sanitizedName);
+            const family = families.find(f => f === sanitizedName);
             if (family) {
-                css += `\n  font-family: '${family.name}';`;
+                css += `\n  font-family: '${family}';`;
             }
         }
 
@@ -267,7 +236,7 @@ export const googleFontsPlugin: Plugin<GoogleFontsSpec> = {
                 emitted = true;
 
                 // Replace container content with summary
-                const fontsList = families.map(f => f.name).join(', ');
+                const fontsList = families.join(', ');
                 container.innerHTML = `<!-- Google Fonts loaded: ${fontsList} -->`;
 
             } catch (e) {
