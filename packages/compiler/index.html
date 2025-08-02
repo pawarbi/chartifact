@@ -14,7 +14,7 @@
     <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
 
     <style>
-        #json-input {
+        #editor {
             background-color: snow;
             visibility: hidden;
             opacity: 0;
@@ -28,9 +28,10 @@
             box-sizing: border-box;
             pointer-events: none;
             transition: left 0.3s ease-in-out, opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            display: grid;
         }
 
-        body.edit #json-input {
+        body.edit #editor {
             visibility: visible;
             opacity: 1;
             left: 0%;
@@ -51,7 +52,8 @@
 
 <body class="edit">
 
-    <textarea id="json-input" placeholder="Type your Interactive Document markdown here...">
+    <div id="editor">
+        <textarea id="json-input" placeholder="Type your Interactive Document json here...">
 {
     "$schema": "../../../schema/idoc_v1.json",
     "title": "Feature: Data Sources",
@@ -182,40 +184,49 @@
     ]
 }
 </textarea>
-
+        <textarea id="markdown-input" placeholder="Type your Interactive Document markdown here..."></textarea>
+    </div>
     <div id="content"></div>
 
     <script type="module">
         import { targetMarkdown } from './src/index.ts';
         import { Renderer } from '../markdown/src/index.js';
 
-        const textarea = document.getElementById('json-input');
+        const textareaJson = document.getElementById('json-input');
+        const textareaMarkdown = document.getElementById('markdown-input');
         const renderer = new Renderer(document.getElementById('content'));
 
-        function render() {
-            const json = textarea.value;
+        function renderJson() {
+            const json = textareaJson.value;
             // Convert JSON to Markdown
             try {
                 const idoc = JSON.parse(json);
                 const markdown = targetMarkdown(idoc);
+                textareaMarkdown.value = markdown;
 
-                //renderer.render(textarea.value);
-
-                renderer.reset();
-                const html = renderer.renderHtml(markdown);
-                renderer.element.innerHTML = html;
-                const specs = renderer.hydrateSpecs();
-                console.log('Specs:', specs);
-                renderer.hydrate(specs);
+                renderMarkdown();
             } catch (e) {
                 console.error('Invalid JSON:', e);
                 return;
             }
         }
 
-        textarea.addEventListener('input', render);
+        function renderMarkdown() {
+            //renderer.render(textarea.value);
 
-        render();
+            renderer.reset();
+            const html = renderer.renderHtml(textareaMarkdown.value);
+            renderer.element.innerHTML = html;
+            const specs = renderer.hydrateSpecs();
+            console.log('Specs:', specs);
+            renderer.hydrate(specs);
+
+        }
+
+        textareaJson.addEventListener('input', renderJson);
+        textareaMarkdown.addEventListener('input', renderMarkdown);
+
+        renderJson();
 
     </script>
 
