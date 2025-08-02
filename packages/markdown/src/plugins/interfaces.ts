@@ -15,6 +15,7 @@ export type PluginNames =
     'checkbox' |
     'dropdown' |
     'image' |
+    'google-fonts' |
     'placeholders' |
     'presets' |
     'slider' |
