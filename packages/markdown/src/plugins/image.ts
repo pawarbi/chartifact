@@ -18,6 +18,7 @@ interface ImageInstance {
     spec: ImageSpec;
     img: HTMLImageElement;
     spinner: HTMLDivElement;
+    hasImage: boolean;
 }
 
 enum ImageOpacity {
@@ -44,32 +45,72 @@ export const imagePlugin: Plugin<ImageSpec> = {
             const img = document.createElement('img');
             const spinner = document.createElement('div');
             spinner.innerHTML = `
-                    <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="10" stroke="gray" stroke-width="2" fill="none" stroke-dasharray="31.4" stroke-dashoffset="0">
-                            <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
-                        </circle>
-                    </svg>`;
+                <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="gray" stroke-width="2" fill="none" stroke-dasharray="31.4" stroke-dashoffset="0">
+                        <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+                    </circle>
+                </svg>
+            `;
 
-            if (spec.alt) img.alt = spec.alt;
-            if (spec.width) img.width = spec.width;
-            if (spec.height) img.height = spec.height;
-            img.onload = () => {
-                spinner.style.display = 'none';
-                img.style.opacity = ImageOpacity.full;
+            const retryBtn = document.createElement('button');
+            retryBtn.textContent = 'Retry';
+            const buttonStyles: Partial<CSSStyleDeclaration> = {
+                display: 'none',
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: '2',
             };
-            img.onerror = () => {
-                spinner.style.display = 'none';
-                img.style.opacity = ImageOpacity.error;
-                errorHandler(new Error('Image failed to load'), pluginName, index, 'load', container, img.src);
-            };
+            Object.assign(retryBtn.style, buttonStyles);
 
             (container as HTMLElement).style.position = 'relative';
             spinner.style.position = 'absolute';
             container.innerHTML = '';
             container.appendChild(spinner);
             container.appendChild(img);
+            container.appendChild(retryBtn);
 
-            const imageInstance: ImageInstance = { id: `${pluginName}-${index}`, spec, img, spinner };
+            if (spec.alt) img.alt = spec.alt;
+            if (spec.width) img.width = spec.width;
+            if (spec.height) img.height = spec.height;
+
+            img.onload = () => {
+                spinner.style.display = 'none';
+                img.style.opacity = ImageOpacity.full;
+                img.style.display = ''; // show image
+                retryBtn.style.display = 'none';
+                imageInstance.hasImage = true;
+            };
+            img.onerror = () => {
+                spinner.style.display = 'none';
+                img.style.opacity = ImageOpacity.error;
+                img.style.display = 'none'; // hide broken image
+                retryBtn.style.display = '';
+                retryBtn.disabled = false;
+                imageInstance.hasImage = false;
+                errorHandler(new Error('Image failed to load'), pluginName, index, 'load', container, img.src);
+            };
+
+            retryBtn.onclick = () => {
+                retryBtn.disabled = true;
+                spinner.style.display = '';
+                img.style.opacity = ImageOpacity.loading;
+                img.style.display = imageInstance.hasImage ? '' : 'none'; // only show if previous load succeeded
+                const src = img.src;
+                img.src = '';
+                setTimeout(() => {
+                    img.src = src;
+                }, 100);
+            };
+
+            const imageInstance: ImageInstance = {
+                id: `${pluginName}-${index}`,
+                spec,
+                img,
+                spinner,
+                hasImage: false,
+            };
             imageInstances.push(imageInstance);
         }
         const instances = imageInstances.map((imageInstance, index): IInstance => {
