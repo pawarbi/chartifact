@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../../schema/idoc_v1.json",
+  "$schema": "https://microsoft.github.io/chartifact/schema/idoc_v1.json",
   "title": "Seattle Weather",
   "groups": [
     {
