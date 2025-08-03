@@ -12,7 +12,7 @@ import { VegaScope } from './scope.js';
 import { createSpecWithVariables } from './spec.js';
 import { defaultCommonOptions } from 'common';
 
-const JsonIndent = 2;
+const defaultJsonIndent = 2;
 
 function tickWrap(tick: string, content: string) {
     return `\`\`\`${tick}\n${content}\n\`\`\``;
@@ -24,7 +24,7 @@ function jsonWrap(type: string, content: string) {
 
 function chartWrap(spec: VegaSpec | VegaLiteSpec) {
     const chartType = getChartType(spec);
-    return jsonWrap(chartType, JSON.stringify(spec, null, JsonIndent));
+    return jsonWrap(chartType, JSON.stringify(spec, null, defaultJsonIndent));
 }
 
 function mdContainerWrap(classname: string, id: string, content: string) {
@@ -120,8 +120,9 @@ type pluginSpecs = Plugins.CheckboxSpec | Plugins.DropdownSpec | Plugins.ImageSp
 function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: VegaScope, resources: { charts?: { [chartKey: string]: VegaSpec | VegaLiteSpec } }) {
     const mdElements: string[] = [];
 
-    const addSpec = (pluginName: Plugins.PluginNames, spec: pluginSpecs) => {
-        mdElements.push(jsonWrap(pluginName, JSON.stringify(spec, null, JsonIndent)));
+    const addSpec = (pluginName: Plugins.PluginNames, spec: pluginSpecs, indent = true) => {
+        const content = indent ? JSON.stringify(spec, null, defaultJsonIndent) : JSON.stringify(spec);
+        mdElements.push(jsonWrap(pluginName, content));
     }
 
     for (const element of group.elements) {
@@ -148,7 +149,7 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                         value: variables.find(v => v.variableId === variableId)?.initialValue as boolean,
                         label,
                     };
-                    addSpec('checkbox', cbSpec);
+                    addSpec('checkbox', cbSpec, false);
                     break;
                 }
                 case 'dropdown': {
@@ -201,7 +202,7 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                         max,
                         step,
                     };
-                    addSpec('slider', sliderSpec);
+                    addSpec('slider', sliderSpec, false);
                     break;
                 }
                 case 'table': {
@@ -219,7 +220,7 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                         multiline,
                         placeholder,
                     };
-                    addSpec('textbox', textboxSpec);
+                    addSpec('textbox', textboxSpec, false);
                     break;
                 }
             }
