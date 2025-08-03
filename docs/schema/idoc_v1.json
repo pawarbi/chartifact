@@ -212,8 +212,8 @@
       "additionalProperties": false,
       "description": "Chart use for visualizations",
       "properties": {
-        "chart": {
-          "$ref": "#/definitions/ChartValue"
+        "chartKey": {
+          "type": "string"
         },
         "type": {
           "const": "chart",
@@ -222,69 +222,9 @@
       },
       "required": [
         "type",
-        "chart"
+        "chartKey"
       ],
       "type": "object"
-    },
-    "ChartFull": {
-      "additionalProperties": false,
-      "properties": {
-        "chartIntent": {
-          "description": "what this chart intends to show",
-          "type": "string"
-        },
-        "chartTemplateKey": {
-          "description": "A list of available chart templates will be provided below, the Assistant will choose one of these templates to render a chart",
-          "type": "string"
-        },
-        "dataSourceBase": {
-          "$ref": "#/definitions/DataSourceBase"
-        },
-        "spec": {
-          "description": "either a Vega or Vega-Lite spec",
-          "type": "object"
-        }
-      },
-      "required": [
-        "chartIntent",
-        "chartTemplateKey",
-        "dataSourceBase",
-        "spec"
-      ],
-      "type": "object"
-    },
-    "ChartPlaceholder": {
-      "additionalProperties": false,
-      "properties": {
-        "chartIntent": {
-          "description": "what this chart intends to show",
-          "type": "string"
-        },
-        "chartTemplateKey": {
-          "description": "A list of available chart templates will be provided below, the Assistant will choose one of these templates to render a chart",
-          "type": "string"
-        },
-        "dataSourceBase": {
-          "$ref": "#/definitions/DataSourceBase"
-        }
-      },
-      "required": [
-        "chartTemplateKey",
-        "dataSourceBase",
-        "chartIntent"
-      ],
-      "type": "object"
-    },
-    "ChartValue": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/ChartPlaceholder"
-        },
-        {
-          "$ref": "#/definitions/ChartFull"
-        }
-      ],
-      "description": "When working with existing pages/charts, the Assistant can use ChartFull"
     },
     "CheckboxElement": {
       "additionalProperties": false,
@@ -715,29 +655,6 @@
         }
       ],
       "description": "Union type for DataSource"
-    },
-    "DataSourceBase": {
-      "additionalProperties": false,
-      "properties": {
-        "dataFrameTransformations": {
-          "items": {
-            "$ref": "#/definitions/Transforms"
-          },
-          "type": "array"
-        },
-        "dataSourceName": {
-          "$ref": "#/definitions/VariableID",
-          "description": "name of the data source, used to reference it in the UI, has same constraints as VariableID"
-        },
-        "format": {
-          "$ref": "#/definitions/DataSourceBaseFormat",
-          "description": "optional, default is 'json'"
-        }
-      },
-      "required": [
-        "dataSourceName"
-      ],
-      "type": "object"
     },
     "DataSourceBaseFormat": {
       "enum": [
@@ -1807,6 +1724,18 @@
             "$ref": "#/definitions/ElementGroup"
           },
           "type": "array"
+        },
+        "resources": {
+          "additionalProperties": false,
+          "properties": {
+            "charts": {
+              "additionalProperties": {
+                "$ref": "#/definitions/Vega_or_VegaLite_spec"
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
         },
         "style": {
           "$ref": "#/definitions/PageStyle"
@@ -3434,6 +3363,9 @@
       "maxItems": 7,
       "minItems": 7,
       "type": "array"
+    },
+    "Vega_or_VegaLite_spec": {
+      "type": "object"
     },
     "VoronoiTransform": {
       "additionalProperties": false,
