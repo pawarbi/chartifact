@@ -14,6 +14,7 @@ export function createSpecWithVariables(variables: Variable[], tableElements: Ta
     //preload with variables as signals
     const spec: VegaSpec = {
         $schema: "https://vega.github.io/schema/vega/v5.json",
+        description: "This is the central brain of the page",
         signals: [],
         data: [],
     };
