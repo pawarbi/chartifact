@@ -1,0 +1,82 @@
+{
+    "$schema": "../../../../docs/schema/idoc_v1.json",
+    "title": "Feature: Input Controls",
+    "variables": [
+        {
+            "variableId": "isEnabled",
+            "type": "boolean",
+            "initialValue": true
+        },
+        {
+            "variableId": "userName",
+            "type": "string",
+            "initialValue": "John Doe"
+        },
+        {
+            "variableId": "temperature",
+            "type": "number",
+            "initialValue": 20
+        },
+        {
+            "variableId": "opacity",
+            "type": "number",
+            "initialValue": 0.5
+        },
+        {
+            "variableId": "selectedColor",
+            "type": "string",
+            "initialValue": "blue"
+        },
+        {
+            "variableId": "selectedItems",
+            "type": "string",
+            "isArray": true,
+            "initialValue": ["apple", "banana"]
+        }
+    ],
+    "groups": [
+        {
+            "groupId": "main",
+            "elements": [
+                "## Input Controls",
+                "Hello **{{userName}}**! Feature enabled: **{{isEnabled}}**. Temperature: **{{temperature}}°C**. Color: **{{selectedColor}}**. Items: **{{selectedItems}}**.",
+                "### Checkbox",
+                {
+                    "type": "checkbox",
+                    "variableId": "isEnabled",
+                    "label": "Enable feature"
+                },
+                "### Textbox",
+                {
+                    "type": "textbox",
+                    "variableId": "userName",
+                    "label": "Name:"
+                },
+                "### Slider",
+                {
+                    "type": "slider",
+                    "variableId": "temperature",
+                    "label": "Temperature:",
+                    "min": -10,
+                    "max": 40,
+                    "step": 1
+                },
+                "### Dropdown",
+                {
+                    "type": "dropdown",
+                    "variableId": "selectedColor",
+                    "label": "Color:",
+                    "options": ["red", "green", "blue", "yellow"]
+                },
+                {
+                    "type": "dropdown",
+                    "variableId": "selectedItems",
+                    "label": "Items:",
+                    "options": ["apple", "banana", "orange", "grape"],
+                    "multiple": true,
+                    "size": 3
+                }
+            ]
+        }
+    ]
+}

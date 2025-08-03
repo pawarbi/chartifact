@@ -11,6 +11,8 @@ export interface ElementGroup {
   elements: PageElement[];
 }
 
+export type Vega_or_VegaLite_spec = object;
+
 /** Define the basic structure of an interactive document */
 export interface InteractiveDocument {
   title: string;
@@ -27,6 +29,10 @@ export interface InteractiveDocument {
   variables?: Variable[];
 
   style?: PageStyle;
+
+  resources?: {
+    charts?: { [chartKey: string]: Vega_or_VegaLite_spec }
+  };
 }
 
 /**

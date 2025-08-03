@@ -1,0 +1,17 @@
+{
+  "$schema": "https://microsoft.github.io/chartifact/schema/idoc_v1.json",
+  "title": "Feature: Markdown",
+  "groups": [
+    {
+      "groupId": "main",
+      "elements": [
+        "## Markdown\nUse markdown to format text, create headings, lists, and more. HTML tags are not allowed.",
+        "### Text Formatting",
+        "**Bold**, *italic*, `code` text, and [links](https://microsoft.com).",
+        "### Lists",
+        "1. Numbered lists\n2. Work great",
+        "- Bullet points\n- Also work"
+      ]
+    }
+  ]
+}

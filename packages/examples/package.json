@@ -1,0 +1,14 @@
+{
+  "name": "examples",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "convert": "node ./dist/convert.mjs",
+    "clean": "rimraf dist",
+    "build": "tsc -p .",
+    "deploy": "npm run build && npm run readme"
+  },
+  "author": "Dan Marshall",
+  "license": "MIT",
+  "description": ""
+}

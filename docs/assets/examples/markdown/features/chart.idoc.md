@@ -1,0 +1,68 @@
+```json vega
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "This is the central brain of the page",
+  "signals": [
+    {
+      "name": "chartData",
+      "update": "data('chartData')"
+    }
+  ],
+  "data": [
+    {
+      "name": "chartData",
+      "values": [
+        {
+          "category": "A",
+          "value": 20
+        },
+        {
+          "category": "B",
+          "value": 34
+        },
+        {
+          "category": "C",
+          "value": 55
+        },
+        {
+          "category": "D",
+          "value": 40
+        },
+        {
+          "category": "E",
+          "value": 67
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Chart
+Use charts for data visualizations with Vega-Lite specifications.
+
+```json vega-lite
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "data": {
+    "name": "chartData"
+  },
+  "mark": "bar",
+  "encoding": {
+    "x": {
+      "field": "category",
+      "type": "nominal",
+      "title": "Category"
+    },
+    "y": {
+      "field": "value",
+      "type": "quantitative",
+      "title": "Value"
+    },
+    "color": {
+      "field": "category",
+      "type": "nominal"
+    }
+  }
+}
+```

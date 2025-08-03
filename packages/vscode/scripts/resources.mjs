@@ -2,6 +2,8 @@ import { resolve, basename } from 'path';
 import { existsSync, mkdirSync, unlinkSync, copyFileSync, readdirSync } from 'fs';
 
 const resources = [
+    
+    //npm dependencies
     '../../node_modules/react/umd/react.production.min.js',
     '../../node_modules/react-dom/umd/react-dom.production.min.js',
     '../../node_modules/vega/build/vega.min.js',
@@ -10,12 +12,14 @@ const resources = [
     '../../node_modules/css-tree/dist/csstree.js',
     '../../node_modules/tabulator-tables/dist/js/tabulator.min.js',
     '../../node_modules/tabulator-tables/dist/css/tabulator.min.css',
+
+    //local umd builds
     '../../packages/host/dist/umd/chartifact.host.umd.js',
     '../../packages/sandbox/dist/umd/chartifact.sandbox.umd.js',
     '../../packages/compiler/dist/umd/chartifact.compiler.umd.js',
     '../../packages/editor/dist/umd/chartifact.editor.umd.js',
-    '../../docs/assets/examples/grocery-list.idoc.json',
-    '../../docs/assets/examples/seattle-weather/1.idoc.md',
+
+    //webview resources
     '../../packages/vscode-resources/dist/edit.js',
     '../../packages/vscode-resources/dist/html-json.js',
     '../../packages/vscode-resources/dist/html-markdown.js',
@@ -24,6 +28,10 @@ const resources = [
     '../../packages/vscode-resources/html/edit.html',
     '../../packages/vscode-resources/html/html-json.html',
     '../../packages/vscode-resources/html/html-markdown.html',
+
+    //sample docs
+    '../../docs/assets/examples/json/grocery-list.idoc.json',
+    '../../docs/assets/examples/markdown/seattle-weather/1.idoc.md',
 ];
 
 const errors = [];

@@ -192,6 +192,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   function createSpecWithVariables(variables, tableElements, stubDataLoaders) {
     const spec = {
       $schema: "https://vega.github.io/schema/vega/v5.json",
+      description: "This is the central brain of the page",
       signals: [],
       data: []
     };
@@ -277,8 +278,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   function addDynamicDataLoaderToSpec(vegaScope, dataSource) {
     const { spec } = vegaScope;
     const { dataSourceName } = dataSource;
-    const urlSignal = vegaScope.createUrlSignal(dataSource.url);
-    const url = { signal: urlSignal.name };
+    const tokens = tokenizeTemplate(dataSource.url);
+    const variableCount = tokens.filter((token) => token.type === "variable").length;
+    let url;
+    if (variableCount) {
+      const urlSignal = vegaScope.createUrlSignal(dataSource.url, tokens);
+      url = { signal: urlSignal.name };
+    } else {
+      url = dataSource.url;
+    }
     ensureDataAndSignalsArray(spec);
     spec.signals.push(dataAsSignal(dataSourceName));
     spec.data.unshift({
@@ -293,10 +301,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       __publicField(this, "urlCount", 0);
       this.spec = spec;
     }
-    createUrlSignal(url) {
+    createUrlSignal(url, tokens) {
       const name = `url:${this.urlCount++}:${safeVariableName(url)}`;
       const signal = { name };
-      signal.update = encodeTemplateVariables(url);
+      signal.update = renderVegaExpression(tokens);
       if (!this.spec.signals) {
         this.spec.signals = [];
       }
@@ -304,7 +312,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return signal;
     }
   }
-  const JsonIndent = 2;
+  const defaultJsonIndent = 2;
   function tickWrap(tick, content) {
     return `\`\`\`${tick}
 ${content}
@@ -315,7 +323,7 @@ ${content}
   }
   function chartWrap(spec) {
     const chartType = getChartType(spec);
-    return jsonWrap(chartType, JSON.stringify(spec, null, JsonIndent));
+    return jsonWrap(chartType, JSON.stringify(spec, null, defaultJsonIndent));
   }
   function mdContainerWrap(classname, id, content) {
     return `::: ${classname} {#${id}}
@@ -341,9 +349,29 @@ ${content}
       mdSections.push(chartWrap(dataLoader.spec));
     }
     for (const group of page.groups) {
-      mdSections.push(mdContainerWrap(defaultCommonOptions.groupClassName, group.groupId, groupMarkdown(group, variables)));
+      mdSections.push(mdContainerWrap(
+        defaultCommonOptions.groupClassName,
+        group.groupId,
+        groupMarkdown(group, variables, vegaScope, page.resources)
+      ));
     }
-    mdSections.unshift(chartWrap(vegaScope.spec));
+    const { data, signals } = vegaScope.spec;
+    if ((data == null ? void 0 : data.length) === 0) {
+      delete vegaScope.spec.data;
+    } else {
+      data.forEach((d) => {
+        var _a;
+        if (((_a = d.transform) == null ? void 0 : _a.length) === 0) {
+          delete d.transform;
+        }
+      });
+    }
+    if ((signals == null ? void 0 : signals.length) === 0) {
+      delete vegaScope.spec.signals;
+    }
+    if (vegaScope.spec.data || vegaScope.spec.signals) {
+      mdSections.unshift(chartWrap(vegaScope.spec));
+    }
     const markdown = mdSections.join("\n\n");
     return markdown;
   }
@@ -368,11 +396,12 @@ ${content}
     }
     return vegaScope;
   }
-  function groupMarkdown(group, variables, vegaScope) {
-    var _a, _b, _c, _d;
+  function groupMarkdown(group, variables, vegaScope, resources) {
+    var _a, _b, _c, _d, _e;
     const mdElements = [];
-    const addSpec = (pluginName, spec) => {
-      mdElements.push(jsonWrap(pluginName, JSON.stringify(spec, null, JsonIndent)));
+    const addSpec = (pluginName, spec, indent = true) => {
+      const content = indent ? JSON.stringify(spec, null, defaultJsonIndent) : JSON.stringify(spec);
+      mdElements.push(jsonWrap(pluginName, content));
     };
     for (const element of group.elements) {
       if (typeof element === "string") {
@@ -380,12 +409,12 @@ ${content}
       } else if (typeof element === "object") {
         switch (element.type) {
           case "chart": {
-            const { chart } = element;
-            const chartFull = chart;
-            if (!chartFull.spec) {
+            const { chartKey } = element;
+            const spec = (_a = resources == null ? void 0 : resources.charts) == null ? void 0 : _a[chartKey];
+            if (!spec) {
               mdElements.push("![Chart Spinner](/img/chart-spinner.gif)");
             } else {
-              mdElements.push(chartWrap(chartFull.spec));
+              mdElements.push(chartWrap(spec));
             }
             break;
           }
@@ -393,17 +422,17 @@ ${content}
             const { label, variableId } = element;
             const cbSpec = {
               variableId,
-              value: (_a = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _a.initialValue,
+              value: (_b = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _b.initialValue,
               label
             };
-            addSpec("checkbox", cbSpec);
+            addSpec("checkbox", cbSpec, false);
             break;
           }
           case "dropdown": {
             const { label, variableId, options, dynamicOptions, multiple, size } = element;
             const ddSpec = {
               variableId,
-              value: (_b = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _b.initialValue,
+              value: (_c = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _c.initialValue,
               label
             };
             if (dynamicOptions) {
@@ -443,13 +472,13 @@ ${content}
             const { label, min, max, step, variableId } = element;
             const sliderSpec = {
               variableId,
-              value: (_c = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _c.initialValue,
+              value: (_d = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _d.initialValue,
               label,
               min,
               max,
               step
             };
-            addSpec("slider", sliderSpec);
+            addSpec("slider", sliderSpec, false);
             break;
           }
           case "table": {
@@ -462,12 +491,12 @@ ${content}
             const { variableId, label, multiline, placeholder } = element;
             const textboxSpec = {
               variableId,
-              value: (_d = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _d.initialValue,
+              value: (_e = variables.find((v) => v.variableId === variableId)) == null ? void 0 : _e.initialValue,
               label,
               multiline,
               placeholder
             };
-            addSpec("textbox", textboxSpec);
+            addSpec("textbox", textboxSpec, false);
             break;
           }
         }

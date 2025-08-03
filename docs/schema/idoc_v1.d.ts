@@ -142,27 +142,13 @@ interface DropdownElementProps extends VariableControl {
     /** number of options to show at once */
     size?: number;
 }
-interface ChartPlaceholder {
-    /** A list of available chart templates will be provided below, the Assistant will choose one of these templates to render a chart */
-    chartTemplateKey: string;
-    dataSourceBase: DataSourceBase;
-    /** what this chart intends to show */
-    chartIntent: string;
-}
-interface ChartFull extends ChartPlaceholder {
-    /** either a Vega or Vega-Lite spec */
-    spec: object;
-}
-/** When creating a new page: for charts, the Assistant will create a ChartPlaceholder */
-/** When working with existing pages/charts, the Assistant can use ChartFull */
-type ChartValue = ChartPlaceholder | ChartFull;
 /**
  * Chart
  * use for visualizations
  */
 interface ChartElement extends ElementBase {
     type: 'chart';
-    chart: ChartValue;
+    chartKey: string;
 }
 /**
  * Image element
@@ -216,6 +202,7 @@ interface ElementGroup {
     groupId: string;
     elements: PageElement[];
 }
+type Vega_or_VegaLite_spec = object;
 /** Define the basic structure of an interactive document */
 interface InteractiveDocument {
     title: string;
@@ -229,6 +216,11 @@ interface InteractiveDocument {
     dataLoaders?: DataLoader[];
     variables?: Variable[];
     style?: PageStyle;
+    resources?: {
+        charts?: {
+            [chartKey: string]: Vega_or_VegaLite_spec;
+        };
+    };
 }
 /**
  * Use markdown elements to be verbose and descriptive. Do not use as labels for interactive elements.
@@ -262,4 +254,4 @@ interface GoogleFontsSpec {
 type InteractiveDocumentWithSchema = InteractiveDocument & {
     $schema?: string;
 };
-export type { Calculation, ChartElement, ChartFull, ChartPlaceholder, ChartValue, CheckboxElement, CheckboxProps, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceInline, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, GoogleFontsSpec, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, MarkdownElement, PageElement, PageStyle, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TableElement, TableElementProps, TemplatedUrl, TextboxElement, TextboxElementProps, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive };
+export type { Calculation, ChartElement, CheckboxElement, CheckboxProps, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceInline, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, GoogleFontsSpec, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, MarkdownElement, PageElement, PageStyle, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TableElement, TableElementProps, TemplatedUrl, TextboxElement, TextboxElementProps, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive, Vega_or_VegaLite_spec };
