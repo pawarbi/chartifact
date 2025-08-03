@@ -71,30 +71,15 @@ export interface DropdownElementProps extends VariableControl {
   size?: number;
 }
 
-export interface ChartPlaceholder {
-  /** A list of available chart templates will be provided below, the Assistant will choose one of these templates to render a chart */
-  chartTemplateKey: string;
-  dataSourceBase: DataSourceBase;
-  /** what this chart intends to show */
-  chartIntent: string;
-}
-
-export interface ChartFull extends ChartPlaceholder {
-  /** either a Vega or Vega-Lite spec */
-  spec: object;
-}
-
-/** When creating a new page: for charts, the Assistant will create a ChartPlaceholder */
-/** When working with existing pages/charts, the Assistant can use ChartFull */
-export type ChartValue = ChartPlaceholder | ChartFull;
-
 /**
  * Chart
  * use for visualizations
  */
 export interface ChartElement extends ElementBase {
   type: 'chart';
-  chart: ChartValue;
+
+  // key of the chart spec in the page.resources.charts
+  chartKey: string;
 }
 
 /**

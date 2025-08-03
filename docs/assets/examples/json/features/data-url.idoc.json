@@ -31,35 +31,7 @@
                 },
                 {
                     "type": "chart",
-                    "chart": {
-                        "chartIntent": "show a grouped bar chart",
-                        "chartTemplateKey": "grouped-bar",
-                        "dataSourceBase": {
-                            "dataSourceName": "jsonData"
-                        },
-                        "spec": {
-                            "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-                            "data": {
-                                "name": "jsonData"
-                            },
-                            "mark": "bar",
-                            "encoding": {
-                                "x": {
-                                    "field": "category"
-                                },
-                                "y": {
-                                    "field": "value",
-                                    "type": "quantitative"
-                                },
-                                "xOffset": {
-                                    "field": "group"
-                                },
-                                "color": {
-                                    "field": "group"
-                                }
-                            }
-                        }
-                    }
+                    "chartKey": "1"
                 },
                 {
                     "type": "table",
@@ -73,5 +45,31 @@
                 }
             ]
         }
-    ]
+    ],
+    "resources": {
+        "charts": {
+            "1": {
+                "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+                "data": {
+                    "name": "jsonData"
+                },
+                "mark": "bar",
+                "encoding": {
+                    "x": {
+                        "field": "category"
+                    },
+                    "y": {
+                        "field": "value",
+                        "type": "quantitative"
+                    },
+                    "xOffset": {
+                        "field": "group"
+                    },
+                    "color": {
+                        "field": "group"
+                    }
+                }
+            }
+        }
+    }
 }

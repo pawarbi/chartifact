@@ -4,7 +4,7 @@
 */
 import { Spec as VegaSpec } from 'vega-typings';
 import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
-import { ChartFull, DataSource, ElementGroup, InteractiveDocument, TableElement, Variable } from '@microsoft/chartifact-schema';
+import { DataSource, ElementGroup, InteractiveDocument, TableElement, Variable } from '@microsoft/chartifact-schema';
 import { getChartType } from './util.js';
 import { addDynamicDataLoaderToSpec, addStaticDataLoaderToSpec } from './loader.js';
 import { Plugins } from '@microsoft/chartifact-markdown';
@@ -57,7 +57,11 @@ export function targetMarkdown(page: InteractiveDocument) {
     }
 
     for (const group of page.groups) {
-        mdSections.push(mdContainerWrap(defaultCommonOptions.groupClassName, group.groupId, groupMarkdown(group, variables, vegaScope)));
+        mdSections.push(mdContainerWrap(
+            defaultCommonOptions.groupClassName,
+            group.groupId,
+            groupMarkdown(group, variables, vegaScope, page.resources)
+        ));
     }
 
     //spec is at the top of the markdown file
@@ -95,7 +99,7 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], ta
 
 type pluginSpecs = Plugins.CheckboxSpec | Plugins.DropdownSpec | Plugins.ImageSpec | Plugins.PresetsSpec | Plugins.SliderSpec | Plugins.TabulatorSpec | Plugins.TextboxSpec;
 
-function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: VegaScope) {
+function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: VegaScope, resources: { charts?: { [chartKey: string]: VegaSpec | VegaLiteSpec } }) {
     const mdElements: string[] = [];
 
     const addSpec = (pluginName: Plugins.PluginNames, spec: pluginSpecs) => {
@@ -108,14 +112,14 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
         } else if (typeof element === 'object') {
             switch (element.type) {
                 case 'chart': {
-                    const { chart } = element;
-                    const chartFull = chart as ChartFull;
+                    const { chartKey } = element;
+                    const spec = resources?.charts?.[chartKey];
                     //see if it's a placeholder or a full chart
-                    if (!chartFull.spec) {
+                    if (!spec) {
                         //add a markdown element (not a chart element) with an image of the spinner at /img/chart-spinner.gif
                         mdElements.push('![Chart Spinner](/img/chart-spinner.gif)');
                     } else {
-                        mdElements.push(chartWrap(chartFull.spec));
+                        mdElements.push(chartWrap(spec));
                     }
                     break;
                 }

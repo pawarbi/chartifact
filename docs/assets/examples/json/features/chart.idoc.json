@@ -7,11 +7,26 @@
             "type": "inline",
             "format": "json",
             "content": [
-                {"category": "A", "value": 20},
-                {"category": "B", "value": 34},
-                {"category": "C", "value": 55},
-                {"category": "D", "value": 40},
-                {"category": "E", "value": 67}
+                {
+                    "category": "A",
+                    "value": 20
+                },
+                {
+                    "category": "B",
+                    "value": 34
+                },
+                {
+                    "category": "C",
+                    "value": 55
+                },
+                {
+                    "category": "D",
+                    "value": 40
+                },
+                {
+                    "category": "E",
+                    "value": 67
+                }
             ]
         }
     ],
@@ -22,38 +37,36 @@
                 "## Chart\nUse charts for data visualizations with Vega-Lite specifications.",
                 {
                     "type": "chart",
-                    "chart": {
-                        "chartIntent": "Simple bar chart showing values by category",
-                        "chartTemplateKey": "bar",
-                        "dataSourceBase": {
-                            "dataSourceName": "chartData"
-                        },
-                        "spec": {
-                            "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-                            "data": {
-                                "name": "chartData"
-                            },
-                            "mark": "bar",
-                            "encoding": {
-                                "x": {
-                                    "field": "category",
-                                    "type": "nominal",
-                                    "title": "Category"
-                                },
-                                "y": {
-                                    "field": "value",
-                                    "type": "quantitative",
-                                    "title": "Value"
-                                },
-                                "color": {
-                                    "field": "category",
-                                    "type": "nominal"
-                                }
-                            }
-                        }
-                    }
+                    "chartKey": "1"
                 }
             ]
         }
-    ]
+    ],
+    "resources": {
+        "charts": {
+            "1": {
+                "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+                "data": {
+                    "name": "chartData"
+                },
+                "mark": "bar",
+                "encoding": {
+                    "x": {
+                        "field": "category",
+                        "type": "nominal",
+                        "title": "Category"
+                    },
+                    "y": {
+                        "field": "value",
+                        "type": "quantitative",
+                        "title": "Value"
+                    },
+                    "color": {
+                        "field": "category",
+                        "type": "nominal"
+                    }
+                }
+            }
+        }
+    }
 }
