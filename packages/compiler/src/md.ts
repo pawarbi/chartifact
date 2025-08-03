@@ -64,8 +64,26 @@ export function targetMarkdown(page: InteractiveDocument) {
         ));
     }
 
-    //spec is at the top of the markdown file
-    mdSections.unshift(chartWrap(vegaScope.spec));
+    const { data, signals } = vegaScope.spec;
+
+    //cleanup the vegaScope.spec
+    if (data?.length === 0) {
+        delete vegaScope.spec.data;
+    } else {
+        data.forEach(d => {
+            if (d.transform?.length === 0) {
+                delete d.transform;
+            }
+        });
+    }
+    if (signals?.length === 0) {
+        delete vegaScope.spec.signals;
+    }
+
+    if (vegaScope.spec.data || vegaScope.spec.signals) {
+        //spec is at the top of the markdown file
+        mdSections.unshift(chartWrap(vegaScope.spec));
+    }
 
     const markdown = mdSections.join('\n\n');
     return markdown;
