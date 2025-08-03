@@ -32,7 +32,7 @@
                 "Example server endpoint: `/api/regressionplot?target={{targetVariable}}&model={{modelType}}&theme={{colorTheme}}`",
                 "",
                 "Images support dynamic URLs with query parameters and can be regenerated in real-time.",
-                "** samples below provided by [picsum.photos](https://picsum.photos/)**"
+                "*samples below provided by [picsum.photos](https://picsum.photos/)*"
             ]
         },
         {
