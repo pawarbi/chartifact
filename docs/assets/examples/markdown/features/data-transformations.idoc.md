@@ -1,0 +1,140 @@
+```json vega
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "This is the central brain of the page",
+  "signals": [
+    {
+      "name": "filteredTable",
+      "update": "data('filteredTable')"
+    },
+    {
+      "name": "categoryStatsTable",
+      "update": "data('categoryStatsTable')"
+    },
+    {
+      "name": "maxPrice",
+      "value": 100
+    },
+    {
+      "name": "categoryStats",
+      "update": "data('categoryStats')"
+    },
+    {
+      "name": "rawData",
+      "update": "data('rawData')"
+    }
+  ],
+  "data": [
+    {
+      "name": "rawData",
+      "values": [
+        {
+          "name": "Product A",
+          "category": "Electronics",
+          "price": 299,
+          "inStock": true
+        },
+        {
+          "name": "Product B",
+          "category": "Electronics",
+          "price": 199,
+          "inStock": false
+        },
+        {
+          "name": "Product C",
+          "category": "Clothing",
+          "price": 49,
+          "inStock": true
+        },
+        {
+          "name": "Product D",
+          "category": "Clothing",
+          "price": 79,
+          "inStock": true
+        },
+        {
+          "name": "Product E",
+          "category": "Books",
+          "price": 15,
+          "inStock": true
+        }
+      ],
+      "transform": [
+        {
+          "type": "filter",
+          "expr": "datum.inStock && datum.price <= maxPrice"
+        }
+      ]
+    },
+    {
+      "name": "categoryStatsTable",
+      "values": []
+    },
+    {
+      "name": "filteredTable",
+      "values": []
+    },
+    {
+      "name": "categoryStats",
+      "source": [
+        "rawData"
+      ],
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": [
+            "category"
+          ],
+          "ops": [
+            "count",
+            "mean"
+          ],
+          "fields": [
+            "name",
+            "price"
+          ],
+          "as": [
+            "count",
+            "avgPrice"
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Data Transformations
+Use data transformations to filter, aggregate, and manipulate data.
+
+```json slider
+{"variableId":"maxPrice","value":100,"label":"Maximum price filter:","min":0,"max":500,"step":10}
+```
+
+### Filtered Products (in stock, price ≤ ${{maxPrice}})
+
+```json tabulator
+{
+  "dataSourceName": "rawData",
+  "variableId": "filteredTable",
+  "tabulatorOptions": {
+    "autoColumns": true,
+    "layout": "fitColumns",
+    "maxHeight": "200px"
+  }
+}
+```
+
+### Category Statistics
+
+```json tabulator
+{
+  "dataSourceName": "categoryStats",
+  "variableId": "categoryStatsTable",
+  "tabulatorOptions": {
+    "autoColumns": true,
+    "layout": "fitColumns",
+    "maxHeight": "150px"
+  }
+}
+```

@@ -1,0 +1,65 @@
+```json vega
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "This is the central brain of the page",
+  "signals": [
+    {
+      "name": "size",
+      "value": 5
+    },
+    {
+      "name": "color",
+      "value": "blue"
+    }
+  ]
+}
+```
+
+## Presets
+Use presets to provide predefined state configurations.
+
+```json presets
+[
+  {
+    "name": "Small & Red",
+    "state": {
+      "size": 2,
+      "color": "red"
+    }
+  },
+  {
+    "name": "Large & Green",
+    "state": {
+      "size": 10,
+      "color": "green"
+    }
+  },
+  {
+    "name": "Medium & Gray",
+    "state": {
+      "size": 7,
+      "color": "gray"
+    }
+  }
+]
+```
+
+```json slider
+{"variableId":"size","value":5,"label":"Size:","min":1,"max":15,"step":1}
+```
+
+```json dropdown
+{
+  "variableId": "color",
+  "value": "blue",
+  "label": "Color:",
+  "options": [
+    "red",
+    "green",
+    "blue",
+    "gray"
+  ]
+}
+```
+
+Current state: Size **{{size}}**, Color **{{color}}**

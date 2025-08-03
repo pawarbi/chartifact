@@ -1,0 +1,96 @@
+```json vega
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "This is the central brain of the page",
+  "signals": [
+    {
+      "name": "productTable",
+      "update": "data('productTable')"
+    },
+    {
+      "name": "selectedProduct",
+      "value": "Laptop Pro"
+    },
+    {
+      "name": "productData",
+      "update": "data('productData')"
+    }
+  ],
+  "data": [
+    {
+      "name": "productData",
+      "values": [
+        {
+          "name": "Laptop Pro",
+          "category": "Electronics",
+          "price": 1299
+        },
+        {
+          "name": "Wireless Mouse",
+          "category": "Electronics",
+          "price": 49
+        },
+        {
+          "name": "Office Chair",
+          "category": "Furniture",
+          "price": 299
+        },
+        {
+          "name": "Standing Desk",
+          "category": "Furniture",
+          "price": 599
+        },
+        {
+          "name": "Coffee Mug",
+          "category": "Kitchen",
+          "price": 15
+        },
+        {
+          "name": "Water Bottle",
+          "category": "Kitchen",
+          "price": 25
+        }
+      ]
+    },
+    {
+      "name": "productTable",
+      "values": []
+    }
+  ]
+}
+```
+
+## Dropdown
+Use dropdowns with data-driven options from data sources.
+
+### Data-Driven Options
+
+Dropdown options populated from data using `dynamicOptions`:
+
+```json dropdown
+{
+  "variableId": "selectedProduct",
+  "value": "Laptop Pro",
+  "label": "Choose product:",
+  "dynamicOptions": {
+    "dataSourceName": "productData",
+    "fieldName": "name"
+  }
+}
+```
+
+Selected: **{{selectedProduct}}**
+
+### Product Data
+
+```json tabulator
+{
+  "dataSourceName": "productData",
+  "variableId": "productTable",
+  "tabulatorOptions": {
+    "autoColumns": true,
+    "layout": "fitColumns",
+    "maxHeight": "200px"
+  }
+}
+```
