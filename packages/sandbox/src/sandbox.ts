@@ -8,6 +8,7 @@ import { rendererUmdJs } from './resources/rendererUmdJs.js';
 import { sandboxedJs } from './resources/sandboxedJs.js';
 import type { SandboxRenderMessage, SandboxedPreHydrateMessage, SandboxApprovalMessage } from 'common';
 import type { RendererOptions } from '@microsoft/chartifact-markdown';
+import { rendererCss } from './resources/rendererCss.js';
 
 export class Sandbox extends Previewer {
     public iframe: HTMLIFrameElement;
@@ -81,6 +82,7 @@ function createIframe(dependencies: string, renderRequest: SandboxRenderMessage,
     const title = 'Chartifact Interactive Document Sandbox';
     const html = rendererHtml
         .replace('{{TITLE}}', () => title)
+        .replace('{{CSS_RESET}}', () => `<style>\n${rendererCss}</style>`)
         .replace('{{DEPENDENCIES}}', () => dependencies)
         .replace('{{RENDERER_SCRIPT}}', () => `<script>${rendererUmdJs}</script>`)
         .replace('{{RENDER_REQUEST}}', () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};</script>`)
