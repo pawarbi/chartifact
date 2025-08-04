@@ -230,7 +230,8 @@ type MarkdownElement = string;
 /** Union type for all possible elements */
 type PageElement = MarkdownElement | InteractiveElement;
 interface PageStyle {
-    css: string;
+    /** CSS styles, either a string, or array of strings which will be concatenated. The array is for developer ergonomics for authoring and merging. */
+    css: string | string[];
     googleFonts?: GoogleFontsSpec;
 }
 interface GoogleFontsSpec {
