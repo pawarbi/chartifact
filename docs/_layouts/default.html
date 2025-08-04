@@ -10,21 +10,21 @@
 </head>
 
 <body>
-    <div class="wrapper">
-        <main class="content">
+    <main>
+        <div class="content">
             {{ content }}
-        </main>
+        </div>
+    </main>
 
-        <footer class="footer">
-            <div class="footer-content">
-                <span>&copy; {{ 'now' | date: "%Y" }} Microsoft</span>
-                <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
-                <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
-                <a href="https://www.microsoft.com/trademarks">Trademarks</a>
-                <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
-            </div>
-        </footer>
-    </div>
+    <footer class="footer">
+        <div class="footer-content">
+            <span>&copy; {{ 'now' | date: "%Y" }} Microsoft</span>
+            <a href="https://go.microsoft.com/fwlink/?LinkId=521839">Privacy &amp; Cookies</a>
+            <a href="https://go.microsoft.com/fwlink/?linkid=2259814">Consumer Health Privacy</a>
+            <a href="https://www.microsoft.com/trademarks">Trademarks</a>
+            <a href="https://www.microsoft.com/en-us/servicesagreement/">Terms of Use</a>
+        </div>
+    </footer>
 </body>
 
 </html>
