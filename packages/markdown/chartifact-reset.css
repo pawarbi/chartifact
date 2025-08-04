@@ -1,0 +1,43 @@
+img {
+    max-width: 100%;
+}
+
+ul img {
+    max-height: 27em;
+}
+
+.presets li {
+    margin-top: 0.67em;
+}
+
+.presets li :first-child {
+    margin-top: 0;
+}
+
+.presets li button {
+    border-width: 1px;
+    padding: 5px;
+    width: 18em;
+}
+
+.presets li span {
+    font-size: smaller;
+    margin-left: 0.67em;
+}
+
+.presets li.active button {
+    border-width: 3px;
+    padding: 3px;
+}
+
+.chartifact-plugin-vega {
+    font-size: 0;
+}
+
+.chartifact-plugin-vega form {
+    font-size: initial;
+}
+
+.chartifact-plugin-vega form>:first-child {
+    margin-top: 4px;
+}
