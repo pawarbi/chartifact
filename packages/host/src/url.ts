@@ -14,6 +14,12 @@ export function checkUrlForFile(host: Listener) {
     return false; // No load parameter found
   }
 
+  loadDocViaUrl(loadUrl, host);
+
+  return true; // We found a load parameter
+}
+
+export function loadDocViaUrl(loadUrl: string, host: Listener) {
   // Allow same-origin (including relative) URLs, or validate external URLs
   if (!isSameOrigin(loadUrl) && !isValidLoadUrl(loadUrl)) {
     host.errorHandler(
@@ -32,7 +38,7 @@ export function checkUrlForFile(host: Listener) {
         return response.body;
       })
       .then(content => {
-        determineContent(content, host);
+        determineContent(loadUrl, content, host);
       })
       .catch(error => {
         host.errorHandler(error as Error, `Error loading file from the provided URL`);
@@ -41,7 +47,7 @@ export function checkUrlForFile(host: Listener) {
   } catch (error) {
     host.errorHandler(error as Error, `Error loading file from the provided URL`);
   }
-  return true; // We found a load parameter
+
 }
 
 function isSameOrigin(url: string) {
@@ -55,21 +61,6 @@ function isSameOrigin(url: string) {
     // For absolute URLs, check if origin matches
     const parsedUrl = new URL(url);
     return parsedUrl.origin === window.location.origin;
-  } catch {
-    return false;
-  }
-}
-
-function isHttps(url: string) {
-  try {
-    // Relative URLs inherit the current page's protocol
-    if (!url.includes('://')) {
-      return window.location.protocol === "https:";
-    }
-
-    // For absolute URLs, check the protocol directly
-    const parsedUrl = new URL(url);
-    return parsedUrl.protocol === "https:";
   } catch {
     return false;
   }
