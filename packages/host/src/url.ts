@@ -2,6 +2,7 @@
 * Copyright (c) Microsoft Corporation.
 * Licensed under the MIT License.
 */
+import { guardedFetch } from "./guardedFetch.js";
 import { Listener } from "./listener.js";
 import { determineContent } from "./string.js";
 
@@ -23,12 +24,12 @@ export function checkUrlForFile(host: Listener) {
   }
 
   try {
-    fetch(loadUrl)
+    guardedFetch(loadUrl)
       .then(response => {
-        if (!response.ok) {
+        if (!response.status) {
           throw new Error(`Failed to load content from URL`);
         }
-        return response.text();
+        return response.body;
       })
       .then(content => {
         determineContent(content, host);
@@ -50,7 +51,7 @@ function isSameOrigin(url: string) {
       // Relative URLs are inherently same-origin
       return true;
     }
-    
+
     // For absolute URLs, check if origin matches
     const parsedUrl = new URL(url);
     return parsedUrl.origin === window.location.origin;
@@ -65,7 +66,7 @@ function isHttps(url: string) {
     if (!url.includes('://')) {
       return window.location.protocol === "https:";
     }
-    
+
     // For absolute URLs, check the protocol directly
     const parsedUrl = new URL(url);
     return parsedUrl.protocol === "https:";
