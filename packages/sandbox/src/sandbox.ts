@@ -7,6 +7,7 @@ import { rendererHtml } from './resources/rendererHtml.js';
 import { rendererUmdJs } from './resources/rendererUmdJs.js';
 import { sandboxedJs } from './resources/sandboxedJs.js';
 import type { SandboxRenderMessage, SandboxedPreHydrateMessage, SandboxApprovalMessage } from 'common';
+import type { RendererOptions } from '@microsoft/chartifact-markdown';
 
 export class Sandbox extends Previewer {
     public iframe: HTMLIFrameElement;
@@ -76,13 +77,14 @@ export class Sandbox extends Previewer {
     }
 }
 
-function createIframe(dependencies: string, renderRequest: SandboxRenderMessage) {
+function createIframe(dependencies: string, renderRequest: SandboxRenderMessage, rendererOptions: RendererOptions = {}) {
     const title = 'Chartifact Interactive Document Sandbox';
     const html = rendererHtml
         .replace('{{TITLE}}', () => title)
         .replace('{{DEPENDENCIES}}', () => dependencies)
         .replace('{{RENDERER_SCRIPT}}', () => `<script>${rendererUmdJs}</script>`)
         .replace('{{RENDER_REQUEST}}', () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};</script>`)
+        .replace('{{RENDER_OPTIONS}}', () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};</script>`)
         .replace('{{SANDBOX_JS}}', () => `<script>${sandboxedJs}</script>`)
         ;
 
@@ -90,7 +92,7 @@ function createIframe(dependencies: string, renderRequest: SandboxRenderMessage)
     const blobUrl = URL.createObjectURL(htmlBlob);
 
     const iframe = document.createElement('iframe');
-    iframe.sandbox = 'allow-scripts';
+    iframe.sandbox = 'allow-scripts allow-popups';
     iframe.src = blobUrl;
     iframe.style.width = '100%';
     iframe.style.height = '100%';
