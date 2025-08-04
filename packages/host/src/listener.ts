@@ -35,6 +35,7 @@ export interface InitializeOptions {
   uploadButton?: string | HTMLElement;
   fileInput?: string | HTMLElement;
   textarea?: string | HTMLTextAreaElement;
+  toolbar?: string | HTMLElement;
   options?: ListenOptions;
   onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
@@ -57,6 +58,7 @@ export class Listener {
   public uploadButton: HTMLElement;
   public fileInput: HTMLElement;
   public textarea: HTMLTextAreaElement;
+  public toolbar: HTMLElement;
   public sandbox: Sandbox;
   public onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 
@@ -74,6 +76,7 @@ export class Listener {
     this.uploadButton = getElement(options.uploadButton);
     this.fileInput = getElement(options.fileInput);
     this.textarea = getElement<HTMLTextAreaElement>(options.textarea);
+    this.toolbar = getElement(options.toolbar);
 
     if (!this.appDiv) {
       throw new Error('App container not found');
@@ -125,10 +128,16 @@ export class Listener {
       },
       onApprove: this.onApprove,
     });
+
+    if (!markdown) {
+      show(this.sandbox.element, false);
+    }
   }
 
   public errorHandler(error: Error, detailsHtml: string) {
     show(this.loadingDiv, false);
+    show(this.helpDiv, false);
+    show(this.appDiv, true);
 
     // Create DOM elements safely to prevent XSS
     const errorDiv = document.createElement('div');
@@ -230,6 +239,7 @@ export class Listener {
       } else {
         this.sandbox.send(markdown);
       }
+      show(this.sandbox.element, true);
       postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'rendered', details: 'Markdown rendering completed successfully' });
     } catch (error) {
       this.errorHandler(

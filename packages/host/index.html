@@ -14,12 +14,14 @@
         }
         body {
             display: grid;
-            grid-template-rows: auto;
+            grid-template-rows: auto 1fr;
         }
     </style>
 </head>
 
 <body>
+
+    <div id="toolbar" style="border-bottom: 1px solid #ccc; padding: 5px;"></div>
 
     <textarea id="textarea" style="width: 100%; height: 300px; display: none;" placeholder="Enter your markdown here..."></textarea>
 
@@ -54,6 +56,7 @@
             uploadButton: '#upload-btn',
             fileInput: '#file-input',
             textarea: '#textarea',
+            toolbar: '#toolbar',
             onApprove: (message) => {
                 // TODO look through each spec and override policy to approve unapproved for https://microsoft.github.io/chartifact/
                 const { specs } = message;
