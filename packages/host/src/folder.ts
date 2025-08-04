@@ -56,10 +56,21 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
     }
     pageSelect.value = (docIndex + 1).toString();
 
+    function getHashParam(key: string): string | undefined {
+        const params = new URLSearchParams(window.location.hash.slice(1));
+        return params.get(key) ?? undefined;
+    }
+
+    function setHashParam(key: string, value: string | number) {
+        const params = new URLSearchParams(window.location.hash.slice(1));
+        params.set(key, value.toString());
+        window.location.hash = params.toString();
+    }
+
     function updatePage(newDocIndex: number, setHash: boolean = false) {
         docIndex = newDocIndex;
         if (setHash) {
-            window.location.hash = `page=${docIndex + 1}`;
+            setHashParam('page', docIndex + 1);
         }
         prevBtn.disabled = docIndex === 0;
         nextBtn.disabled = docIndex === folder.docs.length - 1;
@@ -89,10 +100,10 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
 
     // Set initial hash and handle hash navigation
     function goToPageFromHash() {
-        const match = window.location.hash.match(/page=(\d+)/);
+        const pageStr = getHashParam('page');
         let newIndex = 0;
-        if (match) {
-            const page = parseInt(match[1], 10);
+        if (pageStr) {
+            const page = parseInt(pageStr, 10);
             if (page >= 1 && page <= folder.docs.length) {
                 newIndex = page - 1;
             }
@@ -102,9 +113,9 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
 
     window.addEventListener('hashchange', goToPageFromHash);
 
-    // Only set hash if not already present
-    if (!window.location.hash.match(/page=(\d+)/)) {
-        window.location.hash = `page=${docIndex + 1}`;
+    // Only set hash param if not already present
+    if (!getHashParam('page')) {
+        setHashParam('page', docIndex + 1);
     }
     goToPageFromHash();
 
