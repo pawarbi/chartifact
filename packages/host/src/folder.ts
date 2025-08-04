@@ -9,17 +9,26 @@ import { loadDocViaUrl } from "./url.js";
 
 export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
     if (!folder || !folder.docUrls) {
-        host.errorHandler(new Error('Invalid folder format'), 'Please provide a valid folder JSON.');
+        host.errorHandler(
+            'Invalid folder format',
+            'Please provide a valid folder JSON.'
+        );
         return;
     }
 
     if (folder.docUrls.length === 0) {
-        host.errorHandler(new Error('Empty folder'), 'The folder does not contain any documents.');
+        host.errorHandler(
+            'Empty folder',
+            'The folder does not contain any documents.'
+        );
         return;
     }
 
     if (!host.toolbar) {
-        host.errorHandler(new Error('Toolbar not found'), 'The toolbar element is required to load folder content.');
+        host.errorHandler(
+            'Toolbar not found',
+            'The toolbar element is required to load folder content.'
+        );
         return;
     }
 
@@ -68,8 +77,10 @@ async function resolveUrl(base: string, relativeOrAbsolute: string, host: Listen
     try {
         const result = await loadDocViaUrl(url, host, false);
         if (result.error) {
-            //host.errorHandler(new Error(result.error), result.errorDetail);
-            host.render(`## ${result.error}\n\n${result.errorDetail}`, undefined);
+            host.errorHandler(
+                result.error,
+                result.errorDetail
+            );
             return;
         }
         if (result.idoc) {
@@ -79,9 +90,15 @@ async function resolveUrl(base: string, relativeOrAbsolute: string, host: Listen
         } else if (result.folder) {
             host.render('Nested folders are not supported', undefined);
         } else {
-            host.errorHandler(new Error('Invalid document format'), 'The document could not be loaded from the folder.');
+            host.errorHandler(
+                'Invalid document format',
+                'The document could not be loaded from the folder.'
+            );
         }
     } catch (error) {
-        throw new Error(`Invalid URL: ${relativeOrAbsolute} relative to ${base}`);
+        host.errorHandler(
+            'Invalid URL',
+            `Invalid URL: ${relativeOrAbsolute} relative to ${base}`
+        );
     }
 }

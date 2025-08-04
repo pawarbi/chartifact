@@ -20,7 +20,7 @@ export function determineContent(url:string, content: string, host: Listener, ha
     if (handle) {
         if (result.error) {
             host.errorHandler(
-                new Error(result.error),
+                result.error,
                 result.errorDetail
             );
             return;

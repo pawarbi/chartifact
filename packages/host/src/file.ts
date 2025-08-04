@@ -15,7 +15,7 @@ export function readFile(file: File, host: Listener) {
             let content = e.target?.result as string;
             if (!content) {
                 host.errorHandler(
-                    new Error('File content is empty'),
+                    'File content is empty',
                     'The file is empty. Please use a valid markdown or JSON file.'
                 );
                 return;
@@ -23,7 +23,7 @@ export function readFile(file: File, host: Listener) {
             content = content.trim();
             if (!content) {
                 host.errorHandler(
-                    new Error('File content is empty'),
+                    'File content is empty',
                     'The file is empty or contains only whitespace. Please use a valid markdown or JSON file.'
                 );
                 return;
@@ -31,12 +31,15 @@ export function readFile(file: File, host: Listener) {
             determineContent(null, content, host, true);
         };
         reader.onerror = (e) => {
-            host.errorHandler(new Error('Failed to read file'), 'Error reading file');
+            host.errorHandler(
+                'Failed to read file',
+                'Error reading file'
+            );
         };
         reader.readAsText(file);
     } else {
         host.errorHandler(
-            new Error('Invalid file type'),
+            'Invalid file type',
             'Only markdown (.md) or JSON (.json) files are supported.'
         );
     }

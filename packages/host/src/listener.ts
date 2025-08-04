@@ -124,7 +124,10 @@ export class Listener {
         postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'ready' });
       },
       onError: () => {
-        this.errorHandler(new Error('Sandbox initialization failed'), 'Sandbox could not be initialized');
+        this.errorHandler(
+          'Sandbox initialization failed',
+          'Sandbox could not be initialized'
+        );
       },
       onApprove: this.onApprove,
     });
@@ -134,31 +137,31 @@ export class Listener {
     }
   }
 
-  public errorHandler(error: Error, detailsHtml: string) {
+  public errorHandler(error: Error | string, details: string) {
     show(this.loadingDiv, false);
     show(this.helpDiv, false);
     show(this.appDiv, true);
 
-    // Create DOM elements safely to prevent XSS
-    const errorDiv = document.createElement('div');
-    errorDiv.style.color = 'red';
-    errorDiv.style.padding = '20px';
+    let message: string;
+    if (typeof error === 'string') {
+      message = error;
+    } else if (typeof error.message === 'string') {
+      message = error.message;
+    } else {
+      try {
+        message = error.toString();
+      } catch {
+        message = 'Unknown error';
+      }
+    }
 
-    const errorLabel = document.createElement('strong');
-    errorLabel.textContent = 'Error:';
-
-    const errorMessage = document.createTextNode(` ${error.message}`);
-    const lineBreak = document.createElement('br');
-    const details = document.createTextNode(detailsHtml);
-
-    errorDiv.appendChild(errorLabel);
-    errorDiv.appendChild(errorMessage);
-    errorDiv.appendChild(lineBreak);
-    errorDiv.appendChild(details);
-
-    // Clear previous content and append the error safely
-    //TODO: dim the sandbox
-    this.appDiv.appendChild(errorDiv);
+    //try to show the message in the sandbox, since it works well with paging folder content
+    if (this.sandboxReady) {
+      const markdown = `# Error:\n${message}\n\n${details}`;
+      this.render(markdown, undefined);
+    } else {
+      this.appDiv.innerHTML = `<h1>Error</h1><p>${message}</p><p>${details}</p>`;
+    }
   }
 
   private bindTextareaToCompiler() {
@@ -167,12 +170,18 @@ export class Listener {
       try {
         const interactiveDocument = JSON.parse(json) as InteractiveDocumentWithSchema;
         if (typeof interactiveDocument !== 'object') {
-          this.errorHandler(new Error('Invalid JSON format'), 'Please provide a valid Interactive Document JSON.');
+          this.errorHandler(
+            'Invalid JSON format',
+            'Please provide a valid Interactive Document JSON.'
+          );
           return;
         }
         this.renderInteractiveDocument(interactiveDocument);
       } catch (error) {
-        this.errorHandler(error, 'Failed to parse Interactive Document JSON');
+        this.errorHandler(
+          error,
+          'Failed to parse Interactive Document JSON'
+        );
       }
     };
 
@@ -211,7 +220,10 @@ export class Listener {
         this.renderMarkdown(markdown);
       }
     } else {
-      this.errorHandler(new Error('No content provided'), 'Please provide either markdown or an interactive document to render.');
+      this.errorHandler(
+        'No content provided',
+        'Please provide either markdown or an interactive document to render.'
+      );
     }
     //remove interactions that are disruptive (after a document is rendered)
     this.removeInteractionHandlers.forEach(removeHandler => removeHandler());
@@ -243,7 +255,8 @@ export class Listener {
       postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'rendered', details: 'Markdown rendering completed successfully' });
     } catch (error) {
       this.errorHandler(
-        error, 'Error rendering markdown content'
+        error,
+        'Error rendering markdown content'
       );
       postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'error', details: `Rendering failed: ${error.message}` });
     }
