@@ -157,7 +157,7 @@ export class Listener {
     errorDiv.appendChild(details);
 
     // Clear previous content and append the error safely
-    this.appDiv.innerHTML = '';
+    //TODO: dim the sandbox
     this.appDiv.appendChild(errorDiv);
   }
 

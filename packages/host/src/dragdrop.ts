@@ -3,6 +3,7 @@
 * Licensed under the MIT License.
 */
 import { readFile } from "./file.js";
+import { loadFolder } from "./folder.js";
 import { Listener } from "./listener.js";
 import { determineContent } from "./string.js";
 
@@ -39,7 +40,7 @@ export function setupDragDropHandling(host: Listener) {
         );
         return;
       }
-      determineContent(content, host);
+      determineContent(null, content, host, true);
     } else {
       host.errorHandler(
         new Error('Unsupported drop content'),

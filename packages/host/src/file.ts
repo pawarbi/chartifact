@@ -2,7 +2,11 @@
 * Copyright (c) Microsoft Corporation.
 * Licensed under the MIT License.
 */
+import { InteractiveDocument } from "@microsoft/chartifact-schema";
 import { Listener } from "./listener.js";
+import { Folder } from "@microsoft/chartifact-schema-folder";
+import { determineContent } from "./string.js";
+import { loadFolder } from "./folder.js";
 
 export function readFile(file: File, host: Listener) {
     if (file.name.endsWith('.json') || file.name.endsWith('.md')) {
@@ -24,21 +28,7 @@ export function readFile(file: File, host: Listener) {
                 );
                 return;
             }
-            if (file.name.endsWith('.json')) {
-                try {
-                    const idoc = JSON.parse(content);
-                    host.render(undefined, idoc);
-                    return;
-                } catch (jsonError) {
-                    host.errorHandler(
-                        new Error('Invalid JSON content'),
-                        'The file content is not valid JSON.'
-                    );
-                    return;
-                }
-            } else if (file.name.endsWith('.md')) {
-                host.render(content);
-            }
+            determineContent(null, content, host, true);
         };
         reader.onerror = (e) => {
             host.errorHandler(new Error('Failed to read file'), 'Error reading file');

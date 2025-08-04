@@ -2,9 +2,10 @@
 * Copyright (c) Microsoft Corporation.
 * Licensed under the MIT License.
 */
+import { loadFolder } from "./folder.js";
 import { guardedFetch } from "./guardedFetch.js";
 import { Listener } from "./listener.js";
-import { determineContent } from "./string.js";
+import { ContentResult, determineContent } from "./string.js";
 
 export function checkUrlForFile(host: Listener) {
   const urlParams = new URLSearchParams(window.location.search);
@@ -14,40 +15,36 @@ export function checkUrlForFile(host: Listener) {
     return false; // No load parameter found
   }
 
-  loadDocViaUrl(loadUrl, host);
+  loadDocViaUrl(loadUrl, host, true);
 
   return true; // We found a load parameter
 }
 
-export function loadDocViaUrl(loadUrl: string, host: Listener) {
+export async function loadDocViaUrl(loadUrl: string, host: Listener, handle: boolean): Promise<ContentResult> {
   // Allow same-origin (including relative) URLs, or validate external URLs
   if (!isSameOrigin(loadUrl) && !isValidLoadUrl(loadUrl)) {
-    host.errorHandler(
-      new Error('Invalid URL format'),
-      'The URL provided is not same-origin or has an invalid format, protocol, or contains suspicious characters.'
-    );
-    return false;
+    return {
+      error: 'Invalid URL format',
+      errorDetail: 'The URL provided is not same-origin or has an invalid format, protocol, or contains suspicious characters.'
+    };
   }
 
   try {
-    guardedFetch(loadUrl)
-      .then(response => {
-        if (!response.status) {
-          throw new Error(`Failed to load content from URL`);
-        }
-        return response.body;
-      })
-      .then(content => {
-        determineContent(loadUrl, content, host);
-      })
-      .catch(error => {
-        host.errorHandler(error as Error, `Error loading file from the provided URL`);
-      });
+    const response = await guardedFetch(loadUrl);
 
+    if (!response.status) {
+      return {
+        error: 'Error loading file',
+        errorDetail: `Error loading file from the provided URL`
+      };
+    }
+    return determineContent(loadUrl, response.body, host, handle);
   } catch (error) {
-    host.errorHandler(error as Error, `Error loading file from the provided URL`);
+    return {
+      error: 'Error loading file',
+      errorDetail: `Error loading file from the provided URL`
+    };
   }
-
 }
 
 function isSameOrigin(url: string) {
