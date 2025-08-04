@@ -56,55 +56,48 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
     }
     pageSelect.value = (docIndex + 1).toString();
 
+    function updatePage(newDocIndex: number, setHash: boolean = false) {
+        docIndex = newDocIndex;
+        if (setHash) {
+            window.location.hash = `page=${docIndex + 1}`;
+        }
+        prevBtn.disabled = docIndex === 0;
+        nextBtn.disabled = docIndex === folder.docs.length - 1;
+        pageSelect.value = (docIndex + 1).toString();
+        resolveUrl(folderUrl, folder.docs[docIndex].href, host);
+    }
+
     pageSelect.onchange = () => {
         const selectedPage = parseInt(pageSelect.value, 10);
         if (selectedPage >= 1 && selectedPage <= folder.docs.length) {
-            docIndex = selectedPage - 1;
-            window.location.hash = `page=${docIndex + 1}`;
-            prevBtn.disabled = docIndex === 0;
-            nextBtn.disabled = docIndex === folder.docs.length - 1;
-            resolveUrl(folderUrl, folder.docs[docIndex].href, host);
+            updatePage(selectedPage - 1, true);
         }
     };
 
     // Button click handlers
     prevBtn.onclick = () => {
         if (docIndex > 0) {
-            docIndex--;
-            window.location.hash = `page=${docIndex + 1}`;
-            pageSelect.value = (docIndex + 1).toString();
-            resolveUrl(folderUrl, folder.docs[docIndex].href, host);
-            prevBtn.disabled = docIndex === 0;
-            nextBtn.disabled = docIndex === folder.docs.length - 1;
+            updatePage(docIndex - 1, true);
         }
     };
 
     nextBtn.onclick = () => {
         if (docIndex < folder.docs.length - 1) {
-            docIndex++;
-            window.location.hash = `page=${docIndex + 1}`;
-            pageSelect.value = (docIndex + 1).toString();
-            resolveUrl(folderUrl, folder.docs[docIndex].href, host);
-            prevBtn.disabled = docIndex === 0;
-            nextBtn.disabled = docIndex === folder.docs.length - 1;
+            updatePage(docIndex + 1, true);
         }
     };
 
     // Set initial hash and handle hash navigation
     function goToPageFromHash() {
         const match = window.location.hash.match(/page=(\d+)/);
+        let newIndex = 0;
         if (match) {
             const page = parseInt(match[1], 10);
             if (page >= 1 && page <= folder.docs.length) {
-                docIndex = page - 1;
-            } else {
-                docIndex = 0; // fallback to first page if out of range
+                newIndex = page - 1;
             }
         }
-        prevBtn.disabled = docIndex === 0;
-        nextBtn.disabled = docIndex === folder.docs.length - 1;
-        pageSelect.value = (docIndex + 1).toString();
-        resolveUrl(folderUrl, folder.docs[docIndex].href, host);
+        updatePage(newIndex, false);
     }
 
     window.addEventListener('hashchange', goToPageFromHash);
