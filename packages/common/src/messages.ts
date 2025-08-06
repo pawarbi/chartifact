@@ -62,3 +62,14 @@ export interface EditorSetOfflineDependenciesMessage {
     sender: string;
     offlineDeps: string;
 }
+
+export interface GuardedFetchRequestMessage {
+    url: string;
+    options?: RequestInit;
+}
+
+export interface GuardedFetchResponseMessage {
+    status: number;
+    body?: string;
+    error?: string;
+}
