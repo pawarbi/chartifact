@@ -164,11 +164,16 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    {{CSS_RESET}}
+    
     <title>{{TITLE}}</title>
 
     {{DEPENDENCIES}}
 
     {{RENDERER_SCRIPT}}
+
+    {{RENDER_OPTIONS}}
 
     {{RENDER_REQUEST}}
 
@@ -2753,6 +2758,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   const defaultRendererOptions = {
     vegaRenderer: "canvas",
     useShadowDom: false,
+    openLinksInNewTab: true,
     errorHandler: (error, pluginName2, instanceIndex, phase) => {
       console.error(\`Error in plugin \${pluginName2} instance \${instanceIndex} phase \${phase}\`, error);
     }
@@ -2778,6 +2784,27 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     ensureMd() {
       if (!this.md) {
         this.md = create();
+        if (this.options.openLinksInNewTab) {
+          const defaultRender = this.md.renderer.rules.link_open || function(tokens, idx, options, env, self2) {
+            return self2.renderToken(tokens, idx, options);
+          };
+          this.md.renderer.rules.link_open = function(tokens, idx, options, env, self2) {
+            const token = tokens[idx];
+            const targetIndex = token.attrIndex("target");
+            if (targetIndex < 0) {
+              token.attrPush(["target", "_blank"]);
+            } else {
+              token.attrs[targetIndex][1] = "_blank";
+            }
+            const relIndex = token.attrIndex("rel");
+            if (relIndex < 0) {
+              token.attrPush(["rel", "noopener noreferrer"]);
+            } else {
+              token.attrs[relIndex][1] = "noopener noreferrer";
+            }
+            return defaultRender(tokens, idx, options, env, self2);
+          };
+        }
       }
     }
     async render(markdown) {
@@ -2870,6 +2897,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let transactionIndex = 0;
     const transactions = {};
     renderer = new Chartifact.markdown.Renderer(document.body, {
+        ...rendererOptions,
         errorHandler: (error, pluginName, instanceIndex, phase, container, detail) => {
             console.error(\`Error in plugin \${pluginName} at instance \${instanceIndex} during \${phase}:\`, error);
             if (detail) {
@@ -2926,6 +2954,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+`;
+  const rendererCss = `img {
+    max-width: 100%;
+}
+
+ul img {
+    max-height: 27em;
+}
+
+.presets li {
+    margin-top: 0.67em;
+}
+
+.presets li :first-child {
+    margin-top: 0;
+}
+
+.presets li button {
+    border-width: 1px;
+    padding: 5px;
+    width: 18em;
+}
+
+.presets li span {
+    font-size: smaller;
+    margin-left: 0.67em;
+}
+
+.presets li.active button {
+    border-width: 3px;
+    padding: 3px;
+}
+
+.chartifact-plugin-vega {
+    font-size: 0;
+}
+
+.chartifact-plugin-vega form {
+    font-size: initial;
+}
+
+.chartifact-plugin-vega form>:first-child {
+    margin-top: 4px;
+}
 `;
   class Sandbox extends Previewer {
     constructor(elementOrSelector, markdown, options) {
@@ -2991,13 +3063,14 @@ document.addEventListener('DOMContentLoaded', () => {
 `;
     }
   }
-  function createIframe(dependencies, renderRequest) {
+  function createIframe(dependencies, renderRequest, rendererOptions = {}) {
     const title = "Chartifact Interactive Document Sandbox";
-    const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDER_REQUEST}}", () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};<\/script>`).replace("{{SANDBOX_JS}}", () => `<script>${sandboxedJs}<\/script>`);
+    const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{CSS_RESET}}", () => `<style>
+${rendererCss}</style>`).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDER_REQUEST}}", () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};<\/script>`).replace("{{RENDER_OPTIONS}}", () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};<\/script>`).replace("{{SANDBOX_JS}}", () => `<script>${sandboxedJs}<\/script>`);
     const htmlBlob = new Blob([html], { type: "text/html" });
     const blobUrl = URL.createObjectURL(htmlBlob);
     const iframe = document.createElement("iframe");
-    iframe.sandbox = "allow-scripts";
+    iframe.sandbox = "allow-scripts allow-popups";
     iframe.src = blobUrl;
     iframe.style.width = "100%";
     iframe.style.height = "100%";
