@@ -2,7 +2,6 @@
 * Copyright (c) Microsoft Corporation.
 * Licensed under the MIT License.
 */
-import { loadFolder } from "./folder.js";
 import { guardedFetch } from "./guardedFetch.js";
 import { Listener } from "./listener.js";
 import { ContentResult, determineContent } from "./string.js";
@@ -15,12 +14,12 @@ export function checkUrlForFile(host: Listener) {
     return false; // No load parameter found
   }
 
-  loadDocViaUrl(loadUrl, host, true);
+  loadViaUrl(loadUrl, host, true);
 
   return true; // We found a load parameter
 }
 
-export async function loadDocViaUrl(loadUrl: string, host: Listener, handle: boolean): Promise<ContentResult> {
+export async function loadViaUrl(loadUrl: string, host: Listener, handle: boolean): Promise<ContentResult> {
   // Allow same-origin (including relative) URLs, or validate external URLs
   if (!isSameOrigin(loadUrl) && !isValidLoadUrl(loadUrl)) {
     return {
@@ -30,7 +29,8 @@ export async function loadDocViaUrl(loadUrl: string, host: Listener, handle: boo
   }
 
   try {
-    const response = await guardedFetch(loadUrl);
+    const url = new URL(loadUrl, window.location.href);
+    const response = await guardedFetch({ url: url.href });
 
     if (!response.status) {
       return {
@@ -38,7 +38,7 @@ export async function loadDocViaUrl(loadUrl: string, host: Listener, handle: boo
         errorDetail: `Error loading file from the provided URL`
       };
     }
-    return determineContent(loadUrl, response.body, host, handle);
+    return determineContent(url.href, response.body, host, handle);
   } catch (error) {
     return {
       error: 'Error loading file',

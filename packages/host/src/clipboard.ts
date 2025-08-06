@@ -3,7 +3,6 @@
 * Licensed under the MIT License.
 */
 import { readFile } from "./file.js";
-import { loadFolder } from "./folder.js";
 import { Listener } from "./listener.js";
 import { determineContent } from "./string.js";
 

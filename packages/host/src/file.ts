@@ -2,11 +2,8 @@
 * Copyright (c) Microsoft Corporation.
 * Licensed under the MIT License.
 */
-import { InteractiveDocument } from "@microsoft/chartifact-schema";
 import { Listener } from "./listener.js";
-import { Folder } from "@microsoft/chartifact-schema-folder";
 import { determineContent } from "./string.js";
-import { loadFolder } from "./folder.js";
 
 export function readFile(file: File, host: Listener) {
     if (file.name.endsWith('.json') || file.name.endsWith('.md')) {

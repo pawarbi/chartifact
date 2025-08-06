@@ -5,7 +5,7 @@
 
 import { Folder } from "@microsoft/chartifact-schema-folder";
 import { Listener } from "./listener.js";
-import { loadDocViaUrl } from "./url.js";
+import { loadViaUrl } from "./url.js";
 
 export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
     if (!folder || !folder.docs) {
@@ -138,7 +138,7 @@ async function resolveUrl(base: string, relativeOrAbsolute: string, host: Listen
         );
         return;
     }
-    const result = await loadDocViaUrl(url, host, false);
+    const result = await loadViaUrl(url, host, false);
     if (result.error) {
         host.errorHandler(
             result.error,
