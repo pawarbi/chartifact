@@ -337,7 +337,13 @@ ${content}
     if (page.style) {
       const { style } = page;
       if (style.css) {
-        mdSections.push(tickWrap("css", page.style.css));
+        let css;
+        if (typeof style.css === "string") {
+          css = style.css;
+        } else if (Array.isArray(style.css)) {
+          css = style.css.join("\n");
+        }
+        mdSections.push(tickWrap("css", css));
       }
       if (style.googleFonts) {
         mdSections.push(jsonWrap("google-fonts", JSON.stringify(style.googleFonts, null, 2)));

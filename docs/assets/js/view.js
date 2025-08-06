@@ -6,6 +6,7 @@ window.addEventListener('DOMContentLoaded', () => {
         uploadButton: '#upload-btn',
         fileInput: '#file-input',
         textarea: '#textarea',
+        toolbar: '#toolbar',
         onApprove: (message) => {
             // TODO look through each spec and override policy to approve unapproved for https://microsoft.github.io/chartifact/
             const { specs } = message;

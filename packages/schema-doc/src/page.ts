@@ -45,7 +45,8 @@ export type MarkdownElement = string;
 export type PageElement = MarkdownElement | InteractiveElement;
 
 export interface PageStyle {
-  css: string;
+  /** CSS styles, either a string, or array of strings which will be concatenated. The array is for developer ergonomics for authoring and merging. */
+  css: string | string[];
   googleFonts?: GoogleFontsSpec;
 }
 

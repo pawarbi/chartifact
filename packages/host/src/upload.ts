@@ -11,7 +11,7 @@ export function setupFileUpload(host: Listener) {
   // Ensure elements exist
   if (!uploadButton || !fileInput) {
     host.errorHandler(
-      new Error('Upload button or file input not found'),
+      'Upload button or file input not found',
       'Please ensure the upload button and file input elements are present in the HTML.'
     );
     return;
@@ -29,7 +29,7 @@ export function setupFileUpload(host: Listener) {
       readFile(file, host);
     } else {
       host.errorHandler(
-        new Error('No file selected'),
+        'No file selected',
         'Please select a markdown or JSON file to upload.'
       );
     }

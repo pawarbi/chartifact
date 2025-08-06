@@ -18,11 +18,13 @@ export interface RendererOptions {
     signalBus?: SignalBus;
     errorHandler?: ErrorHandler;
     useShadowDom?: boolean;
+    openLinksInNewTab?: boolean;
 }
 
 const defaultRendererOptions: RendererOptions = {
     vegaRenderer: 'canvas',
     useShadowDom: false,
+    openLinksInNewTab: true,
     errorHandler: (error, pluginName, instanceIndex, phase) => {
         console.error(`Error in plugin ${pluginName} instance ${instanceIndex} phase ${phase}`, error);
     },
@@ -59,6 +61,35 @@ export class Renderer {
     private ensureMd() {
         if (!this.md) {
             this.md = create();
+
+            if (this.options.openLinksInNewTab) {
+                // Override link rendering
+                const defaultRender = this.md.renderer.rules.link_open || function (tokens, idx, options, env, self) {
+                    return self.renderToken(tokens, idx, options);
+                };
+
+                this.md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+                    const token = tokens[idx];
+
+                    // Add target="_blank"
+                    const targetIndex = token.attrIndex('target');
+                    if (targetIndex < 0) {
+                        token.attrPush(['target', '_blank']);
+                    } else {
+                        token.attrs[targetIndex][1] = '_blank';
+                    }
+
+                    // Add rel="noopener noreferrer"
+                    const relIndex = token.attrIndex('rel');
+                    if (relIndex < 0) {
+                        token.attrPush(['rel', 'noopener noreferrer']);
+                    } else {
+                        token.attrs[relIndex][1] = 'noopener noreferrer';
+                    }
+
+                    return defaultRender(tokens, idx, options, env, self);
+                };
+            }
         }
     }
 

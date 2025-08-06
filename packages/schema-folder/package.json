@@ -1,0 +1,20 @@
+{
+  "name": "@microsoft/chartifact-schema-folder",
+  "version": "1.0.0",
+  "main": "index.js",
+  "types": "dist/folder.d.ts",
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf dist",
+    "schema": "ts-json-schema-generator --path src/schema.ts --type FolderWithSchema --out dist/folder.schema.json",
+    "copy-schema": "node scripts/copy-schema.js",
+    "declaration": "rollup -c rollup.config.types.js",
+    "dev": "tsc -p . -w",
+    "tsc": "tsc -p .",
+    "build": "npm run tsc && npm run declaration && npm run schema && npm run copy-schema",
+    "build:00": "npm run build"
+  },
+  "author": "Dan Marshall",
+  "license": "MIT",
+  "description": ""
+}

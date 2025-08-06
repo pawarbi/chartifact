@@ -339,7 +339,13 @@ ${content}
     if (page.style) {
       const { style } = page;
       if (style.css) {
-        mdSections.push(tickWrap("css", page.style.css));
+        let css;
+        if (typeof style.css === "string") {
+          css = style.css;
+        } else if (Array.isArray(style.css)) {
+          css = style.css.join("\n");
+        }
+        mdSections.push(tickWrap("css", css));
       }
       if (style.googleFonts) {
         mdSections.push(jsonWrap("google-fonts", JSON.stringify(style.googleFonts, null, 2)));
@@ -533,11 +539,16 @@ ${content}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    {{CSS_RESET}}
+    
     <title>{{TITLE}}</title>
 
     {{DEPENDENCIES}}
 
     {{RENDERER_SCRIPT}}
+
+    {{RENDER_OPTIONS}}
 
     {{RENDER_REQUEST}}
 
@@ -3122,6 +3133,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   const defaultRendererOptions = {
     vegaRenderer: "canvas",
     useShadowDom: false,
+    openLinksInNewTab: true,
     errorHandler: (error, pluginName2, instanceIndex, phase) => {
       console.error(\`Error in plugin \${pluginName2} instance \${instanceIndex} phase \${phase}\`, error);
     }
@@ -3147,6 +3159,27 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     ensureMd() {
       if (!this.md) {
         this.md = create();
+        if (this.options.openLinksInNewTab) {
+          const defaultRender = this.md.renderer.rules.link_open || function(tokens, idx, options, env, self2) {
+            return self2.renderToken(tokens, idx, options);
+          };
+          this.md.renderer.rules.link_open = function(tokens, idx, options, env, self2) {
+            const token = tokens[idx];
+            const targetIndex = token.attrIndex("target");
+            if (targetIndex < 0) {
+              token.attrPush(["target", "_blank"]);
+            } else {
+              token.attrs[targetIndex][1] = "_blank";
+            }
+            const relIndex = token.attrIndex("rel");
+            if (relIndex < 0) {
+              token.attrPush(["rel", "noopener noreferrer"]);
+            } else {
+              token.attrs[relIndex][1] = "noopener noreferrer";
+            }
+            return defaultRender(tokens, idx, options, env, self2);
+          };
+        }
       }
     }
     async render(markdown) {
@@ -3239,6 +3272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let transactionIndex = 0;
     const transactions = {};
     renderer = new Chartifact.markdown.Renderer(document.body, {
+        ...rendererOptions,
         errorHandler: (error, pluginName, instanceIndex, phase, container, detail) => {
             console.error(\`Error in plugin \${pluginName} at instance \${instanceIndex} during \${phase}:\`, error);
             if (detail) {
@@ -3295,6 +3329,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+`;
+  const rendererCss = `img {
+    max-width: 100%;
+}
+
+ul img {
+    max-height: 27em;
+}
+
+.presets li {
+    margin-top: 0.67em;
+}
+
+.presets li :first-child {
+    margin-top: 0;
+}
+
+.presets li button {
+    border-width: 1px;
+    padding: 5px;
+    width: 18em;
+}
+
+.presets li span {
+    font-size: smaller;
+    margin-left: 0.67em;
+}
+
+.presets li.active button {
+    border-width: 3px;
+    padding: 3px;
+}
+
+.chartifact-plugin-vega {
+    font-size: 0;
+}
+
+.chartifact-plugin-vega form {
+    font-size: initial;
+}
+
+.chartifact-plugin-vega form>:first-child {
+    margin-top: 4px;
+}
 `;
   class Sandbox extends Previewer {
     constructor(elementOrSelector, markdown, options) {
@@ -3361,13 +3439,14 @@ document.addEventListener('DOMContentLoaded', () => {
 `;
     }
   }
-  function createIframe(dependencies, renderRequest) {
+  function createIframe(dependencies, renderRequest, rendererOptions = {}) {
     const title = "Chartifact Interactive Document Sandbox";
-    const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDER_REQUEST}}", () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};<\/script>`).replace("{{SANDBOX_JS}}", () => `<script>${sandboxedJs}<\/script>`);
+    const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{CSS_RESET}}", () => `<style>
+${rendererCss}</style>`).replace("{{DEPENDENCIES}}", () => dependencies).replace("{{RENDERER_SCRIPT}}", () => `<script>${rendererUmdJs}<\/script>`).replace("{{RENDER_REQUEST}}", () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};<\/script>`).replace("{{RENDER_OPTIONS}}", () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};<\/script>`).replace("{{SANDBOX_JS}}", () => `<script>${sandboxedJs}<\/script>`);
     const htmlBlob = new Blob([html], { type: "text/html" });
     const blobUrl = URL.createObjectURL(htmlBlob);
     const iframe = document.createElement("iframe");
-    iframe.sandbox = "allow-scripts";
+    iframe.sandbox = "allow-scripts allow-popups";
     iframe.src = blobUrl;
     iframe.style.width = "100%";
     iframe.style.height = "100%";
@@ -3380,213 +3459,113 @@ document.addEventListener('DOMContentLoaded', () => {
     Previewer,
     Sandbox
   }, Symbol.toStringTag, { value: "Module" }));
-  function readFile(file, host) {
-    if (file.name.endsWith(".json") || file.name.endsWith(".md")) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
+  const guardedJs = `/**
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
+function sniffContent(content) {
+    if (typeof content !== 'string') {
+        console.warn('Blocked: content is not a string. Type:', typeof content);
+        return false;
+    }
+    const len = content.length;
+    if (len < 5) {
+        console.warn('Blocked: content too short (length =', len + ')');
+        return false;
+    }
+    if (len > 1_000_000) {
+        console.warn('Blocked: content too large (length =', len + ')');
+        return false;
+    }
+    const head = content.slice(0, 512);
+    const lower = head.toLowerCase();
+    for (let i = 0; i < head.length; i++) {
+        const code = head.charCodeAt(i);
+        if ((code < 32 && code !== 9 && code !== 10 && code !== 13) ||
+            code > 126) {
+            console.warn('Blocked: binary or control char at pos', i, '(charCode =', code + ')');
+            return false;
+        }
+    }
+    const badSignatures = [
+        '<html', '<script', '<style', '<iframe', '<svg', '<link',
+        '<meta', '<!doctype', '<?xml', '</',
+        '%pdf', '{\\\\rtf', 'mz', 'gif89a', 'gif87a', '\\x7felf', 'pk\\x03\\x04'
+    ];
+    const sig = lower.slice(0, 64);
+    for (const s of badSignatures) {
+        if (sig.includes(s)) {
+            console.warn('Blocked: matched dangerous signature:', s);
+            return false;
+        }
+    }
+    return true;
+}
+window.addEventListener('message', async (e) => {
+    const { url, options } = (e.data || {});
+    let responseMessage;
+    try {
+        const res = await fetch(url, options);
+        const body = await res.text();
+        if (!sniffContent(body)) {
+            console.warn('Content blocked:', url);
+            responseMessage = { status: 403, error: 'Blocked by content firewall' };
+        }
+        else {
+            responseMessage = { status: res.status, body };
+        }
+    }
+    catch (err) {
+        console.error('Fetch error:', url, err);
+        responseMessage = { status: 500, error: err.message || 'Fetch failed' };
+    }
+    e.source?.postMessage(responseMessage, '*');
+});
+`;
+  function guardedFetch(request) {
+    return new Promise((resolve, reject) => {
+      const loaderHTML = `<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Security-Policy" content="
+    base-uri 'none';
+">
+</head>
+<body>
+<script>
+${guardedJs}
+<\/script>
+</body>
+</html>
+`;
+      const blob = new Blob([loaderHTML], { type: "text/html" });
+      const blobURL = URL.createObjectURL(blob);
+      const iframe = document.createElement("iframe");
+      iframe.sandbox = "allow-scripts";
+      iframe.referrerPolicy = "no-referrer";
+      iframe.style.display = "none";
+      iframe.src = blobURL;
+      const cleanup = () => {
+        window.removeEventListener("message", onMessage);
+        document.body.removeChild(iframe);
+        URL.revokeObjectURL(blobURL);
+      };
+      const onMessage = (event) => {
+        if (event.source !== iframe.contentWindow) return;
+        const { status, body, error } = event.data || {};
+        cleanup();
+        if (error) return reject(new Error(error));
+        if (typeof status !== "number" || typeof body !== "string") {
+          return reject(new Error("Invalid response from loader"));
+        }
+        resolve({ status, body });
+      };
+      window.addEventListener("message", onMessage);
+      document.body.appendChild(iframe);
+      iframe.onload = () => {
         var _a;
-        let content = (_a = e.target) == null ? void 0 : _a.result;
-        if (!content) {
-          host.errorHandler(
-            new Error("File content is empty"),
-            "The file is empty. Please use a valid markdown or JSON file."
-          );
-          return;
-        }
-        content = content.trim();
-        if (!content) {
-          host.errorHandler(
-            new Error("File content is empty"),
-            "The file is empty or contains only whitespace. Please use a valid markdown or JSON file."
-          );
-          return;
-        }
-        if (file.name.endsWith(".json")) {
-          try {
-            const idoc = JSON.parse(content);
-            host.render(void 0, idoc);
-            return;
-          } catch (jsonError) {
-            host.errorHandler(
-              new Error("Invalid JSON content"),
-              "The file content is not valid JSON."
-            );
-            return;
-          }
-        } else if (file.name.endsWith(".md")) {
-          host.render(content);
-        }
+        (_a = iframe.contentWindow) == null ? void 0 : _a.postMessage(request, "*");
       };
-      reader.onerror = (e) => {
-        host.errorHandler(new Error("Failed to read file"), "Error reading file");
-      };
-      reader.readAsText(file);
-    } else {
-      host.errorHandler(
-        new Error("Invalid file type"),
-        "Only markdown (.md) or JSON (.json) files are supported."
-      );
-    }
-  }
-  function determineContent(content, host) {
-    if (!content) {
-      host.errorHandler(
-        new Error("Content is empty"),
-        "The content was empty. Please use valid markdown content or JSON."
-      );
-      return;
-    }
-    if (typeof content !== "string") {
-      host.errorHandler(
-        new Error("Invalid content type"),
-        "The content is not a string. Please use valid markdown content or JSON."
-      );
-      return;
-    }
-    content = content.trim();
-    if (!content) {
-      host.errorHandler(
-        new Error("Content is empty"),
-        "The content was only whitespace. Please use valid markdown content or JSON."
-      );
-      return;
-    }
-    if (content.startsWith("{") && content.endsWith("}")) {
-      try {
-        const idoc = JSON.parse(content);
-        host.render(void 0, idoc);
-      } catch (jsonError) {
-        host.errorHandler(
-          new Error("Invalid JSON content in clipboard"),
-          "The pasted content is not valid JSON. Please copy a valid interactive document JSON file."
-        );
-        return;
-      }
-    } else {
-      host.render(content);
-    }
-  }
-  function setupClipboardHandling(host) {
-    const pasteHandler = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const clipboardData = e.clipboardData;
-      if (clipboardData && clipboardData.files.length > 0) {
-        const file = clipboardData.files[0];
-        readFile(file, host);
-      } else if (clipboardData && clipboardData.items) {
-        let handled = false;
-        for (let i = 0; i < clipboardData.items.length; i++) {
-          const item = clipboardData.items[i];
-          if (item.kind === "string" && item.type === "text/plain") {
-            item.getAsString((content) => {
-              if (!content) {
-                host.errorHandler(
-                  new Error("Pasted content is empty"),
-                  "The pasted content was empty. Please paste valid markdown content or JSON."
-                );
-                return;
-              }
-              content = content.trim();
-              if (!content) {
-                host.errorHandler(
-                  new Error("Pasted content is empty"),
-                  "The pasted content was only whitespace. Please paste valid markdown content or JSON."
-                );
-                return;
-              }
-              determineContent(content, host);
-            });
-            handled = true;
-            break;
-          }
-        }
-        if (!handled) {
-          host.errorHandler(
-            new Error("Unsupported clipboard content"),
-            "Please paste a markdown file, JSON file, or valid text content."
-          );
-        }
-      } else {
-        host.errorHandler(
-          new Error("Unsupported clipboard content"),
-          "Please paste a markdown file, JSON file, or valid text content."
-        );
-      }
-    };
-    document.addEventListener("paste", pasteHandler);
-    return () => {
-      document.removeEventListener("paste", pasteHandler);
-    };
-  }
-  function setupDragDropHandling(host) {
-    const dragHandler = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
-    const dropHandler = (e) => {
-      var _a, _b;
-      e.preventDefault();
-      e.stopPropagation();
-      const files = (_a = e.dataTransfer) == null ? void 0 : _a.files;
-      if (files && files.length > 0) {
-        const file = files[0];
-        readFile(file, host);
-      } else if ((_b = e.dataTransfer) == null ? void 0 : _b.types.includes("text/plain")) {
-        let content = e.dataTransfer.getData("text/plain");
-        if (!content) {
-          host.errorHandler(
-            new Error("Dropped content is empty"),
-            "The dropped content was empty. Please drop valid markdown content or JSON."
-          );
-          return;
-        }
-        content = content.trim();
-        if (!content) {
-          host.errorHandler(
-            new Error("Dropped content is empty"),
-            "The dropped content was only whitespace. Please drop valid markdown content or JSON."
-          );
-          return;
-        }
-        determineContent(content, host);
-      } else {
-        host.errorHandler(
-          new Error("Unsupported drop content"),
-          "Please drop a markdown file, JSON file, or valid text content."
-        );
-      }
-    };
-    document.addEventListener("drop", dropHandler);
-    document.addEventListener("dragover", dragHandler);
-    return () => {
-      document.removeEventListener("drop", dropHandler);
-      document.removeEventListener("dragover", dragHandler);
-    };
-  }
-  function setupFileUpload(host) {
-    const { uploadButton, fileInput } = host;
-    if (!uploadButton || !fileInput) {
-      host.errorHandler(
-        new Error("Upload button or file input not found"),
-        "Please ensure the upload button and file input elements are present in the HTML."
-      );
-      return;
-    }
-    uploadButton == null ? void 0 : uploadButton.addEventListener("click", () => {
-      fileInput == null ? void 0 : fileInput.click();
-    });
-    fileInput == null ? void 0 : fileInput.addEventListener("change", (event) => {
-      var _a;
-      const file = (_a = event.target.files) == null ? void 0 : _a[0];
-      if (file) {
-        readFile(file, host);
-      } else {
-        host.errorHandler(
-          new Error("No file selected"),
-          "Please select a markdown or JSON file to upload."
-        );
-      }
     });
   }
   function checkUrlForFile(host) {
@@ -3595,28 +3574,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!loadUrl) {
       return false;
     }
+    loadViaUrl(loadUrl, host, true);
+    return true;
+  }
+  async function loadViaUrl(loadUrl, host, handle) {
     if (!isSameOrigin(loadUrl) && !isValidLoadUrl(loadUrl)) {
-      host.errorHandler(
-        new Error("Invalid URL format"),
-        "The URL provided is not same-origin or has an invalid format, protocol, or contains suspicious characters."
-      );
-      return false;
+      return {
+        error: "Invalid URL format",
+        errorDetail: "The URL provided is not same-origin or has an invalid format, protocol, or contains suspicious characters."
+      };
     }
     try {
-      fetch(loadUrl).then((response) => {
-        if (!response.ok) {
-          throw new Error(`Failed to load content from URL`);
-        }
-        return response.text();
-      }).then((content) => {
-        determineContent(content, host);
-      }).catch((error) => {
-        host.errorHandler(error, `Error loading file from the provided URL`);
-      });
+      const url = new URL(loadUrl, window.location.href);
+      const response = await guardedFetch({ url: url.href });
+      if (!response.status) {
+        return {
+          error: "Error loading file",
+          errorDetail: `Error loading file from the provided URL`
+        };
+      }
+      return determineContent(url.href, response.body, host, handle);
     } catch (error) {
-      host.errorHandler(error, `Error loading file from the provided URL`);
+      return {
+        error: "Error loading file",
+        errorDetail: `Error loading file from the provided URL`
+      };
     }
-    return true;
   }
   function isSameOrigin(url) {
     try {
@@ -3647,12 +3630,373 @@ document.addEventListener('DOMContentLoaded', () => {
       return false;
     }
   }
+  function loadFolder(folderUrl, folder, host) {
+    if (!folder || !folder.docs) {
+      host.errorHandler(
+        "Invalid folder format",
+        "Please provide a valid folder JSON."
+      );
+      return;
+    }
+    if (folder.docs.length === 0) {
+      host.errorHandler(
+        "Empty folder",
+        "The folder does not contain any documents."
+      );
+      return;
+    }
+    if (!host.toolbar) {
+      host.errorHandler(
+        "Toolbar not found",
+        "The toolbar element is required to load folder content."
+      );
+      return;
+    }
+    let docIndex = 0;
+    host.toolbar.innerText = folder.title + `(${folder.docs.length} documents)`;
+    host.toolbar.style.display = "block";
+    const prevBtn = document.createElement("button");
+    prevBtn.textContent = "Previous";
+    prevBtn.disabled = docIndex === 0;
+    const nextBtn = document.createElement("button");
+    nextBtn.textContent = "Next";
+    nextBtn.disabled = docIndex === folder.docs.length - 1;
+    const pageSelect = document.createElement("select");
+    for (let i = 0; i < folder.docs.length; i++) {
+      const option = document.createElement("option");
+      option.value = (i + 1).toString();
+      option.textContent = folder.docs[i].title ? folder.docs[i].title : `Page ${i + 1}`;
+      pageSelect.appendChild(option);
+    }
+    pageSelect.value = (docIndex + 1).toString();
+    function getHashParam(key) {
+      const params = new URLSearchParams(window.location.hash.slice(1));
+      return params.get(key) ?? void 0;
+    }
+    function setHashParam(key, value) {
+      const params = new URLSearchParams(window.location.hash.slice(1));
+      params.set(key, value.toString());
+      window.location.hash = params.toString();
+    }
+    function updatePage(newDocIndex, setHash = false) {
+      docIndex = newDocIndex;
+      if (setHash) {
+        setHashParam("page", docIndex + 1);
+      }
+      prevBtn.disabled = docIndex === 0;
+      nextBtn.disabled = docIndex === folder.docs.length - 1;
+      pageSelect.value = (docIndex + 1).toString();
+      resolveUrl(folderUrl, folder.docs[docIndex].href, host);
+    }
+    pageSelect.onchange = () => {
+      const selectedPage = parseInt(pageSelect.value, 10);
+      if (selectedPage >= 1 && selectedPage <= folder.docs.length) {
+        updatePage(selectedPage - 1, true);
+      }
+    };
+    prevBtn.onclick = () => {
+      if (docIndex > 0) {
+        updatePage(docIndex - 1, true);
+      }
+    };
+    nextBtn.onclick = () => {
+      if (docIndex < folder.docs.length - 1) {
+        updatePage(docIndex + 1, true);
+      }
+    };
+    function goToPageFromHash() {
+      const pageStr = getHashParam("page");
+      let newIndex = 0;
+      if (pageStr) {
+        const page = parseInt(pageStr, 10);
+        if (page >= 1 && page <= folder.docs.length) {
+          newIndex = page - 1;
+        }
+      }
+      updatePage(newIndex, false);
+    }
+    window.addEventListener("hashchange", goToPageFromHash);
+    if (!getHashParam("page")) {
+      setHashParam("page", docIndex + 1);
+    }
+    goToPageFromHash();
+    host.toolbar.appendChild(prevBtn);
+    host.toolbar.appendChild(pageSelect);
+    host.toolbar.appendChild(nextBtn);
+  }
+  async function resolveUrl(base, relativeOrAbsolute, host) {
+    let url;
+    try {
+      url = base ? new URL(relativeOrAbsolute, base).href : relativeOrAbsolute;
+    } catch (error) {
+      host.errorHandler(
+        "Invalid URL",
+        `Invalid URL: ${relativeOrAbsolute} relative to ${base}`
+      );
+      return;
+    }
+    const result = await loadViaUrl(url, host, false);
+    if (result.error) {
+      host.errorHandler(
+        result.error,
+        result.errorDetail
+      );
+      return;
+    }
+    if (result.idoc) {
+      host.render(void 0, result.idoc);
+    } else if (result.markdown) {
+      host.render(result.markdown, void 0);
+    } else if (result.folder) {
+      host.render("Nested folders are not supported", void 0);
+    } else {
+      host.errorHandler(
+        "Invalid document format",
+        "The document could not be loaded from the folder."
+      );
+    }
+  }
+  function determineContent(url, content, host, handle) {
+    const result = _determineContent(content);
+    if (handle) {
+      if (result.error) {
+        host.errorHandler(
+          result.error,
+          result.errorDetail
+        );
+        return;
+      } else if (result.idoc) {
+        host.render(void 0, result.idoc);
+      } else if (result.folder) {
+        loadFolder(url, result.folder, host);
+      } else if (result.markdown) {
+        host.render(result.markdown, void 0);
+      }
+    }
+    return result;
+  }
+  function _determineContent(content, host) {
+    if (!content) {
+      return {
+        error: "Content is empty",
+        errorDetail: "The content was empty. Please use valid markdown content or JSON."
+      };
+    }
+    if (typeof content !== "string") {
+      return {
+        error: "Invalid content type",
+        errorDetail: "The content is not a string. Please use valid markdown content or JSON."
+      };
+    }
+    content = content.trim();
+    if (!content) {
+      return {
+        error: "Content is empty",
+        errorDetail: "The content was only whitespace. Please use valid markdown content or JSON."
+      };
+    }
+    if (content.startsWith("{") && content.endsWith("}")) {
+      try {
+        const idoc_or_folder = JSON.parse(content);
+        if (typeof idoc_or_folder !== "object") {
+          return {
+            error: "Invalid JSON format",
+            errorDetail: "Please provide a valid Interactive Document or Folder JSON."
+          };
+        } else if (idoc_or_folder.$schema.endsWith("idoc_v1.json")) {
+          const idoc = idoc_or_folder;
+          return {
+            idoc
+          };
+        } else if (idoc_or_folder.$schema.endsWith("folder_v1.json")) {
+          const folder = idoc_or_folder;
+          return {
+            folder
+          };
+        } else {
+          return {
+            error: "Unsupported schema",
+            errorDetail: "The provided JSON does not match any known schema."
+          };
+        }
+      } catch (jsonError) {
+        return {
+          error: "Invalid JSON content in clipboard",
+          errorDetail: "The pasted content is not valid JSON. Please copy a valid interactive document JSON file."
+        };
+      }
+    } else {
+      return {
+        markdown: content
+      };
+    }
+  }
+  function readFile(file, host) {
+    if (file.name.endsWith(".json") || file.name.endsWith(".md")) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        var _a;
+        let content = (_a = e.target) == null ? void 0 : _a.result;
+        if (!content) {
+          host.errorHandler(
+            "File content is empty",
+            "The file is empty. Please use a valid markdown or JSON file."
+          );
+          return;
+        }
+        content = content.trim();
+        if (!content) {
+          host.errorHandler(
+            "File content is empty",
+            "The file is empty or contains only whitespace. Please use a valid markdown or JSON file."
+          );
+          return;
+        }
+        determineContent(null, content, host, true);
+      };
+      reader.onerror = (e) => {
+        host.errorHandler(
+          "Failed to read file",
+          "Error reading file"
+        );
+      };
+      reader.readAsText(file);
+    } else {
+      host.errorHandler(
+        "Invalid file type",
+        "Only markdown (.md) or JSON (.json) files are supported."
+      );
+    }
+  }
+  function setupClipboardHandling(host) {
+    const pasteHandler = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const clipboardData = e.clipboardData;
+      if (clipboardData && clipboardData.files.length > 0) {
+        const file = clipboardData.files[0];
+        readFile(file, host);
+      } else if (clipboardData && clipboardData.items) {
+        let handled = false;
+        for (let i = 0; i < clipboardData.items.length; i++) {
+          const item = clipboardData.items[i];
+          if (item.kind === "string" && item.type === "text/plain") {
+            item.getAsString((content) => {
+              if (!content) {
+                host.errorHandler(
+                  "Pasted content is empty",
+                  "The pasted content was empty. Please paste valid markdown content or JSON."
+                );
+                return;
+              }
+              content = content.trim();
+              if (!content) {
+                host.errorHandler(
+                  "Pasted content is empty",
+                  "The pasted content was only whitespace. Please paste valid markdown content or JSON."
+                );
+                return;
+              }
+              determineContent(null, content, host, true);
+            });
+            handled = true;
+            break;
+          }
+        }
+        if (!handled) {
+          host.errorHandler(
+            "Unsupported clipboard content",
+            "Please paste a markdown file, JSON file, or valid text content."
+          );
+        }
+      } else {
+        host.errorHandler(
+          "Unsupported clipboard content",
+          "Please paste a markdown file, JSON file, or valid text content."
+        );
+      }
+    };
+    document.addEventListener("paste", pasteHandler);
+    return () => {
+      document.removeEventListener("paste", pasteHandler);
+    };
+  }
+  function setupDragDropHandling(host) {
+    const dragHandler = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    const dropHandler = (e) => {
+      var _a, _b;
+      e.preventDefault();
+      e.stopPropagation();
+      const files = (_a = e.dataTransfer) == null ? void 0 : _a.files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        readFile(file, host);
+      } else if ((_b = e.dataTransfer) == null ? void 0 : _b.types.includes("text/plain")) {
+        let content = e.dataTransfer.getData("text/plain");
+        if (!content) {
+          host.errorHandler(
+            "Dropped content is empty",
+            "The dropped content was empty. Please drop valid markdown content or JSON."
+          );
+          return;
+        }
+        content = content.trim();
+        if (!content) {
+          host.errorHandler(
+            "Dropped content is empty",
+            "The dropped content was only whitespace. Please drop valid markdown content or JSON."
+          );
+          return;
+        }
+        determineContent(null, content, host, true);
+      } else {
+        host.errorHandler(
+          "Unsupported drop content",
+          "Please drop a markdown file, JSON file, or valid text content."
+        );
+      }
+    };
+    document.addEventListener("drop", dropHandler);
+    document.addEventListener("dragover", dragHandler);
+    return () => {
+      document.removeEventListener("drop", dropHandler);
+      document.removeEventListener("dragover", dragHandler);
+    };
+  }
+  function setupFileUpload(host) {
+    const { uploadButton, fileInput } = host;
+    if (!uploadButton || !fileInput) {
+      host.errorHandler(
+        "Upload button or file input not found",
+        "Please ensure the upload button and file input elements are present in the HTML."
+      );
+      return;
+    }
+    uploadButton == null ? void 0 : uploadButton.addEventListener("click", () => {
+      fileInput == null ? void 0 : fileInput.click();
+    });
+    fileInput == null ? void 0 : fileInput.addEventListener("change", (event) => {
+      var _a;
+      const file = (_a = event.target.files) == null ? void 0 : _a[0];
+      if (file) {
+        readFile(file, host);
+      } else {
+        host.errorHandler(
+          "No file selected",
+          "Please select a markdown or JSON file to upload."
+        );
+      }
+    });
+  }
   function setupPostMessageHandling(host) {
     window.addEventListener("message", (event) => {
       try {
         if (!event.data || typeof event.data !== "object") {
           host.errorHandler(
-            new Error("Invalid message format"),
+            "Invalid message format",
             "Received message is not an object or is undefined."
           );
           return;
@@ -3709,6 +4053,7 @@ document.addEventListener('DOMContentLoaded', () => {
       __publicField(this, "uploadButton");
       __publicField(this, "fileInput");
       __publicField(this, "textarea");
+      __publicField(this, "toolbar");
       __publicField(this, "sandbox");
       __publicField(this, "onApprove");
       __publicField(this, "removeInteractionHandlers");
@@ -3722,6 +4067,7 @@ document.addEventListener('DOMContentLoaded', () => {
       this.uploadButton = getElement(options.uploadButton);
       this.fileInput = getElement(options.fileInput);
       this.textarea = getElement(options.textarea);
+      this.toolbar = getElement(options.toolbar);
       if (!this.appDiv) {
         throw new Error("App container not found");
       }
@@ -3756,27 +4102,51 @@ document.addEventListener('DOMContentLoaded', () => {
           postStatus(this.options.postMessageTarget, { type: "hostStatus", hostStatus: "ready" });
         },
         onError: () => {
-          this.errorHandler(new Error("Sandbox initialization failed"), "Sandbox could not be initialized");
+          this.errorHandler(
+            "Sandbox initialization failed",
+            "Sandbox could not be initialized"
+          );
         },
         onApprove: this.onApprove
       });
+      if (!markdown) {
+        show(this.sandbox.element, false);
+      }
     }
-    errorHandler(error, detailsHtml) {
+    errorHandler(error, details) {
       show(this.loadingDiv, false);
-      const errorDiv = document.createElement("div");
-      errorDiv.style.color = "red";
-      errorDiv.style.padding = "20px";
-      const errorLabel = document.createElement("strong");
-      errorLabel.textContent = "Error:";
-      const errorMessage = document.createTextNode(` ${error.message}`);
-      const lineBreak = document.createElement("br");
-      const details = document.createTextNode(detailsHtml);
-      errorDiv.appendChild(errorLabel);
-      errorDiv.appendChild(errorMessage);
-      errorDiv.appendChild(lineBreak);
-      errorDiv.appendChild(details);
-      this.appDiv.innerHTML = "";
-      this.appDiv.appendChild(errorDiv);
+      show(this.helpDiv, false);
+      show(this.appDiv, true);
+      let message;
+      if (typeof error === "string") {
+        message = error;
+      } else if (typeof error.message === "string") {
+        message = error.message;
+      } else {
+        try {
+          message = error.toString();
+        } catch {
+          message = "Unknown error";
+        }
+      }
+      if (this.sandboxReady) {
+        const markdown = `# Error:
+${message}
+
+${details}`;
+        this.render(markdown, void 0);
+      } else {
+        this.appDiv.innerHTML = "";
+        const h1 = document.createElement("h1");
+        h1.textContent = "Error";
+        const pMessage = document.createElement("p");
+        pMessage.textContent = message;
+        const pDetails = document.createElement("p");
+        pDetails.textContent = details;
+        this.appDiv.appendChild(h1);
+        this.appDiv.appendChild(pMessage);
+        this.appDiv.appendChild(pDetails);
+      }
     }
     bindTextareaToCompiler() {
       const render = () => {
@@ -3784,12 +4154,18 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           const interactiveDocument = JSON.parse(json);
           if (typeof interactiveDocument !== "object") {
-            this.errorHandler(new Error("Invalid JSON format"), "Please provide a valid Interactive Document JSON.");
+            this.errorHandler(
+              "Invalid JSON format",
+              "Please provide a valid Interactive Document JSON."
+            );
             return;
           }
           this.renderInteractiveDocument(interactiveDocument);
         } catch (error) {
-          this.errorHandler(error, "Failed to parse Interactive Document JSON");
+          this.errorHandler(
+            error,
+            "Failed to parse Interactive Document JSON"
+          );
         }
       };
       this.textarea.addEventListener("input", render);
@@ -3821,7 +4197,10 @@ document.addEventListener('DOMContentLoaded', () => {
           this.renderMarkdown(markdown);
         }
       } else {
-        this.errorHandler(new Error("No content provided"), "Please provide either markdown or an interactive document to render.");
+        this.errorHandler(
+          "No content provided",
+          "Please provide either markdown or an interactive document to render."
+        );
       }
       this.removeInteractionHandlers.forEach((removeHandler) => removeHandler());
       this.removeInteractionHandlers = [];
@@ -3844,6 +4223,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           this.sandbox.send(markdown);
         }
+        show(this.sandbox.element, true);
         postStatus(this.options.postMessageTarget, { type: "hostStatus", hostStatus: "rendered", details: "Markdown rendering completed successfully" });
       } catch (error) {
         this.errorHandler(

@@ -25,7 +25,7 @@ export function setupClipboardHandling(host: Listener) {
           item.getAsString((content) => {
             if (!content) {
               host.errorHandler(
-                new Error('Pasted content is empty'),
+                'Pasted content is empty',
                 'The pasted content was empty. Please paste valid markdown content or JSON.'
               );
               return;
@@ -33,12 +33,12 @@ export function setupClipboardHandling(host: Listener) {
             content = content.trim();
             if (!content) {
               host.errorHandler(
-                new Error('Pasted content is empty'),
+                'Pasted content is empty',
                 'The pasted content was only whitespace. Please paste valid markdown content or JSON.'
               );
               return;
             }
-            determineContent(content, host);
+            determineContent(null, content, host, true);
           });
           handled = true;
           break;
@@ -46,13 +46,13 @@ export function setupClipboardHandling(host: Listener) {
       }
       if (!handled) {
         host.errorHandler(
-          new Error('Unsupported clipboard content'),
+          'Unsupported clipboard content',
           'Please paste a markdown file, JSON file, or valid text content.'
         );
       }
     } else {
       host.errorHandler(
-        new Error('Unsupported clipboard content'),
+        'Unsupported clipboard content',
         'Please paste a markdown file, JSON file, or valid text content.'
       );
     }

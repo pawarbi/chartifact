@@ -1,0 +1,162 @@
+```json vega
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "This is the central brain of the page",
+  "signals": [
+    {
+      "name": "userName",
+      "value": "Alice"
+    },
+    {
+      "name": "temperature",
+      "value": 20
+    },
+    {
+      "name": "isEnabled",
+      "value": true
+    },
+    {
+      "name": "selectedColor",
+      "value": "blue"
+    },
+    {
+      "name": "selectedItems",
+      "value": [
+        "apple",
+        "banana"
+      ]
+    },
+    {
+      "name": "obj",
+      "value": {
+        "foo": "bar",
+        "value": 42
+      }
+    },
+    {
+      "name": "doubled_temperature",
+      "value": 40,
+      "update": "temperature * 2"
+    },
+    {
+      "name": "obj_foo",
+      "value": "bar",
+      "update": "obj.foo"
+    },
+    {
+      "name": "obj_value",
+      "value": 42,
+      "update": "obj.value"
+    }
+  ]
+}
+```
+
+# Chartifact Primer
+
+Explore the features below and **view source** to see how markdown elements are used throughout this page.
+
+---
+
+### Markdown
+
+Chartifact supports markdown for formatting text, headings, lists, and more. HTML tags are not allowed.
+
+**Bold**, *italic*, `code`, and [links](https://microsoft.com).
+
+1. Numbered item
+2. Another item
+
+- Bullet point
+- Another bullet
+
+Variables can also be used inside image URLs (`![alt text]({{variableName}})`) and hyperlink URLs (`[link text]({{variableName}})`).
+
+---
+
+### Variables
+
+Variables store values you can reference in markdown using `{{variableName}}`. They can be strings, numbers, booleans, arrays, objects, or calculated values.
+
+- **String:** Hello, **{{userName}}**!
+
+- **Number:** Temperature is **{{temperature}}°C**.
+
+- **Boolean:** Feature enabled: **{{isEnabled}}**.
+
+- **Array:** Selected items: **{{selectedItems}}**.
+
+- **Object:** Foo is **{{obj_foo}}**, value is **{{obj_value}}**.
+
+- **String:** Favorite color: **{{selectedColor}}**.
+
+---
+
+### Calculated Variables
+
+Calculated variables derive their value from other variables using [Vega's expression language](https://vega.github.io/vega/docs/expressions/).
+
+- **Doubled temperature:** **{{doubled_temperature}}** (calculated from `temperature`)
+
+Note: Some variable names are reserved and cannot be used (e.g. `datum`, `event`, etc.).
+
+---
+
+### Input Controls
+
+Input controls let users change variable values interactively. Changes are instantly reflected in markdown and calculations above.
+
+```json textbox
+{"variableId":"userName","value":"Alice","label":"Your name"}
+```
+
+```json slider
+{"variableId":"temperature","value":20,"label":"Temperature (°C)","min":-10,"max":40,"step":1}
+```
+
+```json checkbox
+{"variableId":"isEnabled","value":true,"label":"Enable feature"}
+```
+
+```json dropdown
+{
+  "variableId": "selectedColor",
+  "value": "blue",
+  "label": "Favorite color",
+  "options": [
+    "red",
+    "green",
+    "blue",
+    "yellow"
+  ]
+}
+```
+
+```json dropdown
+{
+  "variableId": "selectedItems",
+  "value": [
+    "apple",
+    "banana"
+  ],
+  "label": "Pick fruits",
+  "options": [
+    "apple",
+    "banana",
+    "orange",
+    "grape"
+  ],
+  "multiple": true,
+  "size": 3
+}
+```
+
+---
+
+### Tips
+
+- Use variables in any markdown context, including headings and lists.
+
+- Calculated variables update automatically when their dependencies change.
+
+- Only simple variable references are supported (e.g. `{{variableName}}`).

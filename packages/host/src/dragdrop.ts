@@ -26,7 +26,7 @@ export function setupDragDropHandling(host: Listener) {
       let content = e.dataTransfer.getData('text/plain');
       if (!content) {
         host.errorHandler(
-          new Error('Dropped content is empty'),
+          'Dropped content is empty',
           'The dropped content was empty. Please drop valid markdown content or JSON.'
         );
         return;
@@ -34,15 +34,15 @@ export function setupDragDropHandling(host: Listener) {
       content = content.trim();
       if (!content) {
         host.errorHandler(
-          new Error('Dropped content is empty'),
+          'Dropped content is empty',
           'The dropped content was only whitespace. Please drop valid markdown content or JSON.'
         );
         return;
       }
-      determineContent(content, host);
+      determineContent(null, content, host, true);
     } else {
       host.errorHandler(
-        new Error('Unsupported drop content'),
+        'Unsupported drop content',
         'Please drop a markdown file, JSON file, or valid text content.'
       );
     }

@@ -9,7 +9,9 @@ C H A R T I F A C T
 
 **Declarative, interactive data documents**
 
-Chartifact is a low-code document format for creating interactive, data-driven pages such as reports, dashboards, and presentations. It travels like a document and works like an app. Easily editable and remixable, it’s a file type for an AI-native world.
+Chartifact is a low-code document format for creating interactive, data-driven pages such as reports, dashboards, and presentations. It travels like a document and works like a mini app. Designed for use with your LLM to produce a shareable artifact of your analytic conversations.
+
+&bull; [Examples](./examples) &bull; [Take a tour of the capabilities](./view?load=../assets/examples/features.markdown.folder.json) &bull; [Try now with your LLM](./llm)
 
 ## Ecosystem
 
@@ -24,9 +26,11 @@ The Chartifact GitHub repo has source code for these interoperating modules:
   * **Images** – Dynamic image URLs based on variables
   * **Presets** – Named sets of variable values for quick scenario switching
 
-* A **VS Code extension** for editing, previewing, and exporting documents, with optional AI assistance.
+* A **set of examples** that your LLM can understand and remix for your scenario.
 
-* A **web-based viewer and editor** for quick edits and sharing.
+* A **VS Code extension** for editing, previewing, and exporting documents.
+
+* A **web-based viewer and editor** for viewing, quick edits and sharing.
 
 * Tools to **export standalone HTML** documents you can share or embed anywhere.
 

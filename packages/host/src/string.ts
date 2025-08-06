@@ -3,48 +3,98 @@
 * Licensed under the MIT License.
 */
 import { Listener } from "./listener.js";
+import { InteractiveDocument, InteractiveDocumentWithSchema } from "@microsoft/chartifact-schema";
+import { Folder, FolderWithSchema } from "@microsoft/chartifact-schema-folder";
+import { loadFolder } from "./folder.js";
 
-export function determineContent(content: string, host: Listener) {
+export interface ContentResult {
+    markdown?: string;
+    idoc?: InteractiveDocument;
+    folder?: Folder;
+    error?: string;
+    errorDetail?: string;
+}
+
+export function determineContent(url:string, content: string, host: Listener, handle: boolean): ContentResult {
+    const result = _determineContent(content, host);
+    if (handle) {
+        if (result.error) {
+            host.errorHandler(
+                result.error,
+                result.errorDetail
+            );
+            return;
+        } else if (result.idoc) {
+            host.render(undefined, result.idoc);
+        } else if (result.folder) {
+            loadFolder(url, result.folder, host);
+        } else if (result.markdown) {
+            host.render(result.markdown, undefined);
+        }
+    }
+    return result;
+}
+
+function _determineContent(content: string, host: Listener): ContentResult {
     if (!content) {
-        host.errorHandler(
-            new Error('Content is empty'),
-            'The content was empty. Please use valid markdown content or JSON.'
-        );
-        return;
+        return {
+            error: 'Content is empty',
+            errorDetail: 'The content was empty. Please use valid markdown content or JSON.'
+        };
     }
 
     if (typeof content !== 'string') {
-        host.errorHandler(
-            new Error('Invalid content type'),
-            'The content is not a string. Please use valid markdown content or JSON.'
-        );
-        return;
+        return {
+            error: 'Invalid content type',
+            errorDetail: 'The content is not a string. Please use valid markdown content or JSON.'
+        };
     }
 
     content = content.trim();
 
     if (!content) {
-        host.errorHandler(
-            new Error('Content is empty'),
-            'The content was only whitespace. Please use valid markdown content or JSON.'
-        );
-        return;
+        return {
+            error: 'Content is empty',
+            errorDetail: 'The content was only whitespace. Please use valid markdown content or JSON.'
+        };
     }
 
     // Check if the content is valid markdown or JSON
     if (content.startsWith('{') && content.endsWith('}')) {
         // Try to parse as JSON
         try {
-            const idoc = JSON.parse(content);
-            host.render(undefined, idoc);
+            const idoc_or_folder = JSON.parse(content) as InteractiveDocumentWithSchema | FolderWithSchema;
+            if (typeof idoc_or_folder !== 'object') {
+                return {
+                    error: 'Invalid JSON format',
+                    errorDetail: 'Please provide a valid Interactive Document or Folder JSON.'
+                };
+            } else if (idoc_or_folder.$schema.endsWith('idoc_v1.json')) {
+                const idoc = idoc_or_folder as InteractiveDocument;
+                return {
+                    idoc
+                };
+            } else if (idoc_or_folder.$schema.endsWith('folder_v1.json')) {
+                const folder = idoc_or_folder as Folder;
+                return {
+                    folder
+                };
+            } else {
+                return {
+                    error: 'Unsupported schema',
+                    errorDetail: 'The provided JSON does not match any known schema.'
+                };
+            }
         } catch (jsonError) {
-            host.errorHandler(
-                new Error('Invalid JSON content in clipboard'),
-                'The pasted content is not valid JSON. Please copy a valid interactive document JSON file.'
-            );
-            return;
+            return {
+                error: 'Invalid JSON content in clipboard',
+                errorDetail: 'The pasted content is not valid JSON. Please copy a valid interactive document JSON file.'
+            };
         }
     } else {
-        host.render(content);
+        return {
+            markdown: content
+        };
     }
 }
+

@@ -2338,7 +2338,18 @@
       "additionalProperties": false,
       "properties": {
         "css": {
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "CSS styles, either a string, or array of strings which will be concatenated. The array is for developer ergonomics for authoring and merging."
         },
         "googleFonts": {
           "$ref": "#/definitions/GoogleFontsSpec"
