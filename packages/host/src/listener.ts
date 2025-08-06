@@ -160,7 +160,17 @@ export class Listener {
       const markdown = `# Error:\n${message}\n\n${details}`;
       this.render(markdown, undefined);
     } else {
-      this.appDiv.innerHTML = `<h1>Error</h1><p>${message}</p><p>${details}</p>`;
+      // Clear previous content
+      this.appDiv.innerHTML = '';
+      const h1 = document.createElement('h1');
+      h1.textContent = 'Error';
+      const pMessage = document.createElement('p');
+      pMessage.textContent = message;
+      const pDetails = document.createElement('p');
+      pDetails.textContent = details;
+      this.appDiv.appendChild(h1);
+      this.appDiv.appendChild(pMessage);
+      this.appDiv.appendChild(pDetails);
     }
   }
 

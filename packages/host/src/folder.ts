@@ -34,7 +34,7 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
 
     let docIndex = 0;
 
-    host.toolbar.innerHTML = folder.title + `(${folder.docs.length} documents)`;
+    host.toolbar.innerText = folder.title + `(${folder.docs.length} documents)`;
     host.toolbar.style.display = 'block';
 
     // Create Previous and Next buttons

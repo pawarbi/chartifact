@@ -3653,7 +3653,7 @@ ${guardedJs}
       return;
     }
     let docIndex = 0;
-    host.toolbar.innerHTML = folder.title + `(${folder.docs.length} documents)`;
+    host.toolbar.innerText = folder.title + `(${folder.docs.length} documents)`;
     host.toolbar.style.display = "block";
     const prevBtn = document.createElement("button");
     prevBtn.textContent = "Previous";
@@ -4136,7 +4136,16 @@ ${message}
 ${details}`;
         this.render(markdown, void 0);
       } else {
-        this.appDiv.innerHTML = `<h1>Error</h1><p>${message}</p><p>${details}</p>`;
+        this.appDiv.innerHTML = "";
+        const h1 = document.createElement("h1");
+        h1.textContent = "Error";
+        const pMessage = document.createElement("p");
+        pMessage.textContent = message;
+        const pDetails = document.createElement("p");
+        pDetails.textContent = details;
+        this.appDiv.appendChild(h1);
+        this.appDiv.appendChild(pMessage);
+        this.appDiv.appendChild(pDetails);
       }
     }
     bindTextareaToCompiler() {
