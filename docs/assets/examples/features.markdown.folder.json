@@ -1,0 +1,50 @@
+{
+    "$schema": "../../schema/folder_v1.json",
+    "title": "My Folder",
+    "docs": [
+        {
+            "title": "Primer",
+            "href": "./markdown/features/1.primer.idoc.md"
+        },
+        {
+            "title": "Data Sources",
+            "href": "markdown/features/2.data-sources.idoc.md"
+        },
+        {
+            "title": "Chart",
+            "href": "markdown/features/3.chart.idoc.md"
+        },
+        {
+            "title": "Table",
+            "href": "markdown/features/4.table.idoc.md"
+        },
+        {
+            "title": "Styling",
+            "href": "markdown/features/5.styling.idoc.md"
+        },
+        {
+            "title": "Data Transformations",
+            "href": "markdown/features/6.data-transformations.idoc.md"
+        },
+        {
+            "title": "Dynamic Dropdown",
+            "href": "markdown/features/7.dropdown.idoc.md"
+        },
+        {
+            "title": "Presets",
+            "href": "markdown/features/8.presets.idoc.md"
+        },
+        {
+            "title": "Data URL",
+            "href": "markdown/features/data-url.idoc.md"
+        },
+        {
+            "title": "Image",
+            "href": "markdown/features/image.idoc.md"
+        },
+        {
+            "title": "URLs",
+            "href": "markdown/features/urls.idoc.md"
+        }
+    ]
+}
