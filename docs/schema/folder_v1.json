@@ -1,0 +1,47 @@
+{
+  "$ref": "#/definitions/FolderWithSchema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "DocRef": {
+      "additionalProperties": false,
+      "description": "Copyright (c) Microsoft Corporation. Licensed under the MIT License.",
+      "properties": {
+        "href": {
+          "description": "URL to the document, either absolute or relative to the folder location.",
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "href"
+      ],
+      "type": "object"
+    },
+    "FolderWithSchema": {
+      "additionalProperties": false,
+      "description": "JSON Schema version with $schema property for validation",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "docs": {
+          "items": {
+            "$ref": "#/definitions/DocRef"
+          },
+          "type": "array"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "docs",
+        "title"
+      ],
+      "type": "object"
+    }
+  }
+}
