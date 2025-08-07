@@ -63,7 +63,7 @@ export const plugins: Plugin[] = [];
 export function registerMarkdownPlugin(plugin: Plugin) {
     // Find the correct position to insert the plugin based on hydratesBefore
     let insertIndex = plugins.length;
-    
+
     // First, find the latest position where plugins that should run before this one are located
     let minIndex = 0;
     for (let i = 0; i < plugins.length; i++) {
@@ -71,7 +71,7 @@ export function registerMarkdownPlugin(plugin: Plugin) {
             minIndex = Math.max(minIndex, i + 1);
         }
     }
-    
+
     // Then, if this plugin should run before another plugin, find that plugin's position
     if (plugin.hydratesBefore) {
         const targetIndex = plugins.findIndex(p => p.name === plugin.hydratesBefore);
@@ -79,10 +79,10 @@ export function registerMarkdownPlugin(plugin: Plugin) {
             insertIndex = targetIndex;
         }
     }
-    
+
     // Ensure we don't insert before plugins that should run before this one
     insertIndex = Math.max(insertIndex, minIndex);
-    
+
     plugins.splice(insertIndex, 0, plugin);
     return 'register';
 }
@@ -101,19 +101,34 @@ export function create() {
     // Default handler to preserve existing functionality
     const originalFence = md.renderer.rules.fence;
 
-    // Modified fence renderer to dynamically use handlers
     md.renderer.rules.fence = function (tokens, idx, options, env, slf) {
         const token = tokens[idx];
         const info = token.info.trim();
 
-        // Check if the info starts with "json " and extract the plugin name
-        if (info.startsWith('json ')) {
-            const pluginName = info.slice(5).trim();
-
-            // Find the plugin by name
+        const findPlugin = (pluginName: string) => {
             const plugin = plugins.find(p => p.name === pluginName);
             if (plugin && plugin.fence) {
                 return plugin.fence(token, idx);
+            }
+        };
+
+        // First priority: Check if it starts with "#" for comment plugin
+        if (info.startsWith('#')) {
+            return findPlugin('#');
+        }
+        // Second priority: Check for direct plugin names
+        else {
+            const directPlugin = findPlugin(info);
+            if (directPlugin) {
+                return directPlugin;
+            }
+            // Third priority: Check if it starts with "json " and extract the plugin name
+            else if (info.startsWith('json ')) {
+                const jsonPluginName = info.slice(5).trim();
+                const jsonPlugin = findPlugin(jsonPluginName);
+                if (jsonPlugin) {
+                    return jsonPlugin;
+                }
             }
         }
 
@@ -129,30 +144,5 @@ export function create() {
 }
 
 export function definePlugin(md: MarkdownIt, pluginName: string) {
-    md.block.ruler.before('fence', `${pluginName}_block`, function (state, startLine, endLine) {
-        const start = state.bMarks[startLine] + state.tShift[startLine];
-        const max = state.eMarks[startLine];
-
-        // Check if the block starts with "```json <plugin_name>"
-        const marker = `json ${pluginName}`;
-        if (!state.src.slice(start, max).trim().startsWith('```' + marker)) {
-            return false;
-        }
-
-        let nextLine = startLine;
-        while (nextLine < endLine) {
-            nextLine++;
-            if (state.src.slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine]).trim() === '```') {
-                break;
-            }
-        }
-
-        state.line = nextLine + 1;
-        const token = state.push('fence', 'code', 0);
-        token.info = marker;
-        token.content = state.getLines(startLine + 1, nextLine, state.blkIndent, true);
-        token.map = [startLine, state.line];
-
-        return true;
-    });
+    //TODO
 }
