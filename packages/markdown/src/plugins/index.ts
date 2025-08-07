@@ -6,6 +6,7 @@
 import { registerMarkdownPlugin } from '../factory.js';
 
 import { checkboxPlugin } from './checkbox.js';
+import { commentPlugin } from './comment.js';
 import { cssPlugin } from './css.js';
 import { googleFontsPlugin } from './google-fonts.js';
 import { dropdownPlugin } from './dropdown.js';
@@ -20,6 +21,7 @@ import { vegaPlugin } from './vega.js';
 
 export function registerNativePlugins() {
     registerMarkdownPlugin(checkboxPlugin);
+    registerMarkdownPlugin(commentPlugin);
     registerMarkdownPlugin(cssPlugin);
     registerMarkdownPlugin(googleFontsPlugin);
     registerMarkdownPlugin(dropdownPlugin);

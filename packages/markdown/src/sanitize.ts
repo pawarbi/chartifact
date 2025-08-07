@@ -5,6 +5,20 @@
 
 export function sanitizedHTML(tagName: string, attributes: { [key: string]: string }, content: string, precedeWithScriptTag?: boolean) {
 
+    // Special handling for HTML comments
+    if (tagName === 'comment') {
+        // First escape the content safely
+        const tempElement = document.createElement('div');
+        tempElement.textContent = content;
+        const safeContent = tempElement.innerHTML;
+        
+        // Then create comment with the safe content
+        const comment = document.createComment(safeContent);
+        const container = document.createElement('div');
+        container.appendChild(comment);
+        return container.innerHTML;
+    }
+
     // Create a temp element with the specified tag name
     const element = document.createElement(tagName);
 
