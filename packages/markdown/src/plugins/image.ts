@@ -21,11 +21,11 @@ interface ImageInstance {
     hasImage: boolean;
 }
 
-enum ImageOpacity {
-    full = '1',
-    loading = '0.1',
-    error = '0.5',
-}
+export const ImageOpacity = {
+    full: '1',
+    loading: '0.1',
+    error: '0.5',
+};
 
 const pluginName: PluginNames = 'image';
 const className = pluginClassName(pluginName);
@@ -42,75 +42,35 @@ export const imagePlugin: Plugin<ImageSpec> = {
             const container = renderer.element.querySelector(`#${specReview.containerId}`);
 
             const spec: ImageSpec = specReview.approvedSpec;
-            const img = document.createElement('img');
-            const spinner = document.createElement('div');
-            spinner.innerHTML = `
-                <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="10" stroke="gray" stroke-width="2" fill="none" stroke-dasharray="31.4" stroke-dashoffset="0">
-                        <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
-                    </circle>
-                </svg>
-            `;
-
-            const retryBtn = document.createElement('button');
-            retryBtn.textContent = 'Retry';
-            const buttonStyles: Partial<CSSStyleDeclaration> = {
-                display: 'none',
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: '2',
+            
+            // Create imageInstance first so it can be referenced in callbacks
+            const imageInstance: ImageInstance = {
+                id: `${pluginName}-${index}`,
+                spec,
+                img: null as any, // Will be set below
+                spinner: null as any, // Will be set below
+                hasImage: false,
             };
-            Object.assign(retryBtn.style, buttonStyles);
 
-            (container as HTMLElement).style.position = 'relative';
-            spinner.style.position = 'absolute';
-            container.innerHTML = '';
-            container.appendChild(spinner);
-            container.appendChild(img);
-            container.appendChild(retryBtn);
+            const { img, spinner, retryBtn } = createImageLoadingLogic(
+                container as HTMLElement,
+                () => {
+                    imageInstance.hasImage = true;
+                },
+                (error) => {
+                    imageInstance.hasImage = false;
+                    errorHandler(error, pluginName, index, 'load', container, img.src);
+                }
+            );
+
+            // Now set the actual img and spinner references
+            imageInstance.img = img;
+            imageInstance.spinner = spinner;
 
             if (spec.alt) img.alt = spec.alt;
             if (spec.width) img.width = spec.width;
             if (spec.height) img.height = spec.height;
 
-            img.onload = () => {
-                spinner.style.display = 'none';
-                img.style.opacity = ImageOpacity.full;
-                img.style.display = ''; // show image
-                retryBtn.style.display = 'none';
-                imageInstance.hasImage = true;
-            };
-            img.onerror = () => {
-                spinner.style.display = 'none';
-                img.style.opacity = ImageOpacity.error;
-                img.style.display = 'none'; // hide broken image
-                retryBtn.style.display = '';
-                retryBtn.disabled = false;
-                imageInstance.hasImage = false;
-                errorHandler(new Error('Image failed to load'), pluginName, index, 'load', container, img.src);
-            };
-
-            retryBtn.onclick = () => {
-                retryBtn.disabled = true;
-                spinner.style.display = '';
-                img.style.opacity = ImageOpacity.loading;
-                img.style.display = imageInstance.hasImage ? '' : 'none'; // only show if previous load succeeded
-                const src = img.src;
-                img.src = '';
-                setTimeout(() => {
-                    img.src = src;
-                }, 100);
-            };
-
-            const imageInstance: ImageInstance = {
-                id: `${pluginName}-${index}`,
-                spec,
-                img,
-                spinner,
-                hasImage: false,
-            };
             imageInstances.push(imageInstance);
         }
         const instances = imageInstances.map((imageInstance, index): IInstance => {
@@ -154,3 +114,67 @@ export const imagePlugin: Plugin<ImageSpec> = {
         return instances;
     },
 };
+
+export const imgSpinner = `
+<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" stroke="gray" stroke-width="2" fill="none" stroke-dasharray="31.4" stroke-dashoffset="0">
+        <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+    </circle>
+</svg>
+`;
+
+export function createImageContainerTemplate(alt = '', title = '', dataTemplateUrl = '') {
+    const titleAttr = title ? ` title="${title}"` : '';
+    const templateUrlAttr = dataTemplateUrl ? ` data-template-url="${dataTemplateUrl}"` : '';
+    
+    return `<div class="dynamic-image-container" style="position: relative;">
+        <div class="image-spinner" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;">
+            ${imgSpinner}
+        </div>
+        <img src="" alt="${alt}"${titleAttr}${templateUrlAttr} style="opacity: 0.1;">
+        <button class="image-retry" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2;">Retry</button>
+    </div>`;
+}
+
+export function createImageLoadingLogic(
+    container: HTMLElement,
+    onSuccess?: () => void,
+    onError?: (error: Error) => void
+): { img: HTMLImageElement; spinner: HTMLDivElement; retryBtn: HTMLButtonElement } {
+    container.style.position = 'relative';
+    container.innerHTML = createImageContainerTemplate();
+
+    const img = container.querySelector('img') as HTMLImageElement;
+    const spinner = container.querySelector('.image-spinner') as HTMLDivElement;
+    const retryBtn = container.querySelector('.image-retry') as HTMLButtonElement;
+
+    img.onload = () => {
+        spinner.style.display = 'none';
+        img.style.opacity = ImageOpacity.full;
+        img.style.display = '';
+        retryBtn.style.display = 'none';
+        onSuccess?.();
+    };
+
+    img.onerror = () => {
+        spinner.style.display = 'none';
+        img.style.opacity = ImageOpacity.error;
+        img.style.display = 'none';
+        retryBtn.style.display = '';
+        retryBtn.disabled = false;
+        onError?.(new Error('Image failed to load'));
+    };
+
+    retryBtn.onclick = () => {
+        retryBtn.disabled = true;
+        spinner.style.display = '';
+        img.style.opacity = ImageOpacity.loading;
+        const src = img.src;
+        img.src = '';
+        setTimeout(() => {
+            img.src = src;
+        }, 100);
+    };
+
+    return { img, spinner, retryBtn };
+}
