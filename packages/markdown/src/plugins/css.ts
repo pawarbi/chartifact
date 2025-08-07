@@ -318,62 +318,11 @@ const className = pluginClassName(pluginName);
 
 export const cssPlugin: Plugin<CategorizedCss> = {
     ...flaggableJsonPlugin<CategorizedCss>(pluginName, className),
-    initializePlugin: (md) => {
-        // Check for required css-tree dependency
-        if (typeof csstree === 'undefined') {
-            throw new Error('css-tree library is required for CSS plugin. Please include the css-tree script.');
-        }
-
-        definePlugin(md, pluginName);
-        // Custom rule for CSS blocks
-        md.block.ruler.before('fence', 'css_block', function (state, startLine, endLine) {
-            const start = state.bMarks[startLine] + state.tShift[startLine];
-            const max = state.eMarks[startLine];
-
-            // Check if the block starts with "```css"
-            if (!state.src.slice(start, max).trim().startsWith(`\`\`\`${pluginName}`)) {
-                return false;
-            }
-
-            let nextLine = startLine;
-            while (nextLine < endLine) {
-                nextLine++;
-                if (state.src.slice(state.bMarks[nextLine] + state.tShift[nextLine], state.eMarks[nextLine]).trim() === '```') {
-                    break;
-                }
-            }
-
-            state.line = nextLine + 1;
-            const token = state.push('fence', 'code', 0);
-            token.info = pluginName;
-            token.content = state.getLines(startLine + 1, nextLine, state.blkIndent, true);
-            token.map = [startLine, state.line];
-
-            return true;
-        });
-
-        // Custom renderer for CSS fence blocks
-        const originalFence = md.renderer.rules.fence;
-        md.renderer.rules.fence = function (tokens, idx, options, env, slf) {
-            const token = tokens[idx];
-            const info = token.info.trim();
-
-            if (info === pluginName) {
-                const cssContent = token.content.trim();
-
-                // Parse and categorize CSS content
-                const categorizedCss = categorizeCss(cssContent);
-
-                return sanitizedHTML('div', { id: `${pluginName}-${idx}`, class: className }, JSON.stringify(categorizedCss), true);
-            }
-
-            // Fallback to original fence renderer
-            if (originalFence) {
-                return originalFence(tokens, idx, options, env, slf);
-            } else {
-                return '';
-            }
-        };
+    fence: (token, index) => {
+        const cssContent = token.content.trim();
+        // Parse and categorize CSS content
+        const categorizedCss = categorizeCss(cssContent);
+        return sanitizedHTML('div', { id: `${pluginName}-${index}`, class: className }, JSON.stringify(categorizedCss), true);
     },
     hydrateComponent: async (renderer, errorHandler, specs) => {
         const cssInstances: { id: string; element: HTMLStyleElement }[] = [];
