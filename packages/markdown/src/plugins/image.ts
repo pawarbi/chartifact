@@ -52,6 +52,7 @@ export const imagePlugin: Plugin<ImageSpec> = {
                 hasImage: false,
             };
 
+            container.innerHTML = createImageContainerTemplate();
             const { img, spinner, retryBtn } = createImageLoadingLogic(
                 container as HTMLElement,
                 () => {
@@ -142,7 +143,6 @@ export function createImageLoadingLogic(
     onError?: (error: Error) => void
 ): { img: HTMLImageElement; spinner: HTMLDivElement; retryBtn: HTMLButtonElement } {
     container.style.position = 'relative';
-    container.innerHTML = createImageContainerTemplate();
 
     const img = container.querySelector('img') as HTMLImageElement;
     const spinner = container.querySelector('.image-spinner') as HTMLDivElement;
