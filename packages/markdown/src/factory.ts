@@ -52,7 +52,7 @@ export interface SpecContainer<T> {
 export interface Plugin<T = {}> {
     name: PluginNames;
     hydratesBefore?: string;
-    initializePlugin: (md: MarkdownIt) => void;
+    initializePlugin?: (md: MarkdownIt) => void;
     fence?: (token: Token, idx: number) => string;
     hydrateSpecs?: (renderer: Renderer, errorHandler: ErrorHandler) => SpecReview<T>[];
     hydrateComponent?: (renderer: Renderer, errorHandler: ErrorHandler, flagged: SpecReview<T>[]) => Promise<IInstance[]>;
@@ -90,7 +90,7 @@ export function registerMarkdownPlugin(plugin: Plugin) {
 export function create() {
     const md = new markdownit();
     for (const plugin of plugins) {
-        plugin.initializePlugin(md);
+        plugin.initializePlugin?.(md);
     }
 
     md.use(attrs);
@@ -141,8 +141,4 @@ export function create() {
     };
 
     return md;
-}
-
-export function definePlugin(md: MarkdownIt, pluginName: string) {
-    //TODO
 }

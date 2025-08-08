@@ -11,7 +11,6 @@ const pluginName: PluginNames = '#';
 
 export const commentPlugin: Plugin<string> = {
     name: pluginName,
-    initializePlugin: () => {},
     fence: (token, index) => {
         const content = token.content.trim();
         return sanitizedHTML('comment', {}, content);

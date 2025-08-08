@@ -3,7 +3,7 @@
 * Licensed under the MIT License.
 */
 
-import { definePlugin, IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
+import { IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import * as Csstree from 'css-tree';
 import { pluginClassName } from './util.js';
