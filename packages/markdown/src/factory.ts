@@ -51,7 +51,7 @@ export interface SpecContainer<T> {
 
 export interface Plugin<T = {}> {
     name: PluginNames;
-    hydratesBefore?: string;
+    hydratesBefore?: PluginNames;
     initializePlugin?: (md: MarkdownIt) => void;
     fence?: (token: Token, idx: number) => string;
     hydrateSpecs?: (renderer: Renderer, errorHandler: ErrorHandler) => SpecReview<T>[];
