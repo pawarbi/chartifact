@@ -6,18 +6,27 @@
 import { Token } from 'markdown-it/index.js';
 import { Batch, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
 import { PluginNames } from './interfaces.js';
+import { tokenizeTemplate } from 'common';
 
 function createTemplateFunction(template: string) {
-    const parts = template.split(/(%7B%7B.*?%7D%7D)/g).map(part => {
-        if (part.startsWith('%7B%7B') && part.endsWith('%7D%7D')) {
-            const key = part.slice(6, -6); // Extract key from %7B%7Bkey%7D%7D
-            return (batch: Batch) => batch[key]?.value?.toString() || '';
-        } else {
-            return () => part; // Static part of the template
-        }
-    });
-
-    return (batch: Batch) => parts.map(fn => fn(batch)).join('');
+    const tokens = tokenizeTemplate(template);
+    const variableNames: string[] = tokens
+        .filter(token => token.type === 'variable')
+        .map(token => token.name);
+    const dontEncode = (tokens.length === 1 && tokens[0].type === 'variable');
+    const fn = (batch: Batch) => {
+        const values = tokens.map(token => {
+            if (token.type === 'literal') {
+                return token.value;
+            } else if (token.type === 'variable') {
+                const value = batch[token.name]?.value.toString() || '';
+                return dontEncode ? value : encodeURIComponent(value);
+            }
+            return '';
+        });
+        return values.join('');
+    };
+    return { fn, variableNames };
 }
 
 function handleDynamicUrl(tokens: Token[], idx: number, attrName: string, elementType: string) {
@@ -25,11 +34,14 @@ function handleDynamicUrl(tokens: Token[], idx: number, attrName: string, elemen
     const attrValue = token.attrGet(attrName);
 
     if (attrValue && attrValue.includes('%7B%7B')) {
-        // Ensure token.attrs is initialized
         if (!token.attrs) {
             token.attrs = [];
         }
-        token.attrSet('data-template-url', attrValue); // Store original template
+        // Store original template
+        token.attrSet('data-template-url', decodeURIComponent(attrValue));
+
+        // remove the original attribute because it's data-driven
+        token.attrSet(attrName, '');
     }
 
     return token;
@@ -118,17 +130,10 @@ export const placeholdersPlugin: Plugin = {
             if (!templateUrl) {
                 continue;
             }
-            const keys: string[] = [];
-            const regex = /%7B%7B(.*?)%7D%7D/g;
-            let match: RegExpExecArray | null;
-            while ((match = regex.exec(templateUrl)) !== null) {
-                keys.push(match[1]);
-            }
-
             const templateFunction = createTemplateFunction(templateUrl);
-            templateFunctionMap.set(element, { templateFunction, batch: {} });
+            templateFunctionMap.set(element, { templateFunction: templateFunction.fn, batch: {} });
 
-            for (const key of keys) {
+            for (const key of templateFunction.variableNames) {
                 if (elementsByKeys.has(key)) {
                     elementsByKeys.get(key)!.push(element);
                 } else {
