@@ -116,13 +116,9 @@ export const placeholdersPlugin: Plugin = {
                 }
             });
 
-            const variableNames: string[] = dynamicUrl.tokens
-                .filter(token => token.type === 'variable')
-                .map(token => token.name);
-
             dynamicUrlMap.set(element, dynamicUrl);
 
-            for (const key of variableNames) {
+            for (const key of Object.keys(dynamicUrl.signals)) {
                 if (elementsByKeys.has(key)) {
                     elementsByKeys.get(key)!.push(element);
                 } else {
