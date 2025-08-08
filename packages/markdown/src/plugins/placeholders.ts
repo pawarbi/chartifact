@@ -6,27 +6,29 @@
 import { Token } from 'markdown-it/index.js';
 import { Batch, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
 import { PluginNames } from './interfaces.js';
-import { tokenizeTemplate } from 'common';
+import { TemplateToken, tokenizeTemplate } from 'common';
 
-function createTemplateFunction(template: string) {
-    const tokens = tokenizeTemplate(template);
-    const variableNames: string[] = tokens
-        .filter(token => token.type === 'variable')
-        .map(token => token.name);
-    const dontEncode = (tokens.length === 1 && tokens[0].type === 'variable');
-    const fn = (batch: Batch) => {
+function createTemplateFunction(tokens: TemplateToken[]) {
+    //if the entire expression is a single variable, do not encodeURIComponent
+    if (tokens.length === 1 && tokens[0].type === 'variable') {
+        const variable = tokens[0];
+        return (batch: Batch) => {
+            const value = batch[variable.name]?.value.toString() || '';
+            return value;
+        };
+    }
+    return (batch: Batch) => {
         const values = tokens.map(token => {
             if (token.type === 'literal') {
                 return token.value;
             } else if (token.type === 'variable') {
                 const value = batch[token.name]?.value.toString() || '';
-                return dontEncode ? value : encodeURIComponent(value);
+                return encodeURIComponent(value);
             }
             return '';
         });
         return values.join('');
     };
-    return { fn, variableNames };
 }
 
 function handleDynamicUrl(tokens: Token[], idx: number, attrName: string, elementType: string) {
@@ -130,10 +132,16 @@ export const placeholdersPlugin: Plugin = {
             if (!templateUrl) {
                 continue;
             }
-            const templateFunction = createTemplateFunction(templateUrl);
-            templateFunctionMap.set(element, { templateFunction: templateFunction.fn, batch: {} });
 
-            for (const key of templateFunction.variableNames) {
+            const tokens = tokenizeTemplate(templateUrl);
+            const variableNames: string[] = tokens
+                .filter(token => token.type === 'variable')
+                .map(token => token.name);
+
+            const templateFunction = createTemplateFunction(tokens);
+            templateFunctionMap.set(element, { templateFunction, batch: {} });
+
+            for (const key of variableNames) {
                 if (elementsByKeys.has(key)) {
                     elementsByKeys.get(key)!.push(element);
                 } else {
