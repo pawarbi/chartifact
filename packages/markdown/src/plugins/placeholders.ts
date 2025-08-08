@@ -4,48 +4,23 @@
 */
 
 import { Token } from 'markdown-it/index.js';
-import { Batch, IInstance, Plugin, PrioritizedSignal } from '../factory.js';
+import { IInstance, Plugin, PrioritizedSignal } from '../factory.js';
 import { PluginNames } from './interfaces.js';
-import { TemplateToken, tokenizeTemplate } from 'common';
+import { DynamicUrl } from './url.js';
 
-function createTemplateFunction(tokens: TemplateToken[]) {
-    //if the entire expression is a single variable, do not encodeURIComponent
-    if (tokens.length === 1 && tokens[0].type === 'variable') {
-        const variable = tokens[0];
-        return (batch: Batch) => {
-            const value = batch[variable.name]?.value.toString() || '';
-            return value;
-        };
-    }
-    return (batch: Batch) => {
-        const values = tokens.map(token => {
-            if (token.type === 'literal') {
-                return token.value;
-            } else if (token.type === 'variable') {
-                const value = batch[token.name]?.value.toString() || '';
-                return encodeURIComponent(value);
-            }
-            return '';
-        });
-        return values.join('');
-    };
-}
-
-function handleDynamicUrl(tokens: Token[], idx: number, attrName: string, elementType: string) {
+function decorateDynamicUrl(tokens: Token[], idx: number, attrName: string, elementType: string) {
     const token = tokens[idx];
     const attrValue = token.attrGet(attrName);
-
     if (attrValue && attrValue.includes('%7B%7B')) {
         if (!token.attrs) {
             token.attrs = [];
         }
         // Store original template
-        token.attrSet('data-template-url', decodeURIComponent(attrValue));
+        token.attrSet('dynamic-url', decodeURIComponent(attrValue));
 
         // remove the original attribute because it's data-driven
         token.attrSet(attrName, '');
     }
-
     return token;
 }
 
@@ -96,21 +71,21 @@ export const placeholdersPlugin: Plugin = {
         });
 
         md.renderer.rules['link_open'] = function (tokens, idx, options, env, slf) {
-            handleDynamicUrl(tokens, idx, 'href', 'link');
+            decorateDynamicUrl(tokens, idx, 'href', 'link');
             return slf.renderToken(tokens, idx, options);
         };
 
         md.renderer.rules['image'] = function (tokens, idx, options, env, slf) {
-            handleDynamicUrl(tokens, idx, 'src', 'image');
+            decorateDynamicUrl(tokens, idx, 'src', 'image');
             return slf.renderToken(tokens, idx, options);
         };
 
     },
 
     hydrateComponent: async (renderer) => {
-        const templateFunctionMap = new WeakMap<Element, { templateFunction: (batch: Batch) => string, batch: Batch }>();
+        const dynamicUrlMap = new WeakMap<Element, DynamicUrl>();
         const placeholders = renderer.element.querySelectorAll('.dynamic-placeholder');
-        const dynamicUrls = renderer.element.querySelectorAll('[data-template-url]');
+        const dynamicUrls = renderer.element.querySelectorAll('[dynamic-url]');
         const elementsByKeys = new Map<string, Element[]>();
 
         // Collect placeholders
@@ -128,18 +103,24 @@ export const placeholdersPlugin: Plugin = {
 
         // Collect dynamic URLs
         for (const element of Array.from(dynamicUrls)) {
-            const templateUrl = element.getAttribute('data-template-url');
+            const templateUrl = element.getAttribute('dynamic-url');
             if (!templateUrl) {
                 continue;
             }
 
-            const tokens = tokenizeTemplate(templateUrl);
-            const variableNames: string[] = tokens
+            const dynamicUrl = new DynamicUrl(templateUrl, (url) => {
+                if (element.tagName === 'A') {
+                    element.setAttribute('href', url);
+                } else if (element.tagName === 'IMG') {
+                    element.setAttribute('src', url);
+                }
+            });
+
+            const variableNames: string[] = dynamicUrl.tokens
                 .filter(token => token.type === 'variable')
                 .map(token => token.name);
 
-            const templateFunction = createTemplateFunction(tokens);
-            templateFunctionMap.set(element, { templateFunction, batch: {} });
+            dynamicUrlMap.set(element, dynamicUrl);
 
             for (const key of variableNames) {
                 if (elementsByKeys.has(key)) {
@@ -176,18 +157,11 @@ export const placeholdersPlugin: Plugin = {
                                     ? renderer.md.renderInline(markdownContent)
                                     : renderer.md.render(markdownContent);
                                 element.innerHTML = parsedMarkdown;
-                            } else if (element.hasAttribute('data-template-url')) {
+                            } else if (element.hasAttribute('dynamic-url')) {
                                 // Update dynamic URL
-                                const templateData = templateFunctionMap.get(element);
-                                if (templateData) {
-                                    // Merge the new batch with the stored batch
-                                    templateData.batch = { ...templateData.batch, ...batch };
-                                    const updatedUrl = templateData.templateFunction(templateData.batch);
-                                    if (element.tagName === 'A') {
-                                        element.setAttribute('href', updatedUrl);
-                                    } else if (element.tagName === 'IMG') {
-                                        element.setAttribute('src', updatedUrl);
-                                    }
+                                const dynamicUrl = dynamicUrlMap.get(element);
+                                if (dynamicUrl) {
+                                    dynamicUrl.receiveBatch(batch);
                                 }
                             }
                         }
