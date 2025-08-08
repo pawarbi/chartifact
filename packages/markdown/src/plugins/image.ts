@@ -18,7 +18,7 @@ interface ImageInstance {
     spec: ImageSpec;
     img: HTMLImageElement;
     spinner: HTMLDivElement;
-    hasImage: boolean;
+    dynamicUrl: DynamicUrl;
 }
 
 export const ImageOpacity = {
@@ -42,27 +42,33 @@ export const imagePlugin: Plugin<ImageSpec> = {
             const container = renderer.element.querySelector(`#${specReview.containerId}`);
 
             const spec: ImageSpec = specReview.approvedSpec;
-            
-            // Create imageInstance first so it can be referenced in callbacks
+
+            container.innerHTML = createImageContainerTemplate();
+            const { img, spinner, retryBtn } = createImageLoadingLogic(
+                container as HTMLElement,
+                null,
+                (error) => {
+                    errorHandler(error, pluginName, index, 'load', container, img.src);
+                }
+            );
+
             const imageInstance: ImageInstance = {
                 id: `${pluginName}-${index}`,
                 spec,
                 img: null as any, // Will be set below
                 spinner: null as any, // Will be set below
-                hasImage: false,
+                dynamicUrl: new DynamicUrl(spec.url, (src) => {
+                    if (src) {
+                        spinner.style.display = '';
+                        img.src = src.toString();
+                        img.style.opacity = ImageOpacity.loading;
+                    } else {
+                        img.src = '';   //TODO placeholder image
+                        spinner.style.display = 'none';
+                        img.style.opacity = ImageOpacity.full;
+                    }
+                }),
             };
-
-            container.innerHTML = createImageContainerTemplate();
-            const { img, spinner, retryBtn } = createImageLoadingLogic(
-                container as HTMLElement,
-                () => {
-                    imageInstance.hasImage = true;
-                },
-                (error) => {
-                    imageInstance.hasImage = false;
-                    errorHandler(error, pluginName, index, 'load', container, img.src);
-                }
-            );
 
             // Now set the actual img and spinner references
             imageInstance.img = img;
@@ -75,19 +81,7 @@ export const imagePlugin: Plugin<ImageSpec> = {
             imageInstances.push(imageInstance);
         }
         const instances = imageInstances.map((imageInstance, index): IInstance => {
-            const { img, spinner, id, spec } = imageInstance;
-
-            const dynamicUrl = new DynamicUrl(spec.url, (src) => {
-                if (src) {
-                    spinner.style.display = '';
-                    img.src = src.toString();
-                    img.style.opacity = ImageOpacity.loading;
-                } else {
-                    img.src = '';   //TODO placeholder image
-                    spinner.style.display = 'none';
-                    img.style.opacity = ImageOpacity.full;
-                }
-            });
+            const { img, spinner, id, dynamicUrl } = imageInstance;
 
             const signalNames = Object.keys(dynamicUrl.signals);
 
@@ -127,7 +121,7 @@ export const imgSpinner = `
 export function createImageContainerTemplate(alt = '', title = '', dataTemplateUrl = '') {
     const titleAttr = title ? ` title="${title}"` : '';
     const templateUrlAttr = dataTemplateUrl ? ` data-template-url="${dataTemplateUrl}"` : '';
-    
+
     return `<div class="dynamic-image-container" style="position: relative;">
         <div class="image-spinner" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;">
             ${imgSpinner}
@@ -153,6 +147,7 @@ export function createImageLoadingLogic(
         img.style.opacity = ImageOpacity.full;
         img.style.display = '';
         retryBtn.style.display = 'none';
+        img.setAttribute('hasImage', 'true');
         onSuccess?.();
     };
 
@@ -162,6 +157,7 @@ export function createImageLoadingLogic(
         img.style.display = 'none';
         retryBtn.style.display = '';
         retryBtn.disabled = false;
+        img.setAttribute('hasImage', 'false');
         onError?.(new Error('Image failed to load'));
     };
 
@@ -169,6 +165,7 @@ export function createImageLoadingLogic(
         retryBtn.disabled = true;
         spinner.style.display = '';
         img.style.opacity = ImageOpacity.loading;
+        img.style.display = img.getAttribute('hasImage') ? '' : 'none';  // only show if previous load succeeded
         const src = img.src;
         img.src = '';
         setTimeout(() => {
