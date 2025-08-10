@@ -43,8 +43,9 @@ export const imagePlugin: Plugin<ImageSpec> = {
 
             const spec: ImageSpec = specReview.approvedSpec;
 
-            container.innerHTML = createImageContainerTemplate();
-            const { img, spinner, retryBtn } = createImageLoadingLogic(
+            container.innerHTML = createImageContainerTemplate(spec.alt);
+            const { img, spinner, retryBtn, dynamicUrl } = createImageLoadingLogic(
+                spec.url,
                 container as HTMLElement,
                 null,
                 (error) => {
@@ -57,17 +58,7 @@ export const imagePlugin: Plugin<ImageSpec> = {
                 spec,
                 img: null as any, // Will be set below
                 spinner: null as any, // Will be set below
-                dynamicUrl: new DynamicUrl(spec.url, (src) => {
-                    if (src) {
-                        spinner.style.display = '';
-                        img.src = src.toString();
-                        img.style.opacity = ImageOpacity.loading;
-                    } else {
-                        img.src = '';   //TODO placeholder image
-                        spinner.style.display = 'none';
-                        img.style.opacity = ImageOpacity.full;
-                    }
-                }),
+                dynamicUrl,
             };
 
             // Now set the actual img and spinner references
@@ -118,24 +109,23 @@ export const imgSpinner = `
 </svg>
 `;
 
-export function createImageContainerTemplate(alt = '', title = '', dataTemplateUrl = '') {
-    const titleAttr = title ? ` title="${title}"` : '';
-    const templateUrlAttr = dataTemplateUrl ? ` data-template-url="${dataTemplateUrl}"` : '';
+export function createImageContainerTemplate(alt: string) {
 
     return `<div class="dynamic-image-container" style="position: relative;">
         <div class="image-spinner" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;">
             ${imgSpinner}
         </div>
-        <img src="" alt="${alt}"${titleAttr}${templateUrlAttr} style="opacity: 0.1;">
+        <img src="" alt="${alt}" style="opacity: 0.1;">
         <button class="image-retry" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2;">Retry</button>
     </div>`;
 }
 
 export function createImageLoadingLogic(
+    url: string,
     container: HTMLElement,
     onSuccess?: () => void,
     onError?: (error: Error) => void
-): { img: HTMLImageElement; spinner: HTMLDivElement; retryBtn: HTMLButtonElement } {
+) {
     container.style.position = 'relative';
 
     const img = container.querySelector('img') as HTMLImageElement;
@@ -173,5 +163,17 @@ export function createImageLoadingLogic(
         }, 100);
     };
 
-    return { img, spinner, retryBtn };
+    const dynamicUrl = new DynamicUrl(url, (src) => {
+        if (src) {
+            spinner.style.display = '';
+            img.src = src.toString();
+            img.style.opacity = ImageOpacity.loading;
+        } else {
+            img.src = '';   //TODO placeholder image
+            spinner.style.display = 'none';
+            img.style.opacity = ImageOpacity.full;
+        }
+    });
+
+    return { img, spinner, retryBtn, dynamicUrl };
 }
