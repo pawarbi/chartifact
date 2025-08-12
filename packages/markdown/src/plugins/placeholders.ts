@@ -7,6 +7,8 @@ import { Token } from 'markdown-it/index.js';
 import { IInstance, Plugin, PrioritizedSignal } from '../factory.js';
 import { PluginNames } from './interfaces.js';
 import { DynamicUrl } from './url.js';
+import { createImageContainerTemplate, createImageLoadingLogic } from './image.js';
+import { pluginClassName } from './util.js';
 
 function decorateDynamicUrl(tokens: Token[], idx: number, attrName: string, elementType: string) {
     const token = tokens[idx];
@@ -25,6 +27,7 @@ function decorateDynamicUrl(tokens: Token[], idx: number, attrName: string, elem
 }
 
 const pluginName: PluginNames = 'placeholders';
+const imageClassName = pluginClassName(pluginName + '_image');
 
 export const placeholdersPlugin: Plugin = {
     name: pluginName,
@@ -76,16 +79,19 @@ export const placeholdersPlugin: Plugin = {
         };
 
         md.renderer.rules['image'] = function (tokens, idx, options, env, slf) {
-            decorateDynamicUrl(tokens, idx, 'src', 'image');
-            return slf.renderToken(tokens, idx, options);
+            const alt = tokens[idx].attrGet('alt');
+            const src = tokens[idx].attrGet('src');
+            return createImageContainerTemplate(imageClassName, alt, decodeURIComponent(src));
         };
 
     },
 
-    hydrateComponent: async (renderer) => {
+    hydrateComponent: async (renderer, errorHandler) => {
         const dynamicUrlMap = new WeakMap<Element, DynamicUrl>();
         const placeholders = renderer.element.querySelectorAll('.dynamic-placeholder');
         const dynamicUrls = renderer.element.querySelectorAll('[dynamic-url]');
+        const dynamicImages = renderer.element.querySelectorAll(`.${imageClassName}`);
+
         const elementsByKeys = new Map<string, Element[]>();
 
         // Collect placeholders
@@ -108,13 +114,34 @@ export const placeholdersPlugin: Plugin = {
                 continue;
             }
 
-            const dynamicUrl = new DynamicUrl(templateUrl, (url) => {
-                if (element.tagName === 'A') {
+            if (element.tagName === 'A') {
+
+                const dynamicUrl = new DynamicUrl(templateUrl, (url) => {
                     element.setAttribute('href', url);
-                } else if (element.tagName === 'IMG') {
-                    element.setAttribute('src', url);
+                });
+
+                dynamicUrlMap.set(element, dynamicUrl);
+
+                for (const key of Object.keys(dynamicUrl.signals)) {
+                    if (elementsByKeys.has(key)) {
+                        elementsByKeys.get(key)!.push(element);
+                    } else {
+                        elementsByKeys.set(key, [element]);
+                    }
                 }
+            }
+        }
+
+        // Collect dynamic images
+        for (const element of Array.from(dynamicImages)) {
+            const { dynamicUrl, img } = createImageLoadingLogic(element as HTMLElement, null, (error) => {
+                const index = -1; // TODO get index of image
+                errorHandler(error, pluginName, index, 'load', element, img.src);
             });
+
+            if (!dynamicUrl) {
+                continue;
+            }
 
             dynamicUrlMap.set(element, dynamicUrl);
 
@@ -155,6 +182,12 @@ export const placeholdersPlugin: Plugin = {
                                 element.innerHTML = parsedMarkdown;
                             } else if (element.hasAttribute('dynamic-url')) {
                                 // Update dynamic URL
+                                const dynamicUrl = dynamicUrlMap.get(element);
+                                if (dynamicUrl) {
+                                    dynamicUrl.receiveBatch(batch);
+                                }
+                            } else if (element.classList.contains(imageClassName)) {
+                                // Update dynamic image URL
                                 const dynamicUrl = dynamicUrlMap.get(element);
                                 if (dynamicUrl) {
                                     dynamicUrl.receiveBatch(batch);

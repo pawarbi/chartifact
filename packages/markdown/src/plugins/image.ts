@@ -43,9 +43,8 @@ export const imagePlugin: Plugin<ImageSpec> = {
 
             const spec: ImageSpec = specReview.approvedSpec;
 
-            container.innerHTML = createImageContainerTemplate(spec.alt);
+            container.innerHTML = createImageContainerTemplate('', spec.alt, spec.url);
             const { img, spinner, retryBtn, dynamicUrl } = createImageLoadingLogic(
-                spec.url,
                 container as HTMLElement,
                 null,
                 (error) => {
@@ -74,7 +73,7 @@ export const imagePlugin: Plugin<ImageSpec> = {
         const instances = imageInstances.map((imageInstance, index): IInstance => {
             const { img, spinner, id, dynamicUrl } = imageInstance;
 
-            const signalNames = Object.keys(dynamicUrl.signals);
+            const signalNames = Object.keys(dynamicUrl?.signals || {});
 
             return {
                 id,
@@ -93,7 +92,7 @@ export const imagePlugin: Plugin<ImageSpec> = {
                     }
                 },
                 receiveBatch: async (batch, from) => {
-                    dynamicUrl.receiveBatch(batch);
+                    dynamicUrl?.receiveBatch(batch);
                 },
             };
         });
@@ -109,28 +108,48 @@ export const imgSpinner = `
 </svg>
 `;
 
-export function createImageContainerTemplate(alt: string) {
+export function createImageContainerTemplate(clasName: string, alt: string, src: string) {
 
-    return `<div class="dynamic-image-container" style="position: relative;">
-        <div class="image-spinner" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;">
+    const tempImg = document.createElement('img');
+
+    if (src.includes('{{')) {
+        tempImg.setAttribute('src', 'data:,');
+        tempImg.setAttribute('data-dynamic-url', src)
+    } else {
+        tempImg.setAttribute('src', src);
+    }
+    tempImg.setAttribute('alt', alt);
+    tempImg.style.opacity = '0.1';
+
+    const imgHtml = tempImg.outerHTML;
+
+    return `<span class="${clasName}" style="position: relative;display:inline-block;min-width:24px;min-height:10px;">
+        <span class="image-spinner" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;">
             ${imgSpinner}
-        </div>
-        <img src="" alt="${alt}" style="opacity: 0.1;">
-        <button class="image-retry" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2;">Retry</button>
-    </div>`;
+        </span>
+        ${imgHtml}
+        <button type="button" class="image-retry" style="display: none;">Retry</button>
+    </span>`;
+}
+
+export interface ImageD {
+    img: HTMLImageElement;
+    spinner: HTMLDivElement;
+    retryBtn: HTMLButtonElement;
+    dynamicUrl?: DynamicUrl
 }
 
 export function createImageLoadingLogic(
-    url: string,
     container: HTMLElement,
     onSuccess?: () => void,
     onError?: (error: Error) => void
-) {
+): ImageD {
     container.style.position = 'relative';
 
     const img = container.querySelector('img') as HTMLImageElement;
     const spinner = container.querySelector('.image-spinner') as HTMLDivElement;
     const retryBtn = container.querySelector('.image-retry') as HTMLButtonElement;
+    const dataDynamicUrl = img.getAttribute('data-dynamic-url');
 
     img.onload = () => {
         spinner.style.display = 'none';
@@ -157,23 +176,34 @@ export function createImageLoadingLogic(
         img.style.opacity = ImageOpacity.loading;
         img.style.display = img.getAttribute('hasImage') ? '' : 'none';  // only show if previous load succeeded
         const src = img.src;
-        img.src = '';
+        const onload = img.onload;
+        const onerror = img.onerror;
+        img.src = 'data:,';
+        img.onload = null;
+        img.onerror = null;
         setTimeout(() => {
+            img.onload = onload;
+            img.onerror = onerror;
             img.src = src;
         }, 100);
     };
 
-    const dynamicUrl = new DynamicUrl(url, (src) => {
-        if (src) {
-            spinner.style.display = '';
-            img.src = src.toString();
-            img.style.opacity = ImageOpacity.loading;
-        } else {
-            img.src = '';   //TODO placeholder image
-            spinner.style.display = 'none';
-            img.style.opacity = ImageOpacity.full;
-        }
-    });
+    const result: ImageD = { img, spinner, retryBtn };
 
-    return { img, spinner, retryBtn, dynamicUrl };
+    if (dataDynamicUrl) {
+        const dynamicUrl = new DynamicUrl(dataDynamicUrl, (src) => {
+            if (src) {
+                spinner.style.display = '';
+                img.src = src.toString();
+                img.style.opacity = ImageOpacity.loading;
+            } else {
+                img.src = '';   //TODO placeholder image
+                spinner.style.display = 'none';
+                img.style.opacity = ImageOpacity.full;
+            }
+        });
+        result.dynamicUrl = dynamicUrl;
+    }
+
+    return result;
 }
