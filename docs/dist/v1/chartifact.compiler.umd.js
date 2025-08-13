@@ -313,8 +313,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
   }
   const defaultJsonIndent = 2;
-  function tickWrap(tick, content) {
-    return `\`\`\`${tick}
+  function tickWrap(plugin, content) {
+    return `\`\`\`${plugin}
 ${content}
 \`\`\``;
   }
@@ -346,7 +346,7 @@ ${content}
         mdSections.push(tickWrap("css", css));
       }
       if (style.googleFonts) {
-        mdSections.push(jsonWrap("google-fonts", JSON.stringify(style.googleFonts, null, 2)));
+        mdSections.push(jsonWrap("google-fonts", JSON.stringify(style.googleFonts, null, defaultJsonIndent)));
       }
     }
     const tableElements = page.groups.flatMap((group) => group.elements.filter((e) => typeof e !== "string" && e.type === "table"));
@@ -377,6 +377,21 @@ ${content}
     }
     if (vegaScope.spec.data || vegaScope.spec.signals) {
       mdSections.unshift(chartWrap(vegaScope.spec));
+    }
+    if (page.notes) {
+      if (Array.isArray(page.notes)) {
+        mdSections.unshift(tickWrap("#", page.notes.map((n) => {
+          if (typeof n === "object") {
+            return JSON.stringify(n, null, defaultJsonIndent);
+          } else if (typeof n === "string") {
+            return n;
+          } else {
+            return JSON.stringify(n);
+          }
+        }).join("\n")));
+      } else {
+        mdSections.unshift(tickWrap("#", JSON.stringify(page.notes, null, defaultJsonIndent)));
+      }
     }
     const markdown = mdSections.join("\n\n");
     return markdown;
@@ -505,7 +520,12 @@ ${content}
             addSpec("textbox", textboxSpec, false);
             break;
           }
+          default: {
+            mdElements.push(tickWrap("#", JSON.stringify(element)));
+          }
         }
+      } else {
+        mdElements.push(tickWrap("#", JSON.stringify(element)));
       }
     }
     const markdown = mdElements.join("\n\n");

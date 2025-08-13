@@ -1725,6 +1725,13 @@
           },
           "type": "array"
         },
+        "notes": {
+          "description": "Optional comments from the author",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "resources": {
           "additionalProperties": false,
           "properties": {
