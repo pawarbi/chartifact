@@ -6,46 +6,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chartifact Interactive Document Host</title>
     <style>
-        html, body {
-            height: 100%;
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
             margin: 0;
-            padding: 0;
             overflow: hidden;
         }
-        body {
-            display: grid;
-            grid-template-rows: auto 1fr;
+
+        main {
+            display: flex;
+            flex: 1;
+        }
+
+        textarea {
+            flex: 1;
+            resize: none;
+        }
+
+        #app {
+            flex: 2;
         }
     </style>
 </head>
 
 <body>
 
-    <div id="toolbar"></div>
+    <header id="toolbar">
+        <button>EDit</button>
+    </header>
 
-    <textarea id="textarea" style="width: 100%; height: 300px; display: none;" placeholder="Enter your markdown here..."></textarea>
+    <main>
 
-    <div id="loading" style="text-align: center; padding: 50px;">
-        Loading...
-    </div>
-    
-    <div id="help" style="display: none;">
-        <h1>Chartifact Interactive Document Host</h1>
+        <textarea id="textarea" style="display: none;" placeholder="Enter your markdown here..."></textarea>
 
-        You can render interactive documents here via several methods:
-        <ul>
-            <li><b>Clipboard</b>: paste your markdown content directly when this page has focus</li>
-            <li><b>Drag and drop</b>: drop a markdown file onto this page</li>
-            <li><b>URL parameter</b>: add /?load=url/to/your/file.md to the url</li>
-            <li><b>File upload</b>: click the button below to choose a file</li>
-            <li><b>PostMessage</b>: send markdown content to this page using the <code>window.postMessage</code> API with the property <code>markdown</code></li>
-        </ul>
+        <div id="app"></div>
 
-        <button type="button" id="upload-btn">Choose File to Upload</button>
-        <input type="file" id="file-input" accept=".idoc.md,.idoc.json" style="display: none;">
-    </div>
+        <div id="loading" style="text-align: center; padding: 50px;">
+            Loading...
+        </div>
+        
+        <div id="help" style="display: none;">
+            <h1>Chartifact Interactive Document Host</h1>
 
-    <div id="app"></div>
+            You can render interactive documents here via several methods:
+            <ul>
+                <li><b>Clipboard</b>: paste your markdown content directly when this page has focus</li>
+                <li><b>Drag and drop</b>: drop a markdown file onto this page</li>
+                <li><b>URL parameter</b>: add /?load=url/to/your/file.md to the url</li>
+                <li><b>File upload</b>: click the button below to choose a file</li>
+                <li><b>PostMessage</b>: send markdown content to this page using the <code>window.postMessage</code> API with the property <code>markdown</code></li>
+            </ul>
+
+            <button type="button" id="upload-btn">Choose File to Upload</button>
+            <input type="file" id="file-input" accept=".idoc.md,.idoc.json" style="display: none;">
+        </div>
+
+    </main>
 
     <script type="module">
         import { Listener } from '/src/index.ts';

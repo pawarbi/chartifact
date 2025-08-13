@@ -25,7 +25,7 @@
             resize: none;
         }
 
-        iframe {
+        #app {
             flex: 2;
         }
 
@@ -43,13 +43,15 @@
 <body>
 
     <header id="toolbar">
-        
+        <button>EDit</button>
     </header>
 
     <main>
 
         <textarea id="textarea" style="display: none;"
             placeholder="Enter your markdown here..."></textarea>
+
+        <div id="app"></div>
 
         <div id="loading" style="text-align: center; padding: 50px;">
             Loading...
