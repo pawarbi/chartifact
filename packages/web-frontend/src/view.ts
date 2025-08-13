@@ -6,7 +6,7 @@ declare let host: Chartifact.host.Listener;
 
 window.addEventListener('DOMContentLoaded', () => {
     host = new Chartifact.host.Listener({
-        app: 'main',
+        app: '#app',
         loading: '#loading',
         help: '#help',
         uploadButton: '#upload-btn',

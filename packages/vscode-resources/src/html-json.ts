@@ -19,7 +19,7 @@ window.addEventListener('DOMContentLoaded', () => {
             markdown = 'Failed to parse Interactive Document JSON';
         }
         if (!sandbox) {
-            sandbox = new Chartifact.sandbox.Sandbox('main', markdown, {
+            sandbox = new Chartifact.sandbox.Sandbox('#app', markdown, {
                 onApprove: (message) => {
                     //Here you can approve unapproved specs per your own policy
                     const { specs } = message;

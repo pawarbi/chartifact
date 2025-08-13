@@ -4,7 +4,7 @@
 */
 window.addEventListener('DOMContentLoaded', () => {
     const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
-    const sandbox = new Chartifact.sandbox.Sandbox('main', textarea.value, {
+    const sandbox = new Chartifact.sandbox.Sandbox('#app', textarea.value, {
         onApprove: (message) => {
             //Here you can approve unapproved specs per your own policy
             const { specs } = message;

@@ -221,6 +221,8 @@ interface InteractiveDocument {
             [chartKey: string]: Vega_or_VegaLite_spec;
         };
     };
+    /** Optional comments from the author */
+    notes?: string[];
 }
 /**
  * Use markdown elements to be verbose and descriptive. Do not use as labels for interactive elements.

@@ -14,8 +14,8 @@ import { defaultCommonOptions } from 'common';
 
 const defaultJsonIndent = 2;
 
-function tickWrap(tick: string, content: string) {
-    return `\`\`\`${tick}\n${content}\n\`\`\``;
+function tickWrap(plugin: string, content: string) {
+    return `\`\`\`${plugin}\n${content}\n\`\`\``;
 }
 
 function jsonWrap(type: string, content: string) {
@@ -50,7 +50,7 @@ export function targetMarkdown(page: InteractiveDocument) {
             mdSections.push(tickWrap('css', css));
         }
         if (style.googleFonts) {
-            mdSections.push(jsonWrap('google-fonts', JSON.stringify(style.googleFonts, null, 2)));
+            mdSections.push(jsonWrap('google-fonts', JSON.stringify(style.googleFonts, null, defaultJsonIndent)));
         }
     }
 
@@ -87,8 +87,26 @@ export function targetMarkdown(page: InteractiveDocument) {
     }
 
     if (vegaScope.spec.data || vegaScope.spec.signals) {
-        //spec is at the top of the markdown file
+        //spec is towards the top of the markdown file
         mdSections.unshift(chartWrap(vegaScope.spec));
+    }
+
+    if (page.notes) {
+        //add notes at the very top of the markdown file
+        if (Array.isArray(page.notes)) {
+
+            mdSections.unshift(tickWrap('#', page.notes.map(n => {
+                if (typeof n === 'object') {
+                    return JSON.stringify(n, null, defaultJsonIndent);
+                } else if (typeof n === 'string') {
+                    return n;
+                } else {
+                    return JSON.stringify(n);
+                }
+            }).join('\n')));
+        } else {
+            mdSections.unshift(tickWrap('#', JSON.stringify(page.notes, null, defaultJsonIndent)));
+        }
     }
 
     const markdown = mdSections.join('\n\n');
@@ -229,7 +247,14 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                     addSpec('textbox', textboxSpec, false);
                     break;
                 }
+                default: {
+                    //output as a comment
+                    mdElements.push(tickWrap('#', JSON.stringify(element)));
+                }
             }
+        } else {
+            //output as a comment
+            mdElements.push(tickWrap('#', JSON.stringify(element)));
         }
     }
     const markdown = mdElements.join('\n\n');

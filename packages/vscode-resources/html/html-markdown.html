@@ -23,17 +23,8 @@
             resize: none;
         }
 
-        iframe {
+        #app {
             flex: 2;
-        }
-
-        footer {
-            font-size: small;
-            padding: 3px;
-            background: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
     </style>
 
@@ -43,15 +34,19 @@
 </head>
 
 <body>
+
+    <header>
+        <button id="toggle-textarea">tweak</button>
+        Powered by <a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a>
+    </header>
+
     <main>
         <textarea id="markdown-input"
             placeholder="Type your Chartifact markdown here...">{{TEXTAREA_CONTENT}}</textarea>
-    </main>
 
-    <footer>
-        <button id="toggle-textarea">tweak</button>
-        Powered by <a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a>
-    </footer>
+        <div id="app"></div>
+        
+    </main>
 
     {{HTML_MARKDOWN_JS}}
 

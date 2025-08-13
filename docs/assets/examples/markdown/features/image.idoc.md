@@ -14,6 +14,18 @@
     {
       "name": "img_url",
       "value": "https://picsum.photos/400/300"
+    },
+    {
+      "name": "md_img_url",
+      "value": "https://picsum.photos/400/300"
+    },
+    {
+      "name": "md_img_width",
+      "value": "300"
+    },
+    {
+      "name": "md_img_height",
+      "value": "200"
     }
   ]
 }
@@ -41,7 +53,7 @@ Images support dynamic URLs with query parameters and can be regenerated in real
 
 *samples below provided by [picsum.photos](https://picsum.photos/)*
 
-## Complete URL Variable
+## Complete URL Variable (using image plugin)
 
 You can use a single variable for the entire image URL. No URL encoding is applied to the value.
 
@@ -66,7 +78,7 @@ You can use a single variable for the entire image URL. No URL encoding is appli
 }
 ```
 
-## URL Segments
+## URL Segments (using image plugin)
 
 You can construct image URLs from multiple variables. Each segment is encoded using `encodeURIComponent`.
 
@@ -102,3 +114,77 @@ You can construct image URLs from multiple variables. Each segment is encoded us
   "alt": "URL segments example"
 }
 ```
+
+## Markdown Images - Static
+
+Simple markdown image syntax for static images.
+
+![Static picsum image](https://picsum.photos/300/200 "Static 300x200 image")
+
+This uses standard markdown: `![alt text](url "title")`
+
+## Markdown Images - Complete URL Variable
+
+Markdown images with dynamic complete URL (no encoding applied to variable value).
+
+```json dropdown
+{
+  "variableId": "md_img_url",
+  "value": "https://picsum.photos/400/300",
+  "options": [
+    "https://picsum.photos/150/150",
+    "https://picsum.photos/250/250",
+    "https://picsum.photos/350/350",
+    "https://picsum.photos/400/300"
+  ]
+}
+```
+
+![Complete URL variable]({{md_img_url}} "Dynamic image from complete URL variable")
+
+This uses: `![alt]({{variable_name}} "title")`
+
+## Markdown Images - URL Segments
+
+Markdown images with URL constructed from multiple variables (each variable gets `encodeURIComponent` applied).
+
+```json dropdown
+{
+  "variableId": "md_img_width",
+  "value": "300",
+  "options": [
+    "150",
+    "200",
+    "250",
+    "300",
+    "350"
+  ]
+}
+```
+
+```json dropdown
+{
+  "variableId": "md_img_height",
+  "value": "200",
+  "options": [
+    "100",
+    "150",
+    "200",
+    "250"
+  ]
+}
+```
+
+![URL segments](https://picsum.photos/{{md_img_width}}/{{md_img_height}} "Dynamic {{md_img_width}}x{{md_img_height}} image")
+
+This uses: `![alt](https://example.com/{{var1}}/{{var2}} "title")`
+
+Note: Markdown images don't support width/height attributes - use the JSON image component for that.
+
+## Markdown Inline Image
+
+You can use markdown inline images within text:
+
+Here is an inline image ![inline](https://picsum.photos/40/40 "Inline 40x40") in a sentence.
+
+Syntax: `Here is an inline image ![inline](url "title") in a sentence.`

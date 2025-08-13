@@ -11,6 +11,7 @@ export { TabulatorSpec } from './tabulator.js';
 export { TextboxSpec } from './textbox.js';
 
 export type PluginNames =
+    '#' |
     'css' |
     'checkbox' |
     'dropdown' |
