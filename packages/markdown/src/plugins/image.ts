@@ -211,9 +211,24 @@ export function createImageLoadingLogic(
 // Only allow http, https, and data:image/* URLs for image src
 function isSafeImageUrl(url: string): boolean {
     try {
-        // Allow data:image/* URIs
+        // Only allow safe raster data:image URIs (disallow SVG)
         if (url.startsWith('data:image/')) {
-            return true;
+            // List of safe mime types
+            const safeMimeTypes = [
+                'data:image/png',
+                'data:image/jpeg',
+                'data:image/gif',
+                'data:image/webp',
+                'data:image/bmp',
+                'data:image/x-icon'
+            ];
+            for (const mime of safeMimeTypes) {
+                if (url.startsWith(mime)) {
+                    return true;
+                }
+            }
+            // Disallow SVG and other types
+            return false;
         }
         // Parse as absolute or relative URL
         const parsed = new URL(url, window.location.origin);
