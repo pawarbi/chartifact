@@ -1112,6 +1112,15 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     return element.outerHTML;
   }
+  function sanitizeHtmlComment(content) {
+    const tempElement = document.createElement("div");
+    tempElement.textContent = content;
+    const safeContent = tempElement.innerHTML;
+    const comment = document.createComment(safeContent);
+    const container = document.createElement("div");
+    container.appendChild(comment);
+    return container.innerHTML;
+  }
   function flaggableJsonPlugin(pluginName2, className2, flagger, attrs) {
     const plugin = {
       name: pluginName2,
@@ -1232,13 +1241,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     name: pluginName$b,
     fence: (token) => {
       const content = token.content.trim();
-      const tempElement = document.createElement("div");
-      tempElement.textContent = content;
-      const safeContent = tempElement.innerHTML;
-      const comment = document.createComment(safeContent);
-      const container = document.createElement("div");
-      container.appendChild(comment);
-      return container.innerHTML;
+      return sanitizeHtmlComment(content);
     }
   };
   function reconstituteAtRule(atRule) {
@@ -1893,7 +1896,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         }
         const container = renderer.element.querySelector(\`#\${specReview.containerId}\`);
         const spec = specReview.approvedSpec;
-        container.innerHTML = createImageContainerTemplate("", spec.alt, spec.url);
+        container.innerHTML = createImageContainerTemplate("", spec.alt, spec.url, errorHandler);
         const { img, spinner, retryBtn, dynamicUrl } = createImageLoadingLogic(
           container,
           null,
@@ -1951,13 +1954,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     </circle>
 </svg>
 \`;
-  function createImageContainerTemplate(clasName, alt, src) {
+  function createImageContainerTemplate(clasName, alt, src, errorHandler) {
     const tempImg = document.createElement("img");
     if (src.includes("{{")) {
       tempImg.setAttribute("src", "data:,");
       tempImg.setAttribute("data-dynamic-url", src);
     } else {
-      tempImg.setAttribute("src", src);
+      if (isSafeImageUrl(src)) {
+        tempImg.setAttribute("src", src);
+      } else {
+        errorHandler(new Error(\`Unsafe image URL: \${src}\`), pluginName$7, -1, "load", null, src);
+      }
     }
     tempImg.setAttribute("alt", alt);
     tempImg.style.opacity = "0.1";
@@ -2029,7 +2036,20 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   function isSafeImageUrl(url) {
     try {
       if (url.startsWith("data:image/")) {
-        return true;
+        const safeMimeTypes = [
+          "data:image/png",
+          "data:image/jpeg",
+          "data:image/gif",
+          "data:image/webp",
+          "data:image/bmp",
+          "data:image/x-icon"
+        ];
+        for (const mime of safeMimeTypes) {
+          if (url.startsWith(mime)) {
+            return true;
+          }
+        }
+        return false;
       }
       const parsed = new URL(url, window.location.origin);
       return parsed.protocol === "http:" || parsed.protocol === "https:";
@@ -2090,7 +2110,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       md.renderer.rules["image"] = function(tokens, idx, options, env, slf) {
         const alt = tokens[idx].attrGet("alt");
         const src = tokens[idx].attrGet("src");
-        return createImageContainerTemplate(imageClassName, alt, decodeURIComponent(src));
+        let error;
+        const html = createImageContainerTemplate(imageClassName, alt, decodeURIComponent(src), (e, pluginName2, instanceIndex, phase, container, detail) => {
+          error = sanitizeHtmlComment(\`Error in plugin \${pluginName2} instance \${idx} phase \${phase}: \${e.message} \${detail}\`);
+        });
+        return error || html;
       };
     },
     hydrateComponent: async (renderer, errorHandler) => {
