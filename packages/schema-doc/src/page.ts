@@ -33,6 +33,9 @@ export interface InteractiveDocument {
   resources?: {
     charts?: { [chartKey: string]: Vega_or_VegaLite_spec }
   };
+
+  /** Optional comments from the author */
+  notes?: string[];
 }
 
 /**
