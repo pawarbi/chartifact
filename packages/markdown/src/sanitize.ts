@@ -20,7 +20,7 @@ export function sanitizedHTML(tagName: string, attributes: { [key: string]: stri
         // Only escape the dangerous sequence that could break out of script tag
         const safeContent = content.replace(/<\/script>/gi, '<\\/script>');
         scriptElement.innerHTML = safeContent;
-        
+
         // Return script tag followed by empty element
         return scriptElement.outerHTML + element.outerHTML;
     } else {
@@ -30,4 +30,19 @@ export function sanitizedHTML(tagName: string, attributes: { [key: string]: stri
 
     // Return the outer HTML of the element
     return element.outerHTML;
+}
+
+export function sanitizeHtmlComment(content: string) {
+
+    // First escape the content safely
+    const tempElement = document.createElement('div');
+    tempElement.textContent = content;
+    const safeContent = tempElement.innerHTML;
+
+    // Then create comment with the safe content
+    const comment = document.createComment(safeContent);
+    const container = document.createElement('div');
+    container.appendChild(comment);
+
+    return container.innerHTML;
 }
