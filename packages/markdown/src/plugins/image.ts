@@ -9,6 +9,7 @@ import { pluginClassName } from './util.js';
 import { flaggableJsonPlugin } from './config.js';
 import { PluginNames } from './interfaces.js';
 import { DynamicUrl } from './url.js';
+import { ErrorHandler } from '../renderer.js';
 
 export interface ImageSpec extends ImageElementProps {
 }
@@ -43,7 +44,7 @@ export const imagePlugin: Plugin<ImageSpec> = {
 
             const spec: ImageSpec = specReview.approvedSpec;
 
-            container.innerHTML = createImageContainerTemplate('', spec.alt, spec.url);
+            container.innerHTML = createImageContainerTemplate('', spec.alt, spec.url, errorHandler);
             const { img, spinner, retryBtn, dynamicUrl } = createImageLoadingLogic(
                 container as HTMLElement,
                 null,
@@ -108,7 +109,7 @@ export const imgSpinner = `
 </svg>
 `;
 
-export function createImageContainerTemplate(clasName: string, alt: string, src: string) {
+export function createImageContainerTemplate(clasName: string, alt: string, src: string, errorHandler: ErrorHandler): string {
 
     const tempImg = document.createElement('img');
 
@@ -116,7 +117,11 @@ export function createImageContainerTemplate(clasName: string, alt: string, src:
         tempImg.setAttribute('src', 'data:,');
         tempImg.setAttribute('data-dynamic-url', src)
     } else {
-        tempImg.setAttribute('src', src);
+        if (isSafeImageUrl(src)) {
+            tempImg.setAttribute('src', src);
+        } else {
+            errorHandler(new Error(`Unsafe image URL: ${src}`), pluginName, -1, 'load', null, src);
+        }
     }
     tempImg.setAttribute('alt', alt);
     tempImg.style.opacity = '0.1';
@@ -132,7 +137,7 @@ export function createImageContainerTemplate(clasName: string, alt: string, src:
     </span>`;
 }
 
-export interface ImageD {
+export interface ImageReloader {
     img: HTMLImageElement;
     spinner: HTMLDivElement;
     retryBtn: HTMLButtonElement;
@@ -143,7 +148,7 @@ export function createImageLoadingLogic(
     container: HTMLElement,
     onSuccess?: () => void,
     onError?: (error: Error) => void
-): ImageD {
+): ImageReloader {
     container.style.position = 'relative';
 
     const img = container.querySelector('img') as HTMLImageElement;
@@ -188,7 +193,7 @@ export function createImageLoadingLogic(
         }, 100);
     };
 
-    const result: ImageD = { img, spinner, retryBtn };
+    const result: ImageReloader = { img, spinner, retryBtn };
 
     if (dataDynamicUrl) {
         const dynamicUrl = new DynamicUrl(dataDynamicUrl, src => {

@@ -9,6 +9,7 @@ import { PluginNames } from './interfaces.js';
 import { DynamicUrl } from './url.js';
 import { createImageContainerTemplate, createImageLoadingLogic } from './image.js';
 import { pluginClassName } from './util.js';
+import { sanitizeHtmlComment } from '../sanitize.js';
 
 function decorateDynamicUrl(tokens: Token[], idx: number, attrName: string, elementType: string) {
     const token = tokens[idx];
@@ -81,7 +82,11 @@ export const placeholdersPlugin: Plugin = {
         md.renderer.rules['image'] = function (tokens, idx, options, env, slf) {
             const alt = tokens[idx].attrGet('alt');
             const src = tokens[idx].attrGet('src');
-            return createImageContainerTemplate(imageClassName, alt, decodeURIComponent(src));
+            let error: string;
+            const html = createImageContainerTemplate(imageClassName, alt, decodeURIComponent(src), (e: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string) => {
+                error = sanitizeHtmlComment(`Error in plugin ${pluginName} instance ${idx} phase ${phase}: ${e.message} ${detail}`);
+            });
+            return error || html;
         };
 
     },
