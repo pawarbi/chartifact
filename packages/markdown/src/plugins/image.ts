@@ -191,10 +191,10 @@ export function createImageLoadingLogic(
     const result: ImageD = { img, spinner, retryBtn };
 
     if (dataDynamicUrl) {
-        const dynamicUrl = new DynamicUrl(dataDynamicUrl, (src) => {
-            if (src) {
+        const dynamicUrl = new DynamicUrl(dataDynamicUrl, src => {
+            if (isSafeImageUrl(src)) {
                 spinner.style.display = '';
-                img.src = src.toString();
+                img.src = src;
                 img.style.opacity = ImageOpacity.loading;
             } else {
                 img.src = '';   //TODO placeholder image
@@ -206,4 +206,19 @@ export function createImageLoadingLogic(
     }
 
     return result;
+}
+
+// Only allow http, https, and data:image/* URLs for image src
+function isSafeImageUrl(url: string): boolean {
+    try {
+        // Allow data:image/* URIs
+        if (url.startsWith('data:image/')) {
+            return true;
+        }
+        // Parse as absolute or relative URL
+        const parsed = new URL(url, window.location.origin);
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+        return false;
+    }
 }

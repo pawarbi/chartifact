@@ -2012,9 +2012,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const result = { img, spinner, retryBtn };
     if (dataDynamicUrl) {
       const dynamicUrl = new DynamicUrl(dataDynamicUrl, (src) => {
-        if (src) {
+        if (isSafeImageUrl(src)) {
           spinner.style.display = "";
-          img.src = src.toString();
+          img.src = src;
           img.style.opacity = ImageOpacity.loading;
         } else {
           img.src = "";
@@ -2025,6 +2025,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       result.dynamicUrl = dynamicUrl;
     }
     return result;
+  }
+  function isSafeImageUrl(url) {
+    try {
+      if (url.startsWith("data:image/")) {
+        return true;
+      }
+      const parsed = new URL(url, window.location.origin);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+      return false;
+    }
   }
   function decorateDynamicUrl(tokens, idx, attrName, elementType) {
     const token = tokens[idx];
