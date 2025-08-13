@@ -2962,8 +2962,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 `;
-  const rendererCss = `img {
+  const rendererCss = `h2, h3, h4, h5, h6 {
+    margin-top: 0.67em;
+    margin-bottom: 0.67em;
+}
+
+img {
     max-width: 100%;
+}
+
+pre {
+    background-color: rgba(0, 0, 0, 0.025);
+    padding: 5px;
+}
+
+table {
+    border-collapse: collapse;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+th, td {
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    padding: 2px 5px;
 }
 
 ul img {
