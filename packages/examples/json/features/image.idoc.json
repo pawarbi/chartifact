@@ -53,7 +53,7 @@
         {
             "groupId": "complete_url",
             "elements": [
-                "## Complete URL Variable",
+                "## Complete URL Variable (using image plugin)",
                 "You can use a single variable for the entire image URL. No URL encoding is applied to the value.",
                 {
                     "type": "dropdown",
@@ -76,7 +76,7 @@
         {
             "groupId": "url_segments",
             "elements": [
-                "## URL Segments",
+                "## URL Segments (using image plugin)",
                 "You can construct image URLs from multiple variables. Each segment is encoded using `encodeURIComponent`.",
                 {
                     "type": "dropdown",
