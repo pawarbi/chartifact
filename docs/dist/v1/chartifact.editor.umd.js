@@ -1,6 +1,6 @@
 (function(global, factory) {
   typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("react")) : typeof define === "function" && define.amd ? define(["exports", "vega", "react"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Chartifact = global.Chartifact || {}, global.vega, global.React));
-})(this, function(exports2, vega, React$1) {
+})(this, (function(exports2, vega, React$1) {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
@@ -581,7 +581,7 @@ ${content}
 </html>`;
   const rendererUmdJs = `(function(global, factory) {
   typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Chartifact = global.Chartifact || {}, global.vega, global.vegaLite));
-})(this, function(exports2, vega, vegaLite) {
+})(this, (function(exports2, vega, vegaLite) {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
@@ -983,37 +983,37 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   };
   const R = (p, u2) => {
     if (typeof u2 != "object" || !u2.name) throw new Error("[@mdit/plugin-container]: 'name' option is required.");
-    const { name: c, marker: l = ":", validate: $2 = (e) => e.trim().split(" ", 2)[0] === c, openRender: g2 = (e, t, n, k2, o) => (e[t].attrJoin("class", c), o.renderToken(e, t, n)), closeRender: C2 = (e, t, n, k2, o) => o.renderToken(e, t, n) } = u2, m = l[0], i = l.length, I2 = (e, t, n, k2) => {
-      const o = e.bMarks[t] + e.tShift[t], h = e.eMarks[t], d2 = e.sCount[t];
-      if (m !== e.src[o]) return false;
-      let r = o + 1;
-      for (; r <= h && l[(r - o) % i] === e.src[r]; ) r++;
-      const M2 = Math.floor((r - o) / i);
-      if (M2 < 3) return false;
-      r -= (r - o) % i;
-      const _2 = e.src.slice(o, r), T2 = e.src.slice(r, h);
-      if (!$2(T2, _2)) return false;
+    const { name: n, marker: c = ":", validate: $2 = (e) => e.trim().split(" ", 2)[0] === n, openRender: g2 = (e, t, l, k2, a) => (e[t].attrJoin("class", n), a.renderToken(e, t, l)), closeRender: C2 = (e, t, l, k2, a) => a.renderToken(e, t, l) } = u2, M2 = c[0], i = c.length, I2 = (e, t, l, k2) => {
+      const a = e.bMarks[t] + e.tShift[t], _2 = e.eMarks[t], d2 = e.sCount[t];
+      if (M2 !== e.src[a]) return false;
+      let r = a + 1;
+      for (; r <= _2 && c[(r - a) % i] === e.src[r]; ) r++;
+      const b2 = Math.floor((r - a) / i);
+      if (b2 < 3) return false;
+      r -= (r - a) % i;
+      const m = c.repeat(b2), T2 = e.src.slice(r, _2);
+      if (!$2(T2, m)) return false;
       if (k2) return true;
-      let s = t + 1, x2 = false;
-      for (; s < n; s++) {
-        const a = e.bMarks[s] + e.tShift[s], b2 = e.eMarks[s];
-        if (a < b2 && e.sCount[s] < d2) break;
-        if (e.sCount[s] === d2 && m === e.src[a]) {
-          for (r = a + 1; r <= b2 && l[(r - a) % i] === e.src[r]; r++) ;
-          if (Math.floor((r - a) / i) >= M2 && (r -= (r - a) % i, r = e.skipSpaces(r), r >= b2)) {
+      let o = t + 1, x2 = false;
+      for (; o < l; o++) {
+        const s = e.bMarks[o] + e.tShift[o], h = e.eMarks[o];
+        if (s < h && e.sCount[o] < d2) break;
+        if (e.sCount[o] === d2 && M2 === e.src[s]) {
+          for (r = s + 1; r <= h && c[(r - s) % i] === e.src[r]; r++) ;
+          if (Math.floor((r - s) / i) >= b2 && (r -= (r - s) % i, r = e.skipSpaces(r), r >= h)) {
             x2 = true;
             break;
           }
         }
       }
       const S2 = e.parentType, v2 = e.lineMax, w2 = e.blkIndent;
-      e.parentType = "container", e.lineMax = s, e.blkIndent = d2;
-      const f = e.push(\`container_\${c}_open\`, "div", 1);
-      f.markup = _2, f.block = true, f.info = T2, f.map = [t, s], e.md.block.tokenize(e, t + 1, s);
-      const y2 = e.push(\`container_\${c}_close\`, "div", -1);
-      return y2.markup = e.src.slice(o, r), y2.block = true, e.parentType = S2, e.lineMax = v2, e.blkIndent = w2, e.line = s + (x2 ? 1 : 0), true;
+      e.parentType = "container", e.lineMax = o, e.blkIndent = d2;
+      const f = e.push(\`container_\${n}_open\`, "div", 1);
+      f.markup = m, f.block = true, f.info = T2, f.map = [t, o], e.md.block.tokenize(e, t + 1, o);
+      const y2 = e.push(\`container_\${n}_close\`, "div", -1);
+      return y2.markup = m, y2.block = true, e.parentType = S2, e.lineMax = v2, e.blkIndent = w2, e.line = o + (x2 ? 1 : 0), true;
     };
-    p.block.ruler.before("fence", \`container_\${c}\`, I2, { alt: ["paragraph", "reference", "blockquote", "list"] }), p.renderer.rules[\`container_\${c}_open\`] = g2, p.renderer.rules[\`container_\${c}_close\`] = C2;
+    p.block.ruler.before("fence", \`container_\${n}\`, I2, { alt: ["paragraph", "reference", "blockquote", "list"] }), p.renderer.rules[\`container_\${n}_open\`] = g2, p.renderer.rules[\`container_\${n}_close\`] = C2;
   };
   const plugins = [];
   function registerMarkdownPlugin(plugin) {
@@ -3327,7 +3327,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   exports2.common = index$1;
   exports2.markdown = index;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
-});
+}));
 `;
   const sandboxedJs = `let renderer;
 document.addEventListener('DOMContentLoaded', () => {
@@ -3999,4 +3999,4 @@ ${rendererCss}</style>`).replace("{{DEPENDENCIES}}", () => dependencies).replace
   exports2.editor = index;
   exports2.sandbox = index$1;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
-});
+}));
