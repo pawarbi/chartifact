@@ -2,9 +2,27 @@
 * Copyright (c) Microsoft Corporation.
 * Licensed under the MIT License.
 */
-import { Sandbox } from '../src/index.ts';
+import { PreviewerOptions, Sandbox } from '../src/index.ts';
+import { rendererCss } from '../src/resources/rendererCss.ts';
+import { rendererUmdJs } from '../src/resources/rendererUmdJs.ts';
 const textarea = document.getElementById('md') as HTMLTextAreaElement;
-const sandbox = new Sandbox(document.body, textarea.value, {
+
+class LocalSandbox extends Sandbox {
+    constructor(elementOrSelector: string | HTMLElement, markdown: string, options: PreviewerOptions) {
+        super(elementOrSelector, markdown, options);
+    }
+
+    getCssReset(): string {
+        return `<style>\n${rendererCss}</style>`
+    }
+
+    getRendererScript() {
+        return `<script>${rendererUmdJs}</script>`;
+    }
+
+}
+
+const sandbox = new LocalSandbox(document.body, textarea.value, {
     onReady: () => {
         console.log('Sandbox is ready');
     },
@@ -16,7 +34,7 @@ const sandbox = new Sandbox(document.body, textarea.value, {
         //TODO policy to approve unapproved on localhost
         const { specs } = message;
         return specs;
-    }
+    },
 });
 
 //allow sandbox to be accessed globally for debugging

@@ -4,11 +4,9 @@
 */
 import { Previewer, PreviewerOptions } from './preview.js';
 import { rendererHtml } from './resources/rendererHtml.js';
-import { rendererUmdJs } from './resources/rendererUmdJs.js';
 import { sandboxedJs } from './resources/sandboxedJs.js';
 import type { SandboxRenderMessage, SandboxedPreHydrateMessage, SandboxApprovalMessage } from 'common';
 import type { RendererOptions } from '@microsoft/chartifact-markdown';
-import { rendererCss } from './resources/rendererCss.js';
 
 export class Sandbox extends Previewer {
     public iframe: HTMLIFrameElement;
@@ -21,7 +19,7 @@ export class Sandbox extends Previewer {
             markdown,
         };
 
-        const { iframe } = createIframe(this.getDependencies(), renderRequest);
+        const { iframe } = this.createIframe(renderRequest);
         this.iframe = iframe;
         this.element.appendChild(this.iframe);
 
@@ -51,6 +49,32 @@ export class Sandbox extends Previewer {
         });
     }
 
+    createIframe(renderRequest: SandboxRenderMessage, rendererOptions: RendererOptions = {}) {
+        const title = 'Chartifact Interactive Document Sandbox';
+        const html = rendererHtml
+            .replace('{{TITLE}}', () => title)
+            .replace('{{CSS_RESET}}', () => this.getCssReset())
+            .replace('{{DEPENDENCIES}}', () => this.getDependencies())
+            .replace('{{RENDERER_SCRIPT}}', () => this.getRendererScript())
+            .replace('{{RENDER_REQUEST}}', () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};</script>`)
+            .replace('{{RENDER_OPTIONS}}', () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};</script>`)
+            .replace('{{SANDBOX_JS}}', () => `<script>${sandboxedJs}</script>`)
+            ;
+
+        const htmlBlob = new Blob([html], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(htmlBlob);
+
+        const iframe = document.createElement('iframe');
+        iframe.sandbox = 'allow-scripts allow-popups';
+        iframe.src = blobUrl;
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        iframe.title = title;
+
+        return { iframe, blobUrl };
+    }
+
     destroy() {
         //remove all iframe listeners
         this.iframe.removeEventListener('load', () => { });
@@ -76,30 +100,12 @@ export class Sandbox extends Previewer {
 <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
 `;
     }
-}
 
-function createIframe(dependencies: string, renderRequest: SandboxRenderMessage, rendererOptions: RendererOptions = {}) {
-    const title = 'Chartifact Interactive Document Sandbox';
-    const html = rendererHtml
-        .replace('{{TITLE}}', () => title)
-        .replace('{{CSS_RESET}}', () => `<style>\n${rendererCss}</style>`)
-        .replace('{{DEPENDENCIES}}', () => dependencies)
-        .replace('{{RENDERER_SCRIPT}}', () => `<script>${rendererUmdJs}</script>`)
-        .replace('{{RENDER_REQUEST}}', () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};</script>`)
-        .replace('{{RENDER_OPTIONS}}', () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};</script>`)
-        .replace('{{SANDBOX_JS}}', () => `<script>${sandboxedJs}</script>`)
-        ;
+    getCssReset() {
+        return '<link href="https://microsoft.github.io/chartifact/dist/v1/chartifact-reset.css" rel="stylesheet" />';
+    }
 
-    const htmlBlob = new Blob([html], { type: 'text/html' });
-    const blobUrl = URL.createObjectURL(htmlBlob);
-
-    const iframe = document.createElement('iframe');
-    iframe.sandbox = 'allow-scripts allow-popups';
-    iframe.src = blobUrl;
-    iframe.style.width = '100%';
-    iframe.style.height = '100%';
-    iframe.style.border = 'none';
-    iframe.title = title;
-
-    return { iframe, blobUrl };
+    getRendererScript() {
+        return `<script src="https://microsoft.github.io/chartifact/dist/v1/chartifact.markdown.umd.js"></script>`;
+    }
 }
