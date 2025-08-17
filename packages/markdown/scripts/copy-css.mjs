@@ -16,6 +16,6 @@ if (!fs.existsSync(distDir)) {
 
 // Copy the css reset file
 fs.copyFileSync('./chartifact-reset.css', './dist/css/chartifact-reset.css');
-fs.copyFileSync('./chartifact-reset.css', '../../docs/assets/css/chartifact-reset.css');
+fs.copyFileSync('./chartifact-reset.css', '../../docs/dist/v1/chartifact-reset.css');
 
-console.log('CSS reset file copied successfully to ../../docs/assets/css');
+console.log('CSS reset file copied successfully to ../../docs/dist/v1');
