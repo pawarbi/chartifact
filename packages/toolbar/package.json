@@ -4,9 +4,10 @@
   "type": "module",
   "main": "dist/esnext/index.js",
   "scripts": {
-    "clean": "rimraf dist && rimraf src/resources",
+    "clean": "rimraf dist",
     "tsc": "tsc -p .",
     "build": "npm run tsc",
+    "postbuild": "node ./scripts/copy-css.mjs",
     "build:03": "npm run build"
   },
   "author": "Dan Marshall",
