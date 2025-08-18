@@ -4,12 +4,12 @@
 */
 import { InteractiveDocument } from '@microsoft/chartifact-schema';
 import { SandboxDocumentPreview } from "./sandbox.js";
-import { Previewer } from '@microsoft/chartifact-sandbox';
+import { Sandbox } from '@microsoft/chartifact-sandbox';
 import { EditorPageMessage, EditorReadyMessage, SpecReview, SandboxedPreHydrateMessage } from "common";
 
 export interface EditorProps {
     postMessageTarget?: Window;
-    previewer?: typeof Previewer;
+    sandbox?: typeof Sandbox;
     onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
@@ -72,7 +72,7 @@ export function Editor(props: EditorProps) {
         <EditorView
             page={page}
             postMessageTarget={postMessageTarget}
-            previewer={props.previewer}
+            sandbox={props.sandbox}
             onApprove={props.onApprove}
         />
     );
@@ -81,12 +81,12 @@ export function Editor(props: EditorProps) {
 export interface EditorViewProps {
     page: InteractiveDocument;
     postMessageTarget: Window;
-    previewer?: typeof Previewer;
+    sandbox?: typeof Sandbox;
     onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
 export function EditorView(props: EditorViewProps) {
-    const { page, postMessageTarget, previewer, onApprove } = props;
+    const { page, postMessageTarget, sandbox, onApprove } = props;
 
     const sendEditToApp = (newPage: InteractiveDocument) => {
         const pageMessage: EditorPageMessage = {
@@ -200,7 +200,7 @@ export function EditorView(props: EditorViewProps) {
                 <h3>Document Preview</h3>
                 <SandboxDocumentPreview
                     page={page}
-                    previewer={previewer}
+                    sandbox={sandbox}
                     onApprove={onApprove}
                 />
             </div>

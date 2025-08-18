@@ -16,6 +16,8 @@ export const initializeResources = async (context: vscode.ExtensionContext): Pro
     'chartifact.compiler.umd.js',
 
     //offline copies for editor sandbox (which can't access via vscode resources url)
+    'chartifact-reset.css',
+    'chartifact.markdown.umd.js',
     'tabulator.min.css',
     'markdown-it.min.js',
     'csstree.js',

@@ -2,17 +2,32 @@
 * Copyright (c) Microsoft Corporation.
 * Licensed under the MIT License.
 */
-import { Previewer, PreviewerOptions } from './preview.js';
 import { rendererHtml } from './resources/rendererHtml.js';
 import { sandboxedJs } from './resources/sandboxedJs.js';
-import type { SandboxRenderMessage, SandboxedPreHydrateMessage, SandboxApprovalMessage } from 'common';
+import type { SandboxRenderMessage, SandboxedPreHydrateMessage, SandboxApprovalMessage, SpecReview } from 'common';
 import type { RendererOptions } from '@microsoft/chartifact-markdown';
 
-export class Sandbox extends Previewer {
+export interface SandboxOptions {
+    onReady?: () => void;
+    onError?: (error: Error) => void;
+    onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
+}
+
+export class Sandbox {
+    public element: HTMLElement;
     public iframe: HTMLIFrameElement;
 
-    constructor(elementOrSelector: string | HTMLElement, markdown: string, public options: PreviewerOptions) {
-        super(elementOrSelector, markdown, options);
+    constructor(elementOrSelector: string | HTMLElement, markdown: string, public options: SandboxOptions) {
+        if (typeof elementOrSelector === 'string') {
+            this.element = document.querySelector(elementOrSelector);
+            if (!this.element) {
+                throw new Error(`Element not found: ${elementOrSelector}`);
+            }
+        } else if (elementOrSelector instanceof HTMLElement) {
+            this.element = elementOrSelector;
+        } else {
+            throw new Error('Invalid element type, must be a string selector or HTMLElement');
+        }
 
         const renderRequest: SandboxRenderMessage = {
             type: 'sandboxRender',
@@ -53,9 +68,7 @@ export class Sandbox extends Previewer {
         const title = 'Chartifact Interactive Document Sandbox';
         const html = rendererHtml
             .replace('{{TITLE}}', () => title)
-            .replace('{{CSS_RESET}}', () => this.getCssReset())
             .replace('{{DEPENDENCIES}}', () => this.getDependencies())
-            .replace('{{RENDERER_SCRIPT}}', () => this.getRendererScript())
             .replace('{{RENDER_REQUEST}}', () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};</script>`)
             .replace('{{RENDER_OPTIONS}}', () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};</script>`)
             .replace('{{SANDBOX_JS}}', () => `<script>${sandboxedJs}</script>`)
@@ -93,19 +106,13 @@ export class Sandbox extends Previewer {
     getDependencies() {
         return `
 <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+<link href="https://microsoft.github.io/chartifact/dist/v1/chartifact-reset.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
 <script src="https://unpkg.com/css-tree/dist/csstree.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"></script>
 <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
+<script src="https://microsoft.github.io/chartifact/dist/v1/chartifact.markdown.umd.js"></script>
 `;
-    }
-
-    getCssReset() {
-        return '<link href="https://microsoft.github.io/chartifact/dist/v1/chartifact-reset.css" rel="stylesheet" />';
-    }
-
-    getRendererScript() {
-        return `<script src="https://microsoft.github.io/chartifact/dist/v1/chartifact.markdown.umd.js"></script>`;
     }
 }

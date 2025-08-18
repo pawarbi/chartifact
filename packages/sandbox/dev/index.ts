@@ -2,13 +2,13 @@
 * Copyright (c) Microsoft Corporation.
 * Licensed under the MIT License.
 */
-import { PreviewerOptions, Sandbox } from '../src/index.ts';
+import { SandboxOptions, Sandbox } from '../src/index.ts';
 import { rendererCss } from '../src/resources/rendererCss.ts';
 import { rendererUmdJs } from '../src/resources/rendererUmdJs.ts';
 const textarea = document.getElementById('md') as HTMLTextAreaElement;
 
 class LocalSandbox extends Sandbox {
-    constructor(elementOrSelector: string | HTMLElement, markdown: string, options: PreviewerOptions) {
+    constructor(elementOrSelector: string | HTMLElement, markdown: string, options: SandboxOptions) {
         super(elementOrSelector, markdown, options);
     }
 

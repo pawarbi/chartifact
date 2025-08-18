@@ -15,7 +15,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (message.type === 'editorSetOfflineDependencies') {
             offlineDeps = message.offlineDeps;
             class OfflineSandbox extends Chartifact.sandbox.Sandbox {
-                constructor(element, markdown, options) {
+                constructor(element: string | HTMLElement, markdown: string, options: Chartifact.sandbox.SandboxOptions) {
                     super(element, markdown, options);
                 }
                 getDependencies() {
@@ -23,7 +23,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 }
             }
             const editorProps: Chartifact.editor.EditorProps = {
-                previewer: OfflineSandbox,
+                sandbox: OfflineSandbox,
                 postMessageTarget: vscode as any,
                 onApprove: (message) => {
                     // TODO look through each and override policy to approve unapproved

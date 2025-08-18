@@ -5,18 +5,18 @@
 import React from 'react';
 import { InteractiveDocument } from '@microsoft/chartifact-schema';
 import { targetMarkdown } from '@microsoft/chartifact-compiler';
-import { Previewer, Sandbox } from '@microsoft/chartifact-sandbox';
+import { Sandbox } from '@microsoft/chartifact-sandbox';
 import { SpecReview, SandboxedPreHydrateMessage } from 'common';
 
 export interface SandboxDocumentPreviewProps {
     page: InteractiveDocument;
-    previewer?: typeof Previewer;
+    sandbox?: typeof Sandbox;
     onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
 export class SandboxDocumentPreview extends React.Component<SandboxDocumentPreviewProps> {
     containerRef: React.RefObject<HTMLDivElement>;
-    sandboxRef: Previewer | null;
+    sandboxRef: Sandbox | null;
     isSandboxReady: boolean;
     pendingUpdate: InteractiveDocument;
 
@@ -34,7 +34,7 @@ export class SandboxDocumentPreview extends React.Component<SandboxDocumentPrevi
                 const markdown = targetMarkdown(this.props.page);
 
                 // Initialize sandbox instance
-                this.sandboxRef = new (this.props.previewer || Sandbox)(
+                this.sandboxRef = new (this.props.sandbox || Sandbox)(
                     this.containerRef.current,
                     markdown,
                     {
