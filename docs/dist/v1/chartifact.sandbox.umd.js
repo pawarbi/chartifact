@@ -139,25 +139,6 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     renderVegaExpression,
     tokenizeTemplate
   }, Symbol.toStringTag, { value: "Module" }));
-  class Previewer {
-    constructor(elementOrSelector, markdown, options) {
-      __publicField(this, "element");
-      this.options = options;
-      if (typeof elementOrSelector === "string") {
-        this.element = document.querySelector(elementOrSelector);
-        if (!this.element) {
-          throw new Error(`Element not found: ${elementOrSelector}`);
-        }
-      } else if (elementOrSelector instanceof HTMLElement) {
-        this.element = elementOrSelector;
-      } else {
-        throw new Error("Invalid element type, must be a string selector or HTMLElement");
-      }
-    }
-    send(markdown) {
-      throw new Error("Method not implemented.");
-    }
-  }
   const rendererHtml = `<!DOCTYPE html>
 <html lang="en">
 
@@ -165,13 +146,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    {{CSS_RESET}}
-    
     <title>{{TITLE}}</title>
 
     {{DEPENDENCIES}}
-
-    {{RENDERER_SCRIPT}}
 
     {{RENDER_OPTIONS}}
 
@@ -247,11 +224,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 `;
-  class Sandbox extends Previewer {
+  class Sandbox {
     constructor(elementOrSelector, markdown, options) {
-      super(elementOrSelector, markdown, options);
+      __publicField(this, "element");
       __publicField(this, "iframe");
       this.options = options;
+      if (typeof elementOrSelector === "string") {
+        this.element = document.querySelector(elementOrSelector);
+        if (!this.element) {
+          throw new Error(`Element not found: ${elementOrSelector}`);
+        }
+      } else if (elementOrSelector instanceof HTMLElement) {
+        this.element = elementOrSelector;
+      } else {
+        throw new Error("Invalid element type, must be a string selector or HTMLElement");
+      }
       const renderRequest = {
         type: "sandboxRender",
         markdown
@@ -286,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     createIframe(renderRequest, rendererOptions = {}) {
       const title = "Chartifact Interactive Document Sandbox";
-      const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{CSS_RESET}}", () => this.getCssReset()).replace("{{DEPENDENCIES}}", () => this.getDependencies()).replace("{{RENDERER_SCRIPT}}", () => this.getRendererScript()).replace("{{RENDER_REQUEST}}", () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};<\/script>`).replace("{{RENDER_OPTIONS}}", () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};<\/script>`).replace("{{SANDBOX_JS}}", () => `<script>${sandboxedJs}<\/script>`);
+      const html = rendererHtml.replace("{{TITLE}}", () => title).replace("{{DEPENDENCIES}}", () => this.getDependencies()).replace("{{RENDER_REQUEST}}", () => `<script>const renderRequest = ${JSON.stringify(renderRequest)};<\/script>`).replace("{{RENDER_OPTIONS}}", () => `<script>const rendererOptions = ${JSON.stringify(rendererOptions)};<\/script>`).replace("{{SANDBOX_JS}}", () => `<script>${sandboxedJs}<\/script>`);
       const htmlBlob = new Blob([html], { type: "text/html" });
       const blobUrl = URL.createObjectURL(htmlBlob);
       const iframe = document.createElement("iframe");
@@ -317,23 +304,18 @@ document.addEventListener('DOMContentLoaded', () => {
     getDependencies() {
       return `
 <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
+<link href="https://microsoft.github.io/chartifact/dist/v1/chartifact-reset.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"><\/script>
 <script src="https://unpkg.com/css-tree/dist/csstree.js"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"><\/script>
 <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"><\/script>
+<script src="https://microsoft.github.io/chartifact/dist/v1/chartifact.markdown.umd.js"><\/script>
 `;
-    }
-    getCssReset() {
-      return '<link href="https://microsoft.github.io/chartifact/dist/v1/chartifact-reset.css" rel="stylesheet" />';
-    }
-    getRendererScript() {
-      return `<script src="https://microsoft.github.io/chartifact/dist/v1/chartifact.markdown.umd.js"><\/script>`;
     }
   }
   const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
-    Previewer,
     Sandbox
   }, Symbol.toStringTag, { value: "Module" }));
   exports2.common = index$1;
