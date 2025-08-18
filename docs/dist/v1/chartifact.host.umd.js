@@ -130,7 +130,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const tokens = tokenizeTemplate(input);
     return renderVegaExpression(tokens);
   }
-  const index$3 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  const index$4 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     VEGA_BUILTIN_FUNCTIONS,
     collectIdentifiers,
@@ -529,7 +529,7 @@ ${content}
     const markdown = mdElements.join("\n\n");
     return markdown;
   }
-  const index$2 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  const index$3 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     targetMarkdown
   }, Symbol.toStringTag, { value: "Module" }));
@@ -709,7 +709,7 @@ document.addEventListener('DOMContentLoaded', () => {
 `;
     }
   }
-  const index$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  const index$2 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     Sandbox
   }, Symbol.toStringTag, { value: "Module" }));
@@ -907,8 +907,9 @@ ${guardedJs}
       return;
     }
     let docIndex = 0;
-    host.toolbar.innerText = folder.title + `(${folder.docs.length} documents)`;
-    host.toolbar.style.display = "block";
+    const folderSpan = host.toolbar.toolbarElement.querySelector("#folderSpan");
+    folderSpan.style.display = "";
+    folderSpan.innerText = `Folder: ${folder.title} (${folder.docs.length} documents)`;
     const prevBtn = document.createElement("button");
     prevBtn.textContent = "Previous";
     prevBtn.disabled = docIndex === 0;
@@ -974,9 +975,9 @@ ${guardedJs}
       setHashParam("page", docIndex + 1);
     }
     goToPageFromHash();
-    host.toolbar.appendChild(prevBtn);
-    host.toolbar.appendChild(pageSelect);
-    host.toolbar.appendChild(nextBtn);
+    folderSpan.appendChild(prevBtn);
+    folderSpan.appendChild(pageSelect);
+    folderSpan.appendChild(nextBtn);
   }
   async function resolveUrl(base, relativeOrAbsolute, host) {
     let url;
@@ -1277,6 +1278,53 @@ ${guardedJs}
       target.postMessage(message, "*");
     }
   }
+  class Toolbar {
+    constructor(toolbarElementOrSelector, options = {}) {
+      __publicField(this, "options");
+      __publicField(this, "toolbarElement");
+      this.options = options;
+      this.toolbarElement = typeof toolbarElementOrSelector === "string" ? document.querySelector(toolbarElementOrSelector) : toolbarElementOrSelector;
+      if (!this.toolbarElement) {
+        throw new Error("Toolbar element not found");
+      }
+      const html = `<a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a> viewer
+<button type="button" id="tweak" style="display: none;">tweak</button>
+<span id="folderSpan" style="display: none;"></span>
+        `;
+      this.toolbarElement.innerHTML = html;
+      if (this.options.tweakButton) {
+        const tweakButton = this.toolbarElement.querySelector("#tweak");
+        tweakButton == null ? void 0 : tweakButton.addEventListener("click", () => {
+          this.options.textarea.style.display = this.options.textarea.style.display === "none" ? "" : "none";
+        });
+      }
+    }
+    manageTextareaVisibilityForAgents() {
+      const { textarea } = this.options;
+      if (!textarea) {
+        throw new Error("Textarea element not found");
+      }
+      textarea.style.flex = "0";
+      textarea.style.padding = "0";
+      textarea.style.border = "0";
+      setTimeout(() => {
+        textarea.style.flex = "";
+        textarea.style.padding = "";
+        textarea.style.border = "";
+        textarea.style.display = "none";
+      }, 300);
+    }
+  }
+  function create(toolbarElementOrSelector, options = {}) {
+    const toolbar = new Toolbar(toolbarElementOrSelector, options);
+    toolbar.manageTextareaVisibilityForAgents();
+    return toolbar;
+  }
+  const index$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+    __proto__: null,
+    Toolbar,
+    create
+  }, Symbol.toStringTag, { value: "Module" }));
   function getElement(elementOrSelector) {
     if (typeof elementOrSelector === "string") {
       return document.querySelector(elementOrSelector);
@@ -1309,9 +1357,9 @@ ${guardedJs}
       __publicField(this, "textarea");
       __publicField(this, "toolbar");
       __publicField(this, "sandbox");
+      __publicField(this, "sandboxReady", false);
       __publicField(this, "onApprove");
       __publicField(this, "removeInteractionHandlers");
-      __publicField(this, "sandboxReady", false);
       __publicField(this, "sandboxConstructor");
       this.sandboxConstructor = options.sandboxConstructor || Sandbox;
       this.options = { ...defaultOptions, ...options == null ? void 0 : options.options };
@@ -1323,7 +1371,7 @@ ${guardedJs}
       this.uploadButton = getElement(options.uploadButton);
       this.fileInput = getElement(options.fileInput);
       this.textarea = getElement(options.textarea);
-      this.toolbar = getElement(options.toolbar);
+      this.toolbar = new Toolbar(options.toolbar);
       if (!this.appDiv) {
         throw new Error("App container not found");
       }
@@ -1492,13 +1540,12 @@ ${details}`;
   }
   const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
-    Listener,
-    compiler: index$2,
-    sandbox: index$1
+    Listener
   }, Symbol.toStringTag, { value: "Module" }));
-  exports2.common = index$3;
-  exports2.compiler = index$2;
+  exports2.common = index$4;
+  exports2.compiler = index$3;
   exports2.host = index;
-  exports2.sandbox = index$1;
+  exports2.sandbox = index$2;
+  exports2.toolbar = index$1;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 }));

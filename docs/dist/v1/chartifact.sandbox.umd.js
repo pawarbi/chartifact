@@ -130,7 +130,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     const tokens = tokenizeTemplate(input);
     return renderVegaExpression(tokens);
   }
-  const index$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  const index$2 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     VEGA_BUILTIN_FUNCTIONS,
     collectIdentifiers,
@@ -314,11 +314,59 @@ document.addEventListener('DOMContentLoaded', () => {
 `;
     }
   }
-  const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  const index$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     Sandbox
   }, Symbol.toStringTag, { value: "Module" }));
-  exports2.common = index$1;
-  exports2.sandbox = index;
+  class Toolbar {
+    constructor(toolbarElementOrSelector, options = {}) {
+      __publicField(this, "options");
+      __publicField(this, "toolbarElement");
+      this.options = options;
+      this.toolbarElement = typeof toolbarElementOrSelector === "string" ? document.querySelector(toolbarElementOrSelector) : toolbarElementOrSelector;
+      if (!this.toolbarElement) {
+        throw new Error("Toolbar element not found");
+      }
+      const html = `<a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a> viewer
+<button type="button" id="tweak" style="display: none;">tweak</button>
+<span id="folderSpan" style="display: none;"></span>
+        `;
+      this.toolbarElement.innerHTML = html;
+      if (this.options.tweakButton) {
+        const tweakButton = this.toolbarElement.querySelector("#tweak");
+        tweakButton == null ? void 0 : tweakButton.addEventListener("click", () => {
+          this.options.textarea.style.display = this.options.textarea.style.display === "none" ? "" : "none";
+        });
+      }
+    }
+    manageTextareaVisibilityForAgents() {
+      const { textarea } = this.options;
+      if (!textarea) {
+        throw new Error("Textarea element not found");
+      }
+      textarea.style.flex = "0";
+      textarea.style.padding = "0";
+      textarea.style.border = "0";
+      setTimeout(() => {
+        textarea.style.flex = "";
+        textarea.style.padding = "";
+        textarea.style.border = "";
+        textarea.style.display = "none";
+      }, 300);
+    }
+  }
+  function create(toolbarElementOrSelector, options = {}) {
+    const toolbar = new Toolbar(toolbarElementOrSelector, options);
+    toolbar.manageTextareaVisibilityForAgents();
+    return toolbar;
+  }
+  const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+    __proto__: null,
+    Toolbar,
+    create
+  }, Symbol.toStringTag, { value: "Module" }));
+  exports2.common = index$2;
+  exports2.sandbox = index$1;
+  exports2.toolbar = index;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 }));
