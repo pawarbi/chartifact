@@ -9,7 +9,7 @@ window.addEventListener('DOMContentLoaded', () => {
     let render = () => { };
 
     const textarea = document.querySelector('#source') as HTMLTextAreaElement;
-    textarea.addEventListener('input', render);
+    textarea.addEventListener('input', () => render());
     const toolbar = new Chartifact.toolbar.Toolbar('.chartifact-toolbar', { textarea });
 
     host = new Chartifact.host.Listener({
