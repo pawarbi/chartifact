@@ -25,6 +25,7 @@ const className = pluginClassName(pluginName);
 export const textboxPlugin: Plugin<TextboxSpec> = {
     ...flaggableJsonPlugin<TextboxSpec>(pluginName, className),
     hydrateComponent: async (renderer, errorHandler, specs) => {
+        const { signalBus } = renderer;
         const textboxInstances: TextboxInstance[] = [];
         for (let index = 0; index < specs.length; index++) {
             const specReview = specs[index];
@@ -83,7 +84,7 @@ export const textboxPlugin: Plugin<TextboxSpec> = {
                                 isData: false,
                             },
                         };
-                        renderer.signalBus.broadcast(textboxInstance.id, batch);
+                        signalBus.broadcast(textboxInstance.id, batch);
                     };
 
                     element.addEventListener('input', updateValue);

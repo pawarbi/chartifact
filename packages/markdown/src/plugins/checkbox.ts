@@ -25,6 +25,7 @@ const className = pluginClassName(pluginName);
 export const checkboxPlugin: Plugin<CheckboxSpec> = {
     ...flaggableJsonPlugin<CheckboxSpec>(pluginName, className),
     hydrateComponent: async (renderer, errorHandler, specs) => {
+        const { signalBus } = renderer;
         const checkboxInstances: CheckboxInstance[] = [];
         for (let index = 0; index < specs.length; index++) {
             const specReview = specs[index];
@@ -78,7 +79,7 @@ export const checkboxPlugin: Plugin<CheckboxSpec> = {
                                 isData: false,
                             },
                         };
-                        renderer.signalBus.broadcast(checkboxInstance.id, batch);
+                        signalBus.broadcast(checkboxInstance.id, batch);
                     });
                 },
                 getCurrentSignalValue: () => {

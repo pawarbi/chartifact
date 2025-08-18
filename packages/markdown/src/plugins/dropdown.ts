@@ -25,6 +25,7 @@ const className = pluginClassName(pluginName);
 export const dropdownPlugin: Plugin<DropdownSpec> = {
     ...flaggableJsonPlugin<DropdownSpec>(pluginName, className),
     hydrateComponent: async (renderer, errorHandler, specs) => {
+        const { signalBus } = renderer;
         const dropdownInstances: DropdownInstance[] = [];
         for (let index = 0; index < specs.length; index++) {
             const specReview = specs[index];
@@ -53,7 +54,7 @@ export const dropdownPlugin: Plugin<DropdownSpec> = {
             const dropdownInstance: DropdownInstance = { id: `${pluginName}-${index}`, spec, element };
             dropdownInstances.push(dropdownInstance);
         }
-        const instances = dropdownInstances.map((dropdownInstance, index) : IInstance => {
+        const instances = dropdownInstances.map((dropdownInstance, index): IInstance => {
             const { element, spec } = dropdownInstance;
             const initialSignals = [{
                 name: spec.variableId,
@@ -129,7 +130,7 @@ export const dropdownPlugin: Plugin<DropdownSpec> = {
                                 isData: false,
                             },
                         };
-                        renderer.signalBus.broadcast(dropdownInstance.id, batch);
+                        signalBus.broadcast(dropdownInstance.id, batch);
                     });
                 },
                 getCurrentSignalValue: () => {

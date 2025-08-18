@@ -7,7 +7,7 @@ import { changeset, parse, View, expressionFunction, LoggerInterface } from 'veg
 import { Batch, IInstance, Plugin, PrioritizedSignal, RawFlaggableSpec } from '../factory.js';
 import { BaseSignal, InitSignal, NewSignal, Runtime, Spec, ValuesData } from 'vega-typings';
 import { ErrorHandler, Renderer } from '../renderer.js';
-import { LogLevel } from '../signalbus.js';
+import { LogLevel, SignalBus } from '../signalbus.js';
 import { pluginClassName } from './util.js';
 import { defaultCommonOptions } from 'common';
 import { flaggableJsonPlugin, } from './config.js';
@@ -44,6 +44,7 @@ export function inspectVegaSpec(spec: Spec) {
 export const vegaPlugin: Plugin<Spec> = {
     ...flaggableJsonPlugin<Spec>(pluginName, className, inspectVegaSpec),
     hydrateComponent: async (renderer, errorHandler, specs) => {
+        const { signalBus } = renderer;
         //initialize the expressionFunction only once
         if (!expressionsInitialized) {
             expressionFunction('encodeURIComponent', encodeURIComponent);
@@ -96,13 +97,13 @@ export const vegaPlugin: Plugin<Spec> = {
             const { spec, view, initialSignals } = vegaInstance;
             const startBatch = (from: string) => {
                 if (!vegaInstance.batch) {
-                    renderer.signalBus.log(vegaInstance.id, 'starting batch', from);
+                    signalBus.log(vegaInstance.id, 'starting batch', from);
                     vegaInstance.batch = {};
                     view.runAfter(() => {
                         const { batch } = vegaInstance;
                         vegaInstance.batch = undefined;
-                        renderer.signalBus.log(vegaInstance.id, 'sending batch', batch);
-                        renderer.signalBus.broadcast(vegaInstance.id, batch);
+                        signalBus.log(vegaInstance.id, 'sending batch', batch);
+                        signalBus.broadcast(vegaInstance.id, batch);
                     });
                 }
             };
@@ -110,27 +111,27 @@ export const vegaPlugin: Plugin<Spec> = {
                 ...vegaInstance,
                 initialSignals,
                 receiveBatch: async (batch, from) => {
-                    renderer.signalBus.log(vegaInstance.id, 'received batch', batch, from);
+                    signalBus.log(vegaInstance.id, 'received batch', batch, from);
                     return new Promise<void>(resolve => {
                         view.runAfter(async () => {
-                            if (receiveBatch(batch, renderer, vegaInstance)) {
-                                renderer.signalBus.log(vegaInstance.id, 'running after _pulse, changes from', from);
+                            if (receiveBatch(batch, signalBus, vegaInstance)) {
+                                signalBus.log(vegaInstance.id, 'running after _pulse, changes from', from);
                                 vegaInstance.needToRun = true;
                             } else {
-                                renderer.signalBus.log(vegaInstance.id, 'no changes');
+                                signalBus.log(vegaInstance.id, 'no changes');
                             }
-                            renderer.signalBus.log(vegaInstance.id, 'running view after _pulse finished');
+                            signalBus.log(vegaInstance.id, 'running view after _pulse finished');
                             resolve();
                         });
                     });
                 },
                 broadcastComplete: async () => {
-                    renderer.signalBus.log(vegaInstance.id, 'broadcastComplete');
+                    signalBus.log(vegaInstance.id, 'broadcastComplete');
                     if (vegaInstance.needToRun) {
                         view.runAfter(() => {
                             view.runAsync();    //do not await, since we are already in a runAfter
                             vegaInstance.needToRun = false;
-                            renderer.signalBus.log(vegaInstance.id, 'running view after broadcastComplete');
+                            signalBus.log(vegaInstance.id, 'running view after broadcastComplete');
                         });
                     }
                 },
@@ -140,15 +141,15 @@ export const vegaPlugin: Plugin<Spec> = {
                         if (isData) {
                             const matchData = spec.data?.find(data => data.name === signalName);
                             if (matchData && vegaInstance.dataSignals.includes(matchData.name)) {
-                                renderer.signalBus.log(vegaInstance.id, 'listening to data', signalName);
+                                signalBus.log(vegaInstance.id, 'listening to data', signalName);
 
                                 //if current signalbus value has not been initialized and we have data, send it through
-                                if (renderer.signalBus.signalDeps[signalName].value === undefined
+                                if (signalBus.signalDeps[signalName].value === undefined
                                     && view.data(signalName)?.length > 0) {
-                                    renderer.signalBus.log(vegaInstance.id, 'un-initialized', signalName);
+                                    signalBus.log(vegaInstance.id, 'un-initialized', signalName);
                                     const batch: Batch = {};
                                     batch[signalName] = { value: view.data(signalName), isData: true };
-                                    renderer.signalBus.broadcast(vegaInstance.id, batch);
+                                    signalBus.broadcast(vegaInstance.id, batch);
                                 }
 
                                 view.addDataListener(signalName, async (name, value) => {
@@ -166,16 +167,16 @@ export const vegaPlugin: Plugin<Spec> = {
                                 (matchSignal as NewSignal).update   // calculations
                                 ;
                             if (isChangeSource) {
-                                renderer.signalBus.log(vegaInstance.id, 'listening to signal', signalName);
+                                signalBus.log(vegaInstance.id, 'listening to signal', signalName);
                                 view.addSignalListener(signalName, async (name, value) => {
                                     startBatch(`signal:${signalName}`);
                                     vegaInstance.batch[name] = { value, isData };
                                 });
                             } else {
-                                //renderer.signalBus.log(vegaInstance.id, 'not listening to signal, not a change source', signalName);
+                                //signalBus.log(vegaInstance.id, 'not listening to signal, not a change source', signalName);
                             }
                         } else {
-                            //renderer.signalBus.log(vegaInstance.id, 'not listening to signal, no match', signalName);
+                            //signalBus.log(vegaInstance.id, 'not listening to signal, no match', signalName);
                         }
                     }
                 },
@@ -196,15 +197,15 @@ export const vegaPlugin: Plugin<Spec> = {
     },
 };
 
-function receiveBatch(batch: Batch, renderer: Renderer, vegaInstance: VegaInstance) {
+function receiveBatch(batch: Batch, signalBus: SignalBus, vegaInstance: VegaInstance) {
     const { spec, view } = vegaInstance;
-    const doLog = renderer.signalBus.logLevel === LogLevel.all;
-    doLog && renderer.signalBus.log(vegaInstance.id, 'receiveBatch', batch);
+    const doLog = signalBus.logLevel === LogLevel.all;
+    doLog && signalBus.log(vegaInstance.id, 'receiveBatch', batch);
     let hasAnyChange = false;
     for (const signalName in batch) {
         const batchItem = batch[signalName];
         if (ignoredSignals.includes(signalName)) {
-            doLog && renderer.signalBus.log(vegaInstance.id, 'ignoring reserved signal name', signalName, batchItem.value);
+            doLog && signalBus.log(vegaInstance.id, 'ignoring reserved signal name', signalName, batchItem.value);
             continue;
         }
         if (batchItem.isData) {
@@ -221,7 +222,7 @@ function receiveBatch(batch: Batch, renderer: Renderer, vegaInstance: VegaInstan
                     hasAnyChange = true;
                 }
             }
-            doLog && renderer.signalBus.log(vegaInstance.id, `(isData) ${logReason}`, signalName, batchItem.value);
+            doLog && signalBus.log(vegaInstance.id, `(isData) ${logReason}`, signalName, batchItem.value);
         }
         let logReason = '';
         const matchSignal = spec.signals?.find(signal => signal.name === signalName);
@@ -245,7 +246,7 @@ function receiveBatch(batch: Batch, renderer: Renderer, vegaInstance: VegaInstan
                 }
             }
         }
-        doLog && renderer.signalBus.log(vegaInstance.id, logReason, signalName, batchItem.value);
+        doLog && signalBus.log(vegaInstance.id, logReason, signalName, batchItem.value);
     }
     return hasAnyChange;
 }

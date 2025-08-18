@@ -39,6 +39,7 @@ const className = pluginClassName(pluginName);
 export const tabulatorPlugin: Plugin<TabulatorSpec> = {
     ...flaggableJsonPlugin<TabulatorSpec>(pluginName, className, inspectTabulatorSpec, { style: 'box-sizing: border-box;' }),
     hydrateComponent: async (renderer, errorHandler, specs) => {
+        const { signalBus } = renderer;
         const tabulatorInstances: TabulatorInstance[] = [];
 
         // Generate a unique field name for the delete column, used for all tables in this hydration
@@ -154,8 +155,8 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                         isData: true,
                     },
                 };
-                renderer.signalBus.log(tabulatorInstance.id, 'sending batch', batch);
-                renderer.signalBus.broadcast(tabulatorInstance.id, batch);
+                signalBus.log(tabulatorInstance.id, 'sending batch', batch);
+                signalBus.broadcast(tabulatorInstance.id, batch);
             }
             const setData = (data: object[]) => {
                 table.setData(data).then(() => {
@@ -225,7 +226,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                 }
                 if (resetBtn) {
                     resetBtn.onclick = () => {
-                        const value = renderer.signalBus.signalDeps[spec.dataSourceName].value;
+                        const value = signalBus.signalDeps[spec.dataSourceName].value;
                         if (Array.isArray(value)) {
                             setData(value);
                         }
