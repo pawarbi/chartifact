@@ -83,8 +83,8 @@ export const placeholdersPlugin: Plugin = {
             const alt = tokens[idx].attrGet('alt');
             const src = tokens[idx].attrGet('src');
             let error: string;
-            const html = createImageContainerTemplate(imageClassName, alt, decodeURIComponent(src), (e: Error, pluginName: string, instanceIndex: number, phase: string, container: Element, detail?: string) => {
-                error = sanitizeHtmlComment(`Error in plugin ${pluginName} instance ${idx} phase ${phase}: ${e.message} ${detail}`);
+            const html = createImageContainerTemplate(imageClassName, alt, decodeURIComponent(src), idx, (e, pluginName, instanceIndex, phase, container, detail) => {
+                error = sanitizeHtmlComment(`Error in plugin ${pluginName} instance ${instanceIndex} phase ${phase}: ${e.message} ${detail}`);
             });
             return error || html;
         };
