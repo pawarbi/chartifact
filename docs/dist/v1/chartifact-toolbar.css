@@ -23,10 +23,6 @@ textarea {
 #toolbar {
   padding: 0.5em 1em;
   font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 /* Default (OS light theme) */
