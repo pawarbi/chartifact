@@ -34,8 +34,10 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
 
     let docIndex = 0;
 
-    host.toolbar.innerText = folder.title + `(${folder.docs.length} documents)`;
-    host.toolbar.style.display = 'block';
+    const folderSpan = host.toolbar.toolbarElement.querySelector('#folderSpan') as HTMLSpanElement;
+    folderSpan.style.display = '';
+
+    folderSpan.innerText = `Folder: ${folder.title} (${folder.docs.length} documents)`;
 
     // Create Previous and Next buttons
     const prevBtn = document.createElement('button');
@@ -120,9 +122,9 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
     goToPageFromHash();
 
     // Add buttons and dropdown to the toolbar
-    host.toolbar.appendChild(prevBtn);
-    host.toolbar.appendChild(pageSelect);
-    host.toolbar.appendChild(nextBtn);
+    folderSpan.appendChild(prevBtn);
+    folderSpan.appendChild(pageSelect);
+    folderSpan.appendChild(nextBtn);
 
     //resolveUrl(folderUrl, folder.docUrls[docIndex], host);
 }

@@ -18,9 +18,9 @@ export class Toolbar {
             throw new Error('Toolbar element not found');
         }
 
-        const html = `
-        <a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a> viewer
-        ${this.options.tweakButton ? '<button type="button" id="tweak">tweak</button>' : ''}
+        const html = `<a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a> viewer
+<button type="button" id="tweak" style="display: none;">tweak</button>
+<span id="folderSpan" style="display: none;"></span>
         `;
 
         this.toolbarElement.innerHTML = html;
@@ -56,5 +56,4 @@ export class Toolbar {
         }, 300);
 
     }
-
 }
