@@ -17,5 +17,6 @@ if (!fs.existsSync(distDir)) {
 // Copy the css toolbar file
 fs.copyFileSync('./chartifact-toolbar.css', './dist/css/chartifact-toolbar.css');
 fs.copyFileSync('./chartifact-toolbar.css', '../../docs/dist/v1/chartifact-toolbar.css');
+fs.copyFileSync('./chartifact-toolbar.css', '../../packages/host/dev/chartifact-toolbar.css');
 
 console.log('CSS toolbar file copied successfully to ../../docs/dist/v1');
