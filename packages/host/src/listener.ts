@@ -80,7 +80,10 @@ export class Listener {
     this.uploadButton = getElement(options.uploadButton);
     this.fileInput = getElement(options.fileInput);
     this.textarea = getElement<HTMLTextAreaElement>(options.textarea);
-    this.toolbar = new Toolbar(options.toolbar);
+
+    if (options.toolbar) {
+      this.toolbar = new Toolbar(options.toolbar);
+    }
 
     if (!this.appDiv) {
       throw new Error('App container not found');
