@@ -1530,7 +1530,7 @@ ${reconstitutedRules.join("\n\n")}
         const src = tokens[idx].attrGet("src");
         let error;
         const html = createImageContainerTemplate(imageClassName, alt, decodeURIComponent(src), idx, (e, pluginName2, instanceIndex, phase, container, detail) => {
-          error = sanitizeHtmlComment(`Error in plugin ${pluginName2} instance ${idx} phase ${phase}: ${e.message} ${detail}`);
+          error = sanitizeHtmlComment(`Error in plugin ${pluginName2} instance ${instanceIndex} phase ${phase}: ${e.message} ${detail}`);
         });
         return error || html;
       };
