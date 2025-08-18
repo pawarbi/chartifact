@@ -4,10 +4,10 @@
 */
 import * as vscode from 'vscode';
 import { newPanel, WebViewWithUri } from './panel';
-import { link, script } from './html';
+import { script, style } from './html';
 import { getResourceContent } from './resources';
 import type { ListenOptions } from '@microsoft/chartifact-host' with { 'resolution-mode': 'import' };
-import type { HostRenderRequestMessage, HostStatusMessage } from 'common' with { 'resolution-mode': 'import' };
+import type { EditorGetOfflineDependenciesMessage, EditorSetOfflineDependenciesMessage, HostRenderRequestMessage, HostStatusMessage } from 'common' with { 'resolution-mode': 'import' };
 
 /**
  * Manages the preview functionality for Interactive Documents
@@ -74,13 +74,36 @@ export class PreviewManager {
 	/**
 	 * Handles messages from the webview
 	 */
-	private handleWebviewMessage(message: HostStatusMessage, fileUri: vscode.Uri, uriFsPath: string) {
-		if (message.type === 'hostStatus') {
-			switch (message.hostStatus) {
-				case 'ready': {
-					this.getFileContentAndRender(fileUri, uriFsPath);
-					break;
+	private handleWebviewMessage(message: HostStatusMessage | EditorGetOfflineDependenciesMessage, fileUri: vscode.Uri, uriFsPath: string) {
+		switch (message.type) {
+			case 'hostStatus': {
+				switch (message.hostStatus) {
+					case 'ready': {
+						this.getFileContentAndRender(fileUri, uriFsPath);
+						break;
+					}
 				}
+				break;
+			}
+			case 'editorGetOfflineDependencies': {
+				// Send offline dependencies to the webview
+				if (this.current) {
+					const setOfflineDependenciesMessage: EditorSetOfflineDependenciesMessage = {
+						type: 'editorSetOfflineDependencies',
+						sender: 'vscode',
+						offlineDeps:
+							style(getResourceContent('chartifact-reset.css')) +
+							style(getResourceContent('tabulator.min.css')) +
+							script(getResourceContent('markdown-it.min.js')) +
+							script(getResourceContent('csstree.js')) +
+							script(getResourceContent('vega.min.js')) +
+							script(getResourceContent('vega-lite.min.js')) +
+							script(getResourceContent('tabulator.min.js')) +
+							script(getResourceContent('chartifact.markdown.umd.js'))
+					};
+					this.current.panel.webview.postMessage(setOfflineDependenciesMessage);
+				}
+				break;
 			}
 		}
 	}
@@ -187,11 +210,6 @@ function getWebviewContent(webView: vscode.Webview, context: vscode.ExtensionCon
 
 	// Build the resource links block
 	const resourceLinks = [
-		link(resourceUrl('tabulator.min.css')),
-		script(resourceUrl('markdown-it.min.js')),
-		script(resourceUrl('vega.min.js')),
-		script(resourceUrl('vega-lite.min.js')),
-		script(resourceUrl('tabulator.min.js')),
 		script(resourceUrl('chartifact.host.umd.js')),
 		script(resourceUrl('preview.js')),
 	].join('\n    ');
