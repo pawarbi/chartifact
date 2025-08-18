@@ -38,6 +38,7 @@ export interface InitializeOptions {
   toolbar?: string | HTMLElement;
   options?: ListenOptions;
   onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
+  sandboxConstructor?: typeof Sandbox;
 }
 
 const defaultOptions: ListenOptions = {
@@ -64,8 +65,10 @@ export class Listener {
 
   private removeInteractionHandlers: (() => void)[];
   private sandboxReady: boolean = false;
+  private sandboxConstructor?: typeof Sandbox;
 
   constructor(options: InitializeOptions) {
+    this.sandboxConstructor = options.sandboxConstructor || Sandbox;
     this.options = { ...defaultOptions, ...options?.options };
     this.onApprove = options.onApprove;
     this.removeInteractionHandlers = [];
@@ -116,7 +119,7 @@ export class Listener {
 
     this.sandboxReady = false;
 
-    this.sandbox = new Sandbox(this.appDiv, markdown, {
+    this.sandbox = new (this.sandboxConstructor)(this.appDiv, markdown, {
       onReady: () => {
         this.sandboxReady = true;
 
