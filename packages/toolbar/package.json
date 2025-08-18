@@ -1,0 +1,15 @@
+{
+  "name": "toolbar",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/esnext/index.js",
+  "scripts": {
+    "clean": "rimraf dist && rimraf src/resources",
+    "tsc": "tsc -p .",
+    "build": "npm run tsc",
+    "build:01": "npm run build"
+  },
+  "author": "Dan Marshall",
+  "license": "MIT",
+  "description": ""
+}

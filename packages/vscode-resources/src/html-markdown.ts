@@ -34,8 +34,5 @@ window.addEventListener('DOMContentLoaded', () => {
         textarea.style.display = 'none'; // Fully hide from users (but they can unhide to edit)
     }, 300);
 
-    const button = document.getElementById('toggle-textarea');
-    button?.addEventListener('click', () => {
-        textarea.style.display = textarea.style.display === 'none' ? '' : 'none';
-    });
+    Chartifact.toolbar.create('#toolbar', { tweakButton: true, textarea });
 });

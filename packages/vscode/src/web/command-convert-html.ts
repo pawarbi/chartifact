@@ -62,9 +62,6 @@ function htmlMarkdownWrapper(markdown: string, fileUri: vscode.Uri) {
 	const result = template
 		.replace('{{TITLE}}', () => escapeHtml(getFileNameWithoutExtension(fileUri)))
 
-		//TODO: when we have a CDN we don't need this in the code, script can be set in the HTML
-		.replace('{{SANDBOX_UMD_JS}}', () => `<script>\n${getResourceContent('chartifact.sandbox.umd.js')}\n</script>`)
-
 		.replace('{{HTML_MARKDOWN_JS}}', () => `<script>\n${getResourceContent('html-markdown.js')}\n</script>`)
 		.replace('{{TEXTAREA_CONTENT}}', () => escapeTextareaContent(markdown));
 
@@ -76,10 +73,6 @@ function htmlJsonWrapper(json: string, fileUri: vscode.Uri) {
 
 	const result = template
 		.replace('{{TITLE}}', () => escapeHtml(getFileNameWithoutExtension(fileUri)))
-
-		//TODO: when we have a CDN we don't need this in the code, script can be set in the HTML
-		.replace('{{SANDBOX_UMD_JS}}', () => `<script>\n${getResourceContent('chartifact.sandbox.umd.js')}\n</script>`)
-		.replace('{{COMPILER_UMD_JS}}', () => `<script>\n${getResourceContent('chartifact.compiler.umd.js')}\n</script>`)
 
 		.replace('{{HTML_JSON_JS}}', () => `<script>\n${getResourceContent('html-json.js')}\n</script>`)
 		.replace('{{TEXTAREA_CONTENT}}', () => escapeTextareaContent(json));
