@@ -3,8 +3,11 @@
 * Licensed under the MIT License.
 */
 import { SandboxOptions, Sandbox } from '@microsoft/chartifact-sandbox';
+import { Toolbar } from 'toolbar';
 import { rendererCss } from '@microsoft/chartifact-sandbox/src/resources/rendererCss.ts';
 import { rendererUmdJs } from '@microsoft/chartifact-sandbox/src/resources/rendererUmdJs.ts';
+import { Listener } from '../src/index.ts';
+import { InteractiveDocumentWithSchema } from '@microsoft/chartifact-schema';
 
 class LocalSandbox extends Sandbox {
     constructor(elementOrSelector: string | HTMLElement, markdown: string, options: SandboxOptions) {
@@ -26,18 +29,58 @@ class LocalSandbox extends Sandbox {
 
 }
 
-import { Listener } from '../src/index.ts';
-new Listener({
-    app: '#app',
+let render = () => { };
+
+const textarea = document.querySelector('#source') as HTMLTextAreaElement;
+textarea.addEventListener('input', () => render());
+const toolbar = new Toolbar('.chartifact-toolbar', { textarea });
+
+const host = new Listener({
+    preview: '#preview',
     loading: '#loading',
     help: '#help',
     uploadButton: '#upload-btn',
     fileInput: '#file-input',
-    textarea: '#textarea',
-    toolbar: '#toolbar',
+    toolbar,
     onApprove: (message) => {
         const { specs } = message;
         return specs;
     },
     sandboxConstructor: LocalSandbox,
+    onSetMode: (mode, markdown, interactiveDocument) => {
+        switch (mode) {
+            case 'json':
+                textarea.value = JSON.stringify(interactiveDocument, null, 2);
+                render = () => {
+                    const json = textarea.value;
+                    try {
+                        const interactiveDocument = JSON.parse(json) as InteractiveDocumentWithSchema;
+                        if (typeof interactiveDocument !== 'object') {
+                            host.errorHandler(
+                                'Invalid JSON format',
+                                'Please provide a valid Interactive Document JSON.'
+                            );
+                            return;
+                        }
+                        host.renderInteractiveDocument(interactiveDocument);
+                    } catch (error) {
+                        host.errorHandler(
+                            error,
+                            'Failed to parse Interactive Document JSON'
+                        );
+                    }
+                };
+                break;
+            case 'markdown':
+                textarea.value = markdown;
+                render = () => {
+                    const markdown = textarea.value;
+                    host.renderMarkdown(markdown);
+                };
+                break;
+            default:
+                return;
+        }
+        toolbar.showTweakButton();
+    },
 });

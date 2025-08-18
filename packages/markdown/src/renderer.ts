@@ -15,7 +15,6 @@ export interface ErrorHandler {
 
 export interface RendererOptions {
     vegaRenderer?: Renderers;
-    signalBus?: SignalBus;
     errorHandler?: ErrorHandler;
     useShadowDom?: boolean;
     openLinksInNewTab?: boolean;
@@ -46,7 +45,7 @@ export class Renderer {
 
     constructor(_element: HTMLElement, options?: RendererOptions) {
         this.options = { ...defaultRendererOptions, ...options };
-        this.signalBus = this.options.signalBus || new SignalBus(defaultCommonOptions.dataSignalPrefix!);
+        this.signalBus = new SignalBus(defaultCommonOptions.dataSignalPrefix!);
         this.instances = {};
 
         // Create shadow DOM or use regular DOM
@@ -176,7 +175,13 @@ export class Renderer {
     }
 
     reset() {
-        this.signalBus.reset();
+
+        //cancel the old signal bus, which may have active listeners
+        this.signalBus.deactivate();
+
+        //create a new signal bus
+        this.signalBus = new SignalBus(defaultCommonOptions.dataSignalPrefix!);
+
         for (const pluginName of Object.keys(this.instances)) {
             const instances = this.instances[pluginName];
             for (const instance of instances) {

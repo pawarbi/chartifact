@@ -333,11 +333,15 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       this.toolbarElement.innerHTML = html;
       if (this.options.tweakButton) {
-        const tweakButton = this.toolbarElement.querySelector("#tweak");
-        tweakButton == null ? void 0 : tweakButton.addEventListener("click", () => {
-          this.options.textarea.style.display = this.options.textarea.style.display === "none" ? "" : "none";
-        });
+        this.showTweakButton();
       }
+    }
+    showTweakButton() {
+      const tweakButton = this.toolbarElement.querySelector("#tweak");
+      tweakButton.style.display = "";
+      tweakButton == null ? void 0 : tweakButton.addEventListener("click", () => {
+        this.options.textarea.style.display = this.options.textarea.style.display === "none" ? "" : "none";
+      });
     }
     manageTextareaVisibilityForAgents() {
       const { textarea } = this.options;

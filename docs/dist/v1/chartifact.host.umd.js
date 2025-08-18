@@ -1278,53 +1278,6 @@ ${guardedJs}
       target.postMessage(message, "*");
     }
   }
-  class Toolbar {
-    constructor(toolbarElementOrSelector, options = {}) {
-      __publicField(this, "options");
-      __publicField(this, "toolbarElement");
-      this.options = options;
-      this.toolbarElement = typeof toolbarElementOrSelector === "string" ? document.querySelector(toolbarElementOrSelector) : toolbarElementOrSelector;
-      if (!this.toolbarElement) {
-        throw new Error("Toolbar element not found");
-      }
-      const html = `<a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a> viewer
-<button type="button" id="tweak" style="display: none;">tweak</button>
-<span id="folderSpan" style="display: none;"></span>
-        `;
-      this.toolbarElement.innerHTML = html;
-      if (this.options.tweakButton) {
-        const tweakButton = this.toolbarElement.querySelector("#tweak");
-        tweakButton == null ? void 0 : tweakButton.addEventListener("click", () => {
-          this.options.textarea.style.display = this.options.textarea.style.display === "none" ? "" : "none";
-        });
-      }
-    }
-    manageTextareaVisibilityForAgents() {
-      const { textarea } = this.options;
-      if (!textarea) {
-        throw new Error("Textarea element not found");
-      }
-      textarea.style.flex = "0";
-      textarea.style.padding = "0";
-      textarea.style.border = "0";
-      setTimeout(() => {
-        textarea.style.flex = "";
-        textarea.style.padding = "";
-        textarea.style.border = "";
-        textarea.style.display = "none";
-      }, 300);
-    }
-  }
-  function create(toolbarElementOrSelector, options = {}) {
-    const toolbar = new Toolbar(toolbarElementOrSelector, options);
-    toolbar.manageTextareaVisibilityForAgents();
-    return toolbar;
-  }
-  const index$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
-    __proto__: null,
-    Toolbar,
-    create
-  }, Symbol.toStringTag, { value: "Module" }));
   function getElement(elementOrSelector) {
     if (typeof elementOrSelector === "string") {
       return document.querySelector(elementOrSelector);
@@ -1349,30 +1302,33 @@ ${guardedJs}
   class Listener {
     constructor(options) {
       __publicField(this, "options");
-      __publicField(this, "appDiv");
+      __publicField(this, "previewDiv");
       __publicField(this, "loadingDiv");
       __publicField(this, "helpDiv");
       __publicField(this, "uploadButton");
       __publicField(this, "fileInput");
-      __publicField(this, "textarea");
       __publicField(this, "toolbar");
       __publicField(this, "sandbox");
       __publicField(this, "sandboxReady", false);
       __publicField(this, "onApprove");
+      __publicField(this, "onSetMode");
       __publicField(this, "removeInteractionHandlers");
       __publicField(this, "sandboxConstructor");
       this.sandboxConstructor = options.sandboxConstructor || Sandbox;
       this.options = { ...defaultOptions, ...options == null ? void 0 : options.options };
       this.onApprove = options.onApprove;
+      this.onSetMode = options.onSetMode || (() => {
+      });
       this.removeInteractionHandlers = [];
-      this.appDiv = getElement(options.app);
+      this.previewDiv = getElement(options.preview);
       this.loadingDiv = getElement(options.loading);
       this.helpDiv = getElement(options.help);
       this.uploadButton = getElement(options.uploadButton);
       this.fileInput = getElement(options.fileInput);
-      this.textarea = getElement(options.textarea);
-      this.toolbar = new Toolbar(options.toolbar);
-      if (!this.appDiv) {
+      if (options.toolbar) {
+        this.toolbar = options.toolbar;
+      }
+      if (!this.previewDiv) {
         throw new Error("App container not found");
       }
       show(this.loadingDiv, true);
@@ -1400,7 +1356,7 @@ ${guardedJs}
         this.sandbox.destroy();
       }
       this.sandboxReady = false;
-      this.sandbox = new this.sandboxConstructor(this.appDiv, markdown, {
+      this.sandbox = new this.sandboxConstructor(this.previewDiv, markdown, {
         onReady: () => {
           this.sandboxReady = true;
           postStatus(this.options.postMessageTarget, { type: "hostStatus", hostStatus: "ready" });
@@ -1420,7 +1376,7 @@ ${guardedJs}
     errorHandler(error, details) {
       show(this.loadingDiv, false);
       show(this.helpDiv, false);
-      show(this.appDiv, true);
+      show(this.previewDiv, true);
       let message;
       if (typeof error === "string") {
         message = error;
@@ -1440,66 +1396,25 @@ ${message}
 ${details}`;
         this.render(markdown, void 0);
       } else {
-        this.appDiv.innerHTML = "";
+        this.previewDiv.innerHTML = "";
         const h1 = document.createElement("h1");
         h1.textContent = "Error";
         const pMessage = document.createElement("p");
         pMessage.textContent = message;
         const pDetails = document.createElement("p");
         pDetails.textContent = details;
-        this.appDiv.appendChild(h1);
-        this.appDiv.appendChild(pMessage);
-        this.appDiv.appendChild(pDetails);
+        this.previewDiv.appendChild(h1);
+        this.previewDiv.appendChild(pMessage);
+        this.previewDiv.appendChild(pDetails);
       }
-    }
-    bindTextareaToCompiler() {
-      const render = () => {
-        const json = this.textarea.value;
-        try {
-          const interactiveDocument = JSON.parse(json);
-          if (typeof interactiveDocument !== "object") {
-            this.errorHandler(
-              "Invalid JSON format",
-              "Please provide a valid Interactive Document JSON."
-            );
-            return;
-          }
-          this.renderInteractiveDocument(interactiveDocument);
-        } catch (error) {
-          this.errorHandler(
-            error,
-            "Failed to parse Interactive Document JSON"
-          );
-        }
-      };
-      this.textarea.addEventListener("input", render);
-      render();
-    }
-    bindTextareaToMarkdown() {
-      const render = () => {
-        const markdown = this.textarea.value;
-        this.renderMarkdown(markdown);
-      };
-      this.textarea.addEventListener("input", render);
-      render();
     }
     render(markdown, interactiveDocument) {
       if (interactiveDocument) {
-        if (this.textarea) {
-          this.textarea.value = JSON.stringify(interactiveDocument, null, 2);
-          this.hideLoadingAndHelp();
-          this.bindTextareaToCompiler();
-        } else {
-          this.renderInteractiveDocument(interactiveDocument);
-        }
+        this.onSetMode("json", null, interactiveDocument);
+        this.renderInteractiveDocument(interactiveDocument);
       } else if (markdown) {
-        if (this.textarea) {
-          this.textarea.value = markdown;
-          this.hideLoadingAndHelp();
-          this.bindTextareaToMarkdown();
-        } else {
-          this.renderMarkdown(markdown);
-        }
+        this.onSetMode("markdown", markdown, null);
+        this.renderMarkdown(markdown);
       } else {
         this.errorHandler(
           "No content provided",
@@ -1538,14 +1453,65 @@ ${details}`;
       }
     }
   }
-  const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  const index$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     Listener
   }, Symbol.toStringTag, { value: "Module" }));
+  class Toolbar {
+    constructor(toolbarElementOrSelector, options = {}) {
+      __publicField(this, "options");
+      __publicField(this, "toolbarElement");
+      this.options = options;
+      this.toolbarElement = typeof toolbarElementOrSelector === "string" ? document.querySelector(toolbarElementOrSelector) : toolbarElementOrSelector;
+      if (!this.toolbarElement) {
+        throw new Error("Toolbar element not found");
+      }
+      const html = `<a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a> viewer
+<button type="button" id="tweak" style="display: none;">tweak</button>
+<span id="folderSpan" style="display: none;"></span>
+        `;
+      this.toolbarElement.innerHTML = html;
+      if (this.options.tweakButton) {
+        this.showTweakButton();
+      }
+    }
+    showTweakButton() {
+      const tweakButton = this.toolbarElement.querySelector("#tweak");
+      tweakButton.style.display = "";
+      tweakButton == null ? void 0 : tweakButton.addEventListener("click", () => {
+        this.options.textarea.style.display = this.options.textarea.style.display === "none" ? "" : "none";
+      });
+    }
+    manageTextareaVisibilityForAgents() {
+      const { textarea } = this.options;
+      if (!textarea) {
+        throw new Error("Textarea element not found");
+      }
+      textarea.style.flex = "0";
+      textarea.style.padding = "0";
+      textarea.style.border = "0";
+      setTimeout(() => {
+        textarea.style.flex = "";
+        textarea.style.padding = "";
+        textarea.style.border = "";
+        textarea.style.display = "none";
+      }, 300);
+    }
+  }
+  function create(toolbarElementOrSelector, options = {}) {
+    const toolbar = new Toolbar(toolbarElementOrSelector, options);
+    toolbar.manageTextareaVisibilityForAgents();
+    return toolbar;
+  }
+  const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+    __proto__: null,
+    Toolbar,
+    create
+  }, Symbol.toStringTag, { value: "Module" }));
   exports2.common = index$4;
   exports2.compiler = index$3;
-  exports2.host = index;
+  exports2.host = index$1;
   exports2.sandbox = index$2;
-  exports2.toolbar = index$1;
+  exports2.toolbar = index;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });
 }));

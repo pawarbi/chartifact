@@ -24,7 +24,11 @@ export class SignalBus {
     constructor(public dataSignalPrefix: string) {
         this.logLevel = LogLevel.none;
         this.logWatchIds = [];
-        this.reset();
+        this.signalDeps = {};
+        this.active = false;
+        this.peers = [];
+        this.broadcastingStack = [];
+        this.peerDependencies = {};
     }
 
     public log(id: string, message: string, ...optionalParams: unknown[]) {
@@ -34,6 +38,11 @@ export class SignalBus {
     }
 
     async broadcast(originId: string, batch: Batch) {
+        if (!this.active) {
+            this.log(originId, 'Broadcast called but bus is not active');
+            return;
+        }
+
         //TODO handle multiple broadcasts
 
         //TODO handle circular dependencies
@@ -117,6 +126,8 @@ export class SignalBus {
     }
 
     async beginListening() {
+        this.active = true;
+
         //set the initial batch on each peer
         this.log('beginListening', 'begin initial batch', this.signalDeps);
 
@@ -175,16 +186,16 @@ export class SignalBus {
                 this.log(peer.id, 'No shared signals');
             }
         }
-
-        this.active = true;
     }
 
-    reset() {
-        this.signalDeps = {};
+    deactivate() {
+        if (this.signalDeps) {
+            for (const signalName in this.signalDeps) {
+                //remove all references to instances
+                this.signalDeps[signalName].deps = [];
+            }
+        }
         this.active = false;
-        this.peers = [];
-        this.broadcastingStack = [];
-        this.peerDependencies = {};
     }
 
 }

@@ -26,11 +26,16 @@ export class Toolbar {
         this.toolbarElement.innerHTML = html;
 
         if (this.options.tweakButton) {
-            const tweakButton = this.toolbarElement.querySelector('#tweak') as HTMLButtonElement;
-            tweakButton?.addEventListener('click', () => {
-                this.options.textarea.style.display = this.options.textarea.style.display === 'none' ? '' : 'none';
-            });
+            this.showTweakButton();
         }
+    }
+
+    showTweakButton() {
+        const tweakButton = this.toolbarElement.querySelector('#tweak') as HTMLButtonElement;
+        tweakButton.style.display = '';
+        tweakButton?.addEventListener('click', () => {
+            this.options.textarea.style.display = this.options.textarea.style.display === 'none' ? '' : 'none';
+        });
     }
 
     manageTextareaVisibilityForAgents() {

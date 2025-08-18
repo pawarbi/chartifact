@@ -25,6 +25,7 @@ const className = pluginClassName(pluginName);
 export const sliderPlugin: Plugin<SliderSpec> = {
     ...flaggableJsonPlugin<SliderSpec>(pluginName, className),
     hydrateComponent: async (renderer, errorHandler, specs) => {
+        const { signalBus } = renderer;
         const sliderInstances: SliderInstance[] = [];
         for (let index = 0; index < specs.length; index++) {
             const specReview = specs[index];
@@ -88,7 +89,7 @@ export const sliderPlugin: Plugin<SliderSpec> = {
                                 isData: false,
                             },
                         };
-                        renderer.signalBus.broadcast(sliderInstance.id, batch);
+                        signalBus.broadcast(sliderInstance.id, batch);
                     };
 
                     element.addEventListener('input', updateValue);

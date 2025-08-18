@@ -23,6 +23,7 @@ const className = pluginClassName(pluginName);
 export const presetsPlugin: Plugin<PresetsSpec> = {
     ...flaggableJsonPlugin<PresetsSpec>(pluginName, className),
     hydrateComponent: async (renderer, errorHandler, specs) => {
+        const { signalBus } = renderer;
         const presetsInstances: PresetsInstance[] = [];
         for (let index = 0; index < specs.length; index++) {
             const specReview = specs[index];
@@ -58,7 +59,7 @@ export const presetsPlugin: Plugin<PresetsSpec> = {
                         for (const [signalName, value] of Object.entries(preset.state)) {
                             batch[signalName] = { value, isData: false };
                         }
-                        renderer.signalBus.broadcast(id, batch);
+                        signalBus.broadcast(id, batch);
                     };
                     li.appendChild(button);
                     li.appendChild(document.createTextNode('\u00A0'));
@@ -85,10 +86,10 @@ export const presetsPlugin: Plugin<PresetsSpec> = {
                 ...presetsInstance,
                 initialSignals,
                 broadcastComplete: async () => {
-                    //populate state from the renderer.signalBus.signalDeps
+                    //populate state from the signalBus.signalDeps
                     const state: { [signalName: string]: unknown } = {};
-                    for (const signalName of Object.keys(renderer.signalBus.signalDeps)) {
-                        state[signalName] = renderer.signalBus.signalDeps[signalName].value;
+                    for (const signalName of Object.keys(signalBus.signalDeps)) {
+                        state[signalName] = signalBus.signalDeps[signalName].value;
                     }
                     // highlight any presets that have the same signals and values as the current state
                     setAllPresetsActiveState(presetsInstance, state);
