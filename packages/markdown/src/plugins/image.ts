@@ -44,7 +44,7 @@ export const imagePlugin: Plugin<ImageSpec> = {
 
             const spec: ImageSpec = specReview.approvedSpec;
 
-            container.innerHTML = createImageContainerTemplate('', spec.alt, spec.url, errorHandler);
+            container.innerHTML = createImageContainerTemplate('', spec.alt, spec.url, index, errorHandler);
             const { img, spinner, retryBtn, dynamicUrl } = createImageLoadingLogic(
                 container as HTMLElement,
                 null,
@@ -109,7 +109,7 @@ export const imgSpinner = `
 </svg>
 `;
 
-export function createImageContainerTemplate(clasName: string, alt: string, src: string, errorHandler: ErrorHandler): string {
+export function createImageContainerTemplate(clasName: string, alt: string, src: string, instanceIndex: number, errorHandler: ErrorHandler): string {
 
     const tempImg = document.createElement('img');
 
@@ -120,11 +120,10 @@ export function createImageContainerTemplate(clasName: string, alt: string, src:
         if (isSafeImageUrl(src)) {
             tempImg.setAttribute('src', src);
         } else {
-            errorHandler(new Error(`Unsafe image URL: ${src}`), pluginName, -1, 'load', null, src);
+            errorHandler(new Error(`Unsafe image URL: ${src}`), pluginName, instanceIndex, 'load', null, src);
         }
     }
     tempImg.setAttribute('alt', alt);
-    tempImg.style.opacity = '0.1';
 
     const imgHtml = tempImg.outerHTML;
 

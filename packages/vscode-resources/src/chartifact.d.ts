@@ -9,7 +9,8 @@ import * as sandbox from '@microsoft/chartifact-sandbox';
 import * as host from '@microsoft/chartifact-host';
 import * as markdown from '@microsoft/chartifact-markdown';
 import * as schema from '@microsoft/chartifact-schema';
+import * as toolbar from 'toolbar';
 
 export as namespace Chartifact;
 
-export { editor, compiler, sandbox, host, markdown, schema, common };
+export { editor, compiler, sandbox, host, markdown, schema, common, toolbar };

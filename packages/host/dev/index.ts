@@ -2,10 +2,9 @@
 * Copyright (c) Microsoft Corporation.
 * Licensed under the MIT License.
 */
-import { SandboxOptions, Sandbox } from '../src/index.ts';
-import { rendererCss } from '../src/resources/rendererCss.ts';
-import { rendererUmdJs } from '../src/resources/rendererUmdJs.ts';
-const textarea = document.getElementById('md') as HTMLTextAreaElement;
+import { SandboxOptions, Sandbox } from '@microsoft/chartifact-sandbox';
+import { rendererCss } from '@microsoft/chartifact-sandbox/src/resources/rendererCss.ts';
+import { rendererUmdJs } from '@microsoft/chartifact-sandbox/src/resources/rendererUmdJs.ts';
 
 class LocalSandbox extends Sandbox {
     constructor(elementOrSelector: string | HTMLElement, markdown: string, options: SandboxOptions) {
@@ -27,24 +26,18 @@ class LocalSandbox extends Sandbox {
 
 }
 
-const sandbox = new LocalSandbox(document.body, textarea.value, {
-    onReady: () => {
-        console.log('Sandbox is ready');
-    },
-    onError: (error) => {
-        console.error('Sandbox error:', error);
-    },
+import { Listener } from '../src/index.ts';
+new Listener({
+    app: '#app',
+    loading: '#loading',
+    help: '#help',
+    uploadButton: '#upload-btn',
+    fileInput: '#file-input',
+    textarea: '#textarea',
+    toolbar: '#toolbar',
     onApprove: (message) => {
-        console.log('Sandbox approval message:', message);
-        //TODO policy to approve unapproved on localhost
         const { specs } = message;
         return specs;
     },
-});
-
-//allow sandbox to be accessed globally for debugging
-window['sandbox'] = sandbox;
-
-textarea.addEventListener('input', () => {
-    sandbox.send(textarea.value);
+    sandboxConstructor: LocalSandbox,
 });

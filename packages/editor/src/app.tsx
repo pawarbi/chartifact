@@ -4,16 +4,16 @@
 */
 import { InteractiveDocument } from '@microsoft/chartifact-schema';
 import { Editor } from './editor.js';
-import { Previewer } from '@microsoft/chartifact-sandbox';
+import { Sandbox } from '@microsoft/chartifact-sandbox';
 import { EditorPageMessage, EditorReadyMessage, SpecReview, SandboxedPreHydrateMessage } from "common";
 
 export interface AppProps {
-  previewer?: typeof Previewer;
+  sandbox?: typeof Sandbox;
   onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 }
 
 export function App(props: AppProps) {
-  const { previewer } = props;
+  const { sandbox } = props;
 
   const [history, setHistory] = React.useState<InteractiveDocument[]>([initialPage]);
   const [historyIndex, setHistoryIndex] = React.useState(0);
@@ -151,7 +151,7 @@ export function App(props: AppProps) {
       {/* Editor */}
       <div ref={editorContainerRef} style={{ flex: 1 }}>
         <Editor
-          previewer={previewer}
+          sandbox={sandbox}
           onApprove={props.onApprove}
         />
       </div>

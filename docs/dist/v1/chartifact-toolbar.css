@@ -1,0 +1,63 @@
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+}
+
+main {
+    display: flex;
+    flex: 1;
+}
+
+textarea {
+    flex: 1;
+    resize: none;
+}
+
+#app {
+    flex: 2;
+}
+
+/* Base styles for the toolbar */
+#toolbar {
+  padding: 0.5em 1em;
+  font-weight: bold;
+}
+
+/* Default (OS light theme) */
+#toolbar {
+  background-color: #f3f3f3;
+  color: #000;
+}
+
+/* OS dark theme fallback */
+@media (prefers-color-scheme: dark) {
+  #toolbar {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* VS Code light theme */
+body.vscode-light #toolbar {
+  background-color: #f3f3f3;
+  color: #000;
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+/* VS Code dark theme */
+body.vscode-dark #toolbar {
+  background-color: #1e1e1e;
+  color: #fff;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+/* VS Code high contrast */
+body.vscode-high-contrast #toolbar,
+body.vscode-high-contrast-light #toolbar {
+  background-color: #000;
+  color: #fff;
+  border-bottom: 2px solid #fff;
+}

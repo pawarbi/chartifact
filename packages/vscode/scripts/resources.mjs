@@ -14,6 +14,8 @@ const resources = [
     '../../node_modules/tabulator-tables/dist/css/tabulator.min.css',
 
     //local umd builds
+    '../../packages/markdown/dist/css/chartifact-reset.css',
+    '../../packages/markdown/dist/umd/chartifact.markdown.umd.js',
     '../../packages/host/dist/umd/chartifact.host.umd.js',
     '../../packages/sandbox/dist/umd/chartifact.sandbox.umd.js',
     '../../packages/compiler/dist/umd/chartifact.compiler.umd.js',

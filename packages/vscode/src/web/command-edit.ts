@@ -67,12 +67,14 @@ export class EditManager {
 						type: 'editorSetOfflineDependencies',
 						sender: 'vscode',
 						offlineDeps:
+							style(getResourceContent('chartifact-reset.css')) +
 							style(getResourceContent('tabulator.min.css')) +
 							script(getResourceContent('markdown-it.min.js')) +
 							script(getResourceContent('csstree.js')) +
 							script(getResourceContent('vega.min.js')) +
 							script(getResourceContent('vega-lite.min.js')) +
-							script(getResourceContent('tabulator.min.js'))
+							script(getResourceContent('tabulator.min.js')) +
+							script(getResourceContent('chartifact.markdown.umd.js'))
 					};
 					this.current.panel.webview.postMessage(setOfflineDependenciesMessage);
 				}

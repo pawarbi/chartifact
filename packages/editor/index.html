@@ -30,11 +30,12 @@
 
     <!-- use only for dev mode / local -->
     <script type="module">
+        import { appProps } from './dev/index.js';
         import { DevPreviewer } from './dev/previewer.js';
 
         import { App } from './src/app.js';
         const root = ReactDOM.createRoot(document.getElementById("app"));
-        root.render(React.createElement(App, { previewer: DevPreviewer }));
+        root.render(React.createElement(App, { previewer: DevPreviewer, ...appProps }));
     </script>
 
 </body>

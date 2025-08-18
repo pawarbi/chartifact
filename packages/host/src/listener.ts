@@ -13,6 +13,7 @@ import { InteractiveDocument, InteractiveDocumentWithSchema } from '@microsoft/c
 import { postStatus } from './post-send.js';
 import { ListenOptions } from './types.js';
 import { SpecReview, SandboxedPreHydrateMessage } from 'common';
+import { Toolbar } from 'toolbar';
 
 function getElement<T extends HTMLElement = HTMLElement>(elementOrSelector: string | T): T | null {
   if (typeof elementOrSelector === 'string') {
@@ -38,6 +39,7 @@ export interface InitializeOptions {
   toolbar?: string | HTMLElement;
   options?: ListenOptions;
   onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
+  sandboxConstructor?: typeof Sandbox;
 }
 
 const defaultOptions: ListenOptions = {
@@ -58,14 +60,16 @@ export class Listener {
   public uploadButton: HTMLElement;
   public fileInput: HTMLElement;
   public textarea: HTMLTextAreaElement;
-  public toolbar: HTMLElement;
+  public toolbar: Toolbar;
   public sandbox: Sandbox;
+  public sandboxReady: boolean = false;
   public onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
 
   private removeInteractionHandlers: (() => void)[];
-  private sandboxReady: boolean = false;
+  private sandboxConstructor?: typeof Sandbox;
 
   constructor(options: InitializeOptions) {
+    this.sandboxConstructor = options.sandboxConstructor || Sandbox;
     this.options = { ...defaultOptions, ...options?.options };
     this.onApprove = options.onApprove;
     this.removeInteractionHandlers = [];
@@ -76,7 +80,7 @@ export class Listener {
     this.uploadButton = getElement(options.uploadButton);
     this.fileInput = getElement(options.fileInput);
     this.textarea = getElement<HTMLTextAreaElement>(options.textarea);
-    this.toolbar = getElement(options.toolbar);
+    this.toolbar = new Toolbar(options.toolbar);
 
     if (!this.appDiv) {
       throw new Error('App container not found');
@@ -116,7 +120,7 @@ export class Listener {
 
     this.sandboxReady = false;
 
-    this.sandbox = new Sandbox(this.appDiv, markdown, {
+    this.sandbox = new (this.sandboxConstructor)(this.appDiv, markdown, {
       onReady: () => {
         this.sandboxReady = true;
 

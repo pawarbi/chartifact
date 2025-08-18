@@ -3,12 +3,12 @@
 * Licensed under the MIT License.
 */
 import { Renderer } from '@microsoft/chartifact-markdown';
-import { Previewer, PreviewerOptions } from '@microsoft/chartifact-sandbox';
+import { Sandbox, SandboxOptions } from '@microsoft/chartifact-sandbox';
 
-export class DevPreviewer extends Previewer {
+export class DevPreviewer extends Sandbox {
     public renderer: Renderer;
 
-    constructor(elementOrSelector: string | HTMLElement, markdown: string, options: PreviewerOptions) {
+    constructor(elementOrSelector: string | HTMLElement, markdown: string, options: SandboxOptions) {
         super(elementOrSelector, markdown, options);
         try {
             this.renderer = new Renderer(this.element, { useShadowDom: true });

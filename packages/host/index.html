@@ -5,36 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chartifact Interactive Document Host</title>
+    <link rel="stylesheet" href="dev/chartifact-toolbar.css" />
     <style>
         body {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            margin: 0;
             overflow: hidden;
-        }
-
-        main {
-            display: flex;
-            flex: 1;
-        }
-
-        textarea {
-            flex: 1;
-            resize: none;
-        }
-
-        #app {
-            flex: 2;
         }
     </style>
 </head>
 
 <body>
 
-    <header id="toolbar">
-        <button>EDit</button>
-    </header>
+    <header id="toolbar"></header>
 
     <main>
 
@@ -64,23 +45,7 @@
 
     </main>
 
-    <script type="module">
-        import { Listener } from '/src/index.ts';
-        new Listener({
-            app: '#app',
-            loading: '#loading',
-            help: '#help',
-            uploadButton: '#upload-btn',
-            fileInput: '#file-input',
-            textarea: '#textarea',
-            toolbar: '#toolbar',
-            onApprove: (message) => {
-                // TODO look through each spec and override policy to approve unapproved for https://microsoft.github.io/chartifact/
-                const { specs } = message;
-                return specs;
-            },
-        });
-    </script>
+    <script type="module" src="dev/index.ts"></script>
 
 </body>
 

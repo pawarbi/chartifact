@@ -1315,7 +1315,7 @@ ${reconstitutedRules.join("\n\n")}
         }
         const container = renderer.element.querySelector(`#${specReview.containerId}`);
         const spec = specReview.approvedSpec;
-        container.innerHTML = createImageContainerTemplate("", spec.alt, spec.url, errorHandler);
+        container.innerHTML = createImageContainerTemplate("", spec.alt, spec.url, index2, errorHandler);
         const { img, spinner, retryBtn, dynamicUrl } = createImageLoadingLogic(
           container,
           null,
@@ -1373,7 +1373,7 @@ ${reconstitutedRules.join("\n\n")}
     </circle>
 </svg>
 `;
-  function createImageContainerTemplate(clasName, alt, src, errorHandler) {
+  function createImageContainerTemplate(clasName, alt, src, instanceIndex, errorHandler) {
     const tempImg = document.createElement("img");
     if (src.includes("{{")) {
       tempImg.setAttribute("src", "data:,");
@@ -1382,11 +1382,10 @@ ${reconstitutedRules.join("\n\n")}
       if (isSafeImageUrl(src)) {
         tempImg.setAttribute("src", src);
       } else {
-        errorHandler(new Error(`Unsafe image URL: ${src}`), pluginName$7, -1, "load", null, src);
+        errorHandler(new Error(`Unsafe image URL: ${src}`), pluginName$7, instanceIndex, "load", null, src);
       }
     }
     tempImg.setAttribute("alt", alt);
-    tempImg.style.opacity = "0.1";
     const imgHtml = tempImg.outerHTML;
     return `<span class="${clasName}" style="position: relative;display:inline-block;min-width:24px;min-height:10px;">
         <span class="image-spinner" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;">
@@ -1530,8 +1529,8 @@ ${reconstitutedRules.join("\n\n")}
         const alt = tokens[idx].attrGet("alt");
         const src = tokens[idx].attrGet("src");
         let error;
-        const html = createImageContainerTemplate(imageClassName, alt, decodeURIComponent(src), (e, pluginName2, instanceIndex, phase, container, detail) => {
-          error = sanitizeHtmlComment(`Error in plugin ${pluginName2} instance ${idx} phase ${phase}: ${e.message} ${detail}`);
+        const html = createImageContainerTemplate(imageClassName, alt, decodeURIComponent(src), idx, (e, pluginName2, instanceIndex, phase, container, detail) => {
+          error = sanitizeHtmlComment(`Error in plugin ${pluginName2} instance ${instanceIndex} phase ${phase}: ${e.message} ${detail}`);
         });
         return error || html;
       };
