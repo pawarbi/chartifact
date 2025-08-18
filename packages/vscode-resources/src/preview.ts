@@ -12,7 +12,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         const options: Chartifact.host.ListenOptions = { ...hostOptions, ...{ postMessageTarget: vscode } };
 
-        let offlineDeps = '<script>console.log("offline deps not loaded!");</script>';
+        let offlineDeps = '<script>console.error("offline deps not loaded!");</script>';
 
         const message = event.data as Chartifact.common.EditorSetOfflineDependenciesMessage;
 
