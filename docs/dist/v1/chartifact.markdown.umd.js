@@ -594,6 +594,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   const checkboxPlugin = {
     ...flaggableJsonPlugin(pluginName$c, className$a),
     hydrateComponent: async (renderer, errorHandler, specs) => {
+      const { signalBus } = renderer;
       const checkboxInstances = [];
       for (let index2 = 0; index2 < specs.length; index2++) {
         const specReview = specs[index2];
@@ -641,7 +642,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                   isData: false
                 }
               };
-              renderer.signalBus.broadcast(checkboxInstance.id, batch);
+              signalBus.broadcast(checkboxInstance.id, batch);
             });
           },
           getCurrentSignalValue: () => {
@@ -1097,6 +1098,7 @@ ${reconstitutedRules.join("\n\n")}
   const dropdownPlugin = {
     ...flaggableJsonPlugin(pluginName$8, className$7),
     hydrateComponent: async (renderer, errorHandler, specs) => {
+      const { signalBus } = renderer;
       const dropdownInstances = [];
       for (let index2 = 0; index2 < specs.length; index2++) {
         const specReview = specs[index2];
@@ -1190,7 +1192,7 @@ ${reconstitutedRules.join("\n\n")}
                   isData: false
                 }
               };
-              renderer.signalBus.broadcast(dropdownInstance.id, batch);
+              signalBus.broadcast(dropdownInstance.id, batch);
             });
           },
           getCurrentSignalValue: () => {
@@ -1646,6 +1648,7 @@ ${reconstitutedRules.join("\n\n")}
   const presetsPlugin = {
     ...flaggableJsonPlugin(pluginName$5, className$5),
     hydrateComponent: async (renderer, errorHandler, specs) => {
+      const { signalBus } = renderer;
       const presetsInstances = [];
       for (let index2 = 0; index2 < specs.length; index2++) {
         const specReview = specs[index2];
@@ -1678,7 +1681,7 @@ ${reconstitutedRules.join("\n\n")}
               for (const [signalName, value] of Object.entries(preset.state)) {
                 batch[signalName] = { value, isData: false };
               }
-              renderer.signalBus.broadcast(id, batch);
+              signalBus.broadcast(id, batch);
             };
             li.appendChild(button);
             li.appendChild(document.createTextNode(" "));
@@ -1707,8 +1710,8 @@ ${reconstitutedRules.join("\n\n")}
           initialSignals,
           broadcastComplete: async () => {
             const state = {};
-            for (const signalName of Object.keys(renderer.signalBus.signalDeps)) {
-              state[signalName] = renderer.signalBus.signalDeps[signalName].value;
+            for (const signalName of Object.keys(signalBus.signalDeps)) {
+              state[signalName] = signalBus.signalDeps[signalName].value;
             }
             setAllPresetsActiveState(presetsInstance, state);
           }
@@ -1740,6 +1743,7 @@ ${reconstitutedRules.join("\n\n")}
   const sliderPlugin = {
     ...flaggableJsonPlugin(pluginName$4, className$4),
     hydrateComponent: async (renderer, errorHandler, specs) => {
+      const { signalBus } = renderer;
       const sliderInstances = [];
       for (let index2 = 0; index2 < specs.length; index2++) {
         const specReview = specs[index2];
@@ -1797,7 +1801,7 @@ ${reconstitutedRules.join("\n\n")}
                   isData: false
                 }
               };
-              renderer.signalBus.broadcast(sliderInstance.id, batch);
+              signalBus.broadcast(sliderInstance.id, batch);
             };
             element.addEventListener("input", updateValue);
             element.addEventListener("change", updateValue);
@@ -1825,6 +1829,7 @@ ${reconstitutedRules.join("\n\n")}
   const tabulatorPlugin = {
     ...flaggableJsonPlugin(pluginName$3, className$3, inspectTabulatorSpec, { style: "box-sizing: border-box;" }),
     hydrateComponent: async (renderer, errorHandler, specs) => {
+      const { signalBus } = renderer;
       const tabulatorInstances = [];
       const deleteFieldname = newId();
       for (let index2 = 0; index2 < specs.length; index2++) {
@@ -1917,8 +1922,8 @@ ${reconstitutedRules.join("\n\n")}
               isData: true
             }
           };
-          renderer.signalBus.log(tabulatorInstance.id, "sending batch", batch);
-          renderer.signalBus.broadcast(tabulatorInstance.id, batch);
+          signalBus.log(tabulatorInstance.id, "sending batch", batch);
+          signalBus.broadcast(tabulatorInstance.id, batch);
         };
         const setData = (data) => {
           table.setData(data).then(() => {
@@ -1971,7 +1976,7 @@ ${reconstitutedRules.join("\n\n")}
           }
           if (resetBtn) {
             resetBtn.onclick = () => {
-              const value = renderer.signalBus.signalDeps[spec.dataSourceName].value;
+              const value = signalBus.signalDeps[spec.dataSourceName].value;
               if (Array.isArray(value)) {
                 setData(value);
               }
@@ -2034,6 +2039,7 @@ ${reconstitutedRules.join("\n\n")}
   const textboxPlugin = {
     ...flaggableJsonPlugin(pluginName$2, className$2),
     hydrateComponent: async (renderer, errorHandler, specs) => {
+      const { signalBus } = renderer;
       const textboxInstances = [];
       for (let index2 = 0; index2 < specs.length; index2++) {
         const specReview = specs[index2];
@@ -2083,7 +2089,7 @@ ${reconstitutedRules.join("\n\n")}
                   isData: false
                 }
               };
-              renderer.signalBus.broadcast(textboxInstance.id, batch);
+              signalBus.broadcast(textboxInstance.id, batch);
             };
             element.addEventListener("input", updateValue);
             element.addEventListener("change", updateValue);
@@ -2118,7 +2124,11 @@ ${reconstitutedRules.join("\n\n")}
       this.dataSignalPrefix = dataSignalPrefix;
       this.logLevel = 0;
       this.logWatchIds = [];
-      this.reset();
+      this.signalDeps = {};
+      this.active = false;
+      this.peers = [];
+      this.broadcastingStack = [];
+      this.peerDependencies = {};
     }
     log(id, message, ...optionalParams) {
       if (this.logLevel === 0) return;
@@ -2126,6 +2136,10 @@ ${reconstitutedRules.join("\n\n")}
       console.log(`[Signal Bus][${id}] ${message}`, ...optionalParams);
     }
     async broadcast(originId, batch) {
+      if (!this.active) {
+        this.log(originId, "Broadcast called but bus is not active");
+        return;
+      }
       if (this.broadcastingStack.includes(originId)) {
         this.log(originId, "Additional broadcast from", originId, this.broadcastingStack.join(" -> "));
       }
@@ -2234,12 +2248,13 @@ ${reconstitutedRules.join("\n\n")}
       }
       this.active = true;
     }
-    reset() {
-      this.signalDeps = {};
+    deactivate() {
+      if (this.signalDeps) {
+        for (const signalName in this.signalDeps) {
+          this.signalDeps[signalName].deps = [];
+        }
+      }
       this.active = false;
-      this.peers = [];
-      this.broadcastingStack = [];
-      this.peerDependencies = {};
     }
   }
   const ignoredSignals = ["width", "height", "padding", "autosize", "background", "style", "parent", "datum", "item", "event", "cursor"];
@@ -2254,6 +2269,7 @@ ${reconstitutedRules.join("\n\n")}
   const vegaPlugin = {
     ...flaggableJsonPlugin(pluginName$1, className$1, inspectVegaSpec),
     hydrateComponent: async (renderer, errorHandler, specs) => {
+      const { signalBus } = renderer;
       if (!expressionsInitialized) {
         vega.expressionFunction("encodeURIComponent", encodeURIComponent);
         expressionsInitialized = true;
@@ -2297,13 +2313,13 @@ ${reconstitutedRules.join("\n\n")}
         const { spec, view, initialSignals } = vegaInstance;
         const startBatch = (from) => {
           if (!vegaInstance.batch) {
-            renderer.signalBus.log(vegaInstance.id, "starting batch", from);
+            signalBus.log(vegaInstance.id, "starting batch", from);
             vegaInstance.batch = {};
             view.runAfter(() => {
               const { batch } = vegaInstance;
               vegaInstance.batch = void 0;
-              renderer.signalBus.log(vegaInstance.id, "sending batch", batch);
-              renderer.signalBus.broadcast(vegaInstance.id, batch);
+              signalBus.log(vegaInstance.id, "sending batch", batch);
+              signalBus.broadcast(vegaInstance.id, batch);
             });
           }
         };
@@ -2311,27 +2327,27 @@ ${reconstitutedRules.join("\n\n")}
           ...vegaInstance,
           initialSignals,
           receiveBatch: async (batch, from) => {
-            renderer.signalBus.log(vegaInstance.id, "received batch", batch, from);
+            signalBus.log(vegaInstance.id, "received batch", batch, from);
             return new Promise((resolve) => {
               view.runAfter(async () => {
-                if (receiveBatch(batch, renderer, vegaInstance)) {
-                  renderer.signalBus.log(vegaInstance.id, "running after _pulse, changes from", from);
+                if (receiveBatch(batch, signalBus, vegaInstance)) {
+                  signalBus.log(vegaInstance.id, "running after _pulse, changes from", from);
                   vegaInstance.needToRun = true;
                 } else {
-                  renderer.signalBus.log(vegaInstance.id, "no changes");
+                  signalBus.log(vegaInstance.id, "no changes");
                 }
-                renderer.signalBus.log(vegaInstance.id, "running view after _pulse finished");
+                signalBus.log(vegaInstance.id, "running view after _pulse finished");
                 resolve();
               });
             });
           },
           broadcastComplete: async () => {
-            renderer.signalBus.log(vegaInstance.id, "broadcastComplete");
+            signalBus.log(vegaInstance.id, "broadcastComplete");
             if (vegaInstance.needToRun) {
               view.runAfter(() => {
                 view.runAsync();
                 vegaInstance.needToRun = false;
-                renderer.signalBus.log(vegaInstance.id, "running view after broadcastComplete");
+                signalBus.log(vegaInstance.id, "running view after broadcastComplete");
               });
             }
           },
@@ -2342,12 +2358,12 @@ ${reconstitutedRules.join("\n\n")}
               if (isData) {
                 const matchData = (_a = spec.data) == null ? void 0 : _a.find((data) => data.name === signalName);
                 if (matchData && vegaInstance.dataSignals.includes(matchData.name)) {
-                  renderer.signalBus.log(vegaInstance.id, "listening to data", signalName);
-                  if (renderer.signalBus.signalDeps[signalName].value === void 0 && ((_b = view.data(signalName)) == null ? void 0 : _b.length) > 0) {
-                    renderer.signalBus.log(vegaInstance.id, "un-initialized", signalName);
+                  signalBus.log(vegaInstance.id, "listening to data", signalName);
+                  if (signalBus.signalDeps[signalName].value === void 0 && ((_b = view.data(signalName)) == null ? void 0 : _b.length) > 0) {
+                    signalBus.log(vegaInstance.id, "un-initialized", signalName);
                     const batch = {};
                     batch[signalName] = { value: view.data(signalName), isData: true };
-                    renderer.signalBus.broadcast(vegaInstance.id, batch);
+                    signalBus.broadcast(vegaInstance.id, batch);
                   }
                   view.addDataListener(signalName, async (name, value) => {
                     startBatch(`data:${signalName}`);
@@ -2361,7 +2377,7 @@ ${reconstitutedRules.join("\n\n")}
                 matchSignal.bind || // ui elements
                 matchSignal.update;
                 if (isChangeSource) {
-                  renderer.signalBus.log(vegaInstance.id, "listening to signal", signalName);
+                  signalBus.log(vegaInstance.id, "listening to signal", signalName);
                   view.addSignalListener(signalName, async (name, value) => {
                     startBatch(`signal:${signalName}`);
                     vegaInstance.batch[name] = { value, isData };
@@ -2387,16 +2403,16 @@ ${reconstitutedRules.join("\n\n")}
       return instances;
     }
   };
-  function receiveBatch(batch, renderer, vegaInstance) {
+  function receiveBatch(batch, signalBus, vegaInstance) {
     var _a, _b;
     const { spec, view } = vegaInstance;
-    const doLog = renderer.signalBus.logLevel === LogLevel.all;
-    doLog && renderer.signalBus.log(vegaInstance.id, "receiveBatch", batch);
+    const doLog = signalBus.logLevel === LogLevel.all;
+    doLog && signalBus.log(vegaInstance.id, "receiveBatch", batch);
     let hasAnyChange = false;
     for (const signalName in batch) {
       const batchItem = batch[signalName];
       if (ignoredSignals.includes(signalName)) {
-        doLog && renderer.signalBus.log(vegaInstance.id, "ignoring reserved signal name", signalName, batchItem.value);
+        doLog && signalBus.log(vegaInstance.id, "ignoring reserved signal name", signalName, batchItem.value);
         continue;
       }
       if (batchItem.isData) {
@@ -2413,7 +2429,7 @@ ${reconstitutedRules.join("\n\n")}
             hasAnyChange = true;
           }
         }
-        doLog && renderer.signalBus.log(vegaInstance.id, `(isData) ${logReason2}`, signalName, batchItem.value);
+        doLog && signalBus.log(vegaInstance.id, `(isData) ${logReason2}`, signalName, batchItem.value);
       }
       let logReason = "";
       const matchSignal = (_b = spec.signals) == null ? void 0 : _b.find((signal) => signal.name === signalName);
@@ -2437,7 +2453,7 @@ ${reconstitutedRules.join("\n\n")}
           }
         }
       }
-      doLog && renderer.signalBus.log(vegaInstance.id, logReason, signalName, batchItem.value);
+      doLog && signalBus.log(vegaInstance.id, logReason, signalName, batchItem.value);
     }
     return hasAnyChange;
   }
@@ -2628,7 +2644,7 @@ ${reconstitutedRules.join("\n\n")}
       __publicField(this, "shadowRoot");
       __publicField(this, "element");
       this.options = { ...defaultRendererOptions, ...options };
-      this.signalBus = this.options.signalBus || new SignalBus(defaultCommonOptions.dataSignalPrefix);
+      this.signalBus = new SignalBus(defaultCommonOptions.dataSignalPrefix);
       this.instances = {};
       if (this.options.useShadowDom) {
         this.shadowRoot = _element.attachShadow({ mode: "open" });
@@ -2723,7 +2739,8 @@ ${reconstitutedRules.join("\n\n")}
       }
     }
     reset() {
-      this.signalBus.reset();
+      this.signalBus.deactivate();
+      this.signalBus = new SignalBus(defaultCommonOptions.dataSignalPrefix);
       for (const pluginName2 of Object.keys(this.instances)) {
         const instances = this.instances[pluginName2];
         for (const instance of instances) {
