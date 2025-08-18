@@ -1,39 +1,42 @@
-body {
+.chartifact-body {
     display: flex;
     flex-direction: column;
     height: 100vh;
     margin: 0;
 }
 
-main {
+.chartifact-main {
     display: flex;
     flex: 1;
 }
 
-textarea {
-    flex: 1;
+.chartifact-main textarea {
     resize: none;
 }
 
-#app {
+.chartifact-source {
+    flex: 1;
+}
+
+.chartifact-preview {
     flex: 2;
 }
 
 /* Base styles for the toolbar */
-#toolbar {
+.chartifact-toolbar {
   padding: 0.5em 1em;
   font-weight: bold;
 }
 
 /* Default (OS light theme) */
-#toolbar {
+.chartifact-toolbar {
   background-color: #f3f3f3;
   color: #000;
 }
 
 /* OS dark theme fallback */
 @media (prefers-color-scheme: dark) {
-  #toolbar {
+  .chartifact-toolbar {
     background-color: #1e1e1e;
     color: #ffffff;
     border-bottom-color: rgba(255, 255, 255, 0.1);
@@ -41,22 +44,22 @@ textarea {
 }
 
 /* VS Code light theme */
-body.vscode-light #toolbar {
+body.vscode-light .chartifact-toolbar {
   background-color: #f3f3f3;
   color: #000;
   border-bottom-color: rgba(0, 0, 0, 0.1);
 }
 
 /* VS Code dark theme */
-body.vscode-dark #toolbar {
+body.vscode-dark .chartifact-toolbar {
   background-color: #1e1e1e;
   color: #fff;
   border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
 /* VS Code high contrast */
-body.vscode-high-contrast #toolbar,
-body.vscode-high-contrast-light #toolbar {
+body.vscode-high-contrast .chartifact-toolbar,
+body.vscode-high-contrast-light .chartifact-toolbar {
   background-color: #000;
   color: #fff;
   border-bottom: 2px solid #fff;

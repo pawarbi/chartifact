@@ -3,8 +3,10 @@
 * Licensed under the MIT License.
 */
 import { SandboxOptions, Sandbox } from '@microsoft/chartifact-sandbox';
+import { Toolbar } from 'toolbar';
 import { rendererCss } from '@microsoft/chartifact-sandbox/src/resources/rendererCss.ts';
 import { rendererUmdJs } from '@microsoft/chartifact-sandbox/src/resources/rendererUmdJs.ts';
+import { Listener } from '../src/index.ts';
 
 class LocalSandbox extends Sandbox {
     constructor(elementOrSelector: string | HTMLElement, markdown: string, options: SandboxOptions) {
@@ -26,15 +28,15 @@ class LocalSandbox extends Sandbox {
 
 }
 
-import { Listener } from '../src/index.ts';
+const toolbar = new Toolbar('.chartifact-toolbar', { textarea: document.querySelector('#source') as HTMLTextAreaElement, tweakButton: true });
+
 new Listener({
-    app: '#app',
+    preview: '#preview',
     loading: '#loading',
     help: '#help',
     uploadButton: '#upload-btn',
     fileInput: '#file-input',
-    textarea: '#textarea',
-    toolbar: '#toolbar',
+    toolbar,
     onApprove: (message) => {
         const { specs } = message;
         return specs;

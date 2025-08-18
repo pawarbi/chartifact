@@ -9,16 +9,16 @@
     <script src="https://microsoft.github.io/chartifact/dist/v1/chartifact.sandbox.umd.js"></script>
 </head>
 
-<body>
+<body class="chartifact-body">
 
-    <header id="toolbar"></header>
+    <header class="chartifact-toolbar"></header>
 
-    <main>
-        <textarea id="markdown-input"
+    <main class="chartifact-main">
+        <textarea class="chartifact-source" id="source"
             placeholder="Type your Chartifact markdown here...">{{TEXTAREA_CONTENT}}</textarea>
 
-        <div id="app"></div>
-        
+        <div class="chartifact-preview" id="preview"></div>
+
     </main>
 
     {{HTML_MARKDOWN_JS}}

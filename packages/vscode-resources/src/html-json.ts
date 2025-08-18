@@ -3,7 +3,7 @@
 * Licensed under the MIT License.
 */
 window.addEventListener('DOMContentLoaded', () => {
-    const textarea = document.getElementById('markdown-input') as HTMLTextAreaElement;
+    const textarea = document.querySelector('#source') as HTMLTextAreaElement;
     let sandbox: Chartifact.sandbox.Sandbox;
     const render = () => {
         const json = textarea.value;
@@ -19,7 +19,7 @@ window.addEventListener('DOMContentLoaded', () => {
             markdown = 'Failed to parse Interactive Document JSON';
         }
         if (!sandbox) {
-            sandbox = new Chartifact.sandbox.Sandbox('#app', markdown, {
+            sandbox = new Chartifact.sandbox.Sandbox('#preview', markdown, {
                 onApprove: (message) => {
                     //Here you can approve unapproved specs per your own policy
                     const { specs } = message;
@@ -36,6 +36,6 @@ window.addEventListener('DOMContentLoaded', () => {
     textarea.addEventListener('input', render);
     render();
 
-    const toolbar = Chartifact.toolbar.create('#toolbar', { tweakButton: true, textarea });
+    const toolbar = Chartifact.toolbar.create('.chartifact-toolbar', { tweakButton: true, textarea });
     toolbar.manageTextareaVisibilityForAgents();
 });

@@ -9,7 +9,7 @@ import { setupDragDropHandling } from './dragdrop.js';
 import { setupFileUpload } from './upload.js';
 import { checkUrlForFile } from './url.js';
 import { setupPostMessageHandling } from './post-receive.js';
-import { InteractiveDocument, InteractiveDocumentWithSchema } from '@microsoft/chartifact-schema';
+import { InteractiveDocument } from '@microsoft/chartifact-schema';
 import { postStatus } from './post-send.js';
 import { ListenOptions } from './types.js';
 import { SpecReview, SandboxedPreHydrateMessage } from 'common';
@@ -30,15 +30,15 @@ function show(element: HTMLElement, shown: boolean) {
 }
 
 export interface InitializeOptions {
-  app: string | HTMLElement;
+  preview: string | HTMLElement;
   loading?: string | HTMLElement;
   help?: string | HTMLElement;
   uploadButton?: string | HTMLElement;
   fileInput?: string | HTMLElement;
-  textarea?: string | HTMLTextAreaElement;
-  toolbar?: string | HTMLElement;
+  toolbar?: Toolbar;
   options?: ListenOptions;
   onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
+  onSetMode?: (mode: 'markdown' | 'json', markdown: string, interactiveDocument: InteractiveDocument) => void;
   sandboxConstructor?: typeof Sandbox;
 }
 
@@ -54,16 +54,16 @@ const defaultOptions: ListenOptions = {
 
 export class Listener {
   public options: ListenOptions;
-  public appDiv: HTMLElement;
+  public previewDiv: HTMLElement;
   public loadingDiv: HTMLElement;
   public helpDiv: HTMLElement;
   public uploadButton: HTMLElement;
   public fileInput: HTMLElement;
-  public textarea: HTMLTextAreaElement;
   public toolbar: Toolbar;
   public sandbox: Sandbox;
   public sandboxReady: boolean = false;
   public onApprove: (message: SandboxedPreHydrateMessage) => SpecReview<{}>[];
+  public onSetMode: (mode: 'markdown' | 'json', markdown: string, interactiveDocument: InteractiveDocument) => void;
 
   private removeInteractionHandlers: (() => void)[];
   private sandboxConstructor?: typeof Sandbox;
@@ -72,20 +72,20 @@ export class Listener {
     this.sandboxConstructor = options.sandboxConstructor || Sandbox;
     this.options = { ...defaultOptions, ...options?.options };
     this.onApprove = options.onApprove;
+    this.onSetMode = options.onSetMode || (() => { });
     this.removeInteractionHandlers = [];
 
-    this.appDiv = getElement(options.app);
+    this.previewDiv = getElement(options.preview);
     this.loadingDiv = getElement(options.loading);
     this.helpDiv = getElement(options.help);
     this.uploadButton = getElement(options.uploadButton);
     this.fileInput = getElement(options.fileInput);
-    this.textarea = getElement<HTMLTextAreaElement>(options.textarea);
 
     if (options.toolbar) {
-      this.toolbar = new Toolbar(options.toolbar);
+      this.toolbar = options.toolbar;
     }
 
-    if (!this.appDiv) {
+    if (!this.previewDiv) {
       throw new Error('App container not found');
     }
 
@@ -123,7 +123,7 @@ export class Listener {
 
     this.sandboxReady = false;
 
-    this.sandbox = new (this.sandboxConstructor)(this.appDiv, markdown, {
+    this.sandbox = new (this.sandboxConstructor)(this.previewDiv, markdown, {
       onReady: () => {
         this.sandboxReady = true;
 
@@ -147,7 +147,7 @@ export class Listener {
   public errorHandler(error: Error | string, details: string) {
     show(this.loadingDiv, false);
     show(this.helpDiv, false);
-    show(this.appDiv, true);
+    show(this.previewDiv, true);
 
     let message: string;
     if (typeof error === 'string') {
@@ -168,74 +168,26 @@ export class Listener {
       this.render(markdown, undefined);
     } else {
       // Clear previous content
-      this.appDiv.innerHTML = '';
+      this.previewDiv.innerHTML = '';
       const h1 = document.createElement('h1');
       h1.textContent = 'Error';
       const pMessage = document.createElement('p');
       pMessage.textContent = message;
       const pDetails = document.createElement('p');
       pDetails.textContent = details;
-      this.appDiv.appendChild(h1);
-      this.appDiv.appendChild(pMessage);
-      this.appDiv.appendChild(pDetails);
+      this.previewDiv.appendChild(h1);
+      this.previewDiv.appendChild(pMessage);
+      this.previewDiv.appendChild(pDetails);
     }
-  }
-
-  private bindTextareaToCompiler() {
-    const render = () => {
-      const json = this.textarea.value;
-      try {
-        const interactiveDocument = JSON.parse(json) as InteractiveDocumentWithSchema;
-        if (typeof interactiveDocument !== 'object') {
-          this.errorHandler(
-            'Invalid JSON format',
-            'Please provide a valid Interactive Document JSON.'
-          );
-          return;
-        }
-        this.renderInteractiveDocument(interactiveDocument);
-      } catch (error) {
-        this.errorHandler(
-          error,
-          'Failed to parse Interactive Document JSON'
-        );
-      }
-    };
-
-    this.textarea.addEventListener('input', render);
-
-    render(); // Initial render
-  }
-
-  private bindTextareaToMarkdown() {
-    const render = () => {
-      const markdown = this.textarea.value;
-      this.renderMarkdown(markdown);
-    };
-
-    this.textarea.addEventListener('input', render);
-
-    render(); // Initial render
   }
 
   public render(markdown?: string, interactiveDocument?: InteractiveDocument) {
     if (interactiveDocument) {
-      if (this.textarea) {
-        this.textarea.value = JSON.stringify(interactiveDocument, null, 2);
-        this.hideLoadingAndHelp();
-        this.bindTextareaToCompiler();
-      } else {
-        this.renderInteractiveDocument(interactiveDocument);
-      }
-
+      this.onSetMode('json', null, interactiveDocument);
+      this.renderInteractiveDocument(interactiveDocument);
     } else if (markdown) {
-      if (this.textarea) {
-        this.textarea.value = markdown;
-        this.hideLoadingAndHelp();
-        this.bindTextareaToMarkdown();
-      } else {
-        this.renderMarkdown(markdown);
-      }
+      this.onSetMode('markdown', markdown, null);
+      this.renderMarkdown(markdown);
     } else {
       this.errorHandler(
         'No content provided',
@@ -247,7 +199,7 @@ export class Listener {
     this.removeInteractionHandlers = []; // Clear handlers after rendering
   }
 
-  private renderInteractiveDocument(content: InteractiveDocument) {
+  public renderInteractiveDocument(content: InteractiveDocument) {
     postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'compiling', details: 'Starting interactive document compilation' });
     const markdown = targetMarkdown(content);
     this.renderMarkdown(markdown);
@@ -258,7 +210,7 @@ export class Listener {
     show(this.helpDiv, false);
   }
 
-  private renderMarkdown(markdown: string) {
+  public renderMarkdown(markdown: string) {
     this.hideLoadingAndHelp();
 
     try {
