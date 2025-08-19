@@ -345,9 +345,13 @@ async function renderDataDrivenDiagram(instance: MermaidInstance, data: MermaidD
             });
         }
 
-        const uniqueId = `mermaid-${instance.id}-${Date.now()}`;
-        const { svg } = await mermaid.render(uniqueId, diagramText);
-        diagramContainer.innerHTML = svg;
+        if (diagramText) {
+            const uniqueId = `mermaid-${instance.id}-${Date.now()}`;
+            const { svg } = await mermaid.render(uniqueId, diagramText);
+            diagramContainer.innerHTML = svg;
+        } else {
+            diagramContainer.innerHTML = '<div class="error">No valid diagram data provided</div>';
+        }
     } catch (error) {
         diagramContainer.innerHTML = `<div class="error">Failed to render diagram: ${error.message}</div>`;
         errorHandler(error instanceof Error ? error : new Error(String(error)), pluginName, index, 'render', instance.container);
