@@ -24,8 +24,21 @@
 
 /* Base styles for the toolbar */
 .chartifact-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 0.5em 1em;
-  font-weight: bold;
+  font-family: sans-serif;
+}
+
+.chartifact-toolbar a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Remove margin from all toolbar divs by default */
+.chartifact-toolbar > div {
+  display: inline-block;
 }
 
 /* Default (OS light theme) */
@@ -37,7 +50,7 @@
 /* OS dark theme fallback */
 @media (prefers-color-scheme: dark) {
   .chartifact-toolbar {
-    background-color: #1e1e1e;
+    background-color: #2e2e2e;
     color: #ffffff;
     border-bottom-color: rgba(255, 255, 255, 0.1);
   }
