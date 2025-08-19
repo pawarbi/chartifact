@@ -45,6 +45,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     return;
             }
             toolbar.showTweakButton();
+            toolbar.showDownloadButton();
         },
     });
 });

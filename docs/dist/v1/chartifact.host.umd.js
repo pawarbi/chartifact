@@ -909,7 +909,6 @@ ${guardedJs}
     let docIndex = 0;
     const { folderSpan } = host.toolbar;
     folderSpan.style.display = "";
-    folderSpan.innerText = `Folder: ${folder.title} (${folder.docs.length} documents)`;
     const prevBtn = document.createElement("button");
     prevBtn.textContent = "Previous";
     prevBtn.disabled = docIndex === 0;
@@ -924,6 +923,11 @@ ${guardedJs}
       pageSelect.appendChild(option);
     }
     pageSelect.value = (docIndex + 1).toString();
+    const navDiv = document.createElement("div");
+    navDiv.style.display = "inline-block";
+    navDiv.appendChild(prevBtn);
+    navDiv.appendChild(pageSelect);
+    navDiv.appendChild(nextBtn);
     function getHashParam(key) {
       const params = new URLSearchParams(window.location.hash.slice(1));
       return params.get(key) ?? void 0;
@@ -933,6 +937,19 @@ ${guardedJs}
       params.set(key, value.toString());
       window.location.hash = params.toString();
     }
+    function updateFolderTitle() {
+      folderSpan.innerHTML = "";
+      const label = document.createElement("span");
+      label.textContent = `${folder.title} `;
+      const docCountDiv = document.createElement("div");
+      docCountDiv.style.display = "inline-block";
+      docCountDiv.style.marginRight = "0.5em";
+      docCountDiv.textContent = `(document ${docIndex + 1} of ${folder.docs.length}) `;
+      folderSpan.appendChild(label);
+      folderSpan.appendChild(docCountDiv);
+      folderSpan.appendChild(navDiv);
+    }
+    updateFolderTitle();
     function updatePage(newDocIndex, setHash = false) {
       docIndex = newDocIndex;
       if (setHash) {
@@ -941,6 +958,7 @@ ${guardedJs}
       prevBtn.disabled = docIndex === 0;
       nextBtn.disabled = docIndex === folder.docs.length - 1;
       pageSelect.value = (docIndex + 1).toString();
+      updateFolderTitle();
       const title = folder.docs[docIndex].title || `Page ${docIndex + 1}`;
       resolveUrl(title, folderUrl, folder.docs[docIndex].href, host);
     }
@@ -976,9 +994,7 @@ ${guardedJs}
       setHashParam("page", docIndex + 1);
     }
     goToPageFromHash();
-    folderSpan.appendChild(prevBtn);
-    folderSpan.appendChild(pageSelect);
-    folderSpan.appendChild(nextBtn);
+    folderSpan.appendChild(navDiv);
   }
   async function resolveUrl(title, base, relativeOrAbsolute, host) {
     let url;
@@ -1484,7 +1500,7 @@ ${details}`;
 </div>
 <div id="folderSpan" style="display: none;"></div>
 <div>
-    <button type="button" id="tweak" style="display: none;">tweak</button>
+    <button type="button" id="tweak" style="display: none;">view source</button>
     <button type="button" id="download" style="display: none;">download</button>
 </div>
         `;

@@ -37,8 +37,6 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
     const { folderSpan } = host.toolbar;
     folderSpan.style.display = '';
 
-    folderSpan.innerText = `Folder: ${folder.title} (${folder.docs.length} documents)`;
-
     // Create Previous and Next buttons
     const prevBtn = document.createElement('button');
     prevBtn.textContent = 'Previous';
@@ -58,6 +56,13 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
     }
     pageSelect.value = (docIndex + 1).toString();
 
+    // --- Wrap controls in a div ---
+    const navDiv = document.createElement('div');
+    navDiv.style.display = 'inline-block';
+    navDiv.appendChild(prevBtn);
+    navDiv.appendChild(pageSelect);
+    navDiv.appendChild(nextBtn);
+
     function getHashParam(key: string): string | undefined {
         const params = new URLSearchParams(window.location.hash.slice(1));
         return params.get(key) ?? undefined;
@@ -69,6 +74,28 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
         window.location.hash = params.toString();
     }
 
+    function updateFolderTitle() {
+        // Clear previous content
+        folderSpan.innerHTML = '';
+
+        // Folder label
+        const label = document.createElement('span');
+        label.textContent = `${folder.title} `;
+
+        // Document count in its own inline-block div
+        const docCountDiv = document.createElement('div');
+        docCountDiv.style.display = 'inline-block';
+        docCountDiv.style.marginRight = '0.5em';
+        docCountDiv.textContent = `(document ${docIndex + 1} of ${folder.docs.length}) `;
+
+        folderSpan.appendChild(label);
+        folderSpan.appendChild(docCountDiv);
+        folderSpan.appendChild(navDiv);
+    }
+
+    // Initial folder title
+    updateFolderTitle();
+
     function updatePage(newDocIndex: number, setHash: boolean = false) {
         docIndex = newDocIndex;
         if (setHash) {
@@ -77,6 +104,9 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
         prevBtn.disabled = docIndex === 0;
         nextBtn.disabled = docIndex === folder.docs.length - 1;
         pageSelect.value = (docIndex + 1).toString();
+
+        // Use the function to update the folder title
+        updateFolderTitle();
 
         const title = folder.docs[docIndex].title || `Page ${docIndex + 1}`;
         resolveUrl(title, folderUrl, folder.docs[docIndex].href, host);
@@ -124,9 +154,7 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
     goToPageFromHash();
 
     // Add buttons and dropdown to the toolbar
-    folderSpan.appendChild(prevBtn);
-    folderSpan.appendChild(pageSelect);
-    folderSpan.appendChild(nextBtn);
+    folderSpan.appendChild(navDiv);
 
     //resolveUrl(folderUrl, folder.docUrls[docIndex], host);
 }

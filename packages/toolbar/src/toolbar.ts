@@ -34,7 +34,7 @@ export class Toolbar {
 </div>
 <div id="folderSpan" style="display: none;"></div>
 <div>
-    <button type="button" id="tweak" style="display: none;">tweak</button>
+    <button type="button" id="tweak" style="display: none;">view source</button>
     <button type="button" id="download" style="display: none;">download</button>
 </div>
         `;
