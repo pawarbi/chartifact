@@ -7,17 +7,6 @@ import { TemplatedUrl } from "@microsoft/chartifact-schema";
 import { TemplateToken, tokenizeTemplate } from "common";
 import { Batch } from "../factory.js";
 
-// export function getUrlSignals(url: TemplatedUrl) {
-//     const signalNames = new Set<string>();
-
-//     //get signal names from tokens in the url
-//     const tokens = tokenizeTemplate(url);
-//     const signalsFromToken = tokens.filter(token => token.type === 'variable').map(token => token.name);
-//     signalsFromToken.forEach(token => signalNames.add(token));
-
-//     return Array.from(signalNames);
-// }
-
 export class DynamicUrl {
     public signals: Record<string, string>;
     public tokens: TemplateToken[];
