@@ -10,23 +10,48 @@
     {
       "name": "jsonData",
       "update": "data('jsonData')"
+    },
+    {
+      "name": "networkTable",
+      "update": "data('networkTable')"
+    },
+    {
+      "name": "networkData",
+      "update": "data('networkData')"
     }
   ],
   "data": [
     {
       "name": "jsonData",
       "values": [
-  { "template": "columns", "id": "", "label": "", "from": "", "to": "" },
-  { "template": "node", "id": "A", "label": "Start" },
-  { "template": "node", "id": "B", "label": "Middle" },
-  { "template": "node", "id": "C", "label": "End" },
-  { "template": "labeledEdge", "from": "A", "to": "B", "label": "Next" },
-  { "template": "edge", "from": "B", "to": "C" },
-  { "template": "comment", "text": "This is a sample diagram" }
-]
+        { "template": "node", "id": "A", "label": "Start" },
+        { "template": "node", "id": "B", "label": "Middle" },
+        { "template": "node", "id": "C", "label": "End" },
+        { "template": "labeledEdge", "from": "A", "to": "B", "label": "Next" },
+        { "template": "edge", "from": "B", "to": "C" },
+        { "template": "comment", "text": "This is a sample diagram" }
+      ]
     },
     {
       "name": "jsonTable",
+      "values": []
+    },
+    {
+      "name": "networkData",
+      "values": [
+        { "template": "subgraph", "name": "Production" },
+        { "template": "server", "id": "web1", "name": "Web Server", "ip": "10.0.1.10" },
+        { "template": "server", "id": "db1", "name": "Database", "ip": "10.0.1.20" },
+        { "template": "end" },
+        { "template": "subgraph", "name": "Development" },
+        { "template": "server", "id": "dev1", "name": "Dev Server", "ip": "10.0.2.10" },
+        { "template": "end" },
+        { "template": "secureConnection", "from": "web1", "to": "db1" },
+        { "template": "connection", "from": "dev1", "to": "web1" }
+      ]
+    },
+    {
+      "name": "networkTable",
       "values": []
     }
   ]
@@ -41,11 +66,18 @@ Load data from a static JSON array.
 {
   "dataSourceName": "jsonData",
   "variableId": "jsonTable",
-"editable": true,
+  "editable": true,
   "tabulatorOptions": {
-    "autoColumns": true,
+    "columns": [
+      {"title": "Template", "field": "template", "editor": "list", "editorParams": {"values": ["node", "edge", "labeledEdge", "comment"]}},
+      {"title": "ID", "field": "id", "editor": "input"},
+      {"title": "Label", "field": "label", "editor": "input"},
+      {"title": "From", "field": "from", "editor": "input"},
+      {"title": "To", "field": "to", "editor": "input"},
+      {"title": "Text", "field": "text", "editor": "input"}
+    ],
     "layout": "fitColumns",
-    "maxHeight": "100px"
+    "maxHeight": "150px"
   }
 }
 ```
@@ -108,10 +140,32 @@ B --> C
 
 ## More Complex Example
 
+Network diagram with servers and connections:
+
+```json tabulator
+{
+  "dataSourceName": "networkData",
+  "variableId": "networkTable",
+  "editable": true,
+  "tabulatorOptions": {
+    "columns": [
+      {"title": "Template", "field": "template", "editor": "list", "editorParams": {"values": ["server", "connection", "secureConnection", "subgraph", "end"]}},
+      {"title": "ID", "field": "id", "editor": "input"},
+      {"title": "Name", "field": "name", "editor": "input"},
+      {"title": "IP", "field": "ip", "editor": "input"},
+      {"title": "From", "field": "from", "editor": "input"},
+      {"title": "To", "field": "to", "editor": "input"}
+    ],
+    "layout": "fitColumns",
+    "maxHeight": "200px"
+  }
+}
+```
+
 ```mermaid
 {
   "diagramType": "graph LR",
-  "dataSourceName": "networkData", 
+  "dataSourceName": "networkTable", 
   "lineTemplates": {
     "server": "{{id}}[{{name}}<br/>{{ip}}]",
     "connection": "{{from}} --- {{to}}",
