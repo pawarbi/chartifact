@@ -143,22 +143,22 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     delete row[deleteFieldname];
                 });
 
-
-                // Use structuredClone to ensure deep copy
-                // vega may efficiently have symbols on data to cache a datum's values
-                // so this needs to appear to be new data
-                const value = structuredClone(data);
-
                 const batch: Batch = {
                     [spec.variableId]: {
-                        value,
+                        value: data,
                         isData: true,
                     },
                 };
                 signalBus.log(tabulatorInstance.id, 'sending batch', batch);
                 signalBus.broadcast(tabulatorInstance.id, batch);
             }
-            const setData = (data: object[]) => {
+            const setData = (_data: object[]) => {
+
+                // Use structuredClone to ensure deep copy
+                // vega may efficiently have symbols on data to cache a datum's values
+                // so this needs to appear to be new data
+                const data = structuredClone(_data);
+
                 table.setData(data).then(() => {
 
                     // Get current column definitions
@@ -203,7 +203,6 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                         });
                     }
                     table.setColumns(columns);
-
 
                     outputData();
 
