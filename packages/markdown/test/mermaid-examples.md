@@ -18,12 +18,21 @@
     {
       "name": "networkData",
       "update": "data('networkData')"
+    },
+    {
+      "name": "flowchartOutput",
+      "update": "flowchartOutput"
+    },
+    {
+      "name": "networkOutput",
+      "update": "networkOutput"
     }
   ],
   "data": [
     {
       "name": "jsonData",
       "values": [
+        { "template": "header", "diagram": "flowchart TD" },
         { "template": "node", "id": "A", "label": "Start" },
         { "template": "node", "id": "B", "label": "Middle" },
         { "template": "node", "id": "C", "label": "End" },
@@ -39,6 +48,7 @@
     {
       "name": "networkData",
       "values": [
+        { "template": "header", "diagram": "graph LR" },
         { "template": "subgraph", "name": "Production" },
         { "template": "server", "id": "web1", "name": "Web Server", "ip": "10.0.1.10" },
         { "template": "server", "id": "db1", "name": "Database", "ip": "10.0.1.20" },
@@ -69,7 +79,8 @@ Load data from a static JSON array.
   "editable": true,
   "tabulatorOptions": {
     "columns": [
-      {"title": "Template", "field": "template", "editor": "list", "editorParams": {"values": ["node", "edge", "labeledEdge", "comment"]}},
+      {"title": "Template", "field": "template", "editor": "list", "editorParams": {"values": ["header", "node", "edge", "labeledEdge", "comment"]}},
+      {"title": "Diagram", "field": "diagram", "editor": "input"},
       {"title": "ID", "field": "id", "editor": "input"},
       {"title": "Label", "field": "label", "editor": "input"},
       {"title": "From", "field": "from", "editor": "input"},
@@ -102,9 +113,10 @@ Template-based diagram generation:
 
 ```mermaid
 {
-  "diagramType": "flowchart TD",
   "dataSourceName": "jsonTable",
+  "variableId": "flowchartOutput",
   "lineTemplates": {
+    "header": "{{diagram}}",
     "node": "{{id}}[{{label}}]",
     "edge": "{{from}} --> {{to}}",
     "labeledEdge": "{{from}} -->|{{label}}| {{to}}",
@@ -113,10 +125,16 @@ Template-based diagram generation:
 }
 ```
 
+### Generated Mermaid Source:
+```
+{{flowchartOutput}}
+```
+
 The above template would work with data like:
 
 ```json
 [
+  { "template": "header", "diagram": "flowchart TD" },
   { "template": "node", "id": "A", "label": "Start" },
   { "template": "node", "id": "B", "label": "Middle" },
   { "template": "node", "id": "C", "label": "End" },
@@ -149,7 +167,8 @@ Network diagram with servers and connections:
   "editable": true,
   "tabulatorOptions": {
     "columns": [
-      {"title": "Template", "field": "template", "editor": "list", "editorParams": {"values": ["server", "connection", "secureConnection", "subgraph", "end"]}},
+      {"title": "Template", "field": "template", "editor": "list", "editorParams": {"values": ["header", "server", "connection", "secureConnection", "subgraph", "end"]}},
+      {"title": "Diagram", "field": "diagram", "editor": "input"},
       {"title": "ID", "field": "id", "editor": "input"},
       {"title": "Name", "field": "name", "editor": "input"},
       {"title": "IP", "field": "ip", "editor": "input"},
@@ -164,9 +183,10 @@ Network diagram with servers and connections:
 
 ```mermaid
 {
-  "diagramType": "graph LR",
-  "dataSourceName": "networkTable", 
+  "dataSourceName": "networkTable",
+  "variableId": "networkOutput",
   "lineTemplates": {
+    "header": "{{diagram}}",
     "server": "{{id}}[{{name}}<br/>{{ip}}]",
     "connection": "{{from}} --- {{to}}",
     "secureConnection": "{{from}} -.->|SSL| {{to}}",
@@ -175,3 +195,28 @@ Network diagram with servers and connections:
   }
 }
 ```
+
+### Generated Network Diagram Source:
+```json textbox
+{
+    "variableId": "networkOutput",
+    "multiline": true
+}
+```
+
+## String Input Mode
+
+This example shows how to consume the generated Mermaid text from above and render it directly:
+
+```mermaid
+{
+  "dataSourceName": "networkOutput",
+  "variableId": "renderedFromString"
+}
+```
+
+This demonstrates the flexible input capability - the same `dataSourceName` property can handle:
+- String input (like from the textbox above)
+- Array input (like from the tabulator examples)
+
+The plugin automatically detects the input type and renders accordingly.
