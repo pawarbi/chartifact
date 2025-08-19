@@ -130,6 +130,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     isData: true,
                 });
             }
+
             const outputData = () => {
                 let data: object[];
                 if (selectableRows) {
@@ -152,6 +153,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                 signalBus.log(tabulatorInstance.id, 'sending batch', batch);
                 signalBus.broadcast(tabulatorInstance.id, batch);
             }
+
             const setData = (_data: object[]) => {
 
                 // Use structuredClone to ensure deep copy
