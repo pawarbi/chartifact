@@ -50,6 +50,7 @@ const host = new Listener({
     onSetMode: (mode, markdown, interactiveDocument) => {
         switch (mode) {
             case 'json':
+                toolbar.mode = 'json';
                 textarea.value = JSON.stringify(interactiveDocument, null, 2);
                 render = () => {
                     const json = textarea.value;
@@ -72,6 +73,7 @@ const host = new Listener({
                 };
                 break;
             case 'markdown':
+                toolbar.mode = 'markdown';
                 textarea.value = markdown;
                 render = () => {
                     const markdown = textarea.value;
@@ -82,5 +84,6 @@ const host = new Listener({
                 return;
         }
         toolbar.showTweakButton();
+        toolbar.showDownloadButton();
     },
 });

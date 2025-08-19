@@ -38,7 +38,7 @@ export function setupClipboardHandling(host: Listener) {
               );
               return;
             }
-            determineContent(null, content, host, true);
+            determineContent('clipboard-content', content, host, true);
           });
           handled = true;
           break;

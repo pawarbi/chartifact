@@ -34,7 +34,7 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
 
     let docIndex = 0;
 
-    const folderSpan = host.toolbar.toolbarElement.querySelector('#folderSpan') as HTMLSpanElement;
+    const { folderSpan } = host.toolbar;
     folderSpan.style.display = '';
 
     folderSpan.innerText = `Folder: ${folder.title} (${folder.docs.length} documents)`;
@@ -77,7 +77,9 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
         prevBtn.disabled = docIndex === 0;
         nextBtn.disabled = docIndex === folder.docs.length - 1;
         pageSelect.value = (docIndex + 1).toString();
-        resolveUrl(folderUrl, folder.docs[docIndex].href, host);
+
+        const title = folder.docs[docIndex].title || `Page ${docIndex + 1}`;
+        resolveUrl(title, folderUrl, folder.docs[docIndex].href, host);
     }
 
     pageSelect.onchange = () => {
@@ -129,7 +131,7 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
     //resolveUrl(folderUrl, folder.docUrls[docIndex], host);
 }
 
-async function resolveUrl(base: string, relativeOrAbsolute: string, host: Listener) {
+async function resolveUrl(title: string, base: string, relativeOrAbsolute: string, host: Listener) {
     let url: string;
     try {
         url = base ? new URL(relativeOrAbsolute, base).href : relativeOrAbsolute;
@@ -149,11 +151,11 @@ async function resolveUrl(base: string, relativeOrAbsolute: string, host: Listen
         return;
     }
     if (result.idoc) {
-        host.render(undefined, result.idoc);
+        host.render(title, undefined, result.idoc);
     } else if (result.markdown) {
-        host.render(result.markdown, undefined);
+        host.render(title, result.markdown, undefined);
     } else if (result.folder) {
-        host.render('Nested folders are not supported', undefined);
+        host.render('Error', 'Nested folders are not supported', undefined);
     } else {
         host.errorHandler(
             'Invalid document format',

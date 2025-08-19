@@ -5,37 +5,85 @@
 
 export interface ToolbarOptions {
     tweakButton?: boolean;
+    downloadButton?: boolean;
     textarea?: HTMLTextAreaElement;
+    mode?: 'markdown' | 'json';
+    filename?: string;
 }
 
 export class Toolbar {
     public toolbarElement: HTMLElement;
+    public folderSpan: HTMLElement;
+    public tweakButton: HTMLButtonElement;
+    public downloadButton: HTMLButtonElement;
+    public mode: 'markdown' | 'json';
+    public filename: string;
 
     constructor(toolbarElementOrSelector: HTMLElement | string, public options: ToolbarOptions = {}) {
+        this.filename = options.filename || 'sample';
+        this.mode = options.mode || 'markdown';
         this.toolbarElement = typeof toolbarElementOrSelector === 'string' ? document.querySelector(toolbarElementOrSelector) : toolbarElementOrSelector;
 
         if (!this.toolbarElement) {
             throw new Error('Toolbar element not found');
         }
 
-        const html = `<a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a> viewer
-<button type="button" id="tweak" style="display: none;">tweak</button>
-<span id="folderSpan" style="display: none;"></span>
+        const html = `
+<div>
+    <a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a> viewer
+</div>
+<div id="folderSpan" style="display: none;"></div>
+<div>
+    <button type="button" id="tweak" style="display: none;">tweak</button>
+    <button type="button" id="download" style="display: none;">download</button>
+</div>
         `;
 
         this.toolbarElement.innerHTML = html;
 
+        this.tweakButton = this.toolbarElement.querySelector('#tweak') as HTMLButtonElement;
+        this.folderSpan = this.toolbarElement.querySelector('#folderSpan') as HTMLElement;
+        this.downloadButton = this.toolbarElement.querySelector('#download') as HTMLButtonElement;
+
         if (this.options.tweakButton) {
             this.showTweakButton();
         }
+        if (this.options.downloadButton) {
+            this.showDownloadButton();
+        }
+
+        this.tweakButton?.addEventListener('click', () => {
+            this.options.textarea.style.display = this.options.textarea.style.display === 'none' ? '' : 'none';
+        });
+
+        this.downloadButton?.addEventListener('click', () => {
+            const textarea = this.options.textarea;
+            if (!textarea) return;
+            const content = textarea.value;
+            const ext = this.mode === 'markdown' ? 'idoc.md' : 'idoc.json';
+            const filename = `${filenameWithoutPathOrExtension(this.filename)}.${ext}`;
+            const blob = new Blob([content], {
+                type: this.mode === 'markdown' ? 'text/markdown' : 'application/json'
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 0);
+        });
     }
 
     showTweakButton() {
-        const tweakButton = this.toolbarElement.querySelector('#tweak') as HTMLButtonElement;
-        tweakButton.style.display = '';
-        tweakButton?.addEventListener('click', () => {
-            this.options.textarea.style.display = this.options.textarea.style.display === 'none' ? '' : 'none';
-        });
+        this.tweakButton.style.display = '';
+    }
+
+    showDownloadButton() {
+        this.downloadButton.style.display = '';
     }
 
     manageTextareaVisibilityForAgents() {
@@ -62,3 +110,47 @@ export class Toolbar {
 
     }
 }
+
+function filenameWithoutPathOrExtension(filename: string) {
+    // Remove everything before the last slash or backslash
+    const base = filename.split(/[\\/]/).pop() || filename;
+    // If .idoc appears, remove it and everything after
+    const idocIdx = base.indexOf('.idoc');
+    if (idocIdx !== -1) {
+        return base.substring(0, idocIdx);
+    }
+    // Otherwise, remove the last extension if present
+    const lastDot = base.lastIndexOf('.');
+    if (lastDot > 0) {
+        return base.substring(0, lastDot);
+    }
+    return base;
+}
+
+// --- TESTS for filenameWithoutPathOrExtension ---
+
+// const filenameTests: [string, string][] = [
+//     // [input, expected]
+//     ["foo.md", "foo"],
+//     ["foo.idoc.md", "foo"],
+//     ["foo.idoc.json", "foo"],
+//     ["foo", "foo"],
+//     ["foo.bar.baz.md", "foo.bar.baz"],
+//     ["C:\\folder\\foo.md", "foo"],
+//     ["/home/user/foo.md", "foo"],
+//     ["folder/foo.idoc.md", "foo"],
+//     ["folder\\foo.idoc.json", "foo"],
+//     ["folder.with.dots/foo.bar.baz.md", "foo.bar.baz"],
+//     ["folder.with.dots\\foo.bar.baz.md", "foo.bar.baz"],
+//     ["", ""],
+// ];
+
+// filenameTests.forEach(([input, expected], i) => {
+//     const result = filenameWithoutPathOrExtension(input);
+//     const pass = result === expected;
+//     // eslint-disable-next-line no-console
+//     console.log(
+//         `${pass ? '✅' : '❌'} Test ${i + 1}: ${pass ? 'PASS' : `FAIL\n  Input: ${input}\n  Got: ${result}\n  Expected: ${expected}`}`
+//     );
+// });
+

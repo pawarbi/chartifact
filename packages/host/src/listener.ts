@@ -165,7 +165,7 @@ export class Listener {
     //try to show the message in the sandbox, since it works well with paging folder content
     if (this.sandboxReady) {
       const markdown = `# Error:\n${message}\n\n${details}`;
-      this.render(markdown, undefined);
+      this.render('Error', markdown, undefined);
     } else {
       // Clear previous content
       this.previewDiv.innerHTML = '';
@@ -181,7 +181,10 @@ export class Listener {
     }
   }
 
-  public render(markdown?: string, interactiveDocument?: InteractiveDocument) {
+  public render(title: string, markdown: string | null, interactiveDocument: InteractiveDocument | null) {
+    if (this.toolbar) {
+      this.toolbar.filename = title;
+    }
     if (interactiveDocument) {
       this.onSetMode('json', null, interactiveDocument);
       this.renderInteractiveDocument(interactiveDocument);

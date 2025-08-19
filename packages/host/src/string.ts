@@ -15,8 +15,8 @@ export interface ContentResult {
     errorDetail?: string;
 }
 
-export function determineContent(url:string, content: string, host: Listener, handle: boolean): ContentResult {
-    const result = _determineContent(content, host);
+export function determineContent(urlOrTitle: string, content: string, host: Listener, handle: boolean): ContentResult {
+    const result = _determineContent(content);
     if (handle) {
         if (result.error) {
             host.errorHandler(
@@ -25,17 +25,17 @@ export function determineContent(url:string, content: string, host: Listener, ha
             );
             return;
         } else if (result.idoc) {
-            host.render(undefined, result.idoc);
+            host.render(urlOrTitle, undefined, result.idoc);
         } else if (result.folder) {
-            loadFolder(url, result.folder, host);
+            loadFolder(urlOrTitle, result.folder, host);
         } else if (result.markdown) {
-            host.render(result.markdown, undefined);
+            host.render(urlOrTitle, result.markdown, undefined);
         }
     }
     return result;
 }
 
-function _determineContent(content: string, host: Listener): ContentResult {
+function _determineContent(content: string): ContentResult {
     if (!content) {
         return {
             error: 'Content is empty',

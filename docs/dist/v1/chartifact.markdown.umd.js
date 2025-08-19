@@ -2202,6 +2202,7 @@ ${reconstitutedRules.join("\n\n")}
       }
     }
     async beginListening() {
+      this.active = true;
       this.log("beginListening", "begin initial batch", this.signalDeps);
       for (const peer of this.peers) {
         const batch = {};
@@ -2246,7 +2247,6 @@ ${reconstitutedRules.join("\n\n")}
           this.log(peer.id, "No shared signals");
         }
       }
-      this.active = true;
     }
     deactivate() {
       if (this.signalDeps) {
