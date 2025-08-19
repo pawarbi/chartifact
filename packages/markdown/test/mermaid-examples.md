@@ -32,13 +32,11 @@
     {
       "name": "jsonData",
       "values": [
-        { "template": "header", "diagram": "flowchart TD" },
         { "template": "node", "id": "A", "label": "Start" },
         { "template": "node", "id": "B", "label": "Middle" },
         { "template": "node", "id": "C", "label": "End" },
         { "template": "labeledEdge", "from": "A", "to": "B", "label": "Next" },
-        { "template": "edge", "from": "B", "to": "C" },
-        { "template": "comment", "text": "This is a sample diagram" }
+        { "template": "edge", "from": "B", "to": "C" }
       ]
     },
     {
@@ -48,7 +46,6 @@
     {
       "name": "networkData",
       "values": [
-        { "template": "header", "diagram": "graph LR" },
         { "template": "subgraph", "name": "Production" },
         { "template": "server", "id": "web1", "name": "Web Server", "ip": "10.0.1.10" },
         { "template": "server", "id": "db1", "name": "Database", "ip": "10.0.1.20" },
@@ -65,31 +62,6 @@
       "values": []
     }
   ]
-}
-```
-
-## JSON Data
-
-Load data from a static JSON array.
-
-```json tabulator
-{
-  "dataSourceName": "jsonData",
-  "variableId": "jsonTable",
-  "editable": true,
-  "tabulatorOptions": {
-    "columns": [
-      {"title": "Template", "field": "template", "editor": "list", "editorParams": {"values": ["header", "node", "edge", "labeledEdge", "comment"]}},
-      {"title": "Diagram", "field": "diagram", "editor": "input"},
-      {"title": "ID", "field": "id", "editor": "input"},
-      {"title": "Label", "field": "label", "editor": "input"},
-      {"title": "From", "field": "from", "editor": "input"},
-      {"title": "To", "field": "to", "editor": "input"},
-      {"title": "Text", "field": "text", "editor": "input"}
-    ],
-    "layout": "fitColumns",
-    "maxHeight": "150px"
-  }
 }
 ```
 
@@ -111,16 +83,41 @@ flowchart TD
 
 Template-based diagram generation:
 
-```mermaid
+```json mermaid
 {
+  "template": {
+    "diagram": "flowchart TD",
+    "lineTemplates": {
+      "node": "{{id}}[{{label}}]",
+      "edge": "{{from}} --> {{to}}",
+      "labeledEdge": "{{from}} -->|{{label}}| {{to}}"
+    }
+  },
   "dataSourceName": "jsonTable",
-  "variableId": "flowchartOutput",
-  "lineTemplates": {
-    "header": "{{diagram}}",
-    "node": "{{id}}[{{label}}]",
-    "edge": "{{from}} --> {{to}}",
-    "labeledEdge": "{{from}} -->|{{label}}| {{to}}",
-    "comment": "%% {{text}}"
+  "variableId": "flowchartOutput"
+}
+```
+
+## JSON Data
+
+Load data from a static JSON array.
+
+```json tabulator
+{
+  "dataSourceName": "jsonData",
+  "variableId": "jsonTable",
+  "editable": true,
+  "tabulatorOptions": {
+    "columns": [
+      {"title": "Template", "field": "template", "editor": "list", "editorParams": {"values": ["node", "edge", "labeledEdge"]}},
+      {"title": "ID", "field": "id", "editor": "input"},
+      {"title": "Label", "field": "label", "editor": "input"},
+      {"title": "From", "field": "from", "editor": "input"},
+      {"title": "To", "field": "to", "editor": "input"},
+      {"title": "Text", "field": "text", "editor": "input"}
+    ],
+    "layout": "fitColumns",
+    "maxHeight": "150px"
   }
 }
 ```
@@ -128,32 +125,6 @@ Template-based diagram generation:
 ### Generated Mermaid Source:
 ```
 {{flowchartOutput}}
-```
-
-The above template would work with data like:
-
-```json
-[
-  { "template": "header", "diagram": "flowchart TD" },
-  { "template": "node", "id": "A", "label": "Start" },
-  { "template": "node", "id": "B", "label": "Middle" },
-  { "template": "node", "id": "C", "label": "End" },
-  { "template": "labeledEdge", "from": "A", "to": "B", "label": "Next" },
-  { "template": "edge", "from": "B", "to": "C" },
-  { "template": "comment", "text": "This is a sample diagram" }
-]
-```
-
-Which would generate:
-
-```
-flowchart TD
-A[Start]
-B[Middle]
-C[End]
-A -->|Next| B
-B --> C
-%% This is a sample diagram
 ```
 
 ## More Complex Example
@@ -167,8 +138,7 @@ Network diagram with servers and connections:
   "editable": true,
   "tabulatorOptions": {
     "columns": [
-      {"title": "Template", "field": "template", "editor": "list", "editorParams": {"values": ["header", "server", "connection", "secureConnection", "subgraph", "end"]}},
-      {"title": "Diagram", "field": "diagram", "editor": "input"},
+      {"title": "Template", "field": "template", "editor": "list", "editorParams": {"values": ["server", "connection", "secureConnection", "subgraph", "end"]}},
       {"title": "ID", "field": "id", "editor": "input"},
       {"title": "Name", "field": "name", "editor": "input"},
       {"title": "IP", "field": "ip", "editor": "input"},
@@ -181,18 +151,20 @@ Network diagram with servers and connections:
 }
 ```
 
-```mermaid
+```json mermaid
 {
+  "template": {
+    "diagram": "graph LR",
+    "lineTemplates": {
+      "server": "{{id}}[{{name}}<br/>{{ip}}]",
+      "connection": "{{from}} --- {{to}}",
+      "secureConnection": "{{from}} -.->|SSL| {{to}}",
+      "subgraph": "subgraph {{name}}",
+      "end": "end"
+    }
+  },
   "dataSourceName": "networkTable",
-  "variableId": "networkOutput",
-  "lineTemplates": {
-    "header": "{{diagram}}",
-    "server": "{{id}}[{{name}}<br/>{{ip}}]",
-    "connection": "{{from}} --- {{to}}",
-    "secureConnection": "{{from}} -.->|SSL| {{to}}",
-    "subgraph": "subgraph {{name}}",
-    "end": "end"
-  }
+  "variableId": "networkOutput"
 }
 ```
 

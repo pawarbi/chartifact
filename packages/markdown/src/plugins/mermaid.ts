@@ -25,10 +25,12 @@
 * 3. Template-Driven with Data (structured data → diagram):
 * ```mermaid
 * {
-*   "lineTemplates": {
-*     "header": "{{diagram}}",
-*     "node": "    {{id}}[{{label}}]",
-*     "link": "    {{from}} --> {{to}}"
+*   "template": {
+*     "diagram": "flowchart TD",
+*     "lineTemplates": {
+*       "node": "    {{id}}[{{label}}]",
+*       "link": "    {{from}} --> {{to}}"
+*     }
 *   },
 *   "dataSourceName": "diagramData",
 *   "variableId": "outputDiagram"
@@ -36,7 +38,6 @@
 * ```
 * With data like:
 * [
-*   {"template": "header", "diagram": "flowchart TD"},
 *   {"template": "node", "id": "A", "label": "Start"},
 *   {"template": "node", "id": "B", "label": "Process"},
 *   {"template": "link", "from": "A", "to": "B"}
@@ -69,7 +70,10 @@ interface MermaidInstance {
 }
 
 export interface MermaidSpec {
-    lineTemplates?: { [templateName: string]: string };  // Optional - only needed for template mode
+    template?: {
+        diagram: string;
+        lineTemplates: { [templateName: string]: string };
+    };
     dataSourceName?: string;
     variableId?: string;
 }
@@ -106,16 +110,28 @@ function inspectMermaidSpec(spec: MermaidSpec | string): RawFlaggableSpec<Mermai
         }
     } else {
         // For JSON template mode, validate structure
-        // lineTemplates is optional - only needed if using template mode
-        if (spec.lineTemplates && typeof spec.lineTemplates !== 'object') {
+        // template is optional - only needed if using template mode
+        if (spec.template && typeof spec.template !== 'object') {
             hasFlags = true;
-            reasons.push('lineTemplates must be an object if provided');
-        } else if (spec.lineTemplates) {
-            // Check templates for dangerous content
-            for (const [templateName, template] of Object.entries(spec.lineTemplates)) {
-                if (typeof template !== 'string') {
-                    hasFlags = true;
-                    reasons.push(`Template '${templateName}' must be a string`);
+            reasons.push('template must be an object if provided');
+        } else if (spec.template) {
+            // Validate diagram
+            if (!spec.template.diagram || typeof spec.template.diagram !== 'string') {
+                hasFlags = true;
+                reasons.push('template.diagram must be a non-empty string');
+            }
+
+            // Validate lineTemplates
+            if (!spec.template.lineTemplates || typeof spec.template.lineTemplates !== 'object') {
+                hasFlags = true;
+                reasons.push('template.lineTemplates must be an object');
+            } else {
+                // Check templates for dangerous content
+                for (const [templateName, template] of Object.entries(spec.template.lineTemplates)) {
+                    if (typeof template !== 'string') {
+                        hasFlags = true;
+                        reasons.push(`Template '${templateName}' must be a string`);
+                    }
                 }
             }
         }
@@ -146,7 +162,7 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
         // Try to parse as JSON first
         try {
             const parsed = JSON.parse(content);
-            if (parsed && typeof parsed === 'object' && (parsed.dataSourceName || parsed.lineTemplates)) {
+            if (parsed && typeof parsed === 'object' && (parsed.dataSourceName || parsed.template)) {
                 spec = parsed as MermaidSpec;
             } else {
                 // If it's JSON but not a valid MermaidSpec, treat as raw text
@@ -304,9 +320,14 @@ async function renderDataDrivenDiagram(instance: MermaidInstance, data: MermaidD
         // Generate diagram text from template and data
         const lines: string[] = [];
 
+        // Add diagram type from template
+        if (spec.template?.diagram) {
+            lines.push(spec.template.diagram);
+        }
+
         for (const item of data) {
             const templateName = item.template;
-            const template = spec.lineTemplates?.[templateName];
+            const template = spec.template?.lineTemplates?.[templateName];
 
             if (!template) {
                 console.warn(`Template '${templateName}' not found in lineTemplates`);
