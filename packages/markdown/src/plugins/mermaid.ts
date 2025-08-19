@@ -284,7 +284,7 @@ async function renderRawDiagram(instance: MermaidInstance, diagramText: string, 
         const { svg } = await mermaid.render(uniqueId, diagramText);
         diagramContainer.innerHTML = svg;
     } catch (error) {
-        diagramContainer.innerHTML = `<div class="error">Failed to render diagram: ${error.message}</div>`;
+        diagramContainer.innerHTML = `<div class="error">Failed to render diagram</div>`;
         errorHandler(error instanceof Error ? error : new Error(String(error)), pluginName, index, 'render', instance.container);
     }
 }
@@ -353,7 +353,7 @@ async function renderDataDrivenDiagram(instance: MermaidInstance, data: MermaidD
             diagramContainer.innerHTML = '<div class="error">No valid diagram data provided</div>';
         }
     } catch (error) {
-        diagramContainer.innerHTML = `<div class="error">Failed to render diagram: ${error.message}</div>`;
+        diagramContainer.innerHTML = `<div class="error">Failed to render diagram</div>`;
         errorHandler(error instanceof Error ? error : new Error(String(error)), pluginName, index, 'render', instance.container);
     }
 }
