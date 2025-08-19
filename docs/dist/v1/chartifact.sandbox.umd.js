@@ -322,26 +322,69 @@ document.addEventListener('DOMContentLoaded', () => {
     constructor(toolbarElementOrSelector, options = {}) {
       __publicField(this, "options");
       __publicField(this, "toolbarElement");
+      __publicField(this, "folderSpan");
+      __publicField(this, "tweakButton");
+      __publicField(this, "downloadButton");
+      __publicField(this, "mode");
+      __publicField(this, "filename");
+      var _a, _b;
       this.options = options;
+      this.filename = options.filename || "sample";
+      this.mode = options.mode || "markdown";
       this.toolbarElement = typeof toolbarElementOrSelector === "string" ? document.querySelector(toolbarElementOrSelector) : toolbarElementOrSelector;
       if (!this.toolbarElement) {
         throw new Error("Toolbar element not found");
       }
-      const html = `<a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a> viewer
-<button type="button" id="tweak" style="display: none;">tweak</button>
-<span id="folderSpan" style="display: none;"></span>
+      const html = `
+<div>
+    <a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a> viewer
+</div>
+<div id="folderSpan" style="display: none;"></div>
+<div>
+    <button type="button" id="tweak" style="display: none;">tweak</button>
+    <button type="button" id="download" style="display: none;">download</button>
+</div>
         `;
       this.toolbarElement.innerHTML = html;
+      this.tweakButton = this.toolbarElement.querySelector("#tweak");
+      this.folderSpan = this.toolbarElement.querySelector("#folderSpan");
+      this.downloadButton = this.toolbarElement.querySelector("#download");
       if (this.options.tweakButton) {
         this.showTweakButton();
       }
-    }
-    showTweakButton() {
-      const tweakButton = this.toolbarElement.querySelector("#tweak");
-      tweakButton.style.display = "";
-      tweakButton == null ? void 0 : tweakButton.addEventListener("click", () => {
+      if (this.options.downloadButton) {
+        this.showDownloadButton();
+      }
+      (_a = this.tweakButton) == null ? void 0 : _a.addEventListener("click", () => {
         this.options.textarea.style.display = this.options.textarea.style.display === "none" ? "" : "none";
       });
+      (_b = this.downloadButton) == null ? void 0 : _b.addEventListener("click", () => {
+        const textarea = this.options.textarea;
+        if (!textarea)
+          return;
+        const content = textarea.value;
+        const ext = this.mode === "markdown" ? "idoc.md" : "idoc.json";
+        const filename = `${filenameWithoutPathOrExtension(this.filename)}.${ext}`;
+        const blob = new Blob([content], {
+          type: this.mode === "markdown" ? "text/markdown" : "application/json"
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 0);
+      });
+    }
+    showTweakButton() {
+      this.tweakButton.style.display = "";
+    }
+    showDownloadButton() {
+      this.downloadButton.style.display = "";
     }
     manageTextareaVisibilityForAgents() {
       const { textarea } = this.options;
@@ -358,6 +401,18 @@ document.addEventListener('DOMContentLoaded', () => {
         textarea.style.display = "none";
       }, 300);
     }
+  }
+  function filenameWithoutPathOrExtension(filename) {
+    const base = filename.split(/[\\/]/).pop() || filename;
+    const idocIdx = base.indexOf(".idoc");
+    if (idocIdx !== -1) {
+      return base.substring(0, idocIdx);
+    }
+    const lastDot = base.lastIndexOf(".");
+    if (lastDot > 0) {
+      return base.substring(0, lastDot);
+    }
+    return base;
   }
   function create(toolbarElementOrSelector, options = {}) {
     const toolbar = new Toolbar(toolbarElementOrSelector, options);

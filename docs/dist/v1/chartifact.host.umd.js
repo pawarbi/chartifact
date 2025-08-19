@@ -907,7 +907,7 @@ ${guardedJs}
       return;
     }
     let docIndex = 0;
-    const folderSpan = host.toolbar.toolbarElement.querySelector("#folderSpan");
+    const { folderSpan } = host.toolbar;
     folderSpan.style.display = "";
     folderSpan.innerText = `Folder: ${folder.title} (${folder.docs.length} documents)`;
     const prevBtn = document.createElement("button");
@@ -941,7 +941,8 @@ ${guardedJs}
       prevBtn.disabled = docIndex === 0;
       nextBtn.disabled = docIndex === folder.docs.length - 1;
       pageSelect.value = (docIndex + 1).toString();
-      resolveUrl(folderUrl, folder.docs[docIndex].href, host);
+      const title = folder.docs[docIndex].title || `Page ${docIndex + 1}`;
+      resolveUrl(title, folderUrl, folder.docs[docIndex].href, host);
     }
     pageSelect.onchange = () => {
       const selectedPage = parseInt(pageSelect.value, 10);
@@ -979,7 +980,7 @@ ${guardedJs}
     folderSpan.appendChild(pageSelect);
     folderSpan.appendChild(nextBtn);
   }
-  async function resolveUrl(base, relativeOrAbsolute, host) {
+  async function resolveUrl(title, base, relativeOrAbsolute, host) {
     let url;
     try {
       url = base ? new URL(relativeOrAbsolute, base).href : relativeOrAbsolute;
@@ -999,11 +1000,11 @@ ${guardedJs}
       return;
     }
     if (result.idoc) {
-      host.render(void 0, result.idoc);
+      host.render(title, void 0, result.idoc);
     } else if (result.markdown) {
-      host.render(result.markdown, void 0);
+      host.render(title, result.markdown, void 0);
     } else if (result.folder) {
-      host.render("Nested folders are not supported", void 0);
+      host.render("Error", "Nested folders are not supported", void 0);
     } else {
       host.errorHandler(
         "Invalid document format",
@@ -1011,7 +1012,7 @@ ${guardedJs}
       );
     }
   }
-  function determineContent(url, content, host, handle) {
+  function determineContent(urlOrTitle, content, host, handle) {
     const result = _determineContent(content);
     if (handle) {
       if (result.error) {
@@ -1021,16 +1022,16 @@ ${guardedJs}
         );
         return;
       } else if (result.idoc) {
-        host.render(void 0, result.idoc);
+        host.render(urlOrTitle, void 0, result.idoc);
       } else if (result.folder) {
-        loadFolder(url, result.folder, host);
+        loadFolder(urlOrTitle, result.folder, host);
       } else if (result.markdown) {
-        host.render(result.markdown, void 0);
+        host.render(urlOrTitle, result.markdown, void 0);
       }
     }
     return result;
   }
-  function _determineContent(content, host) {
+  function _determineContent(content) {
     if (!content) {
       return {
         error: "Content is empty",
@@ -1107,7 +1108,7 @@ ${guardedJs}
           );
           return;
         }
-        determineContent(null, content, host, true);
+        determineContent(file.name, content, host, true);
       };
       reader.onerror = (e) => {
         host.errorHandler(
@@ -1152,7 +1153,7 @@ ${guardedJs}
                 );
                 return;
               }
-              determineContent(null, content, host, true);
+              determineContent("clipboard-content", content, host, true);
             });
             handled = true;
             break;
@@ -1206,7 +1207,7 @@ ${guardedJs}
           );
           return;
         }
-        determineContent(null, content, host, true);
+        determineContent("dropped-content", content, host, true);
       } else {
         host.errorHandler(
           "Unsupported drop content",
@@ -1259,9 +1260,9 @@ ${guardedJs}
         const message = event.data;
         if (message.type == "hostRenderRequest") {
           if (message.markdown) {
-            host.render(message.markdown, void 0);
+            host.render(message.title, message.markdown, void 0);
           } else if (message.interactiveDocument) {
-            host.render(void 0, message.interactiveDocument);
+            host.render(message.title, void 0, message.interactiveDocument);
           } else {
           }
         }
@@ -1394,7 +1395,7 @@ ${guardedJs}
 ${message}
 
 ${details}`;
-        this.render(markdown, void 0);
+        this.render("Error", markdown, void 0);
       } else {
         this.previewDiv.innerHTML = "";
         const h1 = document.createElement("h1");
@@ -1408,7 +1409,10 @@ ${details}`;
         this.previewDiv.appendChild(pDetails);
       }
     }
-    render(markdown, interactiveDocument) {
+    render(title, markdown, interactiveDocument) {
+      if (this.toolbar) {
+        this.toolbar.filename = title;
+      }
       if (interactiveDocument) {
         this.onSetMode("json", null, interactiveDocument);
         this.renderInteractiveDocument(interactiveDocument);
@@ -1461,26 +1465,69 @@ ${details}`;
     constructor(toolbarElementOrSelector, options = {}) {
       __publicField(this, "options");
       __publicField(this, "toolbarElement");
+      __publicField(this, "folderSpan");
+      __publicField(this, "tweakButton");
+      __publicField(this, "downloadButton");
+      __publicField(this, "mode");
+      __publicField(this, "filename");
+      var _a, _b;
       this.options = options;
+      this.filename = options.filename || "sample";
+      this.mode = options.mode || "markdown";
       this.toolbarElement = typeof toolbarElementOrSelector === "string" ? document.querySelector(toolbarElementOrSelector) : toolbarElementOrSelector;
       if (!this.toolbarElement) {
         throw new Error("Toolbar element not found");
       }
-      const html = `<a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a> viewer
-<button type="button" id="tweak" style="display: none;">tweak</button>
-<span id="folderSpan" style="display: none;"></span>
+      const html = `
+<div>
+    <a href="https://microsoft.github.io/chartifact" target="_blank">Chartifact</a> viewer
+</div>
+<div id="folderSpan" style="display: none;"></div>
+<div>
+    <button type="button" id="tweak" style="display: none;">tweak</button>
+    <button type="button" id="download" style="display: none;">download</button>
+</div>
         `;
       this.toolbarElement.innerHTML = html;
+      this.tweakButton = this.toolbarElement.querySelector("#tweak");
+      this.folderSpan = this.toolbarElement.querySelector("#folderSpan");
+      this.downloadButton = this.toolbarElement.querySelector("#download");
       if (this.options.tweakButton) {
         this.showTweakButton();
       }
-    }
-    showTweakButton() {
-      const tweakButton = this.toolbarElement.querySelector("#tweak");
-      tweakButton.style.display = "";
-      tweakButton == null ? void 0 : tweakButton.addEventListener("click", () => {
+      if (this.options.downloadButton) {
+        this.showDownloadButton();
+      }
+      (_a = this.tweakButton) == null ? void 0 : _a.addEventListener("click", () => {
         this.options.textarea.style.display = this.options.textarea.style.display === "none" ? "" : "none";
       });
+      (_b = this.downloadButton) == null ? void 0 : _b.addEventListener("click", () => {
+        const textarea = this.options.textarea;
+        if (!textarea)
+          return;
+        const content = textarea.value;
+        const ext = this.mode === "markdown" ? "idoc.md" : "idoc.json";
+        const filename = `${filenameWithoutPathOrExtension(this.filename)}.${ext}`;
+        const blob = new Blob([content], {
+          type: this.mode === "markdown" ? "text/markdown" : "application/json"
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 0);
+      });
+    }
+    showTweakButton() {
+      this.tweakButton.style.display = "";
+    }
+    showDownloadButton() {
+      this.downloadButton.style.display = "";
     }
     manageTextareaVisibilityForAgents() {
       const { textarea } = this.options;
@@ -1497,6 +1544,18 @@ ${details}`;
         textarea.style.display = "none";
       }, 300);
     }
+  }
+  function filenameWithoutPathOrExtension(filename) {
+    const base = filename.split(/[\\/]/).pop() || filename;
+    const idocIdx = base.indexOf(".idoc");
+    if (idocIdx !== -1) {
+      return base.substring(0, idocIdx);
+    }
+    const lastDot = base.lastIndexOf(".");
+    if (lastDot > 0) {
+      return base.substring(0, lastDot);
+    }
+    return base;
   }
   function create(toolbarElementOrSelector, options = {}) {
     const toolbar = new Toolbar(toolbarElementOrSelector, options);
