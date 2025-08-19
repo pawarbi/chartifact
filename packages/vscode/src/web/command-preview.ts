@@ -111,11 +111,14 @@ export class PreviewManager {
 	private getFileContentAndRender(fileUri: vscode.Uri, uriFsPath: string) {
 		vscode.workspace.fs.readFile(fileUri).then(uint8array => {
 
+			const title = uriFsPath;
+
 			// If the file is a markdown file, we can send the markdown content
 			if (uriFsPath.endsWith('.md')) {
 				const markdown = new TextDecoder().decode(uint8array);
 				this.render({
 					type: 'hostRenderRequest',
+					title,
 					markdown,
 				});
 			} else if (uriFsPath.endsWith('.json')) {
@@ -125,6 +128,7 @@ export class PreviewManager {
 					const interactiveDocument = JSON.parse(jsonContent);
 					this.render({
 						type: 'hostRenderRequest',
+						title,
 						interactiveDocument,
 					});
 				} catch (error) {

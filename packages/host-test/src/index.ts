@@ -9,6 +9,7 @@ window.addEventListener('message', (event) => {
   if (hostStatusMessage.type === 'hostStatus' && hostStatusMessage.hostStatus === 'ready') {
     const message: Chartifact.common.HostRenderRequestMessage = {
       type: 'hostRenderRequest',
+      title: 'sample',
       markdown: `# Auto-loaded Content
 
 This markdown was automatically sent when the iframe became ready.

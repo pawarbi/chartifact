@@ -20,9 +20,9 @@ export function setupPostMessageHandling(host: Listener) {
             const message = event.data as HostRenderRequestMessage;
             if (message.type == 'hostRenderRequest') {
                 if (message.markdown) {
-                    host.render(message.markdown, undefined);
+                    host.render( message.title, message.markdown, undefined);
                 } else if (message.interactiveDocument) {
-                    host.render(undefined, message.interactiveDocument);
+                    host.render( message.title, undefined, message.interactiveDocument);
                 } else {
                     //do nothing, as messages may be directed to the page for other purposes
                 }

@@ -36,6 +36,10 @@
   color: inherit;
 }
 
+.chartifact-toolbar button, .chartifact-toolbar select {
+  font-size: 9pt;
+}
+
 /* Remove margin from all toolbar divs by default */
 .chartifact-toolbar > div {
   display: inline-block;

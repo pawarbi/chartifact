@@ -25,7 +25,7 @@ export function readFile(file: File, host: Listener) {
                 );
                 return;
             }
-            determineContent(null, content, host, true);
+            determineContent(file.name, content, host, true);
         };
         reader.onerror = (e) => {
             host.errorHandler(

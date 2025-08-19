@@ -31,6 +31,7 @@ export type SandboxApprovalMessage = {
 
 export interface HostRenderRequestMessage {
     type: 'hostRenderRequest';
+    title: string;
     markdown?: string;
     interactiveDocument?: InteractiveDocument
 }
