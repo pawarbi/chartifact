@@ -58,7 +58,6 @@ window.addEventListener('DOMContentLoaded', () => {
                 default:
                     return;
             }
-            toolbar.showTweakButton();
         },
     });
 

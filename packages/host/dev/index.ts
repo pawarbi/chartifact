@@ -83,7 +83,5 @@ const host = new Listener({
             default:
                 return;
         }
-        toolbar.showTweakButton();
-        toolbar.showDownloadButton();
     },
 });

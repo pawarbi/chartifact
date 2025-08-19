@@ -165,7 +165,7 @@ export class Listener {
     //try to show the message in the sandbox, since it works well with paging folder content
     if (this.sandboxReady) {
       const markdown = `# Error:\n${message}\n\n${details}`;
-      this.render('Error', markdown, undefined);
+      this.render('Error', markdown, undefined, true);
     } else {
       // Clear previous content
       this.previewDiv.innerHTML = '';
@@ -181,10 +181,11 @@ export class Listener {
     }
   }
 
-  public render(title: string, markdown: string | null, interactiveDocument: InteractiveDocument | null) {
+  public render(title: string, markdown: string | null, interactiveDocument: InteractiveDocument | null, showRestart: boolean) {
     if (this.toolbar) {
       this.toolbar.filename = title;
     }
+    let didError = false;
     if (interactiveDocument) {
       this.onSetMode('json', null, interactiveDocument);
       this.renderInteractiveDocument(interactiveDocument);
@@ -196,6 +197,16 @@ export class Listener {
         'No content provided',
         'Please provide either markdown or an interactive document to render.'
       );
+      didError = true;
+    }
+    if (this.toolbar && showRestart) {
+      this.toolbar.showRestartButton();
+    }
+    if (!didError) {
+      if (this.toolbar) {
+        this.toolbar.showTweakButton();
+        this.toolbar.showDownloadButton();
+      }
     }
     //remove interactions that are disruptive (after a document is rendered)
     this.removeInteractionHandlers.forEach(removeHandler => removeHandler());

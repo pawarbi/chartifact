@@ -1,79 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
+---
+layout: view
+---
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chartifact Interactive Document Host</title>
-    <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"></script>
-    <script src="../dist/v1/chartifact.host.umd.js"></script>
-    <link rel="stylesheet" href="../dist/v1/chartifact-toolbar.css" />
-    <style>
-        footer {
-            font-size: small;
-            padding: 3px;
-            background: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-    </style>
-</head>
+<h1>Chartifact Interactive Document Host</h1>
 
-<body class="chartifact-body">
+<p>
+    <a href="/docs/">Learn more about Chartifact interactive documents</a>
+</p>
 
-    <header class="chartifact-toolbar"></header>
+You can render interactive documents here via several methods:
+<ul>
+    <li><b>Clipboard</b>: paste your markdown content directly when this page has focus</li>
+    <li><b>Drag and drop</b>: drop a markdown file onto this page</li>
+    <li><b>URL parameter</b>: add <em>?load=url/to/your/file.md</em> to the url</li>
+    <li><b>File upload</b>: <button type="button" id="upload-btn">Choose File to Upload</button>
+        <input type="file" id="file-input" accept=".idoc.md,.idoc.json" style="display: none;" />
+    </li>
+    <li><b>PostMessage</b>: send markdown content to this page using the <code>window.postMessage</code> API
+        with the property <code>markdown</code></li>
+    <li><b>Examples</b>: click on an example below to load it
+        <ul>
+            <li><a href="?load=../assets/examples/markdown/seattle-weather/1.idoc.md" target="_blank">Example 1</a></li>
+            <li><a href="?load=../assets/examples/markdown/seattle-weather/2.idoc.md" target="_blank">Example 2</a></li>
+            <li><a href="?load=../assets/examples/markdown/seattle-weather/3.idoc.md" target="_blank">Example 3</a></li>
+        </ul>
+    </li>
+</ul>
 
-    <main class="chartifact-main">
+Refresh this page to start over.
 
-        <textarea class="chartifact-source" id="source" style="display: none;"
-            placeholder="Enter your markdown here..."></textarea>
-
-        <div class="chartifact-preview" id="preview"></div>
-
-        <div id="loading" style="text-align: center; padding: 50px;">
-            Loading...
-        </div>
-
-        <div id="help" style="display: none;">
-            <h1>Chartifact Interactive Document Host</h1>
-
-            <p>
-                <a href="/docs/">Learn more about Chartifact interactive documents</a>
-            </p>
-
-            You can render interactive documents here via several methods:
-            <ul>
-                <li><b>Clipboard</b>: paste your markdown content directly when this page has focus</li>
-                <li><b>Drag and drop</b>: drop a markdown file onto this page</li>
-                <li><b>URL parameter</b>: add <em>?load=url/to/your/file.md</em> to the url</li>
-                <li><b>File upload</b>: <button type="button" id="upload-btn">Choose File to Upload</button>
-                    <input type="file" id="file-input" accept=".idoc.md,.idoc.json" style="display: none;" />
-                </li>
-                <li><b>PostMessage</b>: send markdown content to this page using the <code>window.postMessage</code> API
-                    with the property <code>markdown</code></li>
-                <li><b>Examples</b>: click on an example below to load it
-                    <ul>
-                        <li><a href="?load=../assets/examples/markdown/seattle-weather/1.idoc.md">Example 1</a></li>
-                        <li><a href="?load=../assets/examples/markdown/seattle-weather/2.idoc.md">Example 2</a></li>
-                        <li><a href="?load=../assets/examples/markdown/seattle-weather/3.idoc.md">Example 3</a></li>
-                    </ul>
-                </li>
-            </ul>
-
-            Refresh this page to start over.
-
-        </div>
-
-    </main>
-
-    <footer>
-        Powered by <a href="https://github.com/chartifact/chartifact">Chartifact</a>
-        <button>edit a copy</button>
-    </footer>
-
-    <script src="../assets/js/view.js"></script>
-
-</body>
-
-</html>

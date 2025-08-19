@@ -1,0 +1,30 @@
+
+/* Footer */
+.footer {
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    padding: 0.75rem 0;
+    margin-top: auto;
+    font-size: 0.75rem;
+}
+
+.footer-content {
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+.footer-content span,
+.footer-content a {
+    color: #343a40;
+    text-decoration: none;
+}
+
+.footer-content a:hover {
+    color: #0078d4;
+}
+
+@media (max-width: 768px) {
+    .footer-content { gap: 1rem; }
+}

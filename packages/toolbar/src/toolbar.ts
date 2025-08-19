@@ -6,6 +6,7 @@
 export interface ToolbarOptions {
     tweakButton?: boolean;
     downloadButton?: boolean;
+    restartButton?: boolean;
     textarea?: HTMLTextAreaElement;
     mode?: 'markdown' | 'json';
     filename?: string;
@@ -15,6 +16,7 @@ export class Toolbar {
     public toolbarElement: HTMLElement;
     public folderSpan: HTMLElement;
     public tweakButton: HTMLButtonElement;
+    public restartButton: HTMLButtonElement;
     public downloadButton: HTMLButtonElement;
     public mode: 'markdown' | 'json';
     public filename: string;
@@ -34,26 +36,37 @@ export class Toolbar {
 </div>
 <div id="folderSpan" style="display: none;"></div>
 <div>
-    <button type="button" id="tweak" style="display: none;">tweak</button>
+    <button type="button" id="restart" style="display: none;">start over</button>
+    <button type="button" id="tweak" style="display: none;">view source</button>
     <button type="button" id="download" style="display: none;">download</button>
 </div>
         `;
 
         this.toolbarElement.innerHTML = html;
 
-        this.tweakButton = this.toolbarElement.querySelector('#tweak') as HTMLButtonElement;
         this.folderSpan = this.toolbarElement.querySelector('#folderSpan') as HTMLElement;
+        this.tweakButton = this.toolbarElement.querySelector('#tweak') as HTMLButtonElement;
+        this.restartButton = this.toolbarElement.querySelector('#restart') as HTMLButtonElement;
         this.downloadButton = this.toolbarElement.querySelector('#download') as HTMLButtonElement;
 
         if (this.options.tweakButton) {
             this.showTweakButton();
         }
+
+        if (this.options.restartButton) {
+            this.showRestartButton();
+        }
+
         if (this.options.downloadButton) {
             this.showDownloadButton();
         }
 
         this.tweakButton?.addEventListener('click', () => {
             this.options.textarea.style.display = this.options.textarea.style.display === 'none' ? '' : 'none';
+        });
+
+        this.restartButton?.addEventListener('click', () => {
+            window.location.reload();
         });
 
         this.downloadButton?.addEventListener('click', () => {
@@ -80,6 +93,10 @@ export class Toolbar {
 
     showTweakButton() {
         this.tweakButton.style.display = '';
+    }
+
+    showRestartButton() {
+        this.restartButton.style.display = '';
     }
 
     showDownloadButton() {

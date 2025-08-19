@@ -324,10 +324,11 @@ document.addEventListener('DOMContentLoaded', () => {
       __publicField(this, "toolbarElement");
       __publicField(this, "folderSpan");
       __publicField(this, "tweakButton");
+      __publicField(this, "restartButton");
       __publicField(this, "downloadButton");
       __publicField(this, "mode");
       __publicField(this, "filename");
-      var _a, _b;
+      var _a, _b, _c;
       this.options = options;
       this.filename = options.filename || "sample";
       this.mode = options.mode || "markdown";
@@ -341,16 +342,21 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 <div id="folderSpan" style="display: none;"></div>
 <div>
-    <button type="button" id="tweak" style="display: none;">tweak</button>
+    <button type="button" id="restart" style="display: none;">start over</button>
+    <button type="button" id="tweak" style="display: none;">view source</button>
     <button type="button" id="download" style="display: none;">download</button>
 </div>
         `;
       this.toolbarElement.innerHTML = html;
-      this.tweakButton = this.toolbarElement.querySelector("#tweak");
       this.folderSpan = this.toolbarElement.querySelector("#folderSpan");
+      this.tweakButton = this.toolbarElement.querySelector("#tweak");
+      this.restartButton = this.toolbarElement.querySelector("#restart");
       this.downloadButton = this.toolbarElement.querySelector("#download");
       if (this.options.tweakButton) {
         this.showTweakButton();
+      }
+      if (this.options.restartButton) {
+        this.showRestartButton();
       }
       if (this.options.downloadButton) {
         this.showDownloadButton();
@@ -358,7 +364,10 @@ document.addEventListener('DOMContentLoaded', () => {
       (_a = this.tweakButton) == null ? void 0 : _a.addEventListener("click", () => {
         this.options.textarea.style.display = this.options.textarea.style.display === "none" ? "" : "none";
       });
-      (_b = this.downloadButton) == null ? void 0 : _b.addEventListener("click", () => {
+      (_b = this.restartButton) == null ? void 0 : _b.addEventListener("click", () => {
+        window.location.reload();
+      });
+      (_c = this.downloadButton) == null ? void 0 : _c.addEventListener("click", () => {
         const textarea = this.options.textarea;
         if (!textarea)
           return;
@@ -382,6 +391,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     showTweakButton() {
       this.tweakButton.style.display = "";
+    }
+    showRestartButton() {
+      this.restartButton.style.display = "";
     }
     showDownloadButton() {
       this.downloadButton.style.display = "";
