@@ -39,7 +39,7 @@ export function setupDragDropHandling(host: Listener) {
         );
         return;
       }
-      determineContent('dropped-content', content, host, true);
+      determineContent('dropped-content', content, host, true, true);
     } else {
       host.errorHandler(
         'Unsupported drop content',

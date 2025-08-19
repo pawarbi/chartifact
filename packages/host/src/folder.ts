@@ -170,7 +170,7 @@ async function resolveUrl(title: string, base: string, relativeOrAbsolute: strin
         );
         return;
     }
-    const result = await loadViaUrl(url, host, false);
+    const result = await loadViaUrl(url, host, false, false);
     if (result.error) {
         host.errorHandler(
             result.error,
@@ -179,11 +179,11 @@ async function resolveUrl(title: string, base: string, relativeOrAbsolute: strin
         return;
     }
     if (result.idoc) {
-        host.render(title, undefined, result.idoc);
+        host.render(title, undefined, result.idoc, false);
     } else if (result.markdown) {
-        host.render(title, result.markdown, undefined);
+        host.render(title, result.markdown, undefined, false);
     } else if (result.folder) {
-        host.render('Error', 'Nested folders are not supported', undefined);
+        host.render('Error', 'Nested folders are not supported', undefined, false);
     } else {
         host.errorHandler(
             'Invalid document format',

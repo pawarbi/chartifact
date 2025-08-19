@@ -14,12 +14,12 @@ export function checkUrlForFile(host: Listener) {
     return false; // No load parameter found
   }
 
-  loadViaUrl(loadUrl, host, true);
+  loadViaUrl(loadUrl, host, true, false);
 
   return true; // We found a load parameter
 }
 
-export async function loadViaUrl(loadUrl: string, host: Listener, handle: boolean): Promise<ContentResult> {
+export async function loadViaUrl(loadUrl: string, host: Listener, handle: boolean, showRestart: boolean): Promise<ContentResult> {
   // Allow same-origin (including relative) URLs, or validate external URLs
   if (!isSameOrigin(loadUrl) && !isValidLoadUrl(loadUrl)) {
     return {
@@ -38,7 +38,7 @@ export async function loadViaUrl(loadUrl: string, host: Listener, handle: boolea
         errorDetail: `Error loading file from the provided URL`
       };
     }
-    return determineContent(url.href, response.body, host, handle);
+    return determineContent(url.href, response.body, host, handle, showRestart);
   } catch (error) {
     return {
       error: 'Error loading file',
