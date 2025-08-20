@@ -434,65 +434,61 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     };
     p.block.ruler.before("fence", `container_${n}`, I2, { alt: ["paragraph", "reference", "blockquote", "list"] }), p.renderer.rules[`container_${n}_open`] = g2, p.renderer.rules[`container_${n}_close`] = C2;
   };
-  const plugins = [];
-  function registerMarkdownPlugin(plugin) {
-    let insertIndex = plugins.length;
-    let minIndex = 0;
-    for (let i = 0; i < plugins.length; i++) {
-      if (plugins[i].hydratesBefore === plugin.name) {
-        minIndex = Math.max(minIndex, i + 1);
+  class DynamicUrl {
+    constructor(templateUrl, onChange) {
+      __publicField(this, "signals");
+      __publicField(this, "tokens");
+      __publicField(this, "lastUrl");
+      this.templateUrl = templateUrl;
+      this.onChange = onChange;
+      this.signals = {};
+      this.tokens = tokenizeTemplate(templateUrl);
+      const signalNames = this.tokens.filter((token) => token.type === "variable").map((token) => token.name);
+      if (signalNames.length === 0) {
+        onChange(templateUrl);
+        this.lastUrl = templateUrl;
+        return;
       }
+      signalNames.forEach((signalName) => {
+        this.signals[signalName] = void 0;
+      });
     }
-    if (plugin.hydratesBefore) {
-      const targetIndex = plugins.findIndex((p) => p.name === plugin.hydratesBefore);
-      if (targetIndex !== -1) {
-        insertIndex = targetIndex;
+    makeUrl() {
+      const signalNames = Object.keys(this.signals);
+      if (signalNames.length === 0) {
+        return this.templateUrl;
       }
-    }
-    insertIndex = Math.max(insertIndex, minIndex);
-    plugins.splice(insertIndex, 0, plugin);
-    return "register";
-  }
-  function create() {
-    var _a;
-    const md = new markdownit();
-    for (const plugin of plugins) {
-      (_a = plugin.initializePlugin) == null ? void 0 : _a.call(plugin, md);
-    }
-    md.use(G);
-    const containerOptions = { name: defaultCommonOptions.groupClassName };
-    md.use(R, containerOptions);
-    const originalFence = md.renderer.rules.fence;
-    md.renderer.rules.fence = function(tokens, idx, options, env, slf) {
-      const token = tokens[idx];
-      const info = token.info.trim();
-      const findPlugin = (pluginName2) => {
-        const plugin = plugins.find((p) => p.name === pluginName2);
-        if (plugin && plugin.fence) {
-          return plugin.fence(token, idx);
-        }
-      };
-      if (info.startsWith("#")) {
-        return findPlugin("#");
-      } else {
-        const directPlugin = findPlugin(info);
-        if (directPlugin) {
-          return directPlugin;
-        } else if (info.startsWith("json ")) {
-          const jsonPluginName = info.slice(5).trim();
-          const jsonPlugin = findPlugin(jsonPluginName);
-          if (jsonPlugin) {
-            return jsonPlugin;
+      if (this.tokens.length === 1 && this.tokens[0].type === "variable") {
+        return this.signals[this.tokens[0].name] || "";
+      }
+      const urlParts = [];
+      this.tokens.forEach((token) => {
+        if (token.type === "literal") {
+          urlParts.push(token.value);
+        } else if (token.type === "variable") {
+          const signalValue = this.signals[token.name];
+          if (signalValue !== void 0) {
+            urlParts.push(encodeURIComponent(signalValue));
           }
         }
+      });
+      return urlParts.join("");
+    }
+    receiveBatch(batch) {
+      for (const [signalName, batchItem] of Object.entries(batch)) {
+        if (signalName in this.signals) {
+          if (batchItem.isData || batchItem.value === void 0) {
+            continue;
+          }
+          this.signals[signalName] = batchItem.value.toString();
+        }
       }
-      if (originalFence) {
-        return originalFence(tokens, idx, options, env, slf);
-      } else {
-        return "";
+      const newUrl = this.makeUrl();
+      if (newUrl !== this.lastUrl) {
+        this.onChange(newUrl);
+        this.lastUrl = newUrl;
       }
-    };
-    return md;
+    }
   }
   function getJsonScriptTag(container, errorHandler) {
     const scriptTag = container.previousElementSibling;
@@ -589,10 +585,475 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     };
     return plugin;
   }
-  const pluginName$c = "checkbox";
-  const className$a = pluginClassName(pluginName$c);
+  const ImageOpacity = {
+    full: "1",
+    loading: "0.1",
+    error: "0.5"
+  };
+  const pluginName$d = "image";
+  const className$b = pluginClassName(pluginName$d);
+  const imagePlugin = {
+    ...flaggableJsonPlugin(pluginName$d, className$b),
+    hydrateComponent: async (renderer, errorHandler, specs) => {
+      const imageInstances = [];
+      for (let index2 = 0; index2 < specs.length; index2++) {
+        const specReview = specs[index2];
+        if (!specReview.approvedSpec) {
+          continue;
+        }
+        const container = renderer.element.querySelector(`#${specReview.containerId}`);
+        const spec = specReview.approvedSpec;
+        container.innerHTML = createImageContainerTemplate("", spec.alt, spec.url, index2, errorHandler);
+        const { img, spinner, retryBtn, dynamicUrl } = createImageLoadingLogic(
+          container,
+          null,
+          (error) => {
+            errorHandler(error, pluginName$d, index2, "load", container, img.src);
+          }
+        );
+        const imageInstance = {
+          id: `${pluginName$d}-${index2}`,
+          spec,
+          img: null,
+          // Will be set below
+          spinner: null,
+          // Will be set below
+          dynamicUrl
+        };
+        imageInstance.img = img;
+        imageInstance.spinner = spinner;
+        if (spec.alt) img.alt = spec.alt;
+        if (spec.width) img.width = spec.width;
+        if (spec.height) img.height = spec.height;
+        imageInstances.push(imageInstance);
+      }
+      const instances = imageInstances.map((imageInstance, index2) => {
+        const { img, spinner, id, dynamicUrl } = imageInstance;
+        const signalNames = Object.keys((dynamicUrl == null ? void 0 : dynamicUrl.signals) || {});
+        return {
+          id,
+          initialSignals: Array.from(signalNames).map((name) => ({
+            name,
+            value: null,
+            priority: -1,
+            isData: false
+          })),
+          destroy: () => {
+            if (img) {
+              img.remove();
+            }
+            if (spinner) {
+              spinner.remove();
+            }
+          },
+          receiveBatch: async (batch, from) => {
+            dynamicUrl == null ? void 0 : dynamicUrl.receiveBatch(batch);
+          }
+        };
+      });
+      return instances;
+    }
+  };
+  const imgSpinner = `
+<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" stroke="gray" stroke-width="2" fill="none" stroke-dasharray="31.4" stroke-dashoffset="0">
+        <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+    </circle>
+</svg>
+`;
+  function createImageContainerTemplate(clasName, alt, src, instanceIndex, errorHandler) {
+    const tempImg = document.createElement("img");
+    if (src.includes("{{")) {
+      tempImg.setAttribute("src", "data:,");
+      tempImg.setAttribute("data-dynamic-url", src);
+    } else {
+      if (isSafeImageUrl(src)) {
+        tempImg.setAttribute("src", src);
+      } else {
+        errorHandler(new Error(`Unsafe image URL: ${src}`), pluginName$d, instanceIndex, "load", null, src);
+      }
+    }
+    tempImg.setAttribute("alt", alt);
+    const imgHtml = tempImg.outerHTML;
+    return `<span class="${clasName}" style="position: relative;display:inline-block;min-width:24px;min-height:10px;">
+        <span class="image-spinner" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;">
+            ${imgSpinner}
+        </span>
+        ${imgHtml}
+        <button type="button" class="image-retry" style="display: none;">Retry</button>
+    </span>`;
+  }
+  function createImageLoadingLogic(container, onSuccess, onError) {
+    container.style.position = "relative";
+    const img = container.querySelector("img");
+    const spinner = container.querySelector(".image-spinner");
+    const retryBtn = container.querySelector(".image-retry");
+    const dataDynamicUrl = img.getAttribute("data-dynamic-url");
+    img.onload = () => {
+      spinner.style.display = "none";
+      img.style.opacity = ImageOpacity.full;
+      img.style.display = "";
+      retryBtn.style.display = "none";
+      img.setAttribute("hasImage", "true");
+    };
+    img.onerror = () => {
+      spinner.style.display = "none";
+      img.style.opacity = ImageOpacity.error;
+      img.style.display = "none";
+      retryBtn.style.display = "";
+      retryBtn.disabled = false;
+      img.setAttribute("hasImage", "false");
+      onError == null ? void 0 : onError(new Error("Image failed to load"));
+    };
+    retryBtn.onclick = () => {
+      retryBtn.disabled = true;
+      spinner.style.display = "";
+      img.style.opacity = ImageOpacity.loading;
+      img.style.display = img.getAttribute("hasImage") ? "" : "none";
+      const src = img.src;
+      const onload = img.onload;
+      const onerror = img.onerror;
+      img.src = "data:,";
+      img.onload = null;
+      img.onerror = null;
+      setTimeout(() => {
+        img.onload = onload;
+        img.onerror = onerror;
+        img.src = src;
+      }, 100);
+    };
+    const result = { img, spinner, retryBtn };
+    if (dataDynamicUrl) {
+      const dynamicUrl = new DynamicUrl(dataDynamicUrl, (src) => {
+        if (isSafeImageUrl(src)) {
+          spinner.style.display = "";
+          img.src = src;
+          img.style.opacity = ImageOpacity.loading;
+        } else {
+          img.src = "";
+          spinner.style.display = "none";
+          img.style.opacity = ImageOpacity.full;
+        }
+      });
+      result.dynamicUrl = dynamicUrl;
+    }
+    return result;
+  }
+  function isSafeImageUrl(url) {
+    try {
+      if (url.startsWith("data:image/")) {
+        const safeMimeTypes = [
+          "data:image/png",
+          "data:image/jpeg",
+          "data:image/gif",
+          "data:image/webp",
+          "data:image/bmp",
+          "data:image/x-icon"
+        ];
+        for (const mime of safeMimeTypes) {
+          if (url.startsWith(mime)) {
+            return true;
+          }
+        }
+        return false;
+      }
+      const parsed = new URL(url, window.location.origin);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }
+  function decorateDynamicUrl(tokens, idx, attrName, elementType) {
+    const token = tokens[idx];
+    const attrValue = token.attrGet(attrName);
+    if (attrValue && attrValue.includes("%7B%7B")) {
+      if (!token.attrs) {
+        token.attrs = [];
+      }
+      token.attrSet("dynamic-url", decodeURIComponent(attrValue));
+      token.attrSet(attrName, "");
+    }
+    return token;
+  }
+  function decorateFenceWithPlaceholders(tokens, idx) {
+    const token = tokens[idx];
+    const content = token.content;
+    if (content && content.includes("{{")) {
+      const templateTokens = tokenizeTemplate(content);
+      const variableTokens = templateTokens.filter((t) => t.type === "variable");
+      if (variableTokens.length > 0) {
+        const templateContent = encodeURIComponent(content);
+        const placeholderData = variableTokens.map((t) => `data-placeholder-${t.name.toLowerCase()}="true"`).join(" ");
+        return `<pre class="has-placeholders" data-template-content="${templateContent}" ${placeholderData}><code></code></pre>`;
+      }
+    }
+    return null;
+  }
+  const pluginName$c = "placeholders";
+  const imageClassName = pluginClassName(pluginName$c + "_image");
+  const placeholdersPlugin = {
+    name: pluginName$c,
+    initializePlugin: async (md) => {
+      md.use(function(md2) {
+        md2.inline.ruler.after("emphasis", "dynamic_placeholder", function(state, silent) {
+          let token;
+          const max = state.posMax;
+          const start = state.pos;
+          if (state.src.charCodeAt(start) !== 123 || state.src.charCodeAt(start + 1) !== 123) {
+            return false;
+          }
+          for (let pos = start + 2; pos < max; pos++) {
+            if (state.src.charCodeAt(pos) === 125 && state.src.charCodeAt(pos + 1) === 125) {
+              if (!silent) {
+                state.pos = start + 2;
+                state.posMax = pos;
+                token = state.push("dynamic_placeholder", "", 0);
+                token.markup = state.src.slice(start, pos + 2);
+                token.content = state.src.slice(state.pos, state.posMax);
+                state.pos = pos + 2;
+                state.posMax = max;
+              }
+              return true;
+            }
+          }
+          return false;
+        });
+        md2.renderer.rules["dynamic_placeholder"] = function(tokens, idx) {
+          const key = tokens[idx].content.trim();
+          return `<span class="dynamic-placeholder" data-key="${key}">{${key}}</span>`;
+        };
+      });
+      md.renderer.rules["link_open"] = function(tokens, idx, options, env, slf) {
+        decorateDynamicUrl(tokens, idx, "href");
+        return slf.renderToken(tokens, idx, options);
+      };
+      md.renderer.rules["image"] = function(tokens, idx, options, env, slf) {
+        const alt = tokens[idx].attrGet("alt");
+        const src = tokens[idx].attrGet("src");
+        let error;
+        const html = createImageContainerTemplate(imageClassName, alt, decodeURIComponent(src), idx, (e, pluginName2, instanceIndex, phase, container, detail) => {
+          error = sanitizeHtmlComment(`Error in plugin ${pluginName2} instance ${instanceIndex} phase ${phase}: ${e.message} ${detail}`);
+        });
+        return error || html;
+      };
+    },
+    hydrateComponent: async (renderer, errorHandler) => {
+      const dynamicUrlMap = /* @__PURE__ */ new WeakMap();
+      const templateHandlerMap = /* @__PURE__ */ new WeakMap();
+      const placeholders = renderer.element.querySelectorAll(".dynamic-placeholder");
+      const dynamicUrls = renderer.element.querySelectorAll("[dynamic-url]");
+      const dynamicImages = renderer.element.querySelectorAll(`.${imageClassName}`);
+      const codeBlocksWithPlaceholders = renderer.element.querySelectorAll(".has-placeholders[data-template-content]");
+      const elementsByKeys = /* @__PURE__ */ new Map();
+      for (const placeholder of Array.from(placeholders)) {
+        const key = placeholder.getAttribute("data-key");
+        if (!key) {
+          continue;
+        }
+        if (elementsByKeys.has(key)) {
+          elementsByKeys.get(key).push(placeholder);
+        } else {
+          elementsByKeys.set(key, [placeholder]);
+        }
+      }
+      for (const element of Array.from(codeBlocksWithPlaceholders)) {
+        const templateContent = element.getAttribute("data-template-content");
+        if (!templateContent) {
+          continue;
+        }
+        const templateText = decodeURIComponent(templateContent);
+        const tokens = tokenizeTemplate(templateText);
+        const variableTokens = tokens.filter((token) => token.type === "variable");
+        const templateHandler = {
+          signals: {},
+          update: () => {
+            let content = "";
+            for (const token of tokens) {
+              if (token.type === "literal") {
+                content += token.value;
+              } else if (token.type === "variable") {
+                content += templateHandler.signals[token.name] || "";
+              }
+            }
+            element.innerHTML = `<code>${content}</code>`;
+          }
+        };
+        variableTokens.forEach((token) => {
+          templateHandler.signals[token.name] = "";
+        });
+        templateHandlerMap.set(element, templateHandler);
+        variableTokens.forEach((token) => {
+          const key = token.name;
+          if (elementsByKeys.has(key)) {
+            elementsByKeys.get(key).push(element);
+          } else {
+            elementsByKeys.set(key, [element]);
+          }
+        });
+      }
+      for (const element of Array.from(dynamicUrls)) {
+        const templateUrl = element.getAttribute("dynamic-url");
+        if (!templateUrl) {
+          continue;
+        }
+        if (element.tagName === "A") {
+          const dynamicUrl = new DynamicUrl(templateUrl, (url) => {
+            element.setAttribute("href", url);
+          });
+          dynamicUrlMap.set(element, dynamicUrl);
+          for (const key of Object.keys(dynamicUrl.signals)) {
+            if (elementsByKeys.has(key)) {
+              elementsByKeys.get(key).push(element);
+            } else {
+              elementsByKeys.set(key, [element]);
+            }
+          }
+        }
+      }
+      for (const element of Array.from(dynamicImages)) {
+        const { dynamicUrl, img } = createImageLoadingLogic(element, null, (error) => {
+          const index2 = -1;
+          errorHandler(error, pluginName$c, index2, "load", element, img.src);
+        });
+        if (!dynamicUrl) {
+          continue;
+        }
+        dynamicUrlMap.set(element, dynamicUrl);
+        for (const key of Object.keys(dynamicUrl.signals)) {
+          if (elementsByKeys.has(key)) {
+            elementsByKeys.get(key).push(element);
+          } else {
+            elementsByKeys.set(key, [element]);
+          }
+        }
+      }
+      const initialSignals = Array.from(elementsByKeys.keys()).map((name) => {
+        const prioritizedSignal = {
+          name,
+          value: null,
+          priority: -1,
+          isData: false
+        };
+        return prioritizedSignal;
+      });
+      const instances = [
+        {
+          id: pluginName$c,
+          initialSignals,
+          receiveBatch: async (batch) => {
+            var _a, _b;
+            for (const key of Object.keys(batch)) {
+              const elements = elementsByKeys.get(key) || [];
+              for (const element of elements) {
+                if (element.classList.contains("dynamic-placeholder")) {
+                  const markdownContent = ((_a = batch[key].value) == null ? void 0 : _a.toString()) || "";
+                  const parsedMarkdown = isMarkdownInline(markdownContent) ? renderer.md.renderInline(markdownContent) : renderer.md.render(markdownContent);
+                  element.innerHTML = parsedMarkdown;
+                } else if (element.hasAttribute("dynamic-url")) {
+                  const dynamicUrl = dynamicUrlMap.get(element);
+                  if (dynamicUrl) {
+                    dynamicUrl.receiveBatch(batch);
+                  }
+                } else if (element.classList.contains(imageClassName)) {
+                  const dynamicUrl = dynamicUrlMap.get(element);
+                  if (dynamicUrl) {
+                    dynamicUrl.receiveBatch(batch);
+                  }
+                } else if (element.hasAttribute("data-template-content")) {
+                  const templateHandler = templateHandlerMap.get(element);
+                  if (templateHandler && templateHandler.signals) {
+                    templateHandler.signals[key] = ((_b = batch[key].value) == null ? void 0 : _b.toString()) || "";
+                    templateHandler.update();
+                  }
+                }
+              }
+            }
+          }
+        }
+      ];
+      return instances;
+    }
+  };
+  function isMarkdownInline(markdown) {
+    if (!markdown.includes("\n")) {
+      return true;
+    }
+    const blockElements = ["#", "-", "*", ">", "```", "~~~"];
+    for (const element of blockElements) {
+      if (markdown.trim().startsWith(element)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  const plugins = [];
+  function registerMarkdownPlugin(plugin) {
+    let insertIndex = plugins.length;
+    let minIndex = 0;
+    for (let i = 0; i < plugins.length; i++) {
+      if (plugins[i].hydratesBefore === plugin.name) {
+        minIndex = Math.max(minIndex, i + 1);
+      }
+    }
+    if (plugin.hydratesBefore) {
+      const targetIndex = plugins.findIndex((p) => p.name === plugin.hydratesBefore);
+      if (targetIndex !== -1) {
+        insertIndex = targetIndex;
+      }
+    }
+    insertIndex = Math.max(insertIndex, minIndex);
+    plugins.splice(insertIndex, 0, plugin);
+    return "register";
+  }
+  function create() {
+    var _a;
+    const md = new markdownit();
+    for (const plugin of plugins) {
+      (_a = plugin.initializePlugin) == null ? void 0 : _a.call(plugin, md);
+    }
+    md.use(G);
+    const containerOptions = { name: defaultCommonOptions.groupClassName };
+    md.use(R, containerOptions);
+    const originalFence = md.renderer.rules.fence;
+    md.renderer.rules.fence = function(tokens, idx, options, env, slf) {
+      const token = tokens[idx];
+      const info = token.info.trim();
+      const findPlugin = (pluginName2) => {
+        const plugin = plugins.find((p) => p.name === pluginName2);
+        if (plugin && plugin.fence) {
+          return plugin.fence(token, idx);
+        }
+      };
+      if (info.startsWith("#")) {
+        return findPlugin("#");
+      } else {
+        const directPlugin = findPlugin(info);
+        if (directPlugin) {
+          return directPlugin;
+        } else if (info.startsWith("json ")) {
+          const jsonPluginName = info.slice(5).trim();
+          const jsonPlugin = findPlugin(jsonPluginName);
+          if (jsonPlugin) {
+            return jsonPlugin;
+          }
+        }
+      }
+      if (originalFence) {
+        const originalResult = originalFence(tokens, idx, options, env, slf);
+        if (token.content && token.content.includes("{{")) {
+          return decorateFenceWithPlaceholders([token], 0);
+        }
+        return originalResult;
+      } else {
+        return "";
+      }
+    };
+    return md;
+  }
+  const pluginName$b = "checkbox";
+  const className$a = pluginClassName(pluginName$b);
   const checkboxPlugin = {
-    ...flaggableJsonPlugin(pluginName$c, className$a),
+    ...flaggableJsonPlugin(pluginName$b, className$a),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const { signalBus } = renderer;
       const checkboxInstances = [];
@@ -613,7 +1074,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 </form>`;
         container.innerHTML = html;
         const element = container.querySelector('input[type="checkbox"]');
-        const checkboxInstance = { id: `${pluginName$c}-${index2}`, spec, element };
+        const checkboxInstance = { id: `${pluginName$b}-${index2}`, spec, element };
         checkboxInstances.push(checkboxInstance);
       }
       const instances = checkboxInstances.map((checkboxInstance) => {
@@ -656,9 +1117,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return instances;
     }
   };
-  const pluginName$b = "#";
+  const pluginName$a = "#";
   const commentPlugin = {
-    name: pluginName$b,
+    name: pluginName$a,
     fence: (token) => {
       const content = token.content.trim();
       return sanitizeHtmlComment(content);
@@ -865,14 +1326,14 @@ ${reconstitutedRules.join("\n\n")}
     }
     return result;
   }
-  const pluginName$a = "css";
-  const className$9 = pluginClassName(pluginName$a);
+  const pluginName$9 = "css";
+  const className$9 = pluginClassName(pluginName$9);
   const cssPlugin = {
-    ...flaggableJsonPlugin(pluginName$a, className$9),
+    ...flaggableJsonPlugin(pluginName$9, className$9),
     fence: (token, index2) => {
       const cssContent = token.content.trim();
       const categorizedCss = categorizeCss(cssContent);
-      return sanitizedHTML("div", { id: `${pluginName$a}-${index2}`, class: className$9 }, JSON.stringify(categorizedCss), true);
+      return sanitizedHTML("div", { id: `${pluginName$9}-${index2}`, class: className$9 }, JSON.stringify(categorizedCss), true);
     },
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const cssInstances = [];
@@ -894,7 +1355,7 @@ ${reconstitutedRules.join("\n\n")}
           target.appendChild(styleElement);
           comments.push(`<!-- CSS styles applied to ${renderer.shadowRoot ? "shadow DOM" : "document"} -->`);
           cssInstances.push({
-            id: `${pluginName$a}-${index2}`,
+            id: `${pluginName$9}-${index2}`,
             element: styleElement
           });
         } else {
@@ -992,8 +1453,8 @@ ${reconstitutedRules.join("\n\n")}
     generateRule("hero", "h1");
     return cssRules.join("\n\n");
   }
-  const pluginName$9 = "google-fonts";
-  const className$8 = pluginClassName(pluginName$9);
+  const pluginName$8 = "google-fonts";
+  const className$8 = pluginClassName(pluginName$8);
   function inspectGoogleFontsSpec(spec) {
     var _a, _b;
     const reasons = [];
@@ -1022,7 +1483,7 @@ ${reconstitutedRules.join("\n\n")}
     };
   }
   const googleFontsPlugin = {
-    ...flaggableJsonPlugin(pluginName$9, className$8, inspectGoogleFontsSpec),
+    ...flaggableJsonPlugin(pluginName$8, className$8, inspectGoogleFontsSpec),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const googleFontsInstances = [];
       let emitted = false;
@@ -1093,10 +1554,10 @@ ${reconstitutedRules.join("\n\n")}
       return instances;
     }
   };
-  const pluginName$8 = "dropdown";
-  const className$7 = pluginClassName(pluginName$8);
+  const pluginName$7 = "dropdown";
+  const className$7 = pluginClassName(pluginName$7);
   const dropdownPlugin = {
-    ...flaggableJsonPlugin(pluginName$8, className$7),
+    ...flaggableJsonPlugin(pluginName$7, className$7),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const { signalBus } = renderer;
       const dropdownInstances = [];
@@ -1119,7 +1580,7 @@ ${reconstitutedRules.join("\n\n")}
         container.innerHTML = html;
         const element = container.querySelector("select");
         setSelectOptions(element, spec.multiple ?? false, spec.options ?? [], spec.value ?? (spec.multiple ? [] : ""));
-        const dropdownInstance = { id: `${pluginName$8}-${index2}`, spec, element };
+        const dropdownInstance = { id: `${pluginName$7}-${index2}`, spec, element };
         dropdownInstances.push(dropdownInstance);
       }
       const instances = dropdownInstances.map((dropdownInstance, index2) => {
@@ -1243,405 +1704,258 @@ ${reconstitutedRules.join("\n\n")}
       selectElement.appendChild(optionElement);
     });
   }
-  class DynamicUrl {
-    constructor(templateUrl, onChange) {
-      __publicField(this, "signals");
-      __publicField(this, "tokens");
-      __publicField(this, "lastUrl");
-      this.templateUrl = templateUrl;
-      this.onChange = onChange;
-      this.signals = {};
-      this.tokens = tokenizeTemplate(templateUrl);
-      const signalNames = this.tokens.filter((token) => token.type === "variable").map((token) => token.name);
-      if (signalNames.length === 0) {
-        onChange(templateUrl);
-        this.lastUrl = templateUrl;
-        return;
-      }
-      signalNames.forEach((signalName) => {
-        this.signals[signalName] = void 0;
-      });
-    }
-    makeUrl() {
-      const signalNames = Object.keys(this.signals);
-      if (signalNames.length === 0) {
-        return this.templateUrl;
-      }
-      if (this.tokens.length === 1 && this.tokens[0].type === "variable") {
-        return this.signals[this.tokens[0].name] || "";
-      }
-      const urlParts = [];
-      this.tokens.forEach((token) => {
-        if (token.type === "literal") {
-          urlParts.push(token.value);
-        } else if (token.type === "variable") {
-          const signalValue = this.signals[token.name];
-          if (signalValue !== void 0) {
-            urlParts.push(encodeURIComponent(signalValue));
-          }
-        }
-      });
-      return urlParts.join("");
-    }
-    receiveBatch(batch) {
-      for (const [signalName, batchItem] of Object.entries(batch)) {
-        if (signalName in this.signals) {
-          if (batchItem.isData || batchItem.value === void 0) {
-            continue;
-          }
-          this.signals[signalName] = batchItem.value.toString();
+  const pluginName$6 = "mermaid";
+  const className$6 = pluginClassName(pluginName$6);
+  function inspectMermaidSpec(spec) {
+    const reasons = [];
+    let hasFlags = false;
+    if (typeof spec === "string") {
+      const dangerousPatterns = [
+        /javascript:/i,
+        /<script/i,
+        /onclick=/i,
+        /onerror=/i,
+        /onload=/i,
+        /href\s*=\s*["']javascript:/i
+      ];
+      for (const pattern of dangerousPatterns) {
+        if (pattern.test(spec)) {
+          hasFlags = true;
+          reasons.push("Potentially unsafe content detected in diagram");
+          break;
         }
       }
-      const newUrl = this.makeUrl();
-      if (newUrl !== this.lastUrl) {
-        this.onChange(newUrl);
-        this.lastUrl = newUrl;
+    } else {
+      if (spec.template && typeof spec.template !== "object") {
+        hasFlags = true;
+        reasons.push("template must be an object if provided");
+      } else if (spec.template) {
+        if (!spec.template.header || typeof spec.template.header !== "string") {
+          hasFlags = true;
+          reasons.push("template.header must be a non-empty string");
+        }
+        if (!spec.template.lineTemplates || typeof spec.template.lineTemplates !== "object") {
+          hasFlags = true;
+          reasons.push("template.lineTemplates must be an object");
+        } else {
+          for (const [templateName, template] of Object.entries(spec.template.lineTemplates)) {
+            if (typeof template !== "string") {
+              hasFlags = true;
+              reasons.push(`Template '${templateName}' must be a string`);
+            }
+          }
+        }
+      }
+      if (!spec.dataSourceName) {
+        hasFlags = true;
+        reasons.push("Must specify dataSourceName for dynamic content");
       }
     }
+    return {
+      spec,
+      hasFlags,
+      reasons
+    };
   }
-  const ImageOpacity = {
-    full: "1",
-    loading: "0.1",
-    error: "0.5"
-  };
-  const pluginName$7 = "image";
-  const className$6 = pluginClassName(pluginName$7);
-  const imagePlugin = {
-    ...flaggableJsonPlugin(pluginName$7, className$6),
+  async function initializeMermaid() {
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "strict"
+    });
+  }
+  if (typeof mermaid !== "undefined") {
+    initializeMermaid();
+  }
+  let mermaidLoadPromise = null;
+  function loadMermaidFromCDN() {
+    if (mermaidLoadPromise) return mermaidLoadPromise;
+    mermaidLoadPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/mermaid@11.10.0/dist/mermaid.min.js";
+      script.async = true;
+      script.onload = () => {
+        initializeMermaid();
+        resolve();
+      };
+      script.onerror = () => reject(new Error("Failed to load Mermaid from CDN"));
+      document.head.appendChild(script);
+    });
+    return mermaidLoadPromise;
+  }
+  const mermaidPlugin = {
+    ...flaggableJsonPlugin(pluginName$6, className$6, inspectMermaidSpec),
+    fence: (token, index2) => {
+      const content = token.content.trim();
+      let spec;
+      let flaggableSpec;
+      try {
+        const parsed = JSON.parse(content);
+        if (parsed && typeof parsed === "object" && (parsed.dataSourceName || parsed.template)) {
+          spec = parsed;
+        } else {
+          spec = content;
+        }
+      } catch (e) {
+        spec = content;
+      }
+      flaggableSpec = inspectMermaidSpec(spec);
+      const json = JSON.stringify(flaggableSpec);
+      return sanitizedHTML("div", { class: className$6, id: `${pluginName$6}-${index2}` }, json, true);
+    },
     hydrateComponent: async (renderer, errorHandler, specs) => {
-      const imageInstances = [];
+      var _a;
+      const { signalBus } = renderer;
+      const mermaidInstances = [];
       for (let index2 = 0; index2 < specs.length; index2++) {
         const specReview = specs[index2];
         if (!specReview.approvedSpec) {
           continue;
         }
         const container = renderer.element.querySelector(`#${specReview.containerId}`);
+        if (!container) {
+          continue;
+        }
         const spec = specReview.approvedSpec;
-        container.innerHTML = createImageContainerTemplate("", spec.alt, spec.url, index2, errorHandler);
-        const { img, spinner, retryBtn, dynamicUrl } = createImageLoadingLogic(
-          container,
-          null,
-          (error) => {
-            errorHandler(error, pluginName$7, index2, "load", container, img.src);
-          }
-        );
-        const imageInstance = {
-          id: `${pluginName$7}-${index2}`,
+        const isDataDriven = typeof spec === "object" && !!spec.dataSourceName;
+        container.innerHTML = `<div class="mermaid-loading">Loading diagram...</div>`;
+        const tokens = typeof spec === "object" ? tokenizeTemplate(((_a = spec.template) == null ? void 0 : _a.header) || "") : [];
+        const mermaidInstance = {
+          id: `${pluginName$6}-${index2}`,
           spec,
-          img: null,
-          // Will be set below
-          spinner: null,
-          // Will be set below
-          dynamicUrl
+          container,
+          isDataDriven,
+          signals: {},
+          tokens,
+          lastRenderedDiagram: null
         };
-        imageInstance.img = img;
-        imageInstance.spinner = spinner;
-        if (spec.alt) img.alt = spec.alt;
-        if (spec.width) img.width = spec.width;
-        if (spec.height) img.height = spec.height;
-        imageInstances.push(imageInstance);
-      }
-      const instances = imageInstances.map((imageInstance, index2) => {
-        const { img, spinner, id, dynamicUrl } = imageInstance;
-        const signalNames = Object.keys((dynamicUrl == null ? void 0 : dynamicUrl.signals) || {});
-        return {
-          id,
-          initialSignals: Array.from(signalNames).map((name) => ({
-            name,
-            value: null,
-            priority: -1,
-            isData: false
-          })),
-          destroy: () => {
-            if (img) {
-              img.remove();
-            }
-            if (spinner) {
-              spinner.remove();
-            }
-          },
-          receiveBatch: async (batch, from) => {
-            dynamicUrl == null ? void 0 : dynamicUrl.receiveBatch(batch);
-          }
-        };
-      });
-      return instances;
-    }
-  };
-  const imgSpinner = `
-<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="12" cy="12" r="10" stroke="gray" stroke-width="2" fill="none" stroke-dasharray="31.4" stroke-dashoffset="0">
-        <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
-    </circle>
-</svg>
-`;
-  function createImageContainerTemplate(clasName, alt, src, instanceIndex, errorHandler) {
-    const tempImg = document.createElement("img");
-    if (src.includes("{{")) {
-      tempImg.setAttribute("src", "data:,");
-      tempImg.setAttribute("data-dynamic-url", src);
-    } else {
-      if (isSafeImageUrl(src)) {
-        tempImg.setAttribute("src", src);
-      } else {
-        errorHandler(new Error(`Unsafe image URL: ${src}`), pluginName$7, instanceIndex, "load", null, src);
-      }
-    }
-    tempImg.setAttribute("alt", alt);
-    const imgHtml = tempImg.outerHTML;
-    return `<span class="${clasName}" style="position: relative;display:inline-block;min-width:24px;min-height:10px;">
-        <span class="image-spinner" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none;">
-            ${imgSpinner}
-        </span>
-        ${imgHtml}
-        <button type="button" class="image-retry" style="display: none;">Retry</button>
-    </span>`;
-  }
-  function createImageLoadingLogic(container, onSuccess, onError) {
-    container.style.position = "relative";
-    const img = container.querySelector("img");
-    const spinner = container.querySelector(".image-spinner");
-    const retryBtn = container.querySelector(".image-retry");
-    const dataDynamicUrl = img.getAttribute("data-dynamic-url");
-    img.onload = () => {
-      spinner.style.display = "none";
-      img.style.opacity = ImageOpacity.full;
-      img.style.display = "";
-      retryBtn.style.display = "none";
-      img.setAttribute("hasImage", "true");
-    };
-    img.onerror = () => {
-      spinner.style.display = "none";
-      img.style.opacity = ImageOpacity.error;
-      img.style.display = "none";
-      retryBtn.style.display = "";
-      retryBtn.disabled = false;
-      img.setAttribute("hasImage", "false");
-      onError == null ? void 0 : onError(new Error("Image failed to load"));
-    };
-    retryBtn.onclick = () => {
-      retryBtn.disabled = true;
-      spinner.style.display = "";
-      img.style.opacity = ImageOpacity.loading;
-      img.style.display = img.getAttribute("hasImage") ? "" : "none";
-      const src = img.src;
-      const onload = img.onload;
-      const onerror = img.onerror;
-      img.src = "data:,";
-      img.onload = null;
-      img.onerror = null;
-      setTimeout(() => {
-        img.onload = onload;
-        img.onerror = onerror;
-        img.src = src;
-      }, 100);
-    };
-    const result = { img, spinner, retryBtn };
-    if (dataDynamicUrl) {
-      const dynamicUrl = new DynamicUrl(dataDynamicUrl, (src) => {
-        if (isSafeImageUrl(src)) {
-          spinner.style.display = "";
-          img.src = src;
-          img.style.opacity = ImageOpacity.loading;
-        } else {
-          img.src = "";
-          spinner.style.display = "none";
-          img.style.opacity = ImageOpacity.full;
-        }
-      });
-      result.dynamicUrl = dynamicUrl;
-    }
-    return result;
-  }
-  function isSafeImageUrl(url) {
-    try {
-      if (url.startsWith("data:image/")) {
-        const safeMimeTypes = [
-          "data:image/png",
-          "data:image/jpeg",
-          "data:image/gif",
-          "data:image/webp",
-          "data:image/bmp",
-          "data:image/x-icon"
-        ];
-        for (const mime of safeMimeTypes) {
-          if (url.startsWith(mime)) {
-            return true;
-          }
-        }
-        return false;
-      }
-      const parsed = new URL(url, window.location.origin);
-      return parsed.protocol === "http:" || parsed.protocol === "https:";
-    } catch {
-      return false;
-    }
-  }
-  function decorateDynamicUrl(tokens, idx, attrName, elementType) {
-    const token = tokens[idx];
-    const attrValue = token.attrGet(attrName);
-    if (attrValue && attrValue.includes("%7B%7B")) {
-      if (!token.attrs) {
-        token.attrs = [];
-      }
-      token.attrSet("dynamic-url", decodeURIComponent(attrValue));
-      token.attrSet(attrName, "");
-    }
-    return token;
-  }
-  const pluginName$6 = "placeholders";
-  const imageClassName = pluginClassName(pluginName$6 + "_image");
-  const placeholdersPlugin = {
-    name: pluginName$6,
-    initializePlugin: async (md) => {
-      md.use(function(md2) {
-        md2.inline.ruler.after("emphasis", "dynamic_placeholder", function(state, silent) {
-          let token;
-          const max = state.posMax;
-          const start = state.pos;
-          if (state.src.charCodeAt(start) !== 123 || state.src.charCodeAt(start + 1) !== 123) {
-            return false;
-          }
-          for (let pos = start + 2; pos < max; pos++) {
-            if (state.src.charCodeAt(pos) === 125 && state.src.charCodeAt(pos + 1) === 125) {
-              if (!silent) {
-                state.pos = start + 2;
-                state.posMax = pos;
-                token = state.push("dynamic_placeholder", "", 0);
-                token.markup = state.src.slice(start, pos + 2);
-                token.content = state.src.slice(state.pos, state.posMax);
-                state.pos = pos + 2;
-                state.posMax = max;
-              }
-              return true;
-            }
-          }
-          return false;
-        });
-        md2.renderer.rules["dynamic_placeholder"] = function(tokens, idx) {
-          const key = tokens[idx].content.trim();
-          return `<span class="dynamic-placeholder" data-key="${key}">{${key}}</span>`;
-        };
-      });
-      md.renderer.rules["link_open"] = function(tokens, idx, options, env, slf) {
-        decorateDynamicUrl(tokens, idx, "href");
-        return slf.renderToken(tokens, idx, options);
-      };
-      md.renderer.rules["image"] = function(tokens, idx, options, env, slf) {
-        const alt = tokens[idx].attrGet("alt");
-        const src = tokens[idx].attrGet("src");
-        let error;
-        const html = createImageContainerTemplate(imageClassName, alt, decodeURIComponent(src), idx, (e, pluginName2, instanceIndex, phase, container, detail) => {
-          error = sanitizeHtmlComment(`Error in plugin ${pluginName2} instance ${instanceIndex} phase ${phase}: ${e.message} ${detail}`);
-        });
-        return error || html;
-      };
-    },
-    hydrateComponent: async (renderer, errorHandler) => {
-      const dynamicUrlMap = /* @__PURE__ */ new WeakMap();
-      const placeholders = renderer.element.querySelectorAll(".dynamic-placeholder");
-      const dynamicUrls = renderer.element.querySelectorAll("[dynamic-url]");
-      const dynamicImages = renderer.element.querySelectorAll(`.${imageClassName}`);
-      const elementsByKeys = /* @__PURE__ */ new Map();
-      for (const placeholder of Array.from(placeholders)) {
-        const key = placeholder.getAttribute("data-key");
-        if (!key) {
-          continue;
-        }
-        if (elementsByKeys.has(key)) {
-          elementsByKeys.get(key).push(placeholder);
-        } else {
-          elementsByKeys.set(key, [placeholder]);
+        mermaidInstances.push(mermaidInstance);
+        if (!isDataDriven && typeof spec === "string") {
+          await renderRawDiagram(mermaidInstance.id, mermaidInstance.container, spec, errorHandler, pluginName$6, index2);
         }
       }
-      for (const element of Array.from(dynamicUrls)) {
-        const templateUrl = element.getAttribute("dynamic-url");
-        if (!templateUrl) {
-          continue;
-        }
-        if (element.tagName === "A") {
-          const dynamicUrl = new DynamicUrl(templateUrl, (url) => {
-            element.setAttribute("href", url);
-          });
-          dynamicUrlMap.set(element, dynamicUrl);
-          for (const key of Object.keys(dynamicUrl.signals)) {
-            if (elementsByKeys.has(key)) {
-              elementsByKeys.get(key).push(element);
-            } else {
-              elementsByKeys.set(key, [element]);
-            }
-          }
-        }
-      }
-      for (const element of Array.from(dynamicImages)) {
-        const { dynamicUrl, img } = createImageLoadingLogic(element, null, (error) => {
-          const index2 = -1;
-          errorHandler(error, pluginName$6, index2, "load", element, img.src);
-        });
-        if (!dynamicUrl) {
-          continue;
-        }
-        dynamicUrlMap.set(element, dynamicUrl);
-        for (const key of Object.keys(dynamicUrl.signals)) {
-          if (elementsByKeys.has(key)) {
-            elementsByKeys.get(key).push(element);
-          } else {
-            elementsByKeys.set(key, [element]);
-          }
-        }
-      }
-      const initialSignals = Array.from(elementsByKeys.keys()).map((name) => {
-        const prioritizedSignal = {
-          name,
+      const instances = mermaidInstances.map((mermaidInstance, index2) => {
+        const { spec, isDataDriven, signals, tokens } = mermaidInstance;
+        const initialSignals = tokens.filter((token) => token.type === "variable").map((token) => ({
+          name: token.name,
           value: null,
           priority: -1,
           isData: false
-        };
-        return prioritizedSignal;
-      });
-      const instances = [
-        {
-          id: pluginName$6,
+        }));
+        if (isDataDriven && typeof spec === "object" && spec.dataSourceName) {
+          initialSignals.push({
+            name: spec.dataSourceName,
+            value: null,
+            priority: -1,
+            isData: true
+          });
+        }
+        if (isDataDriven && typeof spec === "object" && spec.variableId) {
+          initialSignals.push({
+            name: spec.variableId,
+            value: "",
+            priority: 1,
+            isData: false
+          });
+        }
+        return {
+          ...mermaidInstance,
           initialSignals,
           receiveBatch: async (batch) => {
-            var _a;
-            for (const key of Object.keys(batch)) {
-              const elements = elementsByKeys.get(key) || [];
-              for (const element of elements) {
-                if (element.classList.contains("dynamic-placeholder")) {
-                  const markdownContent = ((_a = batch[key].value) == null ? void 0 : _a.toString()) || "";
-                  const parsedMarkdown = isMarkdownInline(markdownContent) ? renderer.md.renderInline(markdownContent) : renderer.md.render(markdownContent);
-                  element.innerHTML = parsedMarkdown;
-                } else if (element.hasAttribute("dynamic-url")) {
-                  const dynamicUrl = dynamicUrlMap.get(element);
-                  if (dynamicUrl) {
-                    dynamicUrl.receiveBatch(batch);
-                  }
-                } else if (element.classList.contains(imageClassName)) {
-                  const dynamicUrl = dynamicUrlMap.get(element);
-                  if (dynamicUrl) {
-                    dynamicUrl.receiveBatch(batch);
+            for (const [signalName, batchItem] of Object.entries(batch)) {
+              signals[signalName] = batchItem.value;
+            }
+            if (isDataDriven && typeof spec === "object" && spec.dataSourceName) {
+              let diagramText;
+              if (typeof signals[spec.dataSourceName] === "string") {
+                diagramText = signals[spec.dataSourceName];
+              } else if (Array.isArray(signals[spec.dataSourceName])) {
+                diagramText = dataToDiagram(spec.template, signals[spec.dataSourceName], tokens, signals);
+                if (diagramText && mermaidInstance.lastRenderedDiagram !== diagramText) {
+                  if (spec.variableId) {
+                    signalBus.broadcast(mermaidInstance.id, {
+                      [spec.variableId]: {
+                        value: diagramText,
+                        isData: false
+                      }
+                    });
                   }
                 }
               }
+              if (diagramText && mermaidInstance.lastRenderedDiagram !== diagramText) {
+                await renderRawDiagram(mermaidInstance.id, mermaidInstance.container, diagramText, errorHandler, pluginName$6, index2);
+                mermaidInstance.lastRenderedDiagram = diagramText;
+              }
             }
           }
-        }
-      ];
+        };
+      });
       return instances;
     }
   };
-  function isMarkdownInline(markdown) {
-    if (!markdown.includes("\n")) {
-      return true;
+  function isValidMermaid(diagramText) {
+    const lines = diagramText.split("\n");
+    return lines.length > 1 && lines[1].trim().length > 0;
+  }
+  async function renderRawDiagram(id, container, diagramText, errorHandler, pluginName2, index2) {
+    if (typeof mermaid === "undefined") {
+      await loadMermaidFromCDN();
     }
-    const blockElements = ["#", "-", "*", ">", "```", "~~~"];
-    for (const element of blockElements) {
-      if (markdown.trim().startsWith(element)) {
-        return false;
+    if (typeof mermaid === "undefined") {
+      container.innerHTML = '<div class="error">Mermaid library not loaded dynamically</div>';
+      return;
+    }
+    if (!isValidMermaid(diagramText)) {
+      container.innerHTML = '<div class="error">Invalid Mermaid diagram format</div>';
+      return;
+    }
+    try {
+      const { svg } = await mermaid.render(id, diagramText);
+      container.innerHTML = svg;
+    } catch (error) {
+      container.innerHTML = `<div class="error">Failed to render diagram ${id} <pre>${diagramText}</pre></div>`;
+      errorHandler(error instanceof Error ? error : new Error(String(error)), pluginName2, index2, "render", container);
+      document.querySelectorAll('div[id^="dmermaid-"]').forEach((el) => el.remove());
+    }
+  }
+  function dataToDiagram(template, data, tokens, signals) {
+    var _a;
+    const lines = [];
+    const parts = [];
+    tokens.forEach((token) => {
+      if (token.type === "literal") {
+        parts.push(token.value);
+      } else if (token.type === "variable") {
+        const signalValue = signals[token.name];
+        if (signalValue !== void 0) {
+          parts.push(encodeURIComponent(signalValue));
+        }
       }
+    });
+    const header = parts.join("");
+    lines.push(header);
+    for (const item of data) {
+      const lineTemplateName = item["lineTemplate"];
+      const lineTemplate = (_a = template == null ? void 0 : template.lineTemplates) == null ? void 0 : _a[lineTemplateName];
+      if (!lineTemplate) {
+        console.warn(`Template '${lineTemplateName}' not found in lineTemplates`);
+        continue;
+      }
+      const tokens2 = tokenizeTemplate(lineTemplate);
+      let line = "";
+      for (const token of tokens2) {
+        if (token.type === "literal") {
+          line += token.value;
+        } else if (token.type === "variable") {
+          const value = item[token.name];
+          if (value !== void 0) {
+            line += String(value);
+          }
+        }
+      }
+      lines.push(line);
     }
-    return true;
+    const diagramText = lines.join("\n");
+    return diagramText;
   }
   const pluginName$5 = "presets";
   const className$5 = pluginClassName(pluginName$5);
@@ -1881,7 +2195,8 @@ ${reconstitutedRules.join("\n\n")}
           container,
           table,
           built: false,
-          selectableRows
+          selectableRows,
+          listening: false
         };
         table.on("tableBuilt", () => {
           table.off("tableBuilt");
@@ -1915,17 +2230,17 @@ ${reconstitutedRules.join("\n\n")}
           data.forEach((row) => {
             delete row[deleteFieldname];
           });
-          const value = structuredClone(data);
           const batch = {
             [spec.variableId]: {
-              value,
+              value: data,
               isData: true
             }
           };
           signalBus.log(tabulatorInstance.id, "sending batch", batch);
           signalBus.broadcast(tabulatorInstance.id, batch);
         };
-        const setData = (data) => {
+        const setData = (_data) => {
+          const data = structuredClone(_data);
           table.setData(data).then(() => {
             let columns = table.getColumnDefinitions().filter((cd) => cd.field !== deleteFieldname).filter((cd) => cd.formatter !== "rowSelection");
             if (spec.editable) {
@@ -1959,7 +2274,9 @@ ${reconstitutedRules.join("\n\n")}
               });
             }
             table.setColumns(columns);
-            outputData();
+            if (tabulatorInstance.listening) {
+              outputData();
+            }
           }).catch((error) => {
             console.error(`Error setting data for Tabulator ${spec.variableId}:`, error);
           });
@@ -2003,6 +2320,10 @@ ${reconstitutedRules.join("\n\n")}
             }
           },
           beginListening(sharedSignals) {
+            tabulatorInstance.listening = true;
+            if (tabulatorInstance.built) {
+              outputData();
+            }
             if (selectableRows) {
               const hasMatchingSignal = sharedSignals.some(
                 ({ isData, signalName }) => isData && signalName === spec.variableId
@@ -2145,7 +2466,13 @@ ${reconstitutedRules.join("\n\n")}
       }
       this.log(originId, "Broadcasting batch from", originId, batch);
       this.broadcastingStack.push(originId);
-      for (const peerId of this.peerDependencies[originId]) {
+      const peerDependencies = this.peerDependencies[originId];
+      if (!peerDependencies || peerDependencies.length === 0) {
+        this.log(originId, "No peers to broadcast to");
+        this.broadcastingStack.pop();
+        return;
+      }
+      for (const peerId of peerDependencies) {
         const peer = this.peers.find((p) => p.id === peerId);
         if (!peer) continue;
         const peerBatch = {};
@@ -2619,6 +2946,7 @@ ${reconstitutedRules.join("\n\n")}
     registerMarkdownPlugin(googleFontsPlugin);
     registerMarkdownPlugin(dropdownPlugin);
     registerMarkdownPlugin(imagePlugin);
+    registerMarkdownPlugin(mermaidPlugin);
     registerMarkdownPlugin(placeholdersPlugin);
     registerMarkdownPlugin(presetsPlugin);
     registerMarkdownPlugin(sliderPlugin);
