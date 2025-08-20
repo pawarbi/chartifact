@@ -17,6 +17,7 @@ interface TabulatorInstance {
     table: TabulatorType;
     built: boolean;
     selectableRows: boolean;
+    listening: boolean;
 }
 
 export interface TabulatorSpec extends TableElementProps {
@@ -107,6 +108,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                 table,
                 built: false,
                 selectableRows,
+                listening: false,
             };
             table.on('tableBuilt', () => {
                 table.off('tableBuilt');
@@ -206,7 +208,9 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     }
                     table.setColumns(columns);
 
-                    outputData();
+                    if (tabulatorInstance.listening) {
+                        outputData();
+                    }
 
                 }).catch((error) => {
                     console.error(`Error setting data for Tabulator ${spec.variableId}:`, error);
@@ -255,6 +259,10 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     }
                 },
                 beginListening(sharedSignals) {
+                    tabulatorInstance.listening = true;
+                    if (tabulatorInstance.built) {
+                        outputData();
+                    }
                     if (selectableRows) {
                         const hasMatchingSignal = sharedSignals.some(({ isData, signalName }) =>
                             isData && signalName === spec.variableId
