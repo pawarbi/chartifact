@@ -334,6 +334,9 @@ async function renderRawDiagram(container: Element, diagramText: string, errorHa
     } catch (error) {
         container.innerHTML = `<div class="error">Failed to render diagram</div>`;
         errorHandler(error instanceof Error ? error : new Error(String(error)), pluginName, index, 'render', container);
+    } finally {
+        // Clean up temporary dmermaid-* divs by id
+        document.querySelectorAll('div[id^="dmermaid-"]').forEach(el => el.remove());
     }
 }
 
