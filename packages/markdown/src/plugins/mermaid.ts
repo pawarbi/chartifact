@@ -48,13 +48,13 @@
 
 import { Plugin, RawFlaggableSpec, IInstance } from '../factory.js';
 import { ErrorHandler } from '../renderer.js';
-import { SignalBus } from '../signalbus.js';
 import { sanitizedHTML } from '../sanitize.js';
 import { flaggableJsonPlugin } from './config.js';
 import { pluginClassName } from './util.js';
 import { PluginNames } from './interfaces.js';
 import { TemplateToken, tokenizeTemplate } from 'common';
-import mermaid, { MermaidConfig } from 'mermaid';
+import { MermaidConfig } from 'mermaid';
+import type Mermaid from 'mermaid';
 
 interface MermaidInstance {
     id: string;
@@ -145,9 +145,11 @@ function inspectMermaidSpec(spec: MermaidSpec | string): RawFlaggableSpec<Mermai
     };
 }
 
-function initializeMermaid() {
+declare const mermaid: typeof Mermaid;
+
+async function initializeMermaid() {
     mermaid.initialize({
-        startOnLoad: true,
+        startOnLoad: false,
         securityLevel: 'strict',
     } as MermaidConfig);
 }
@@ -236,7 +238,7 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
 
             // For raw text mode, render immediately
             if (!isDataDriven && typeof spec === 'string') {
-                await renderRawDiagram(mermaidInstance.container, spec, errorHandler, pluginName, index);
+                await renderRawDiagram(mermaidInstance.id, mermaidInstance.container, spec, errorHandler, pluginName, index);
             }
         }
 
@@ -306,7 +308,7 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
                         }
 
                         if (diagramText && mermaidInstance.lastRenderedDiagram !== diagramText) {
-                            await renderRawDiagram(mermaidInstance.container, diagramText, errorHandler, pluginName, index);
+                            await renderRawDiagram(mermaidInstance.id, mermaidInstance.container, diagramText, errorHandler, pluginName, index);
                             mermaidInstance.lastRenderedDiagram = diagramText;
                         }
                     }
@@ -318,7 +320,13 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
     },
 };
 
-async function renderRawDiagram(container: Element, diagramText: string, errorHandler: ErrorHandler, pluginName: string, index: number) {
+function isValidMermaid(diagramText: string) {
+    // string must contain at least one carriage return and text after the first carriage return
+    const lines = diagramText.split('\n');
+    return lines.length > 1 && lines[1].trim().length > 0;
+}
+
+async function renderRawDiagram(id: string, container: Element, diagramText: string, errorHandler: ErrorHandler, pluginName: string, index: number) {
     if (typeof mermaid === 'undefined') {
         await loadMermaidFromCDN();
     }
@@ -328,13 +336,17 @@ async function renderRawDiagram(container: Element, diagramText: string, errorHa
         return;
     }
 
+    if (!isValidMermaid(diagramText)) {
+        container.innerHTML = '<div class="error">Invalid Mermaid diagram format</div>';
+        return;
+    }
+
     try {
-        const { svg } = await mermaid.render(`${container.id}-${Date.now()}`, diagramText);
+        const { svg } = await mermaid.render(id, diagramText);
         container.innerHTML = svg;
     } catch (error) {
-        container.innerHTML = `<div class="error">Failed to render diagram</div>`;
+        container.innerHTML = `<div class="error">Failed to render diagram ${id} <pre>${diagramText}</pre></div>`;
         errorHandler(error instanceof Error ? error : new Error(String(error)), pluginName, index, 'render', container);
-    } finally {
         // Clean up temporary dmermaid-* divs by id
         document.querySelectorAll('div[id^="dmermaid-"]').forEach(el => el.remove());
     }
@@ -380,6 +392,9 @@ function dataToDiagram(template: MermaidTemplate, data: object[], tokens: Templa
                 line += token.value;
             } else if (token.type === 'variable') {
                 const value = item[token.name];
+
+                //TODO: get signal values outside of the row from signal bus
+
                 if (value !== undefined) {
                     line += String(value);
                 }

@@ -11,7 +11,6 @@ const commonOutputConfig = {
     'vega': 'vega',
     'vega-lite': 'vegaLite',
     'css-tree': 'csstree',
-    'mermaid': 'mermaid',
   },
   entryFileNames: 'chartifact.markdown.umd.js',
 };
