@@ -145,6 +145,18 @@ function inspectMermaidSpec(spec: MermaidSpec | string): RawFlaggableSpec<Mermai
     };
 }
 
+function initializeMermaid() {
+    mermaid.initialize({
+        startOnLoad: true,
+        securityLevel: 'strict',
+    } as MermaidConfig);
+}
+
+//initialize it now if it was loaded via script tag
+if (typeof mermaid !== 'undefined') {
+    initializeMermaid();
+}
+
 // Helper to lazy load Mermaid from CDN and initialize it
 let mermaidLoadPromise: Promise<void> | null = null;
 function loadMermaidFromCDN(): Promise<void> {
@@ -154,12 +166,7 @@ function loadMermaidFromCDN(): Promise<void> {
         script.src = 'https://cdn.jsdelivr.net/npm/mermaid@11.10.0/dist/mermaid.min.js';
         script.async = true;
         script.onload = () => {
-            if (mermaid) {
-                mermaid.initialize({
-                    startOnLoad: true,
-                    securityLevel: 'strict',
-                } as MermaidConfig);
-            }
+            initializeMermaid();
             resolve();
         };
         script.onerror = () => reject(new Error('Failed to load Mermaid from CDN'));
@@ -312,11 +319,12 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
 };
 
 async function renderRawDiagram(container: Element, diagramText: string, errorHandler: ErrorHandler, pluginName: string, index: number) {
-    // Ensure Mermaid is loaded
-    await loadMermaidFromCDN();
+    if (typeof mermaid === 'undefined') {
+        await loadMermaidFromCDN();
+    }
 
     if (typeof mermaid === 'undefined') {
-        container.innerHTML = '<div class="error">Mermaid library not loaded</div>';
+        container.innerHTML = '<div class="error">Mermaid library not loaded dynamically</div>';
         return;
     }
 
