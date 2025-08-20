@@ -86,7 +86,7 @@ Template-based diagram generation:
 ```json mermaid
 {
   "template": {
-    "diagram": "flowchart TD",
+    "diagramType": "flowchart TD",
     "lineTemplates": {
       "node": "{{id}}[{{label}}]",
       "edge": "{{from}} --> {{to}}",
@@ -154,7 +154,7 @@ Network diagram with servers and connections:
 ```json mermaid
 {
   "template": {
-    "diagram": "graph LR",
+    "diagramType": "graph LR",
     "lineTemplates": {
       "server": "{{id}}[{{name}}<br/>{{ip}}]",
       "connection": "{{from}} --- {{to}}",
