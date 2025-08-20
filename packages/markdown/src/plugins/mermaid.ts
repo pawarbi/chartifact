@@ -1,7 +1,9 @@
 /**
 * Copyright (c) Microsoft Corporation.
 * Licensed under the MIT License.
-*
+*/
+
+/*
 * Mermaid Plugin - Renders Mermaid diagrams with flexible input modes
 *
 * USAGE EXAMPLES:
@@ -26,7 +28,7 @@
 * ```mermaid
 * {
 *   "template": {
-*     "diagram": "flowchart TD",
+*     "diagramType": "flowchart TD",
 *     "lineTemplates": {
 *       "node": "    {{id}}[{{label}}]",
 *       "link": "    {{from}} --> {{to}}"
@@ -52,14 +54,7 @@ import { flaggableJsonPlugin } from './config.js';
 import { pluginClassName } from './util.js';
 import { PluginNames } from './interfaces.js';
 import { tokenizeTemplate } from 'common';
-
-declare const mermaid: {
-    initialize: (config: any) => void;
-    render: (id: string, graphDefinition: string) => Promise<{ svg: string }>;
-    mermaidAPI: {
-        render: (id: string, graphDefinition: string) => string;
-    };
-};
+import mermaid, { MermaidConfig } from 'mermaid';
 
 interface MermaidInstance {
     id: string;
@@ -71,7 +66,7 @@ interface MermaidInstance {
 
 export interface MermaidSpec {
     template?: {
-        diagram: string;
+        diagramType: string;
         lineTemplates: { [templateName: string]: string };
     };
     dataSourceName?: string;
@@ -116,7 +111,7 @@ function inspectMermaidSpec(spec: MermaidSpec | string): RawFlaggableSpec<Mermai
             reasons.push('template must be an object if provided');
         } else if (spec.template) {
             // Validate diagram
-            if (!spec.template.diagram || typeof spec.template.diagram !== 'string') {
+            if (!spec.template.diagramType || typeof spec.template.diagramType !== 'string') {
                 hasFlags = true;
                 reasons.push('template.diagram must be a non-empty string');
             }
@@ -150,7 +145,30 @@ function inspectMermaidSpec(spec: MermaidSpec | string): RawFlaggableSpec<Mermai
     };
 }
 
-let mermaidInitialized = false;
+// Helper to lazy load Mermaid from CDN and initialize it
+let mermaidLoadPromise: Promise<void> | null = null;
+function loadMermaidFromCDN(): Promise<void> {
+    if (mermaidLoadPromise) return mermaidLoadPromise;
+    mermaidLoadPromise = new Promise<void>((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/mermaid@11.10.0/dist/mermaid.min.js';
+        script.async = true;
+        script.onload = () => {
+            if (mermaid) {
+                mermaid.initialize({
+                    startOnLoad: true,
+                    theme: 'default',
+                    securityLevel: 'strict',
+                    fontFamily: 'sans-serif'
+                } as MermaidConfig);
+            }
+            resolve();
+        };
+        script.onerror = () => reject(new Error('Failed to load Mermaid from CDN'));
+        document.head.appendChild(script);
+    });
+    return mermaidLoadPromise;
+}
 
 export const mermaidPlugin: Plugin<MermaidSpec | string> = {
     ...flaggableJsonPlugin<MermaidSpec | string>(pluginName, className, inspectMermaidSpec),
@@ -181,17 +199,6 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
     hydrateComponent: async (renderer, errorHandler, specs) => {
         const { signalBus } = renderer;
         const mermaidInstances: MermaidInstance[] = [];
-
-        // Initialize Mermaid only once
-        if (!mermaidInitialized && typeof mermaid !== 'undefined') {
-            mermaid.initialize({
-                startOnLoad: false,
-                theme: 'default',
-                securityLevel: 'strict',
-                fontFamily: 'Arial, sans-serif'
-            });
-            mermaidInitialized = true;
-        }
 
         for (let index = 0; index < specs.length; index++) {
             const specReview = specs[index];
@@ -290,6 +297,9 @@ async function renderRawDiagram(instance: MermaidInstance, diagramText: string, 
     const diagramContainer = instance.container.querySelector('.mermaid-diagram') as HTMLElement;
     if (!diagramContainer) return;
 
+    // Ensure Mermaid is loaded
+    await loadMermaidFromCDN();
+
     if (typeof mermaid === 'undefined') {
         diagramContainer.innerHTML = '<div class="error">Mermaid library not loaded</div>';
         return;
@@ -308,11 +318,14 @@ async function renderRawDiagram(instance: MermaidInstance, diagramText: string, 
 async function renderDataDrivenDiagram(instance: MermaidInstance, data: MermaidDataItem[], errorHandler: ErrorHandler, pluginName: string, index: number, signalBus?: SignalBus) {
     const spec = instance.spec as MermaidSpec;
     const diagramContainer = instance.container.querySelector('.mermaid-diagram') as HTMLElement;
+
+    // Ensure Mermaid is loaded
+    await loadMermaidFromCDN();
     if (!diagramContainer || typeof mermaid === 'undefined') return;
 
     try {
         // Skip re-rendering if data hasn't changed
-        if (instance.lastRenderedData && JSON.stringify(instance.lastRenderedData) === JSON.stringify(data)) {
+        if (instance.lastRenderedData && instance.lastRenderedData === data) {
             return;
         }
         instance.lastRenderedData = data;
@@ -321,8 +334,8 @@ async function renderDataDrivenDiagram(instance: MermaidInstance, data: MermaidD
         const lines: string[] = [];
 
         // Add diagram type from template
-        if (spec.template?.diagram) {
-            lines.push(spec.template.diagram);
+        if (spec.template?.diagramType) {
+            lines.push(spec.template.diagramType);
         }
 
         for (const item of data) {
