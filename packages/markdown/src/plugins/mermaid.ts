@@ -61,7 +61,7 @@ interface MermaidInstance {
     spec: MermaidSpec | string;
     container: Element;
     isDataDriven: boolean;
-    lastRenderedDiagram?: string;
+    lastRenderedDiagram: string;
     signals: Record<string, any>;
     tokens: TemplateToken[];
 }
@@ -212,14 +212,9 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
             const isDataDriven = typeof spec === 'object' && !!spec.dataSourceName;
 
             // Create container for the diagram
-            container.innerHTML = `<div class="mermaid-diagram" style="text-align: center; padding: 20px;">
-                ${typeof mermaid === 'undefined' ?
-                    '<div class="error">Mermaid library not loaded</div>' :
-                    '<div class="mermaid-loading">Loading diagram...</div>'
-                }
-            </div>`;
+            container.innerHTML = `<div class="mermaid-loading">Loading diagram...</div>`;
 
-            const tokens = (typeof spec === 'object') ? tokenizeTemplate(spec.template.header) : [];
+            const tokens = (typeof spec === 'object') ? tokenizeTemplate(spec.template?.header || '') : [];
 
             const mermaidInstance: MermaidInstance = {
                 id: `${pluginName}-${index}`,
@@ -228,12 +223,13 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
                 isDataDriven,
                 signals: {},
                 tokens,
+                lastRenderedDiagram: null,
             };
             mermaidInstances.push(mermaidInstance);
 
             // For raw text mode, render immediately
             if (!isDataDriven && typeof spec === 'string') {
-                await renderRawDiagram(mermaidInstance, spec, errorHandler, pluginName, index);
+                await renderRawDiagram(mermaidInstance.container, spec, errorHandler, pluginName, index);
             }
         }
 
@@ -277,15 +273,21 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
                     }
 
                     if (isDataDriven && typeof spec === 'object' && spec.dataSourceName) {
+
+                        let diagramText: string;
+
                         if (typeof signals[spec.dataSourceName] === 'string') {
                             // Handle string input - render as raw Mermaid text
-                            await renderRawDiagram(mermaidInstance, signals[spec.dataSourceName], errorHandler, pluginName, index);
+                            diagramText = signals[spec.dataSourceName];
                         } else if (Array.isArray(signals[spec.dataSourceName])) {
                             // Handle array input - use template system
-                            const diagramText = await renderDataDrivenDiagram(mermaidInstance, signals[spec.dataSourceName] as object[], errorHandler, pluginName, index, tokens, signals);
-                            if (diagramText) {
+
+                            // Generate diagram text from template and data
+                            diagramText = dataToDiagram(spec.template, signals[spec.dataSourceName] as object[], tokens, signals);
+
+                            if (diagramText && mermaidInstance.lastRenderedDiagram !== diagramText) {
                                 // Broadcast the generated Mermaid text if variableId is specified
-                                if (spec.variableId && signalBus) {
+                                if (spec.variableId) {
                                     signalBus.broadcast(mermaidInstance.id, {
                                         [spec.variableId]: {
                                             value: diagramText,
@@ -294,6 +296,11 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
                                     });
                                 }
                             }
+                        }
+
+                        if (diagramText && mermaidInstance.lastRenderedDiagram !== diagramText) {
+                            await renderRawDiagram(mermaidInstance.container, diagramText, errorHandler, pluginName, index);
+                            mermaidInstance.lastRenderedDiagram = diagramText;
                         }
                     }
                 }
@@ -304,60 +311,21 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
     },
 };
 
-async function renderRawDiagram(instance: MermaidInstance, diagramText: string, errorHandler: ErrorHandler, pluginName: string, index: number) {
-    const diagramContainer = instance.container.querySelector('.mermaid-diagram') as HTMLElement;
-    if (!diagramContainer) return;
-
+async function renderRawDiagram(container: Element, diagramText: string, errorHandler: ErrorHandler, pluginName: string, index: number) {
     // Ensure Mermaid is loaded
     await loadMermaidFromCDN();
 
     if (typeof mermaid === 'undefined') {
-        diagramContainer.innerHTML = '<div class="error">Mermaid library not loaded</div>';
+        container.innerHTML = '<div class="error">Mermaid library not loaded</div>';
         return;
     }
 
     try {
-        const uniqueId = `mermaid-${instance.id}-${Date.now()}`;
-        const { svg } = await mermaid.render(uniqueId, diagramText);
-        diagramContainer.innerHTML = svg;
-        instance.lastRenderedDiagram = diagramText;
+        const { svg } = await mermaid.render(`${container.id}-${Date.now()}`, diagramText);
+        container.innerHTML = svg;
     } catch (error) {
-        diagramContainer.innerHTML = `<div class="error">Failed to render diagram</div>`;
-        errorHandler(error instanceof Error ? error : new Error(String(error)), pluginName, index, 'render', instance.container);
-    }
-}
-
-async function renderDataDrivenDiagram(instance: MermaidInstance, data: object[], errorHandler: ErrorHandler, pluginName: string, index: number, tokens: TemplateToken[], signals: Record<string, string>) {
-    const spec = instance.spec as MermaidSpec;
-    const diagramContainer = instance.container.querySelector('.mermaid-diagram') as HTMLElement;
-
-    // Ensure Mermaid is loaded
-    await loadMermaidFromCDN();
-    if (!diagramContainer || typeof mermaid === 'undefined') return;
-
-    const { template } = spec;
-
-    // Generate diagram text from template and data
-    const diagramText = dataToDiagram(template, data, tokens, signals);
-
-    // Skip re-rendering if data hasn't changed
-    if (instance.lastRenderedDiagram && instance.lastRenderedDiagram === diagramText) {
-        return;
-    }
-
-    if (diagramText) {
-        const uniqueId = `mermaid-${instance.id}-${Date.now()}`;
-        try {
-            const { svg } = await mermaid.render(uniqueId, diagramText);
-            diagramContainer.innerHTML = svg;
-            instance.lastRenderedDiagram = diagramText;
-            return diagramText;
-        } catch (error) {
-            diagramContainer.innerHTML = `<div class="error">Failed to render diagram</div>`;
-            errorHandler(error instanceof Error ? error : new Error(String(error)), pluginName, index, 'render', instance.container);
-        }
-    } else {
-        diagramContainer.innerHTML = '<div class="error">No valid diagram data provided</div>';
+        container.innerHTML = `<div class="error">Failed to render diagram</div>`;
+        errorHandler(error instanceof Error ? error : new Error(String(error)), pluginName, index, 'render', container);
     }
 }
 
