@@ -53,7 +53,7 @@ import { sanitizedHTML } from '../sanitize.js';
 import { flaggableJsonPlugin } from './config.js';
 import { pluginClassName } from './util.js';
 import { PluginNames } from './interfaces.js';
-import { tokenizeTemplate } from 'common';
+import { TemplateToken, tokenizeTemplate } from 'common';
 import mermaid, { MermaidConfig } from 'mermaid';
 
 interface MermaidInstance {
@@ -61,7 +61,9 @@ interface MermaidInstance {
     spec: MermaidSpec | string;
     container: Element;
     isDataDriven: boolean;
-    lastRenderedData?: any[];
+    lastRenderedDiagram?: string;
+    signals: Record<string, any>;
+    tokens: TemplateToken[];
 }
 
 export interface MermaidTemplate {
@@ -217,11 +219,15 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
                 }
             </div>`;
 
+            const tokens = (typeof spec === 'object') ? tokenizeTemplate(spec.template.header) : [];
+
             const mermaidInstance: MermaidInstance = {
                 id: `${pluginName}-${index}`,
                 spec,
                 container,
                 isDataDriven,
+                signals: {},
+                tokens,
             };
             mermaidInstances.push(mermaidInstance);
 
@@ -232,9 +238,14 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
         }
 
         const instances = mermaidInstances.map((mermaidInstance, index): IInstance => {
-            const { spec, isDataDriven } = mermaidInstance;
+            const { spec, isDataDriven, signals, tokens } = mermaidInstance;
 
-            const initialSignals = [];
+            const initialSignals = tokens.filter(token => token.type === 'variable').map(token => ({
+                name: token.name,
+                value: null,
+                priority: -1,
+                isData: false,
+            }));
 
             if (isDataDriven && typeof spec === 'object' && spec.dataSourceName) {
                 initialSignals.push({
@@ -259,25 +270,29 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
                 ...mermaidInstance,
                 initialSignals,
                 receiveBatch: async (batch) => {
-                    if (isDataDriven && typeof spec === 'object' && spec.dataSourceName) {
-                        const newData = batch[spec.dataSourceName]?.value;
-                        if (newData) {
-                            if (typeof newData === 'string') {
-                                // Handle string input - render as raw Mermaid text
-                                await renderRawDiagram(mermaidInstance, newData, errorHandler, pluginName, index);
 
-                                // Broadcast the string if variableId is specified
+                    //merge incoming signals with cached signals
+                    for (const [signalName, batchItem] of Object.entries(batch)) {
+                        signals[signalName] = batchItem.value;
+                    }
+
+                    if (isDataDriven && typeof spec === 'object' && spec.dataSourceName) {
+                        if (typeof signals[spec.dataSourceName] === 'string') {
+                            // Handle string input - render as raw Mermaid text
+                            await renderRawDiagram(mermaidInstance, signals[spec.dataSourceName], errorHandler, pluginName, index);
+                        } else if (Array.isArray(signals[spec.dataSourceName])) {
+                            // Handle array input - use template system
+                            const diagramText = await renderDataDrivenDiagram(mermaidInstance, signals[spec.dataSourceName] as object[], errorHandler, pluginName, index, tokens, signals);
+                            if (diagramText) {
+                                // Broadcast the generated Mermaid text if variableId is specified
                                 if (spec.variableId && signalBus) {
                                     signalBus.broadcast(mermaidInstance.id, {
                                         [spec.variableId]: {
-                                            value: newData,
+                                            value: diagramText,
                                             isData: false,
                                         }
                                     });
                                 }
-                            } else if (Array.isArray(newData)) {
-                                // Handle array input - use template system
-                                await renderDataDrivenDiagram(mermaidInstance, newData, errorHandler, pluginName, index, signalBus);
                             }
                         }
                     }
@@ -305,13 +320,14 @@ async function renderRawDiagram(instance: MermaidInstance, diagramText: string, 
         const uniqueId = `mermaid-${instance.id}-${Date.now()}`;
         const { svg } = await mermaid.render(uniqueId, diagramText);
         diagramContainer.innerHTML = svg;
+        instance.lastRenderedDiagram = diagramText;
     } catch (error) {
         diagramContainer.innerHTML = `<div class="error">Failed to render diagram</div>`;
         errorHandler(error instanceof Error ? error : new Error(String(error)), pluginName, index, 'render', instance.container);
     }
 }
 
-async function renderDataDrivenDiagram(instance: MermaidInstance, data: object[], errorHandler: ErrorHandler, pluginName: string, index: number, signalBus?: SignalBus) {
+async function renderDataDrivenDiagram(instance: MermaidInstance, data: object[], errorHandler: ErrorHandler, pluginName: string, index: number, tokens: TemplateToken[], signals: Record<string, string>) {
     const spec = instance.spec as MermaidSpec;
     const diagramContainer = instance.container.querySelector('.mermaid-diagram') as HTMLElement;
 
@@ -319,69 +335,83 @@ async function renderDataDrivenDiagram(instance: MermaidInstance, data: object[]
     await loadMermaidFromCDN();
     if (!diagramContainer || typeof mermaid === 'undefined') return;
 
-    try {
-        // Skip re-rendering if data hasn't changed
-        if (instance.lastRenderedData && instance.lastRenderedData === data) {
-            return;
-        }
-        instance.lastRenderedData = data;
+    const { template } = spec;
 
-        // Generate diagram text from template and data
-        const lines: string[] = [];
+    // Generate diagram text from template and data
+    const diagramText = dataToDiagram(template, data, tokens, signals);
 
-        // Add diagram header from template
-        lines.push(spec.template.header);
+    // Skip re-rendering if data hasn't changed
+    if (instance.lastRenderedDiagram && instance.lastRenderedDiagram === diagramText) {
+        return;
+    }
 
-        for (const item of data) {
-            const lineTemplateName = item['lineTemplate'];
-            const lineTemplate = spec.template?.lineTemplates?.[lineTemplateName];
-
-            if (!lineTemplate) {
-                console.warn(`Template '${lineTemplateName}' not found in lineTemplates`);
-                continue;
-            }
-
-            // Use tokenizeTemplate to parse placeholders
-            const tokens = tokenizeTemplate(lineTemplate);
-
-            // Replace variables with actual values
-            let line = '';
-            for (const token of tokens) {
-                if (token.type === 'literal') {
-                    line += token.value;
-                } else if (token.type === 'variable') {
-                    const value = item[token.name];
-                    if (value !== undefined) {
-                        line += String(value);
-                    }
-                    // If value is undefined, we leave the placeholder empty (could also leave the original {{var}} if preferred)
-                }
-            }
-
-            lines.push(line);
-        }
-
-        const diagramText = lines.join('\n');
-
-        // Broadcast the generated Mermaid text if variableId is specified
-        if (spec.variableId && signalBus) {
-            signalBus.broadcast(instance.id, {
-                [spec.variableId]: {
-                    value: diagramText,
-                    isData: false,
-                }
-            });
-        }
-
-        if (diagramText) {
-            const uniqueId = `mermaid-${instance.id}-${Date.now()}`;
+    if (diagramText) {
+        const uniqueId = `mermaid-${instance.id}-${Date.now()}`;
+        try {
             const { svg } = await mermaid.render(uniqueId, diagramText);
             diagramContainer.innerHTML = svg;
-        } else {
-            diagramContainer.innerHTML = '<div class="error">No valid diagram data provided</div>';
+            instance.lastRenderedDiagram = diagramText;
+            return diagramText;
+        } catch (error) {
+            diagramContainer.innerHTML = `<div class="error">Failed to render diagram</div>`;
+            errorHandler(error instanceof Error ? error : new Error(String(error)), pluginName, index, 'render', instance.container);
         }
-    } catch (error) {
-        diagramContainer.innerHTML = `<div class="error">Failed to render diagram</div>`;
-        errorHandler(error instanceof Error ? error : new Error(String(error)), pluginName, index, 'render', instance.container);
+    } else {
+        diagramContainer.innerHTML = '<div class="error">No valid diagram data provided</div>';
     }
 }
+
+function dataToDiagram(template: MermaidTemplate, data: object[], tokens: TemplateToken[], signals: Record<string, string>) {
+    const lines: string[] = [];
+
+    const parts: string[] = [];
+    tokens.forEach(token => {
+        if (token.type === 'literal') {
+            parts.push(token.value);
+        } else if (token.type === 'variable') {
+            const signalValue = signals[token.name];
+            if (signalValue !== undefined) {
+                parts.push(encodeURIComponent(signalValue));
+            } else {
+                //leave variable slot empty
+            }
+        }
+    });
+    const header = parts.join('');
+
+    // Add diagram header from template
+    lines.push(header);
+
+    for (const item of data) {
+        const lineTemplateName = item['lineTemplate'];
+        const lineTemplate = template?.lineTemplates?.[lineTemplateName];
+
+        if (!lineTemplate) {
+            console.warn(`Template '${lineTemplateName}' not found in lineTemplates`);
+            continue;
+        }
+
+        // Use tokenizeTemplate to parse placeholders
+        const tokens = tokenizeTemplate(lineTemplate);
+
+        // Replace variables with actual values
+        let line = '';
+        for (const token of tokens) {
+            if (token.type === 'literal') {
+                line += token.value;
+            } else if (token.type === 'variable') {
+                const value = item[token.name];
+                if (value !== undefined) {
+                    line += String(value);
+                }
+                // If value is undefined, we leave the placeholder empty (could also leave the original {{var}} if preferred)
+            }
+        }
+
+        lines.push(line);
+    }
+
+    const diagramText = lines.join('\n');
+    return diagramText;
+}
+
