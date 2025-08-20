@@ -64,18 +64,16 @@ interface MermaidInstance {
     lastRenderedData?: any[];
 }
 
-export interface MermaidSpec {
-    template?: {
-        diagramType: string;
-        lineTemplates: { [templateName: string]: string };
-    };
-    dataSourceName?: string;
-    variableId?: string;
+export interface MermaidTemplate {
+    /* this should at minimum have the diagram type, but it may also be preceded with frontmatter. It may also include templated {{variables}} */
+    header: string;
+    lineTemplates: { [lineTemplate: string]: string };
 }
 
-interface MermaidDataItem {
-    template: string;
-    [key: string]: any;
+export interface MermaidSpec {
+    template?: MermaidTemplate;
+    dataSourceName?: string;
+    variableId?: string;
 }
 
 const pluginName: PluginNames = 'mermaid';
@@ -111,9 +109,9 @@ function inspectMermaidSpec(spec: MermaidSpec | string): RawFlaggableSpec<Mermai
             reasons.push('template must be an object if provided');
         } else if (spec.template) {
             // Validate diagram
-            if (!spec.template.diagramType || typeof spec.template.diagramType !== 'string') {
+            if (!spec.template.header || typeof spec.template.header !== 'string') {
                 hasFlags = true;
-                reasons.push('template.diagram must be a non-empty string');
+                reasons.push('template.header must be a non-empty string');
             }
 
             // Validate lineTemplates
@@ -157,9 +155,7 @@ function loadMermaidFromCDN(): Promise<void> {
             if (mermaid) {
                 mermaid.initialize({
                     startOnLoad: true,
-                    theme: 'default',
                     securityLevel: 'strict',
-                    fontFamily: 'sans-serif'
                 } as MermaidConfig);
             }
             resolve();
@@ -315,7 +311,7 @@ async function renderRawDiagram(instance: MermaidInstance, diagramText: string, 
     }
 }
 
-async function renderDataDrivenDiagram(instance: MermaidInstance, data: MermaidDataItem[], errorHandler: ErrorHandler, pluginName: string, index: number, signalBus?: SignalBus) {
+async function renderDataDrivenDiagram(instance: MermaidInstance, data: object[], errorHandler: ErrorHandler, pluginName: string, index: number, signalBus?: SignalBus) {
     const spec = instance.spec as MermaidSpec;
     const diagramContainer = instance.container.querySelector('.mermaid-diagram') as HTMLElement;
 
@@ -333,22 +329,20 @@ async function renderDataDrivenDiagram(instance: MermaidInstance, data: MermaidD
         // Generate diagram text from template and data
         const lines: string[] = [];
 
-        // Add diagram type from template
-        if (spec.template?.diagramType) {
-            lines.push(spec.template.diagramType);
-        }
+        // Add diagram header from template
+        lines.push(spec.template.header);
 
         for (const item of data) {
-            const templateName = item.template;
-            const template = spec.template?.lineTemplates?.[templateName];
+            const lineTemplateName = item['lineTemplate'];
+            const lineTemplate = spec.template?.lineTemplates?.[lineTemplateName];
 
-            if (!template) {
-                console.warn(`Template '${templateName}' not found in lineTemplates`);
+            if (!lineTemplate) {
+                console.warn(`Template '${lineTemplateName}' not found in lineTemplates`);
                 continue;
             }
 
             // Use tokenizeTemplate to parse placeholders
-            const tokens = tokenizeTemplate(template);
+            const tokens = tokenizeTemplate(lineTemplate);
 
             // Replace variables with actual values
             let line = '';

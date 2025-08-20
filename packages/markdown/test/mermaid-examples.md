@@ -32,11 +32,11 @@
     {
       "name": "jsonData",
       "values": [
-        { "template": "node", "id": "A", "label": "Start" },
-        { "template": "node", "id": "B", "label": "Middle" },
-        { "template": "node", "id": "C", "label": "End" },
-        { "template": "labeledEdge", "from": "A", "to": "B", "label": "Next" },
-        { "template": "edge", "from": "B", "to": "C" }
+        { "lineTemplate": "node", "id": "A", "label": "Start" },
+        { "lineTemplate": "node", "id": "B", "label": "Middle" },
+        { "lineTemplate": "node", "id": "C", "label": "End" },
+        { "lineTemplate": "labeledEdge", "from": "A", "to": "B", "label": "Next" },
+        { "lineTemplate": "edge", "from": "B", "to": "C" }
       ]
     },
     {
@@ -46,15 +46,15 @@
     {
       "name": "networkData",
       "values": [
-        { "template": "subgraph", "name": "Production" },
-        { "template": "server", "id": "web1", "name": "Web Server", "ip": "10.0.1.10" },
-        { "template": "server", "id": "db1", "name": "Database", "ip": "10.0.1.20" },
-        { "template": "end" },
-        { "template": "subgraph", "name": "Development" },
-        { "template": "server", "id": "dev1", "name": "Dev Server", "ip": "10.0.2.10" },
-        { "template": "end" },
-        { "template": "secureConnection", "from": "web1", "to": "db1" },
-        { "template": "connection", "from": "dev1", "to": "web1" }
+        { "lineTemplate": "subgraph", "name": "Production" },
+        { "lineTemplate": "server", "id": "web1", "name": "Web Server", "ip": "10.0.1.10" },
+        { "lineTemplate": "server", "id": "db1", "name": "Database", "ip": "10.0.1.20" },
+        { "lineTemplate": "end" },
+        { "lineTemplate": "subgraph", "name": "Development" },
+        { "lineTemplate": "server", "id": "dev1", "name": "Dev Server", "ip": "10.0.2.10" },
+        { "lineTemplate": "end" },
+        { "lineTemplate": "secureConnection", "from": "web1", "to": "db1" },
+        { "lineTemplate": "connection", "from": "dev1", "to": "web1" }
       ]
     },
     {
@@ -86,7 +86,7 @@ Template-based diagram generation:
 ```json mermaid
 {
   "template": {
-    "diagramType": "flowchart TD",
+    "header": "flowchart TD",
     "lineTemplates": {
       "node": "{{id}}[{{label}}]",
       "edge": "{{from}} --> {{to}}",
@@ -109,7 +109,7 @@ Load data from a static JSON array.
   "editable": true,
   "tabulatorOptions": {
     "columns": [
-      {"title": "Template", "field": "template", "editor": "list", "editorParams": {"values": ["node", "edge", "labeledEdge"]}},
+      {"title": "LineTemplate", "field": "lineTemplate", "editor": "list", "editorParams": {"values": ["node", "edge", "labeledEdge"]}},
       {"title": "ID", "field": "id", "editor": "input"},
       {"title": "Label", "field": "label", "editor": "input"},
       {"title": "From", "field": "from", "editor": "input"},
@@ -138,7 +138,7 @@ Network diagram with servers and connections:
   "editable": true,
   "tabulatorOptions": {
     "columns": [
-      {"title": "Template", "field": "template", "editor": "list", "editorParams": {"values": ["server", "connection", "secureConnection", "subgraph", "end"]}},
+      {"title": "LineTemplate", "field": "lineTemplate", "editor": "list", "editorParams": {"values": ["server", "connection", "secureConnection", "subgraph", "end"]}},
       {"title": "ID", "field": "id", "editor": "input"},
       {"title": "Name", "field": "name", "editor": "input"},
       {"title": "IP", "field": "ip", "editor": "input"},
@@ -154,7 +154,7 @@ Network diagram with servers and connections:
 ```json mermaid
 {
   "template": {
-    "diagramType": "graph LR",
+    "header": "graph LR",
     "lineTemplates": {
       "server": "{{id}}[{{name}}<br/>{{ip}}]",
       "connection": "{{from}} --- {{to}}",
