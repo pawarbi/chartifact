@@ -24,7 +24,8 @@ export const initializeResources = async (context: vscode.ExtensionContext): Pro
     'vega.min.js',
     'vega-lite.min.js',
     'tabulator.min.js',
-    
+    'mermaid.min.js',
+
     // Example documents
     '1.idoc.md',
     'grocery-list.idoc.json',

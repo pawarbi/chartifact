@@ -12,6 +12,7 @@ const resources = [
     '../../node_modules/css-tree/dist/csstree.js',
     '../../node_modules/tabulator-tables/dist/js/tabulator.min.js',
     '../../node_modules/tabulator-tables/dist/css/tabulator.min.css',
+    '../../node_modules/mermaid/dist/mermaid.min.js',
 
     //local umd builds
     '../../packages/markdown/dist/css/chartifact-reset.css',

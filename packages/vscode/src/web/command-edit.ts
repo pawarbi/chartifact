@@ -74,6 +74,7 @@ export class EditManager {
 							script(getResourceContent('vega.min.js')) +
 							script(getResourceContent('vega-lite.min.js')) +
 							script(getResourceContent('tabulator.min.js')) +
+							script(getResourceContent('mermaid.min.js')) +
 							script(getResourceContent('chartifact.markdown.umd.js'))
 					};
 					this.current.panel.webview.postMessage(setOfflineDependenciesMessage);
