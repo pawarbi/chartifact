@@ -2338,6 +2338,9 @@ ${reconstitutedRules.join("\n\n")}
               table.on("cellEdited", (cell) => {
                 outputData();
               });
+              table.on("rowMoved", (row) => {
+                outputData();
+              });
             }
           },
           getCurrentSignalValue() {
