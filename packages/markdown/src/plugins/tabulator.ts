@@ -278,6 +278,9 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                         table.on('cellEdited', (cell) => {
                             outputData();
                         });
+                        table.on('rowMoved', (row) => {
+                            outputData();
+                        });
                     }
                 },
                 getCurrentSignalValue() {
