@@ -45,16 +45,38 @@ ${content}
 
 export interface TargetMarkdownOptions {
     extraNewlineCount?: number;
-    useYaml?: boolean;
+    pluginFormat?: Record<string, "json" | "yaml">;
 }
+
+const defaultPluginFormat: Record<string, "json" | "yaml"> = {
+    "*": "yaml",
+    "vega": "json", 
+    "vega-lite": "json"
+};
 
 const defaultOptions: TargetMarkdownOptions = {
     extraNewlineCount: 1,
-    useYaml: false,
+    pluginFormat: defaultPluginFormat,
 };
+
+function getPluginFormat(pluginName: string, pluginFormat: Record<string, "json" | "yaml">): "json" | "yaml" {
+    // Check for specific plugin name first
+    if (pluginFormat[pluginName]) {
+        return pluginFormat[pluginName];
+    }
+    // Fall back to wildcard
+    if (pluginFormat["*"]) {
+        return pluginFormat["*"];
+    }
+    // Ultimate fallback
+    return "json";
+}
 
 export function targetMarkdown(page: InteractiveDocument, options?: TargetMarkdownOptions) {
     const finalOptions = { ...defaultOptions, ...options };
+    // Merge plugin format with defaults, user options take precedence
+    const finalPluginFormat = { ...defaultPluginFormat, ...options?.pluginFormat };
+    
     const mdSections: string[] = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
@@ -80,14 +102,15 @@ export function targetMarkdown(page: InteractiveDocument, options?: TargetMarkdo
     const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables, tableElements);
 
     for (const dataLoader of dataLoaders.filter(dl => dl.type === 'spec')) {
-        mdSections.push(finalOptions.useYaml ? chartWrapYaml(dataLoader.spec) : chartWrap(dataLoader.spec));
+        const useYaml = getPluginFormat('vega', finalPluginFormat) === 'yaml';
+        mdSections.push(useYaml ? chartWrapYaml(dataLoader.spec) : chartWrap(dataLoader.spec));
     }
 
     for (const group of page.groups) {
         mdSections.push(mdContainerWrap(
             defaultCommonOptions.groupClassName,
             group.groupId,
-            groupMarkdown(group, variables, vegaScope, page.resources, finalOptions.useYaml)
+            groupMarkdown(group, variables, vegaScope, page.resources, finalPluginFormat)
         ));
     }
 
@@ -109,7 +132,8 @@ export function targetMarkdown(page: InteractiveDocument, options?: TargetMarkdo
 
     if (vegaScope.spec.data || vegaScope.spec.signals) {
         //spec is towards the top of the markdown file
-        mdSections.unshift(finalOptions.useYaml ? chartWrapYaml(vegaScope.spec) : chartWrap(vegaScope.spec));
+        const useYaml = getPluginFormat('vega', finalPluginFormat) === 'yaml';
+        mdSections.unshift(useYaml ? chartWrapYaml(vegaScope.spec) : chartWrap(vegaScope.spec));
     }
 
     if (page.notes) {
@@ -164,12 +188,18 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], ta
 
 type pluginSpecs = Plugins.CheckboxSpec | Plugins.DropdownSpec | Plugins.ImageSpec | Plugins.MermaidSpec | Plugins.PresetsSpec | Plugins.SliderSpec | Plugins.TabulatorSpec | Plugins.TextboxSpec;
 
-function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: VegaScope, resources: { charts?: { [chartKey: string]: VegaSpec | VegaLiteSpec } }, useYaml = false) {
+function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: VegaScope, resources: { charts?: { [chartKey: string]: VegaSpec | VegaLiteSpec } }, pluginFormat: Record<string, "json" | "yaml">) {
     const mdElements: string[] = [];
 
     const addSpec = (pluginName: Plugins.PluginNames, spec: pluginSpecs, indent = true) => {
-        const content = indent ? JSON.stringify(spec, null, defaultJsonIndent) : JSON.stringify(spec);
-        mdElements.push(jsonWrap(pluginName, content));
+        const format = getPluginFormat(pluginName, pluginFormat);
+        if (format === 'yaml') {
+            const content = indent ? yaml.dump(spec, { indent: defaultJsonIndent }) : yaml.dump(spec);
+            mdElements.push(yamlWrap(pluginName, content));
+        } else {
+            const content = indent ? JSON.stringify(spec, null, defaultJsonIndent) : JSON.stringify(spec);
+            mdElements.push(jsonWrap(pluginName, content));
+        }
     }
 
     for (const element of group.elements) {
@@ -185,6 +215,8 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                         //add a markdown element (not a chart element) with an image of the spinner at /img/chart-spinner.gif
                         mdElements.push('![Chart Spinner](/img/chart-spinner.gif)');
                     } else {
+                        const chartType = getChartType(spec);
+                        const useYaml = getPluginFormat(chartType, pluginFormat) === 'yaml';
                         mdElements.push(useYaml ? chartWrapYaml(spec) : chartWrap(spec));
                     }
                     break;
