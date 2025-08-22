@@ -9,6 +9,7 @@ import { container, MarkdownItContainerOptions } from '@mdit/plugin-container';
 import { ErrorHandler, Renderer } from './renderer.js';
 import { defaultCommonOptions, SpecReview } from 'common';
 import { PluginNames } from './plugins/interfaces.js';
+import { decorateFenceWithPlaceholders } from './plugins/placeholders.js';
 
 declare const markdownit: typeof MarkdownIt;
 
@@ -134,7 +135,15 @@ export function create() {
 
         // Fallback to the original fence renderer if no plugin matches
         if (originalFence) {
-            return originalFence(tokens, idx, options, env, slf);
+            const originalResult = originalFence(tokens, idx, options, env, slf);
+            
+            // Check if the content has placeholders and let placeholders plugin handle it
+            if (token.content && token.content.includes('{{')) {
+                // Find the placeholders plugin and see if it can handle this
+                return decorateFenceWithPlaceholders([token], 0);
+            }
+            
+            return originalResult;
         } else {
             return '';
         }

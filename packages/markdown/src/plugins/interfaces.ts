@@ -5,6 +5,7 @@
 export { CheckboxSpec } from './checkbox.js';
 export { DropdownSpec } from './dropdown.js';
 export { ImageSpec } from './image.js';
+export { MermaidSpec } from './mermaid.js';
 export { PresetsSpec } from './presets.js';
 export { SliderSpec } from './slider.js';
 export { TabulatorSpec } from './tabulator.js';
@@ -17,6 +18,7 @@ export type PluginNames =
     'dropdown' |
     'image' |
     'google-fonts' |
+    'mermaid' |
     'placeholders' |
     'presets' |
     'slider' |

@@ -10,8 +10,9 @@ import { DynamicUrl } from './url.js';
 import { createImageContainerTemplate, createImageLoadingLogic } from './image.js';
 import { pluginClassName } from './util.js';
 import { sanitizeHtmlComment } from '../sanitize.js';
+import { tokenizeTemplate } from 'common';
 
-function decorateDynamicUrl(tokens: Token[], idx: number, attrName: string, elementType: string) {
+export function decorateDynamicUrl(tokens: Token[], idx: number, attrName: string, elementType: string) {
     const token = tokens[idx];
     const attrValue = token.attrGet(attrName);
     if (attrValue && attrValue.includes('%7B%7B')) {
@@ -25,6 +26,30 @@ function decorateDynamicUrl(tokens: Token[], idx: number, attrName: string, elem
         token.attrSet(attrName, '');
     }
     return token;
+}
+
+export function decorateFenceWithPlaceholders(tokens: Token[], idx: number): string {
+    const token = tokens[idx];
+    const content = token.content;
+    
+    // Check if content has placeholders
+    if (content && content.includes('{{')) {
+        // Use tokenizeTemplate to extract placeholders (like decorateDynamicUrl does)
+        const templateTokens = tokenizeTemplate(content);
+        const variableTokens = templateTokens.filter(t => t.type === 'variable');
+        
+        if (variableTokens.length > 0) {
+            // Store the original template content (like dynamic-url attribute)
+            const templateContent = encodeURIComponent(content);
+            
+            // Create HTML with the template stored in data attribute
+            const placeholderData = variableTokens.map(t => `data-placeholder-${t.name.toLowerCase()}="true"`).join(' ');
+            
+            return `<pre class="has-placeholders" data-template-content="${templateContent}" ${placeholderData}><code></code></pre>`;
+        }
+    }
+    
+    return null;
 }
 
 const pluginName: PluginNames = 'placeholders';
@@ -93,9 +118,11 @@ export const placeholdersPlugin: Plugin = {
 
     hydrateComponent: async (renderer, errorHandler) => {
         const dynamicUrlMap = new WeakMap<Element, DynamicUrl>();
+        const templateHandlerMap = new WeakMap<Element, any>();
         const placeholders = renderer.element.querySelectorAll('.dynamic-placeholder');
         const dynamicUrls = renderer.element.querySelectorAll('[dynamic-url]');
         const dynamicImages = renderer.element.querySelectorAll(`.${imageClassName}`);
+        const codeBlocksWithPlaceholders = renderer.element.querySelectorAll('.has-placeholders[data-template-content]');
 
         const elementsByKeys = new Map<string, Element[]>();
 
@@ -110,6 +137,53 @@ export const placeholdersPlugin: Plugin = {
             } else {
                 elementsByKeys.set(key, [placeholder]);
             }
+        }
+
+        // Collect code blocks with placeholders (like dynamic URLs)
+        for (const element of Array.from(codeBlocksWithPlaceholders)) {
+            const templateContent = element.getAttribute('data-template-content');
+            if (!templateContent) {
+                continue;
+            }
+
+            // Create a custom template handler that doesn't URL encode (unlike DynamicUrl)
+            const templateText = decodeURIComponent(templateContent);
+            const tokens = tokenizeTemplate(templateText);
+            const variableTokens = tokens.filter(token => token.type === 'variable');
+            
+            // Create a simple object to track signal values for this template
+            const templateHandler = {
+                signals: {} as Record<string, string>,
+                update: () => {
+                    let content = '';
+                    for (const token of tokens) {
+                        if (token.type === 'literal') {
+                            content += token.value;
+                        } else if (token.type === 'variable') {
+                            content += templateHandler.signals[token.name] || '';
+                        }
+                    }
+                    element.innerHTML = `<code>${content}</code>`;
+                }
+            };
+
+            // Initialize signal values
+            variableTokens.forEach(token => {
+                templateHandler.signals[token.name] = '';
+            });
+
+            // Store the template handler instead of DynamicUrl
+            templateHandlerMap.set(element, templateHandler);
+
+            // Register for signal updates
+            variableTokens.forEach(token => {
+                const key = token.name;
+                if (elementsByKeys.has(key)) {
+                    elementsByKeys.get(key)!.push(element);
+                } else {
+                    elementsByKeys.set(key, [element]);
+                }
+            });
         }
 
         // Collect dynamic URLs
@@ -196,6 +270,12 @@ export const placeholdersPlugin: Plugin = {
                                 const dynamicUrl = dynamicUrlMap.get(element);
                                 if (dynamicUrl) {
                                     dynamicUrl.receiveBatch(batch);
+                                }
+                            } else if (element.hasAttribute('data-template-content')) {
+                                const templateHandler = templateHandlerMap.get(element);
+                                if (templateHandler && templateHandler.signals) {
+                                    templateHandler.signals[key] = batch[key].value?.toString() || '';
+                                    templateHandler.update();
                                 }
                             }
                         }

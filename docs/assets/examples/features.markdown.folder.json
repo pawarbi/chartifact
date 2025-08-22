@@ -35,6 +35,10 @@
             "href": "markdown/features/8.presets.idoc.md"
         },
         {
+            "title": "Mermaid",
+            "href": "markdown/features/9.mermaid.idoc.md"
+        },
+        {
             "title": "Data URL",
             "href": "markdown/features/data-url.idoc.md"
         },

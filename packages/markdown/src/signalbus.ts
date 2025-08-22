@@ -54,7 +54,15 @@ export class SignalBus {
 
         this.log(originId, 'Broadcasting batch from', originId, batch);
         this.broadcastingStack.push(originId);
-        for (const peerId of this.peerDependencies[originId]) {
+        const peerDependencies = this.peerDependencies[originId];
+
+        if (!peerDependencies || peerDependencies.length === 0) {
+            this.log(originId, 'No peers to broadcast to');
+            this.broadcastingStack.pop();
+            return;
+        }
+
+        for (const peerId of peerDependencies) {
             const peer = this.peers.find(p => p.id === peerId);
             if (!peer) continue;
 

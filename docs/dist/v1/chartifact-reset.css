@@ -61,3 +61,7 @@ ul img {
 .chartifact-plugin-vega form>:first-child {
     margin-top: 4px;
 }
+
+.chartifact-plugin-mermaid {
+    text-align: center;
+}

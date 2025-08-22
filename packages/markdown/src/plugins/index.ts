@@ -11,6 +11,7 @@ import { cssPlugin } from './css.js';
 import { googleFontsPlugin } from './google-fonts.js';
 import { dropdownPlugin } from './dropdown.js';
 import { imagePlugin } from './image.js';
+import { mermaidPlugin } from './mermaid.js';
 import { placeholdersPlugin } from './placeholders.js';
 import { presetsPlugin } from './presets.js';
 import { sliderPlugin } from './slider.js';
@@ -26,6 +27,7 @@ export function registerNativePlugins() {
     registerMarkdownPlugin(googleFontsPlugin);
     registerMarkdownPlugin(dropdownPlugin);
     registerMarkdownPlugin(imagePlugin);
+    registerMarkdownPlugin(mermaidPlugin);
     registerMarkdownPlugin(placeholdersPlugin);
     registerMarkdownPlugin(presetsPlugin);
     registerMarkdownPlugin(sliderPlugin);

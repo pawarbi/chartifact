@@ -23,7 +23,7 @@ export default defineConfig({
     minify: false,
     rollupOptions: {
       // External dependencies that the library expects consumers to provide
-      external: ['markdown-it', 'vega', 'vega-lite', 'tabulator-tables', 'css-tree'],
+      external: ['markdown-it', 'vega', 'vega-lite', 'tabulator-tables', 'css-tree', 'mermaid'],
       output: [
         {
           ...commonOutputConfig,

@@ -17,6 +17,7 @@ interface TabulatorInstance {
     table: TabulatorType;
     built: boolean;
     selectableRows: boolean;
+    listening: boolean;
 }
 
 export interface TabulatorSpec extends TableElementProps {
@@ -107,6 +108,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                 table,
                 built: false,
                 selectableRows,
+                listening: false,
             };
             table.on('tableBuilt', () => {
                 table.off('tableBuilt');
@@ -130,6 +132,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     isData: true,
                 });
             }
+
             const outputData = () => {
                 let data: object[];
                 if (selectableRows) {
@@ -143,22 +146,23 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     delete row[deleteFieldname];
                 });
 
-
-                // Use structuredClone to ensure deep copy
-                // vega may efficiently have symbols on data to cache a datum's values
-                // so this needs to appear to be new data
-                const value = structuredClone(data);
-
                 const batch: Batch = {
                     [spec.variableId]: {
-                        value,
+                        value: data,
                         isData: true,
                     },
                 };
                 signalBus.log(tabulatorInstance.id, 'sending batch', batch);
                 signalBus.broadcast(tabulatorInstance.id, batch);
             }
-            const setData = (data: object[]) => {
+
+            const setData = (_data: object[]) => {
+
+                // Use structuredClone to ensure deep copy
+                // vega may efficiently have symbols on data to cache a datum's values
+                // so this needs to appear to be new data
+                const data = structuredClone(_data);
+
                 table.setData(data).then(() => {
 
                     // Get current column definitions
@@ -204,8 +208,9 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     }
                     table.setColumns(columns);
 
-
-                    outputData();
+                    if (tabulatorInstance.listening) {
+                        outputData();
+                    }
 
                 }).catch((error) => {
                     console.error(`Error setting data for Tabulator ${spec.variableId}:`, error);
@@ -254,6 +259,10 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     }
                 },
                 beginListening(sharedSignals) {
+                    tabulatorInstance.listening = true;
+                    if (tabulatorInstance.built) {
+                        outputData();
+                    }
                     if (selectableRows) {
                         const hasMatchingSignal = sharedSignals.some(({ isData, signalName }) =>
                             isData && signalName === spec.variableId
@@ -267,6 +276,9 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     }
                     if (spec.editable) {
                         table.on('cellEdited', (cell) => {
+                            outputData();
+                        });
+                        table.on('rowMoved', (row) => {
                             outputData();
                         });
                     }

@@ -332,7 +332,11 @@ ${content}
 ${content}
 :::`;
   }
-  function targetMarkdown(page) {
+  const defaultOptions$1 = {
+    extraNewlineCount: 1
+  };
+  function targetMarkdown(page, options) {
+    const finalOptions = { ...defaultOptions$1, ...options };
     const mdSections = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
@@ -391,7 +395,8 @@ ${content}
         mdSections.unshift(tickWrap("#", JSON.stringify(page.notes, null, defaultJsonIndent)));
       }
     }
-    const markdown = mdSections.join("\n\n");
+    const newLines = "\n".repeat(1 + finalOptions.extraNewlineCount);
+    const markdown = mdSections.join(newLines);
     return markdown;
   }
   function dataLoaderMarkdown(dataSources, variables, tableElements) {
@@ -479,6 +484,26 @@ ${content}
               height
             };
             addSpec("image", imageSpec);
+            break;
+          }
+          case "mermaid": {
+            const { diagramText, template, variableId } = element;
+            if (diagramText) {
+              mdElements.push(tickWrap("mermaid", diagramText));
+            } else if (template) {
+              const mermaidSpec = {
+                template
+              };
+              if (variableId) {
+                mermaidSpec.variableId = variableId;
+              }
+              addSpec("mermaid", mermaidSpec);
+            } else if (variableId) {
+              const mermaidSpec = {
+                variableId
+              };
+              addSpec("mermaid", mermaidSpec, false);
+            }
             break;
           }
           case "presets": {
@@ -1411,7 +1436,7 @@ ${guardedJs}
 ${message}
 
 ${details}`;
-        this.render("Error", markdown, void 0, true);
+        this.renderMarkdown(markdown);
       } else {
         this.previewDiv.innerHTML = "";
         const h1 = document.createElement("h1");

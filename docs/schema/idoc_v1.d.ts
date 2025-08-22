@@ -148,7 +148,30 @@ interface DropdownElementProps extends VariableControl {
  */
 interface ChartElement extends ElementBase {
     type: 'chart';
+    /** key of the chart spec in the page.resources.charts */
     chartKey: string;
+}
+/**
+ * Mermaid
+ * use for rendering Mermaid diagrams, either static or dynamic
+ */
+interface MermaidElement extends MermaidElementProps {
+    type: 'mermaid';
+}
+interface MermaidTemplate {
+    header: string;
+    lineTemplates: {
+        [lineTemplate: string]: string;
+    };
+    dataSourceName?: string;
+}
+interface MermaidElementProps extends ElementBase {
+    /** Static option: the raw Mermaid diagram text */
+    diagramText?: string;
+    /** Dynamic option: data-driven template */
+    template?: MermaidTemplate;
+    /** Dynamic option: input from signal bus, or output to signal bus from rendered data-driven template */
+    variableId?: string;
 }
 /**
  * Image element
@@ -197,7 +220,7 @@ interface TableElementProps extends VariableControl {
 /**
  * Union type for all possible interactive elements
  */
-type InteractiveElement = ChartElement | CheckboxElement | DropdownElement | ImageElement | PresetsElement | SliderElement | TableElement | TextboxElement;
+type InteractiveElement = ChartElement | CheckboxElement | DropdownElement | ImageElement | MermaidElement | PresetsElement | SliderElement | TableElement | TextboxElement;
 interface ElementGroup {
     groupId: string;
     elements: PageElement[];
@@ -257,4 +280,4 @@ interface GoogleFontsSpec {
 type InteractiveDocumentWithSchema = InteractiveDocument & {
     $schema?: string;
 };
-export type { Calculation, ChartElement, CheckboxElement, CheckboxProps, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceInline, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, GoogleFontsSpec, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, MarkdownElement, PageElement, PageStyle, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TableElement, TableElementProps, TemplatedUrl, TextboxElement, TextboxElementProps, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive, Vega_or_VegaLite_spec };
+export type { Calculation, ChartElement, CheckboxElement, CheckboxProps, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceInline, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, GoogleFontsSpec, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, MarkdownElement, MermaidElement, MermaidElementProps, MermaidTemplate, PageElement, PageStyle, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TableElement, TableElementProps, TemplatedUrl, TextboxElement, TextboxElementProps, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive, Vega_or_VegaLite_spec };

@@ -272,6 +272,8 @@ fin
         const textarea = document.getElementById('markdown-input');
         const renderer = new Renderer(document.getElementById('content'));
 
+        window.renderer = renderer;
+
         function render() {
             //renderer.render(textarea.value);
             
