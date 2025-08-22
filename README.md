@@ -23,6 +23,7 @@ The Chartifact GitHub repo has source code for these interoperating modules:
   * **Inputs** – Textboxes, checkboxes, sliders, dropdowns
   * **Tables** – Sortable, selectable, and editable data grids
   * **Charts** – Vega and Vega-Lite visualizations
+  * **Diagrams** – Mermaid diagrams (flowcharts, networks, and more) via the mermaid plugin, including tabular data-driven diagram generation
   * **Images** – Dynamic image URLs based on variables
   * **Presets** – Named sets of variable values for quick scenario switching
 
