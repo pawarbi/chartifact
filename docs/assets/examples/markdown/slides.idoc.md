@@ -176,32 +176,13 @@
 ```
 
 ```css
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  scroll-behavior: smooth;
-  overflow-y: auto;
-}
-
-body {
-  scroll-snap-type: y mandatory;
-}
-
-.group {
-  color: white;
-  scroll-snap-align: start;
-  height: 100vh;
-  margin: 0;
-  padding: 1em;
-  box-sizing: border-box;
-}
-
+html, body { height: 100%; margin: 0; padding: 0; scroll-behavior: smooth; overflow-y: auto; }
+body { scroll-snap-type: y mandatory; }
+.group { color: white; scroll-snap-align: start; height: 100vh; margin: 0; padding: 1em; box-sizing: border-box; }
 #slide1 { background: #1abc9c; }
 #slide2 { background: #3498db; }
 #slide3 { background: #9b59b6; }
 #slide4 { background: #e74c3c; }
-
 ```
 
 ::: group {#slide1}

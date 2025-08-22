@@ -39,16 +39,8 @@
             "href": "markdown/features/9.mermaid.idoc.md"
         },
         {
-            "title": "Data URL",
-            "href": "markdown/features/data-url.idoc.md"
-        },
-        {
-            "title": "Image",
-            "href": "markdown/features/image.idoc.md"
-        },
-        {
-            "title": "URLs",
-            "href": "markdown/features/urls.idoc.md"
+            "title": "Images",
+            "href": "markdown/features/10.images.idoc.md"
         }
     ]
 }
