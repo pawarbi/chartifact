@@ -55,37 +55,27 @@ import { PluginNames } from './interfaces.js';
 import { TemplateToken, tokenizeTemplate } from 'common';
 import { MermaidConfig } from 'mermaid';
 import type Mermaid from 'mermaid';
+import { MermaidElementProps, MermaidTemplate } from '@microsoft/chartifact-schema';
 
 interface MermaidInstance {
     id: string;
-    spec: MermaidSpec | string;
+    spec: MermaidElementProps;
     container: Element;
-    isDataDriven: boolean;
     lastRenderedDiagram: string;
     signals: Record<string, any>;
     tokens: TemplateToken[];
 }
 
-export interface MermaidTemplate {
-    /* this should at minimum have the diagram type, but it may also be preceded with frontmatter. It may also include templated {{variables}} */
-    header: string;
-    lineTemplates: { [lineTemplate: string]: string };
-}
-
-export interface MermaidSpec {
-    template?: MermaidTemplate;
-    dataSourceName?: string;
-    variableId?: string;
-}
+interface MermaidSpec extends MermaidElementProps { }
 
 const pluginName: PluginNames = 'mermaid';
 const className = pluginClassName(pluginName);
 
-function inspectMermaidSpec(spec: MermaidSpec | string): RawFlaggableSpec<MermaidSpec | string> {
+function inspectMermaidSpec(spec: MermaidSpec): RawFlaggableSpec<MermaidSpec> {
     const reasons: string[] = [];
     let hasFlags = false;
 
-    if (typeof spec === 'string') {
+    if (spec.diagramText) {
         // For raw text mode, check for potentially dangerous content
         const dangerousPatterns = [
             /javascript:/i,
@@ -97,7 +87,7 @@ function inspectMermaidSpec(spec: MermaidSpec | string): RawFlaggableSpec<Mermai
         ];
 
         for (const pattern of dangerousPatterns) {
-            if (pattern.test(spec)) {
+            if (pattern.test(spec.diagramText)) {
                 hasFlags = true;
                 reasons.push('Potentially unsafe content detected in diagram');
                 break;
@@ -122,19 +112,18 @@ function inspectMermaidSpec(spec: MermaidSpec | string): RawFlaggableSpec<Mermai
                 reasons.push('template.lineTemplates must be an object');
             } else {
                 // Check templates for dangerous content
-                for (const [templateName, template] of Object.entries(spec.template.lineTemplates)) {
-                    if (typeof template !== 'string') {
+                for (const [lineTemplateName, lineTemplate] of Object.entries(spec.template.lineTemplates)) {
+                    if (typeof lineTemplate !== 'string') {
                         hasFlags = true;
-                        reasons.push(`Template '${templateName}' must be a string`);
+                        reasons.push(`Template '${lineTemplateName}' must be a string`);
                     }
                 }
             }
-        }
-
-        // Must have dataSourceName for dynamic content
-        if (!spec.dataSourceName) {
-            hasFlags = true;
-            reasons.push('Must specify dataSourceName for dynamic content');
+            // Must have dataSourceName for dynamic content
+            if (!spec.template.dataSourceName) {
+                hasFlags = true;
+                reasons.push('Must specify dataSourceName for dynamic content');
+            }
         }
     }
 
@@ -177,25 +166,25 @@ function loadMermaidFromCDN(): Promise<void> {
     return mermaidLoadPromise;
 }
 
-export const mermaidPlugin: Plugin<MermaidSpec | string> = {
-    ...flaggableJsonPlugin<MermaidSpec | string>(pluginName, className, inspectMermaidSpec),
+export const mermaidPlugin: Plugin<MermaidSpec> = {
+    ...flaggableJsonPlugin<MermaidSpec>(pluginName, className),
     fence: (token, index) => {
         const content = token.content.trim();
-        let spec: MermaidSpec | string;
-        let flaggableSpec: RawFlaggableSpec<MermaidSpec | string>;
+        let spec: MermaidSpec;
+        let flaggableSpec: RawFlaggableSpec<MermaidSpec>;
 
         // Try to parse as JSON first
         try {
-            const parsed = JSON.parse(content);
-            if (parsed && typeof parsed === 'object' && (parsed.dataSourceName || parsed.template)) {
-                spec = parsed as MermaidSpec;
+            const parsed = JSON.parse(content) as MermaidSpec;
+            if (parsed && typeof parsed === 'object') {
+                spec = parsed;
             } else {
                 // If it's JSON but not a valid MermaidSpec, treat as raw text
-                spec = content;
+                spec = { diagramText: content };
             }
         } catch (e) {
             // If JSON parsing fails, treat as raw text
-            spec = content;
+            spec = { diagramText: content };
         }
 
         flaggableSpec = inspectMermaidSpec(spec);
@@ -218,18 +207,17 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
             }
 
             const spec = specReview.approvedSpec;
-            const isDataDriven = typeof spec === 'object' && !!spec.dataSourceName;
+            const { template } = spec;
 
             // Create container for the diagram
             container.innerHTML = `<div class="mermaid-loading">Loading diagram...</div>`;
 
-            const tokens = (typeof spec === 'object') ? tokenizeTemplate(spec.template?.header || '') : [];
+            const tokens = tokenizeTemplate(template?.header || '') || [];
 
             const mermaidInstance: MermaidInstance = {
                 id: `${pluginName}-${index}`,
                 spec,
                 container,
-                isDataDriven,
                 signals: {},
                 tokens,
                 lastRenderedDiagram: null,
@@ -237,13 +225,14 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
             mermaidInstances.push(mermaidInstance);
 
             // For raw text mode, render immediately
-            if (!isDataDriven && typeof spec === 'string') {
-                await renderRawDiagram(mermaidInstance.id, mermaidInstance.container, spec, errorHandler, pluginName, index);
+            if (spec.diagramText && typeof spec.diagramText === 'string') {
+                await renderRawDiagram(mermaidInstance.id, mermaidInstance.container, spec.diagramText, errorHandler, pluginName, index);
             }
         }
 
         const instances = mermaidInstances.map((mermaidInstance, index): IInstance => {
-            const { spec, isDataDriven, signals, tokens } = mermaidInstance;
+            const { spec, signals, tokens } = mermaidInstance;
+            const { template, variableId } = spec;
 
             const initialSignals = tokens.filter(token => token.type === 'variable').map(token => ({
                 name: token.name,
@@ -252,19 +241,19 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
                 isData: false,
             }));
 
-            if (isDataDriven && typeof spec === 'object' && spec.dataSourceName) {
+            if (template?.dataSourceName) {
                 initialSignals.push({
-                    name: spec.dataSourceName,
+                    name: template.dataSourceName,
                     value: null,
                     priority: -1,
                     isData: true,
                 });
             }
 
-            // Add output signal for generated Mermaid text (data-driven mode only)
-            if (isDataDriven && typeof spec === 'object' && spec.variableId) {
+            // Add input/output signal for generated Mermaid text (data-driven mode only)
+            if (variableId) {
                 initialSignals.push({
-                    name: spec.variableId,
+                    name: variableId,
                     value: '',
                     priority: 1,
                     isData: false,
@@ -276,23 +265,17 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
                 initialSignals,
                 receiveBatch: async (batch) => {
 
-                    //merge incoming signals with cached signals
-                    for (const [signalName, batchItem] of Object.entries(batch)) {
-                        signals[signalName] = batchItem.value;
-                    }
+                    if (template) {
 
-                    if (isDataDriven && typeof spec === 'object' && spec.dataSourceName) {
+                        //merge incoming signals with cached signals
+                        for (const [signalName, batchItem] of Object.entries(batch)) {
+                            signals[signalName] = batchItem.value;
+                        }
 
-                        let diagramText: string;
-
-                        if (typeof signals[spec.dataSourceName] === 'string') {
-                            // Handle string input - render as raw Mermaid text
-                            diagramText = signals[spec.dataSourceName];
-                        } else if (Array.isArray(signals[spec.dataSourceName])) {
-                            // Handle array input - use template system
+                        if (Array.isArray(signals[template.dataSourceName])) {
 
                             // Generate diagram text from template and data
-                            diagramText = dataToDiagram(spec.template, signals[spec.dataSourceName] as object[], tokens, signals);
+                            const diagramText = dataToDiagram(template, signals[template.dataSourceName] as object[], tokens, signals);
 
                             if (diagramText && mermaidInstance.lastRenderedDiagram !== diagramText) {
                                 // Broadcast the generated Mermaid text if variableId is specified
@@ -305,14 +288,30 @@ export const mermaidPlugin: Plugin<MermaidSpec | string> = {
                                     });
                                 }
                             }
+
+                            if (diagramText && mermaidInstance.lastRenderedDiagram !== diagramText) {
+                                await renderRawDiagram(mermaidInstance.id, mermaidInstance.container, diagramText, errorHandler, pluginName, index);
+                                mermaidInstance.lastRenderedDiagram = diagramText;
+                            }
+                        } else {
+                            mermaidInstance.container.innerHTML = '<div class="error">No data available to render diagram</div>';
                         }
 
-                        if (diagramText && mermaidInstance.lastRenderedDiagram !== diagramText) {
-                            await renderRawDiagram(mermaidInstance.id, mermaidInstance.container, diagramText, errorHandler, pluginName, index);
-                            mermaidInstance.lastRenderedDiagram = diagramText;
+                    } else if (variableId && batch[variableId]) {
+                        const value = batch[variableId].value;
+
+                        if (typeof value === 'string' && value.trim().length > 0) {
+                            // Render raw Mermaid text from variable
+                            await renderRawDiagram(mermaidInstance.id, mermaidInstance.container, value, errorHandler, pluginName, index);
+                            mermaidInstance.lastRenderedDiagram = value;
+                        } else {
+                            // Clear container if variable is empty
+                            mermaidInstance.container.innerHTML = '<div class="error">No diagram to display</div>';
                         }
+
                     }
                 }
+
             };
         });
 
@@ -408,4 +407,3 @@ function dataToDiagram(template: MermaidTemplate, data: object[], tokens: Templa
     const diagramText = lines.join('\n');
     return diagramText;
 }
-

@@ -2,7 +2,7 @@
 * Copyright (c) Microsoft Corporation.
 * Licensed under the MIT License.
 */
-import { DataSourceBase, VariableID, VariableControl, ElementBase, TemplatedUrl } from './common.js';
+import { VariableID, VariableControl, ElementBase, TemplatedUrl } from './common.js';
 
 /**
  * Interactive Elements
@@ -78,8 +78,35 @@ export interface DropdownElementProps extends VariableControl {
 export interface ChartElement extends ElementBase {
   type: 'chart';
 
-  // key of the chart spec in the page.resources.charts
+  /** key of the chart spec in the page.resources.charts */
   chartKey: string;
+}
+
+/**
+ * Mermaid
+ * use for rendering Mermaid diagrams, either static or dynamic
+ */
+
+export interface MermaidElement extends MermaidElementProps {
+  type: 'mermaid';
+}
+
+export interface MermaidTemplate {
+  /* this should at minimum have the diagram type, but it may also be preceded with frontmatter. It may also include templated {{variables}} */
+  header: string;
+  lineTemplates: { [lineTemplate: string]: string };
+  dataSourceName?: string;
+}
+
+export interface MermaidElementProps extends ElementBase {
+  /** Static option: the raw Mermaid diagram text */
+  diagramText?: string;
+
+  /** Dynamic option: data-driven template */
+  template?: MermaidTemplate;
+
+  /** Dynamic option: input from signal bus, or output to signal bus from rendered data-driven template */
+  variableId?: string;
 }
 
 /**
@@ -124,7 +151,7 @@ export interface TableElementProps extends VariableControl {
 
   /** Name of the data source to use for incoming data (output data is available via the variableId of this table element) */
   dataSourceName: string;
-  
+
   editable?: boolean;
 
   /** Tabulator options (must be JSON stringify-able, so no callbacks allowed) */
@@ -181,6 +208,7 @@ export type InteractiveElement =
   | CheckboxElement
   | DropdownElement
   | ImageElement
+  | MermaidElement
   | PresetsElement
   | SliderElement
   | TableElement
