@@ -213,6 +213,7 @@
       "description": "Chart use for visualizations",
       "properties": {
         "chartKey": {
+          "description": "key of the chart spec in the page.resources.charts",
           "type": "string"
         },
         "type": {
@@ -1778,6 +1779,9 @@
           "$ref": "#/definitions/ImageElement"
         },
         {
+          "$ref": "#/definitions/MermaidElement"
+        },
+        {
           "$ref": "#/definitions/PresetsElement"
         },
         {
@@ -2276,6 +2280,54 @@
     "MarkdownElement": {
       "description": "Use markdown elements to be verbose and descriptive. Do not use as labels for interactive elements. Embed dynamic variables in markdown using double curly braces {{variableId}} as a placeholder for their values.",
       "type": "string"
+    },
+    "MermaidElement": {
+      "additionalProperties": false,
+      "description": "Mermaid use for rendering Mermaid diagrams, either static or dynamic",
+      "properties": {
+        "diagramText": {
+          "description": "Static option: the raw Mermaid diagram text",
+          "type": "string"
+        },
+        "template": {
+          "$ref": "#/definitions/MermaidTemplate",
+          "description": "Dynamic option: data-driven template"
+        },
+        "type": {
+          "const": "mermaid",
+          "type": "string"
+        },
+        "variableId": {
+          "description": "Dynamic option: input from signal bus, or output to signal bus from rendered data-driven template",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    },
+    "MermaidTemplate": {
+      "additionalProperties": false,
+      "properties": {
+        "dataSourceName": {
+          "type": "string"
+        },
+        "header": {
+          "type": "string"
+        },
+        "lineTemplates": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "header",
+        "lineTemplates"
+      ],
+      "type": "object"
     },
     "NestTransform": {
       "additionalProperties": false,

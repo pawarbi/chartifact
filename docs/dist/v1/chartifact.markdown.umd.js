@@ -1709,7 +1709,7 @@ ${reconstitutedRules.join("\n\n")}
   function inspectMermaidSpec(spec) {
     const reasons = [];
     let hasFlags = false;
-    if (typeof spec === "string") {
+    if (spec.diagramText) {
       const dangerousPatterns = [
         /javascript:/i,
         /<script/i,
@@ -1719,7 +1719,7 @@ ${reconstitutedRules.join("\n\n")}
         /href\s*=\s*["']javascript:/i
       ];
       for (const pattern of dangerousPatterns) {
-        if (pattern.test(spec)) {
+        if (pattern.test(spec.diagramText)) {
           hasFlags = true;
           reasons.push("Potentially unsafe content detected in diagram");
           break;
@@ -1738,17 +1738,17 @@ ${reconstitutedRules.join("\n\n")}
           hasFlags = true;
           reasons.push("template.lineTemplates must be an object");
         } else {
-          for (const [templateName, template] of Object.entries(spec.template.lineTemplates)) {
-            if (typeof template !== "string") {
+          for (const [lineTemplateName, lineTemplate] of Object.entries(spec.template.lineTemplates)) {
+            if (typeof lineTemplate !== "string") {
               hasFlags = true;
-              reasons.push(`Template '${templateName}' must be a string`);
+              reasons.push(`Template '${lineTemplateName}' must be a string`);
             }
           }
         }
-      }
-      if (!spec.dataSourceName) {
-        hasFlags = true;
-        reasons.push("Must specify dataSourceName for dynamic content");
+        if (!spec.template.dataSourceName) {
+          hasFlags = true;
+          reasons.push("Must specify dataSourceName for dynamic content");
+        }
       }
     }
     return {
@@ -1783,27 +1783,26 @@ ${reconstitutedRules.join("\n\n")}
     return mermaidLoadPromise;
   }
   const mermaidPlugin = {
-    ...flaggableJsonPlugin(pluginName$6, className$6, inspectMermaidSpec),
+    ...flaggableJsonPlugin(pluginName$6, className$6),
     fence: (token, index2) => {
       const content = token.content.trim();
       let spec;
       let flaggableSpec;
       try {
         const parsed = JSON.parse(content);
-        if (parsed && typeof parsed === "object" && (parsed.dataSourceName || parsed.template)) {
+        if (parsed && typeof parsed === "object") {
           spec = parsed;
         } else {
-          spec = content;
+          spec = { diagramText: content };
         }
       } catch (e) {
-        spec = content;
+        spec = { diagramText: content };
       }
       flaggableSpec = inspectMermaidSpec(spec);
       const json = JSON.stringify(flaggableSpec);
       return sanitizedHTML("div", { class: className$6, id: `${pluginName$6}-${index2}` }, json, true);
     },
     hydrateComponent: async (renderer, errorHandler, specs) => {
-      var _a;
       const { signalBus } = renderer;
       const mermaidInstances = [];
       for (let index2 = 0; index2 < specs.length; index2++) {
@@ -1816,42 +1815,42 @@ ${reconstitutedRules.join("\n\n")}
           continue;
         }
         const spec = specReview.approvedSpec;
-        const isDataDriven = typeof spec === "object" && !!spec.dataSourceName;
+        const { template } = spec;
         container.innerHTML = `<div class="mermaid-loading">Loading diagram...</div>`;
-        const tokens = typeof spec === "object" ? tokenizeTemplate(((_a = spec.template) == null ? void 0 : _a.header) || "") : [];
+        const tokens = tokenizeTemplate((template == null ? void 0 : template.header) || "") || [];
         const mermaidInstance = {
           id: `${pluginName$6}-${index2}`,
           spec,
           container,
-          isDataDriven,
           signals: {},
           tokens,
           lastRenderedDiagram: null
         };
         mermaidInstances.push(mermaidInstance);
-        if (!isDataDriven && typeof spec === "string") {
-          await renderRawDiagram(mermaidInstance.id, mermaidInstance.container, spec, errorHandler, pluginName$6, index2);
+        if (spec.diagramText && typeof spec.diagramText === "string") {
+          await renderRawDiagram(mermaidInstance.id, mermaidInstance.container, spec.diagramText, errorHandler, pluginName$6, index2);
         }
       }
       const instances = mermaidInstances.map((mermaidInstance, index2) => {
-        const { spec, isDataDriven, signals, tokens } = mermaidInstance;
+        const { spec, signals, tokens } = mermaidInstance;
+        const { template, variableId } = spec;
         const initialSignals = tokens.filter((token) => token.type === "variable").map((token) => ({
           name: token.name,
           value: null,
           priority: -1,
           isData: false
         }));
-        if (isDataDriven && typeof spec === "object" && spec.dataSourceName) {
+        if (template == null ? void 0 : template.dataSourceName) {
           initialSignals.push({
-            name: spec.dataSourceName,
+            name: template.dataSourceName,
             value: null,
             priority: -1,
             isData: true
           });
         }
-        if (isDataDriven && typeof spec === "object" && spec.variableId) {
+        if (variableId) {
           initialSignals.push({
-            name: spec.variableId,
+            name: variableId,
             value: "",
             priority: 1,
             isData: false
@@ -1861,15 +1860,12 @@ ${reconstitutedRules.join("\n\n")}
           ...mermaidInstance,
           initialSignals,
           receiveBatch: async (batch) => {
-            for (const [signalName, batchItem] of Object.entries(batch)) {
-              signals[signalName] = batchItem.value;
-            }
-            if (isDataDriven && typeof spec === "object" && spec.dataSourceName) {
-              let diagramText;
-              if (typeof signals[spec.dataSourceName] === "string") {
-                diagramText = signals[spec.dataSourceName];
-              } else if (Array.isArray(signals[spec.dataSourceName])) {
-                diagramText = dataToDiagram(spec.template, signals[spec.dataSourceName], tokens, signals);
+            if (template) {
+              for (const [signalName, batchItem] of Object.entries(batch)) {
+                signals[signalName] = batchItem.value;
+              }
+              if (Array.isArray(signals[template.dataSourceName])) {
+                const diagramText = dataToDiagram(template, signals[template.dataSourceName], tokens, signals);
                 if (diagramText && mermaidInstance.lastRenderedDiagram !== diagramText) {
                   if (spec.variableId) {
                     signalBus.broadcast(mermaidInstance.id, {
@@ -1880,10 +1876,20 @@ ${reconstitutedRules.join("\n\n")}
                     });
                   }
                 }
+                if (diagramText && mermaidInstance.lastRenderedDiagram !== diagramText) {
+                  await renderRawDiagram(mermaidInstance.id, mermaidInstance.container, diagramText, errorHandler, pluginName$6, index2);
+                  mermaidInstance.lastRenderedDiagram = diagramText;
+                }
+              } else {
+                mermaidInstance.container.innerHTML = '<div class="error">No data available to render diagram</div>';
               }
-              if (diagramText && mermaidInstance.lastRenderedDiagram !== diagramText) {
-                await renderRawDiagram(mermaidInstance.id, mermaidInstance.container, diagramText, errorHandler, pluginName$6, index2);
-                mermaidInstance.lastRenderedDiagram = diagramText;
+            } else if (variableId && batch[variableId]) {
+              const value = batch[variableId].value;
+              if (typeof value === "string" && value.trim().length > 0) {
+                await renderRawDiagram(mermaidInstance.id, mermaidInstance.container, value, errorHandler, pluginName$6, index2);
+                mermaidInstance.lastRenderedDiagram = value;
+              } else {
+                mermaidInstance.container.innerHTML = '<div class="error">No diagram to display</div>';
               }
             }
           }
