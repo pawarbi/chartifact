@@ -2,7 +2,15 @@
     "$schema": "../../../docs/schema/idoc_v1.json",
     "title": "Select Items to Buy",
     "style": {
-        "css": "html, body {\n  height: 100%;\n  margin: 0;\n  padding: 0;\n  scroll-behavior: smooth;\n  overflow-y: auto;\n}\n\nbody {\n  scroll-snap-type: y mandatory;\n}\n\n.group {\n  color: white;\n  scroll-snap-align: start;\n  height: 100vh;\n  margin: 0;\n  padding: 1em;\n  box-sizing: border-box;\n}\n\n#slide1 { background: #1abc9c; }\n#slide2 { background: #3498db; }\n#slide3 { background: #9b59b6; }\n#slide4 { background: #e74c3c; }\n"
+        "css": [
+            "html, body { height: 100%; margin: 0; padding: 0; scroll-behavior: smooth; overflow-y: auto; }",
+            "body { scroll-snap-type: y mandatory; }",
+            ".group { color: white; scroll-snap-align: start; height: 100vh; margin: 0; padding: 1em; box-sizing: border-box; }",
+            "#slide1 { background: #1abc9c; }",
+            "#slide2 { background: #3498db; }",
+            "#slide3 { background: #9b59b6; }",
+            "#slide4 { background: #e74c3c; }"
+        ]
     },
     "dataLoaders": [
         {
