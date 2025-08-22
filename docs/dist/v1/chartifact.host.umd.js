@@ -1436,7 +1436,7 @@ ${guardedJs}
 ${message}
 
 ${details}`;
-        this.render("Error", markdown, void 0, true);
+        this.renderMarkdown(markdown);
       } else {
         this.previewDiv.innerHTML = "";
         const h1 = document.createElement("h1");

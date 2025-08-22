@@ -165,7 +165,7 @@ export class Listener {
     //try to show the message in the sandbox, since it works well with paging folder content
     if (this.sandboxReady) {
       const markdown = `# Error:\n${message}\n\n${details}`;
-      this.render('Error', markdown, undefined, true);
+      this.renderMarkdown(markdown);
     } else {
       // Clear previous content
       this.previewDiv.innerHTML = '';
