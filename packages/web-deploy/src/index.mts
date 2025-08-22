@@ -15,7 +15,11 @@ const outputPath = resolve(__dirname, '../../../docs/index.md');
 
 async function generateIndex() {
     const readme = await readFile(readmePath, 'utf-8');
-    await writeFile(outputPath, frontmatter + readme, 'utf-8');
+
+    //replace all '(https://microsoft.github.io/chartifact' with '(.' for local testing
+    const updatedReadme = readme.replace(/\(https:\/\/microsoft\.github\.io\/chartifact/g, () => '(.');
+
+    await writeFile(outputPath, frontmatter + updatedReadme, 'utf-8');
 }
 
 generateIndex().catch(console.error);
