@@ -66,7 +66,7 @@ interface MermaidInstance {
     tokens: TemplateToken[];
 }
 
-interface MermaidSpec extends MermaidElementProps { }
+export interface MermaidSpec extends MermaidElementProps { }
 
 const pluginName: PluginNames = 'mermaid';
 const className = pluginClassName(pluginName);
