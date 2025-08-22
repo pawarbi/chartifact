@@ -33,7 +33,16 @@ ${content}
 :::`;
 }
 
-export function targetMarkdown(page: InteractiveDocument) {
+export interface TargetMarkdownOptions {
+    extraNewlineCount?: number;
+}
+
+const defaultOptions: TargetMarkdownOptions = {
+    extraNewlineCount: 1,
+};
+
+export function targetMarkdown(page: InteractiveDocument, options?: TargetMarkdownOptions) {
+    const finalOptions = { ...defaultOptions, ...options };
     const mdSections: string[] = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
@@ -109,7 +118,9 @@ export function targetMarkdown(page: InteractiveDocument) {
         }
     }
 
-    const markdown = mdSections.join('\n\n');
+    const newLines = '\n'.repeat(1 + finalOptions.extraNewlineCount);
+
+    const markdown = mdSections.join(newLines);
     return markdown;
 }
 
@@ -139,7 +150,7 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], ta
     return vegaScope;
 }
 
-type pluginSpecs = Plugins.CheckboxSpec | Plugins.DropdownSpec | Plugins.ImageSpec | Plugins.PresetsSpec | Plugins.SliderSpec | Plugins.TabulatorSpec | Plugins.TextboxSpec;
+type pluginSpecs = Plugins.CheckboxSpec | Plugins.DropdownSpec | Plugins.ImageSpec | Plugins.MermaidSpec | Plugins.PresetsSpec | Plugins.SliderSpec | Plugins.TabulatorSpec | Plugins.TextboxSpec;
 
 function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: VegaScope, resources: { charts?: { [chartKey: string]: VegaSpec | VegaLiteSpec } }) {
     const mdElements: string[] = [];
@@ -208,6 +219,30 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                         height,
                     };
                     addSpec('image', imageSpec);
+                    break;
+                }
+                case 'mermaid': {
+                    const { diagramText, template, variableId } = element;
+                    if (diagramText) {
+                        //static Mermaid text
+                        mdElements.push(tickWrap('mermaid', diagramText));
+                    } else if (template) {
+                        //dynamic Mermaid template
+                        const mermaidSpec: Plugins.MermaidSpec = {
+                            template,
+                        };
+                        //optional output to signal bus
+                        if (variableId) {
+                            mermaidSpec.variableId = variableId;
+                        }
+                        addSpec('mermaid', mermaidSpec);
+                    } else if (variableId) {
+                        //input from signal bus
+                        const mermaidSpec: Plugins.MermaidSpec = {
+                            variableId,
+                        };
+                        addSpec('mermaid', mermaidSpec, false);
+                    }
                     break;
                 }
                 case 'presets': {
