@@ -131,6 +131,14 @@ export function create() {
                     return jsonPlugin;
                 }
             }
+            // Fourth priority: Check if it starts with "yaml " and extract the plugin name
+            else if (info.startsWith('yaml ')) {
+                const yamlPluginName = info.slice(5).trim();
+                const yamlPlugin = findPlugin(yamlPluginName);
+                if (yamlPlugin) {
+                    return yamlPlugin;
+                }
+            }
         }
 
         // Fallback to the original fence renderer if no plugin matches

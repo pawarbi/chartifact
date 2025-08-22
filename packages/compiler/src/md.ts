@@ -11,6 +11,7 @@ import { Plugins } from '@microsoft/chartifact-markdown';
 import { VegaScope } from './scope.js';
 import { createSpecWithVariables } from './spec.js';
 import { defaultCommonOptions } from 'common';
+import * as yaml from 'js-yaml';
 
 const defaultJsonIndent = 2;
 
@@ -22,9 +23,18 @@ function jsonWrap(type: string, content: string) {
     return tickWrap('json ' + type, content);
 }
 
+function yamlWrap(type: string, content: string) {
+    return tickWrap('yaml ' + type, content);
+}
+
 function chartWrap(spec: VegaSpec | VegaLiteSpec) {
     const chartType = getChartType(spec);
     return jsonWrap(chartType, JSON.stringify(spec, null, defaultJsonIndent));
+}
+
+function chartWrapYaml(spec: VegaSpec | VegaLiteSpec) {
+    const chartType = getChartType(spec);
+    return yamlWrap(chartType, yaml.dump(spec, { indent: defaultJsonIndent }));
 }
 
 function mdContainerWrap(classname: string, id: string, content: string) {
@@ -35,10 +45,12 @@ ${content}
 
 export interface TargetMarkdownOptions {
     extraNewlineCount?: number;
+    useYaml?: boolean;
 }
 
 const defaultOptions: TargetMarkdownOptions = {
     extraNewlineCount: 1,
+    useYaml: false,
 };
 
 export function targetMarkdown(page: InteractiveDocument, options?: TargetMarkdownOptions) {
@@ -68,14 +80,14 @@ export function targetMarkdown(page: InteractiveDocument, options?: TargetMarkdo
     const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables, tableElements);
 
     for (const dataLoader of dataLoaders.filter(dl => dl.type === 'spec')) {
-        mdSections.push(chartWrap(dataLoader.spec));
+        mdSections.push(finalOptions.useYaml ? chartWrapYaml(dataLoader.spec) : chartWrap(dataLoader.spec));
     }
 
     for (const group of page.groups) {
         mdSections.push(mdContainerWrap(
             defaultCommonOptions.groupClassName,
             group.groupId,
-            groupMarkdown(group, variables, vegaScope, page.resources)
+            groupMarkdown(group, variables, vegaScope, page.resources, finalOptions.useYaml)
         ));
     }
 
@@ -97,7 +109,7 @@ export function targetMarkdown(page: InteractiveDocument, options?: TargetMarkdo
 
     if (vegaScope.spec.data || vegaScope.spec.signals) {
         //spec is towards the top of the markdown file
-        mdSections.unshift(chartWrap(vegaScope.spec));
+        mdSections.unshift(finalOptions.useYaml ? chartWrapYaml(vegaScope.spec) : chartWrap(vegaScope.spec));
     }
 
     if (page.notes) {
@@ -152,7 +164,7 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], ta
 
 type pluginSpecs = Plugins.CheckboxSpec | Plugins.DropdownSpec | Plugins.ImageSpec | Plugins.MermaidSpec | Plugins.PresetsSpec | Plugins.SliderSpec | Plugins.TabulatorSpec | Plugins.TextboxSpec;
 
-function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: VegaScope, resources: { charts?: { [chartKey: string]: VegaSpec | VegaLiteSpec } }) {
+function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: VegaScope, resources: { charts?: { [chartKey: string]: VegaSpec | VegaLiteSpec } }, useYaml = false) {
     const mdElements: string[] = [];
 
     const addSpec = (pluginName: Plugins.PluginNames, spec: pluginSpecs, indent = true) => {
@@ -173,7 +185,7 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                         //add a markdown element (not a chart element) with an image of the spinner at /img/chart-spinner.gif
                         mdElements.push('![Chart Spinner](/img/chart-spinner.gif)');
                     } else {
-                        mdElements.push(chartWrap(spec));
+                        mdElements.push(useYaml ? chartWrapYaml(spec) : chartWrap(spec));
                     }
                     break;
                 }
