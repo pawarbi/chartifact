@@ -18,8 +18,7 @@
 * 2. String Input via Signal (textbox → diagram):
 * ```mermaid
 * {
-*   "dataSourceName": "userInput",
-*   "variableId": "generatedDiagram"
+*   "variableId": "userInput"
 * }
 * ```
 * When userInput signal contains complete Mermaid text, renders directly.
@@ -28,13 +27,13 @@
 * ```mermaid
 * {
 *   "template": {
+*     "dataSourceName": "diagramData",
 *     "diagramType": "flowchart TD",
 *     "lineTemplates": {
 *       "node": "    {{id}}[{{label}}]",
 *       "link": "    {{from}} --> {{to}}"
 *     }
 *   },
-*   "dataSourceName": "diagramData",
 *   "variableId": "outputDiagram"
 * }
 * ```
