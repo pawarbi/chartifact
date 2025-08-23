@@ -16,7 +16,7 @@ import * as yaml from 'js-yaml';
 const defaultJsonIndent = 2;
 
 function tickWrap(plugin: string, content: string) {
-    return `\`\`\`${plugin}\n${content}\n\`\`\``;
+    return `\`\`\`${plugin}\n${content}\n\`\`\`\n`;
 }
 
 function jsonWrap(type: string, content: string) {
@@ -24,7 +24,7 @@ function jsonWrap(type: string, content: string) {
 }
 
 function yamlWrap(type: string, content: string) {
-    return tickWrap('yaml ' + type, content);
+    return tickWrap('yaml ' + type, trimTrailingNewline(content));
 }
 
 function chartWrap(spec: VegaSpec | VegaLiteSpec) {
@@ -39,23 +39,26 @@ function chartWrapYaml(spec: VegaSpec | VegaLiteSpec) {
 
 function mdContainerWrap(classname: string, id: string, content: string) {
     return `::: ${classname} {#${id}}
+
 ${content}
 :::`;
 }
 
 export interface TargetMarkdownOptions {
-    extraNewlineCount?: number;
+    extraNewlineBetweenGroups?: number;
+    extraNewlineBetweenElements?: number;
     pluginFormat?: Record<string, "json" | "yaml">;
 }
 
 const defaultPluginFormat: Record<string, "json" | "yaml"> = {
     "*": "yaml",
-    "vega": "json", 
+    "vega": "json",
     "vega-lite": "json"
 };
 
 const defaultOptions: TargetMarkdownOptions = {
-    extraNewlineCount: 1,
+    extraNewlineBetweenGroups: 0,
+    extraNewlineBetweenElements: 0,
     pluginFormat: defaultPluginFormat,
 };
 
@@ -76,7 +79,7 @@ export function targetMarkdown(page: InteractiveDocument, options?: TargetMarkdo
     const finalOptions = { ...defaultOptions, ...options };
     // Merge plugin format with defaults, user options take precedence
     const finalPluginFormat = { ...defaultPluginFormat, ...options?.pluginFormat };
-    
+
     const mdSections: string[] = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
@@ -110,7 +113,7 @@ export function targetMarkdown(page: InteractiveDocument, options?: TargetMarkdo
         mdSections.push(mdContainerWrap(
             defaultCommonOptions.groupClassName,
             group.groupId,
-            groupMarkdown(group, variables, vegaScope, page.resources, finalPluginFormat)
+            groupMarkdown(group, variables, vegaScope, page.resources, finalPluginFormat, finalOptions.extraNewlineBetweenElements)
         ));
     }
 
@@ -154,8 +157,7 @@ export function targetMarkdown(page: InteractiveDocument, options?: TargetMarkdo
         }
     }
 
-    const newLines = '\n'.repeat(1 + finalOptions.extraNewlineCount);
-
+    const newLines = '\n'.repeat(1 + finalOptions.extraNewlineBetweenGroups);
     const markdown = mdSections.join(newLines);
     return markdown;
 }
@@ -188,7 +190,7 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], ta
 
 type pluginSpecs = Plugins.CheckboxSpec | Plugins.DropdownSpec | Plugins.ImageSpec | Plugins.MermaidSpec | Plugins.PresetsSpec | Plugins.SliderSpec | Plugins.TabulatorSpec | Plugins.TextboxSpec;
 
-function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: VegaScope, resources: { charts?: { [chartKey: string]: VegaSpec | VegaLiteSpec } }, pluginFormat: Record<string, "json" | "yaml">) {
+function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: VegaScope, resources: { charts?: { [chartKey: string]: VegaSpec | VegaLiteSpec } }, pluginFormat: Record<string, "json" | "yaml">, extraNewlineBetweenElements: number) {
     const mdElements: string[] = [];
 
     const addSpec = (pluginName: Plugins.PluginNames, spec: pluginSpecs, indent = true) => {
@@ -204,7 +206,7 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
 
     for (const element of group.elements) {
         if (typeof element === 'string') {
-            mdElements.push(element);
+            mdElements.push(`${element}\n`);
         } else if (typeof element === 'object') {
             switch (element.type) {
                 case 'chart': {
@@ -336,6 +338,15 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
             mdElements.push(tickWrap('#', JSON.stringify(element)));
         }
     }
-    const markdown = mdElements.join('\n\n');
-    return markdown;
+
+    const newLines = '\n'.repeat(1 + extraNewlineBetweenElements);
+    const markdown = mdElements.join(newLines);
+    return trimTrailingNewline(markdown)
+}
+
+function trimTrailingNewline(s: string) {
+    if (s.endsWith('\n')) {
+        return s.slice(0, -1);
+    }
+    return s;
 }
