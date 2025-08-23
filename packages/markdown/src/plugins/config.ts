@@ -71,10 +71,4 @@ export function flaggablePlugin<T>(pluginName: PluginNames, className: string, f
     return plugin;
 }
 
-/**
- * Legacy function for backward compatibility
- * @deprecated Use flaggablePlugin instead
- */
-export function flaggableJsonPlugin<T>(pluginName: PluginNames, className: string, flagger?: (spec: T) => RawFlaggableSpec<T>, attrs?: object) {
-    return flaggablePlugin<T>(pluginName, className, flagger, attrs);
-}
+

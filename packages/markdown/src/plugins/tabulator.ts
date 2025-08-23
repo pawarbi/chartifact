@@ -7,7 +7,7 @@ import { Batch, IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
 import { Tabulator as TabulatorType, Options as TabulatorOptions } from 'tabulator-tables';
 import { newId, pluginClassName } from './util.js';
 import { TableElementProps } from '@microsoft/chartifact-schema';
-import { flaggableJsonPlugin } from './config.js';
+import { flaggablePlugin } from './config.js';
 import { PluginNames } from './interfaces.js';
 
 interface TabulatorInstance {
@@ -38,7 +38,7 @@ const pluginName: PluginNames = 'tabulator';
 const className = pluginClassName(pluginName);
 
 export const tabulatorPlugin: Plugin<TabulatorSpec> = {
-    ...flaggableJsonPlugin<TabulatorSpec>(pluginName, className, inspectTabulatorSpec, { style: 'box-sizing: border-box;' }),
+    ...flaggablePlugin<TabulatorSpec>(pluginName, className, inspectTabulatorSpec, { style: 'box-sizing: border-box;' }),
     hydrateComponent: async (renderer, errorHandler, specs) => {
         const { signalBus } = renderer;
         const tabulatorInstances: TabulatorInstance[] = [];

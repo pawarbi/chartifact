@@ -48,7 +48,7 @@
 import { Plugin, RawFlaggableSpec, IInstance } from '../factory.js';
 import { ErrorHandler } from '../renderer.js';
 import { sanitizedHTML } from '../sanitize.js';
-import { flaggableJsonPlugin } from './config.js';
+import { flaggablePlugin } from './config.js';
 import { pluginClassName } from './util.js';
 import { PluginNames } from './interfaces.js';
 import { TemplateToken, tokenizeTemplate } from 'common';
@@ -166,7 +166,7 @@ function loadMermaidFromCDN(): Promise<void> {
 }
 
 export const mermaidPlugin: Plugin<MermaidSpec> = {
-    ...flaggableJsonPlugin<MermaidSpec>(pluginName, className),
+    ...flaggablePlugin<MermaidSpec>(pluginName, className),
     fence: (token, index) => {
         const content = token.content.trim();
         let spec: MermaidSpec;
