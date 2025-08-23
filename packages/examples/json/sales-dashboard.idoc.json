@@ -172,6 +172,7 @@
         "charts": {
             "categoryChart": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+                "width": "container",
                 "data": {
                     "name": "categoryRevenue"
                 },
@@ -184,6 +185,7 @@
             },
             "trendChart": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+                "width": "container",
                 "data": {
                     "name": "salesData"
                 },
