@@ -10,6 +10,7 @@ const resources = [
     '../../node_modules/vega-lite/build/vega-lite.min.js',
     '../../node_modules/markdown-it/dist/markdown-it.min.js',
     '../../node_modules/css-tree/dist/csstree.js',
+    '../../node_modules/js-yaml/dist/js-yaml.min.js',
     '../../node_modules/tabulator-tables/dist/js/tabulator.min.js',
     '../../node_modules/tabulator-tables/dist/css/tabulator.min.css',
     '../../node_modules/mermaid/dist/mermaid.min.js',
