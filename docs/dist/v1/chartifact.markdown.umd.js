@@ -3071,6 +3071,9 @@ ${reconstitutedRules.join("\n\n")}
           }
         }
         await this.signalBus.beginListening();
+        setTimeout(() => {
+          window.dispatchEvent(new Event("resize"));
+        }, 0);
       } catch (error) {
         console.error("Error in rendering plugins", error);
       }

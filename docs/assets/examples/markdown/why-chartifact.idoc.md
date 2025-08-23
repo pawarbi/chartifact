@@ -77,6 +77,16 @@ li { margin: 0.3em 0; }
 
 
 
+### HTML:
+
+✅ Powerful & interactive
+
+❌ Security nightmare
+
+❌ Corporate systems won't serve it
+
+
+
 ### Markdown: **Clear winner** so far
 
 ✅ Human-readable
@@ -84,16 +94,6 @@ li { margin: 0.3em 0; }
 ✅ Version controllable
 
 ❌ Limited interactivity
-
-
-
-### HTML: **"The Chosen One"**
-
-✅ Powerful & interactive
-
-❌ Security nightmare
-
-❌ Corporate systems won't serve it
 :::
 
 ::: group {#slide4}
@@ -119,7 +119,7 @@ li { margin: 0.3em 0; }
 ::: group {#slide5}
 ## 🔒 Proprietary Solutions Miss the Point
 
-### Anthropic's Claude Artifacts (and similar)
+### Most LLMs build apps, not documents
 
 - Proprietary and platform-locked 🔐
 
@@ -127,7 +127,7 @@ li { margin: 0.3em 0; }
 
 - **All they wanted to do was remix a presentation!**
 
-- No portability - trapped in vendor ecosystem
+- Sometimes trapped in vendor ecosystem
 
 - Require hosting and maintenance
 
