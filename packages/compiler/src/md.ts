@@ -4,7 +4,7 @@
 */
 import { Spec as VegaSpec } from 'vega-typings';
 import { TopLevelSpec as VegaLiteSpec } from "vega-lite";
-import { DataSource, ElementGroup, InteractiveDocument, TableElement, Variable } from '@microsoft/chartifact-schema';
+import { DataSource, ElementGroup, InteractiveDocument, TabulatorElement, Variable } from '@microsoft/chartifact-schema';
 import { getChartType } from './util.js';
 import { addDynamicDataLoaderToSpec, addStaticDataLoaderToSpec } from './loader.js';
 import { Plugins } from '@microsoft/chartifact-markdown';
@@ -16,7 +16,7 @@ import * as yaml from 'js-yaml';
 const defaultJsonIndent = 2;
 
 function tickWrap(plugin: string, content: string) {
-    return `\`\`\`${plugin}\n${content}\n\`\`\`\n`;
+    return `\n\n\n\`\`\`${plugin}\n${content}\n\`\`\`\n\n\n`;
 }
 
 function jsonWrap(type: string, content: string) {
@@ -45,8 +45,7 @@ ${content}
 }
 
 export interface TargetMarkdownOptions {
-    extraNewlineBetweenGroups?: number;
-    extraNewlineBetweenElements?: number;
+    extraNewlines?: number;
     pluginFormat?: Record<string, "json" | "yaml">;
 }
 
@@ -57,8 +56,7 @@ const defaultPluginFormat: Record<string, "json" | "yaml"> = {
 };
 
 const defaultOptions: TargetMarkdownOptions = {
-    extraNewlineBetweenGroups: 0,
-    extraNewlineBetweenElements: 0,
+    extraNewlines: 2,
     pluginFormat: defaultPluginFormat,
 };
 
@@ -100,9 +98,9 @@ export function targetMarkdown(page: InteractiveDocument, options?: TargetMarkdo
         }
     }
 
-    const tableElements = page.groups.flatMap(group => group.elements.filter(e => typeof e !== 'string' && e.type === 'table'));
+    const tabulatorElements = page.groups.flatMap(group => group.elements.filter(e => typeof e !== 'string' && e.type === 'tabulator'));
 
-    const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables, tableElements);
+    const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables, tabulatorElements);
 
     for (const dataLoader of dataLoaders.filter(dl => dl.type === 'spec')) {
         const useYaml = getPluginFormat('vega', finalPluginFormat) === 'yaml';
@@ -113,7 +111,7 @@ export function targetMarkdown(page: InteractiveDocument, options?: TargetMarkdo
         mdSections.push(mdContainerWrap(
             defaultCommonOptions.groupClassName,
             group.groupId,
-            groupMarkdown(group, variables, vegaScope, page.resources, finalPluginFormat, finalOptions.extraNewlineBetweenElements)
+            groupMarkdown(group, variables, vegaScope, page.resources, finalPluginFormat)
         ));
     }
 
@@ -157,15 +155,15 @@ export function targetMarkdown(page: InteractiveDocument, options?: TargetMarkdo
         }
     }
 
-    const newLines = '\n'.repeat(1 + finalOptions.extraNewlineBetweenGroups);
-    const markdown = mdSections.join(newLines);
-    return markdown;
+    const markdown = mdSections.join('\n');
+
+    return normalizeNewlines(markdown, finalOptions.extraNewlines).trim();
 }
 
-function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], tableElements: TableElement[]) {
+function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], tabulatorElements: TabulatorElement[]) {
 
     //create a Vega spec with all variables
-    const spec = createSpecWithVariables(variables, tableElements);
+    const spec = createSpecWithVariables(variables, tabulatorElements);
     const vegaScope = new VegaScope(spec);
 
     for (const dataSource of dataSources) {
@@ -190,7 +188,7 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], ta
 
 type pluginSpecs = Plugins.CheckboxSpec | Plugins.DropdownSpec | Plugins.ImageSpec | Plugins.MermaidSpec | Plugins.PresetsSpec | Plugins.SliderSpec | Plugins.TabulatorSpec | Plugins.TextboxSpec;
 
-function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: VegaScope, resources: { charts?: { [chartKey: string]: VegaSpec | VegaLiteSpec } }, pluginFormat: Record<string, "json" | "yaml">, extraNewlineBetweenElements: number) {
+function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: VegaScope, resources: { charts?: { [chartKey: string]: VegaSpec | VegaLiteSpec } }, pluginFormat: Record<string, "json" | "yaml">) {
     const mdElements: string[] = [];
 
     const addSpec = (pluginName: Plugins.PluginNames, spec: pluginSpecs, indent = true) => {
@@ -206,7 +204,7 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
 
     for (const element of group.elements) {
         if (typeof element === 'string') {
-            mdElements.push(`${element}\n`);
+            mdElements.push(element);
         } else if (typeof element === 'object') {
             switch (element.type) {
                 case 'chart': {
@@ -310,10 +308,13 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
                     addSpec('slider', sliderSpec, false);
                     break;
                 }
-                case 'table': {
+                case 'tabulator': {
                     const { dataSourceName, variableId, tabulatorOptions, editable } = element;
-                    const tableSpec: Plugins.TabulatorSpec = { dataSourceName, variableId, tabulatorOptions, editable };
-                    addSpec('tabulator', tableSpec);
+                    const tabulatorSpec: Plugins.TabulatorSpec = { dataSourceName, tabulatorOptions, editable };
+                    if (variableId) {
+                        tabulatorSpec.variableId = variableId;
+                    }
+                    addSpec('tabulator', tabulatorSpec);
                     break;
                 }
                 case 'textbox': {
@@ -339,8 +340,7 @@ function groupMarkdown(group: ElementGroup, variables: Variable[], vegaScope: Ve
         }
     }
 
-    const newLines = '\n'.repeat(1 + extraNewlineBetweenElements);
-    const markdown = mdElements.join(newLines);
+    const markdown = mdElements.join('\n');
     return trimTrailingNewline(markdown)
 }
 
@@ -349,4 +349,8 @@ function trimTrailingNewline(s: string) {
         return s.slice(0, -1);
     }
     return s;
+}
+
+export function normalizeNewlines(text: string, extra: number) {
+    return text.replace(/(\n\s*){4,}/g, '\n'.repeat(1 + extra)) + '\n';
 }

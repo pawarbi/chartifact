@@ -2,7 +2,7 @@
 * Copyright (c) Microsoft Corporation.
 * Licensed under the MIT License.
 */
-import { VariableID, VariableControl, ElementBase, TemplatedUrl } from './common.js';
+import { VariableID, VariableControl, ElementBase, TemplatedUrl, OptionalVariableControl } from './common.js';
 
 /**
  * Interactive Elements
@@ -141,13 +141,13 @@ export interface Preset {
 }
 
 /**
- * Table
+ * Tabulator
  * use for tabular data
  */
-export interface TableElement extends TableElementProps {
-  type: 'table';
+export interface TabulatorElement extends TabulatorElementProps {
+  type: 'tabulator';
 }
-export interface TableElementProps extends VariableControl {
+export interface TabulatorElementProps extends OptionalVariableControl {
 
   /** Name of the data source to use for incoming data (output data is available via the variableId of this table element) */
   dataSourceName: string;
@@ -211,6 +211,6 @@ export type InteractiveElement =
   | MermaidElement
   | PresetsElement
   | SliderElement
-  | TableElement
+  | TabulatorElement
   | TextboxElement
   ;

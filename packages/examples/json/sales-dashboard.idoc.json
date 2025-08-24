@@ -161,9 +161,8 @@
             "elements": [
                 "### Sales Data",
                 {
-                    "type": "table",
-                    "dataSourceName": "salesData",
-                    "variableId": "salesSelected"
+                    "type": "tabulator",
+                    "dataSourceName": "salesData"
                 }
             ]
         }

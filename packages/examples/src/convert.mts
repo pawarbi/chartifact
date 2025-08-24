@@ -1,4 +1,4 @@
-import { targetMarkdown } from '@microsoft/chartifact-compiler';
+import { targetMarkdown, normalizeNewlines } from '@microsoft/chartifact-compiler';
 import { InteractiveDocument } from '@microsoft/chartifact-schema';
 import fs from 'node:fs';
 
@@ -14,7 +14,7 @@ function convertToMarkdown(interactiveDocument: InteractiveDocument): string {
             .join('\n');
     }
 
-    return markdown;
+    return normalizeNewlines(markdown, 2).trim();
 }
 
 async function convertJsonFiles(sourceDir: string, destDir: string, jsonCopyBase: string) {
