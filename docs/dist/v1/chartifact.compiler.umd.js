@@ -1,10 +1,27 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega")) : typeof define === "function" && define.amd ? define(["exports", "vega"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Chartifact = global.Chartifact || {}, global.vega));
-})(this, (function(exports2, vega) {
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("js-yaml")) : typeof define === "function" && define.amd ? define(["exports", "vega", "js-yaml"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Chartifact = global.Chartifact || {}, global.vega, global.jsyaml));
+})(this, (function(exports2, vega, yaml) {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
+  function _interopNamespaceDefault(e) {
+    const n = Object.create(null, { [Symbol.toStringTag]: { value: "Module" } });
+    if (e) {
+      for (const k in e) {
+        if (k !== "default") {
+          const d = Object.getOwnPropertyDescriptor(e, k);
+          Object.defineProperty(n, k, d.get ? d : {
+            enumerable: true,
+            get: () => e[k]
+          });
+        }
+      }
+    }
+    n.default = e;
+    return Object.freeze(n);
+  }
+  const yaml__namespace = /* @__PURE__ */ _interopNamespaceDefault(yaml);
   const defaultCommonOptions = {
     dataSignalPrefix: "data_signal:",
     groupClassName: "group"
@@ -189,15 +206,18 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     return sorted;
   }
-  function createSpecWithVariables(variables, tableElements, stubDataLoaders) {
+  function createSpecWithVariables(variables, tabulatorElements, stubDataLoaders) {
     const spec = {
       $schema: "https://vega.github.io/schema/vega/v5.json",
       description: "This is the central brain of the page",
       signals: [],
       data: []
     };
-    tableElements.forEach((table) => {
-      const { variableId } = table;
+    tabulatorElements.forEach((tabulator) => {
+      const { variableId } = tabulator;
+      if (!variableId) {
+        return;
+      }
       spec.signals.push(dataAsSignal(variableId));
       spec.data.unshift({
         name: variableId,
@@ -314,27 +334,57 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   }
   const defaultJsonIndent = 2;
   function tickWrap(plugin, content) {
-    return `\`\`\`${plugin}
+    return `
+
+
+\`\`\`${plugin}
 ${content}
-\`\`\``;
+\`\`\`
+
+
+`;
   }
   function jsonWrap(type, content) {
     return tickWrap("json " + type, content);
+  }
+  function yamlWrap(type, content) {
+    return tickWrap("yaml " + type, trimTrailingNewline(content));
   }
   function chartWrap(spec) {
     const chartType = getChartType(spec);
     return jsonWrap(chartType, JSON.stringify(spec, null, defaultJsonIndent));
   }
+  function chartWrapYaml(spec) {
+    const chartType = getChartType(spec);
+    return yamlWrap(chartType, yaml__namespace.dump(spec, { indent: defaultJsonIndent }));
+  }
   function mdContainerWrap(classname, id, content) {
     return `::: ${classname} {#${id}}
+
 ${content}
 :::`;
   }
-  const defaultOptions = {
-    extraNewlineCount: 1
+  const defaultPluginFormat = {
+    "*": "yaml",
+    "vega": "json",
+    "vega-lite": "json"
   };
+  const defaultOptions = {
+    extraNewlines: 2,
+    pluginFormat: defaultPluginFormat
+  };
+  function getPluginFormat(pluginName, pluginFormat) {
+    if (pluginFormat[pluginName]) {
+      return pluginFormat[pluginName];
+    }
+    if (pluginFormat["*"]) {
+      return pluginFormat["*"];
+    }
+    return "json";
+  }
   function targetMarkdown(page, options) {
     const finalOptions = { ...defaultOptions, ...options };
+    const finalPluginFormat = { ...defaultPluginFormat, ...options == null ? void 0 : options.pluginFormat };
     const mdSections = [];
     const dataLoaders = page.dataLoaders || [];
     const variables = page.variables || [];
@@ -353,16 +403,17 @@ ${content}
         mdSections.push(jsonWrap("google-fonts", JSON.stringify(style.googleFonts, null, defaultJsonIndent)));
       }
     }
-    const tableElements = page.groups.flatMap((group) => group.elements.filter((e) => typeof e !== "string" && e.type === "table"));
-    const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables, tableElements);
+    const tabulatorElements = page.groups.flatMap((group) => group.elements.filter((e) => typeof e !== "string" && e.type === "tabulator"));
+    const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables, tabulatorElements);
     for (const dataLoader of dataLoaders.filter((dl) => dl.type === "spec")) {
-      mdSections.push(chartWrap(dataLoader.spec));
+      const useYaml = getPluginFormat("vega", finalPluginFormat) === "yaml";
+      mdSections.push(useYaml ? chartWrapYaml(dataLoader.spec) : chartWrap(dataLoader.spec));
     }
     for (const group of page.groups) {
       mdSections.push(mdContainerWrap(
         defaultCommonOptions.groupClassName,
         group.groupId,
-        groupMarkdown(group, variables, vegaScope, page.resources)
+        groupMarkdown(group, variables, vegaScope, page.resources, finalPluginFormat)
       ));
     }
     const { data, signals } = vegaScope.spec;
@@ -380,7 +431,8 @@ ${content}
       delete vegaScope.spec.signals;
     }
     if (vegaScope.spec.data || vegaScope.spec.signals) {
-      mdSections.unshift(chartWrap(vegaScope.spec));
+      const useYaml = getPluginFormat("vega", finalPluginFormat) === "yaml";
+      mdSections.unshift(useYaml ? chartWrapYaml(vegaScope.spec) : chartWrap(vegaScope.spec));
     }
     if (page.notes) {
       if (Array.isArray(page.notes)) {
@@ -397,12 +449,11 @@ ${content}
         mdSections.unshift(tickWrap("#", JSON.stringify(page.notes, null, defaultJsonIndent)));
       }
     }
-    const newLines = "\n".repeat(1 + finalOptions.extraNewlineCount);
-    const markdown = mdSections.join(newLines);
-    return markdown;
+    const markdown = mdSections.join("\n");
+    return normalizeNewlines(markdown, finalOptions.extraNewlines).trim();
   }
-  function dataLoaderMarkdown(dataSources, variables, tableElements) {
-    const spec = createSpecWithVariables(variables, tableElements);
+  function dataLoaderMarkdown(dataSources, variables, tabulatorElements) {
+    const spec = createSpecWithVariables(variables, tabulatorElements);
     const vegaScope = new VegaScope(spec);
     for (const dataSource of dataSources) {
       switch (dataSource.type) {
@@ -422,12 +473,18 @@ ${content}
     }
     return vegaScope;
   }
-  function groupMarkdown(group, variables, vegaScope, resources) {
+  function groupMarkdown(group, variables, vegaScope, resources, pluginFormat) {
     var _a, _b, _c, _d, _e;
     const mdElements = [];
     const addSpec = (pluginName, spec, indent = true) => {
-      const content = indent ? JSON.stringify(spec, null, defaultJsonIndent) : JSON.stringify(spec);
-      mdElements.push(jsonWrap(pluginName, content));
+      const format = getPluginFormat(pluginName, pluginFormat);
+      if (format === "yaml") {
+        const content = indent ? yaml__namespace.dump(spec, { indent: defaultJsonIndent }) : yaml__namespace.dump(spec);
+        mdElements.push(yamlWrap(pluginName, content));
+      } else {
+        const content = indent ? JSON.stringify(spec, null, defaultJsonIndent) : JSON.stringify(spec);
+        mdElements.push(jsonWrap(pluginName, content));
+      }
     };
     for (const element of group.elements) {
       if (typeof element === "string") {
@@ -440,7 +497,9 @@ ${content}
             if (!spec) {
               mdElements.push("![Chart Spinner](/img/chart-spinner.gif)");
             } else {
-              mdElements.push(chartWrap(spec));
+              const chartType = getChartType(spec);
+              const useYaml = getPluginFormat(chartType, pluginFormat) === "yaml";
+              mdElements.push(useYaml ? chartWrapYaml(spec) : chartWrap(spec));
             }
             break;
           }
@@ -527,10 +586,13 @@ ${content}
             addSpec("slider", sliderSpec, false);
             break;
           }
-          case "table": {
+          case "tabulator": {
             const { dataSourceName, variableId, tabulatorOptions, editable } = element;
-            const tableSpec = { dataSourceName, variableId, tabulatorOptions, editable };
-            addSpec("tabulator", tableSpec);
+            const tabulatorSpec = { dataSourceName, tabulatorOptions, editable };
+            if (variableId) {
+              tabulatorSpec.variableId = variableId;
+            }
+            addSpec("tabulator", tabulatorSpec);
             break;
           }
           case "textbox": {
@@ -553,11 +615,21 @@ ${content}
         mdElements.push(tickWrap("#", JSON.stringify(element)));
       }
     }
-    const markdown = mdElements.join("\n\n");
-    return markdown;
+    const markdown = mdElements.join("\n");
+    return trimTrailingNewline(markdown);
+  }
+  function trimTrailingNewline(s) {
+    if (s.endsWith("\n")) {
+      return s.slice(0, -1);
+    }
+    return s;
+  }
+  function normalizeNewlines(text, extra) {
+    return text.replace(/(\n\s*){4,}/g, "\n".repeat(1 + extra)) + "\n";
   }
   const index = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
+    normalizeNewlines,
     targetMarkdown
   }, Symbol.toStringTag, { value: "Module" }));
   exports2.common = index$1;

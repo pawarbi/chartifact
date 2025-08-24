@@ -139,74 +139,56 @@
 }
 ```
 
-# Mermaid Plugin Example - Org Chart
 
+# Mermaid Plugin Example - Org Chart
 Template-based org chart generation:
 
-```json mermaid
-{
-  "template": {
-    "dataSourceName": "orgChartDataTable",
-    "header": "graph {{direction}}",
-    "lineTemplates": {
-      "person": "{{id}}[{{label}}]",
-      "orgEdge": "{{from}} --> {{to}}"
-    }
-  },
-  "variableId": "orgChartOutput"
-}
+
+```yaml mermaid
+template:
+  dataSourceName: orgChartDataTable
+  header: graph {{direction}}
+  lineTemplates:
+    person: '{{id}}[{{label}}]'
+    orgEdge: '{{from}} --> {{to}}'
+variableId: orgChartOutput
 ```
 
-```json dropdown
-{
-  "variableId": "direction",
-  "value": "TD",
-  "options": [
-    "TD",
-    "LR"
-  ]
-}
+
+```yaml dropdown
+variableId: direction
+value: TD
+options:
+  - TD
+  - LR
 ```
+
 
 ## JSON Data
-
 Load data from a static JSON array.
 
-```json tabulator
-{
-  "dataSourceName": "orgChartData",
-  "variableId": "orgChartDataTable",
-  "tabulatorOptions": {
-    "columns": [
-      {
-        "title": "LineTemplate",
-        "field": "lineTemplate",
-        "editor": "input"
-      },
-      {
-        "title": "ID",
-        "field": "id",
-        "editor": "input"
-      },
-      {
-        "title": "Label",
-        "field": "label",
-        "editor": "input"
-      },
-      {
-        "title": "From",
-        "field": "from",
-        "editor": "input"
-      },
-      {
-        "title": "To",
-        "field": "to",
-        "editor": "input"
-      }
-    ],
-    "layout": "fitColumns",
-    "maxHeight": "300px"
-  },
-  "editable": true
-}
+
+```yaml tabulator
+dataSourceName: orgChartData
+tabulatorOptions:
+  columns:
+    - title: LineTemplate
+      field: lineTemplate
+      editor: input
+    - title: ID
+      field: id
+      editor: input
+    - title: Label
+      field: label
+      editor: input
+    - title: From
+      field: from
+      editor: input
+    - title: To
+      field: to
+      editor: input
+  layout: fitColumns
+  maxHeight: 300px
+editable: true
+variableId: orgChartDataTable
 ```

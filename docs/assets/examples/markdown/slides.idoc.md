@@ -175,6 +175,7 @@
 }
 ```
 
+
 ```css
 html, body { height: 100%; margin: 0; padding: 0; scroll-behavior: smooth; overflow-y: auto; }
 body { scroll-snap-type: y mandatory; }
@@ -185,59 +186,55 @@ body { scroll-snap-type: y mandatory; }
 #slide4 { background: #e74c3c; }
 ```
 
+
 ::: group {#slide1}
+
 ## Welcome to the Shopping List App
-
 :::
-
 ::: group {#slide2}
-## Here you can select items to buy from a variety of categories.
 
+## Here you can select items to buy from a variety of categories.
 
 ### Categories include Fruits, Bakery, Dairy, Meat, Vegetables, and Pantry items.
 
-
 ### You can select multiple items and see the total price calculated automatically.
 :::
-
 ::: group {#slide3}
-## Let's start by selecting some items from the list below.
 
+## Let's start by selecting some items from the list below.
 
 ### Click on the checkboxes next to the items you want to add to your shopping list.
 :::
-
 ::: group {#slide4}
+
 ## Select the items you want to buy
 
 
-```json tabulator
-{
-  "dataSourceName": "itemsData",
-  "variableId": "itemsData_selected",
-  "tabulatorOptions": {
-    "autoColumns": true,
-    "layout": "fitColumns",
-    "minHeight": "200px",
-    "maxHeight": "200px",
-    "selectableRows": true,
-    "rowHeader": {
-      "formatter": "rowSelection",
-      "titleFormatter": "rowSelection",
-      "headerSort": false,
-      "headerHozAlign": "center",
-      "hozAlign": "center",
-      "width": 40
-    }
-  }
-}
+```yaml tabulator
+dataSourceName: itemsData
+tabulatorOptions:
+  autoColumns: true
+  layout: fitColumns
+  minHeight: 200px
+  maxHeight: 200px
+  selectableRows: true
+  rowHeader:
+    formatter: rowSelection
+    titleFormatter: rowSelection
+    headerSort: false
+    headerHozAlign: center
+    hozAlign: center
+    width: 40
+variableId: itemsData_selected
 ```
+
 
 ## Total Price
 
 ${{total}}
 
 ### Categories
+
 
 ```json vega-lite
 {
@@ -267,4 +264,6 @@ ${{total}}
   }
 }
 ```
+
+
 :::

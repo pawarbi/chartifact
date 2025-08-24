@@ -1788,7 +1788,7 @@
           "$ref": "#/definitions/SliderElement"
         },
         {
-          "$ref": "#/definitions/TableElement"
+          "$ref": "#/definitions/TabulatorElement"
         },
         {
           "$ref": "#/definitions/TextboxElement"
@@ -2853,9 +2853,9 @@
       ],
       "type": "object"
     },
-    "TableElement": {
+    "TabulatorElement": {
       "additionalProperties": false,
-      "description": "Table use for tabular data",
+      "description": "Tabulator use for tabular data",
       "properties": {
         "dataSourceName": {
           "description": "Name of the data source to use for incoming data (output data is available via the variableId of this table element)",
@@ -2864,16 +2864,12 @@
         "editable": {
           "type": "boolean"
         },
-        "label": {
-          "description": "optional label if the variableId is not descriptive enough",
-          "type": "string"
-        },
         "tabulatorOptions": {
           "description": "Tabulator options (must be JSON stringify-able, so no callbacks allowed)",
           "type": "object"
         },
         "type": {
-          "const": "table",
+          "const": "tabulator",
           "type": "string"
         },
         "variableId": {
@@ -2882,8 +2878,7 @@
       },
       "required": [
         "dataSourceName",
-        "type",
-        "variableId"
+        "type"
       ],
       "type": "object"
     },

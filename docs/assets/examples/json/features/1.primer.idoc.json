@@ -75,18 +75,28 @@
   ],
   "groups": [
     {
-      "groupId": "primer",
+      "groupId": "intro",
       "elements": [
         "# Chartifact Primer",
         "Explore the features below and **view source** to see how markdown elements are used throughout this page.",
-        "---",
+        "---"
+      ]
+    },
+    {
+      "groupId": "markdown",
+      "elements": [
         "### Markdown",
         "Chartifact supports markdown for formatting text, headings, lists, and more. HTML tags are not allowed.",
         "**Bold**, *italic*, `code`, and [links](https://microsoft.com).",
         "1. Numbered item\n2. Another item",
         "- Bullet point\n- Another bullet",
         "Variables can also be used inside image URLs (`![alt text]({{variableName}})`) and hyperlink URLs (`[link text]({{variableName}})`).",
-        "---",
+        "---"
+      ]
+    },
+    {
+      "groupId": "variables",
+      "elements": [
         "### Variables",
         "Variables store values you can reference in markdown using `{{variableName}}`. They can be strings, numbers, booleans, arrays, objects, or calculated values.",
         "- **String:** Hello, **{{userName}}**!",
@@ -95,12 +105,12 @@
         "- **Array:** Selected items: **{{selectedItems}}**.",
         "- **Object:** Foo is **{{obj_foo}}**, value is **{{obj_value}}**.",
         "- **String:** Favorite color: **{{selectedColor}}**.",
-        "---",
-        "### Calculated Variables",
-        "Calculated variables derive their value from other variables using [Vega's expression language](https://vega.github.io/vega/docs/expressions/).",
-        "- **Doubled temperature:** **{{doubled_temperature}}** (calculated from `temperature`)",
-        "Note: Some variable names are reserved and cannot be used (e.g. `datum`, `event`, etc.).",
-        "---",
+        "---"
+      ]
+    },
+    {
+      "groupId": "inputs",
+      "elements": [
         "### Input Controls",
         "Input controls let users change variable values interactively. Changes are instantly reflected in markdown and calculations above.",
         {
@@ -145,7 +155,22 @@
           "multiple": true,
           "size": 3
         },
-        "---",
+        "---"
+      ]
+    },
+    {
+      "groupId": "calculated",
+      "elements": [
+        "### Calculated Variables",
+        "Calculated variables derive their value from other variables using [Vega's expression language](https://vega.github.io/vega/docs/expressions/).",
+        "- **Doubled temperature:** **{{doubled_temperature}}** (calculated from `temperature`)",
+        "Note: Some variable names are reserved and cannot be used (e.g. `datum`, `event`, etc.).",
+        "---"
+      ]
+    },
+    {
+      "groupId": "tips",
+      "elements": [
         "### Tips",
         "- Use variables in any markdown context, including headings and lists.",
         "- Calculated variables update automatically when their dependencies change.",

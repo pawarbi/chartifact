@@ -203,7 +203,7 @@
       "elements": [
         "## Select the items you want to buy\n",
         {
-          "type": "table",
+          "type": "tabulator",
           "dataSourceName": "itemsData",
           "variableId": "itemsData_selected",
           "tabulatorOptions": {
