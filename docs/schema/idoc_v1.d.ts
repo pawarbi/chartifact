@@ -168,13 +168,11 @@ interface MermaidTemplate {
     };
     dataSourceName?: string;
 }
-interface MermaidElementProps extends ElementBase {
+interface MermaidElementProps extends OptionalVariableControl {
     /** Static option: the raw Mermaid diagram text */
     diagramText?: string;
-    /** Dynamic option: data-driven template */
+    /** Dynamic option 1: data-driven template */
     template?: MermaidTemplate;
-    /** Dynamic option: input from signal bus, or output to signal bus from rendered data-driven template */
-    variableId?: string;
 }
 /**
  * Image element

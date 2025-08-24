@@ -2291,15 +2291,14 @@
         },
         "template": {
           "$ref": "#/definitions/MermaidTemplate",
-          "description": "Dynamic option: data-driven template"
+          "description": "Dynamic option 1: data-driven template"
         },
         "type": {
           "const": "mermaid",
           "type": "string"
         },
         "variableId": {
-          "description": "Dynamic option: input from signal bus, or output to signal bus from rendered data-driven template",
-          "type": "string"
+          "$ref": "#/definitions/VariableID"
         }
       },
       "required": [
