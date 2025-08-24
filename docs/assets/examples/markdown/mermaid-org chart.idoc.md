@@ -168,27 +168,41 @@ options:
 Load data from a static JSON array.
 
 
-```yaml tabulator
-dataSourceName: orgChartData
-tabulatorOptions:
-  columns:
-    - title: LineTemplate
-      field: lineTemplate
-      editor: input
-    - title: ID
-      field: id
-      editor: input
-    - title: Label
-      field: label
-      editor: input
-    - title: From
-      field: from
-      editor: input
-    - title: To
-      field: to
-      editor: input
-  layout: fitColumns
-  maxHeight: 300px
-editable: true
-variableId: orgChartDataTable
+```json tabulator
+{
+  "dataSourceName": "orgChartData",
+  "tabulatorOptions": {
+    "columns": [
+      {
+        "title": "LineTemplate",
+        "field": "lineTemplate",
+        "editor": "input"
+      },
+      {
+        "title": "ID",
+        "field": "id",
+        "editor": "input"
+      },
+      {
+        "title": "Label",
+        "field": "label",
+        "editor": "input"
+      },
+      {
+        "title": "From",
+        "field": "from",
+        "editor": "input"
+      },
+      {
+        "title": "To",
+        "field": "to",
+        "editor": "input"
+      }
+    ],
+    "layout": "fitColumns",
+    "maxHeight": "300px"
+  },
+  "editable": true,
+  "variableId": "orgChartDataTable"
+}
 ```

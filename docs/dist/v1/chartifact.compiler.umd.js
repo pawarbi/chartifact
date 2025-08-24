@@ -366,6 +366,7 @@ ${content}
   }
   const defaultPluginFormat = {
     "*": "yaml",
+    "tabulator": "json",
     "vega": "json",
     "vega-lite": "json"
   };

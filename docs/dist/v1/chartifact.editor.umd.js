@@ -1701,6 +1701,7 @@ ${content}
   }
   const defaultPluginFormat = {
     "*": "yaml",
+    "tabulator": "json",
     "vega": "json",
     "vega-lite": "json"
   };
@@ -1956,10 +1957,11 @@ ${content}
     return s;
   }
   function normalizeNewlines(text, extra) {
-    return text.replace(/(\n\s*){4,}/g, "\n".repeat(1 + extra));
+    return text.replace(/(\n\s*){4,}/g, "\n".repeat(1 + extra)) + "\n";
   }
   const index$2 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
+    normalizeNewlines,
     targetMarkdown
   }, Symbol.toStringTag, { value: "Module" }));
   const rendererHtml = `<!DOCTYPE html>

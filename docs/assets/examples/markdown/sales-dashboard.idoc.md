@@ -269,8 +269,10 @@ h3 { margin: 0 0 10px 0; font-size: 1em; color: #666; text-transform: uppercase;
 ### Sales Data
 
 
-```yaml tabulator
-dataSourceName: salesData
+```json tabulator
+{
+  "dataSourceName": "salesData"
+}
 ```
 
 

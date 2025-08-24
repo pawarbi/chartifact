@@ -275,8 +275,10 @@ The trend analysis reveals that August 6th recorded the highest single-day reven
 The complete transaction dataset for the reporting period is presented below for reference and further analysis:
 
 
-```yaml tabulator
-dataSourceName: salesData
+```json tabulator
+{
+  "dataSourceName": "salesData"
+}
 ```
 
 

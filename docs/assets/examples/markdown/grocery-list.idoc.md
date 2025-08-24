@@ -179,22 +179,26 @@
 ## Select the items you want to buy
 
 
-```yaml tabulator
-dataSourceName: itemsData
-tabulatorOptions:
-  autoColumns: true
-  layout: fitColumns
-  minHeight: 200px
-  maxHeight: 200px
-  selectableRows: true
-  rowHeader:
-    formatter: rowSelection
-    titleFormatter: rowSelection
-    headerSort: false
-    headerHozAlign: center
-    hozAlign: center
-    width: 40
-variableId: itemsData_selected
+```json tabulator
+{
+  "dataSourceName": "itemsData",
+  "tabulatorOptions": {
+    "autoColumns": true,
+    "layout": "fitColumns",
+    "minHeight": "200px",
+    "maxHeight": "200px",
+    "selectableRows": true,
+    "rowHeader": {
+      "formatter": "rowSelection",
+      "titleFormatter": "rowSelection",
+      "headerSort": false,
+      "headerHozAlign": "center",
+      "hozAlign": "center",
+      "width": 40
+    }
+  },
+  "variableId": "itemsData_selected"
+}
 ```
 
 
