@@ -49,6 +49,9 @@ interface VariableControl extends ElementBase {
     /** optional label if the variableId is not descriptive enough */
     label?: string;
 }
+interface OptionalVariableControl extends ElementBase {
+    variableId?: VariableID;
+}
 interface ReturnType {
     type: VariableType;
     /** in our system, a pandas dataframe is an array of objects */
@@ -165,13 +168,11 @@ interface MermaidTemplate {
     };
     dataSourceName?: string;
 }
-interface MermaidElementProps extends ElementBase {
+interface MermaidElementProps extends OptionalVariableControl {
     /** Static option: the raw Mermaid diagram text */
     diagramText?: string;
-    /** Dynamic option: data-driven template */
+    /** Dynamic option 1: data-driven template */
     template?: MermaidTemplate;
-    /** Dynamic option: input from signal bus, or output to signal bus from rendered data-driven template */
-    variableId?: string;
 }
 /**
  * Image element
@@ -204,13 +205,13 @@ interface Preset {
     };
 }
 /**
- * Table
+ * Tabulator
  * use for tabular data
  */
-interface TableElement extends TableElementProps {
-    type: 'table';
+interface TabulatorElement extends TabulatorElementProps {
+    type: 'tabulator';
 }
-interface TableElementProps extends VariableControl {
+interface TabulatorElementProps extends OptionalVariableControl {
     /** Name of the data source to use for incoming data (output data is available via the variableId of this table element) */
     dataSourceName: string;
     editable?: boolean;
@@ -220,7 +221,7 @@ interface TableElementProps extends VariableControl {
 /**
  * Union type for all possible interactive elements
  */
-type InteractiveElement = ChartElement | CheckboxElement | DropdownElement | ImageElement | MermaidElement | PresetsElement | SliderElement | TableElement | TextboxElement;
+type InteractiveElement = ChartElement | CheckboxElement | DropdownElement | ImageElement | MermaidElement | PresetsElement | SliderElement | TabulatorElement | TextboxElement;
 interface ElementGroup {
     groupId: string;
     elements: PageElement[];
@@ -280,4 +281,4 @@ interface GoogleFontsSpec {
 type InteractiveDocumentWithSchema = InteractiveDocument & {
     $schema?: string;
 };
-export type { Calculation, ChartElement, CheckboxElement, CheckboxProps, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceInline, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, GoogleFontsSpec, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, MarkdownElement, MermaidElement, MermaidElementProps, MermaidTemplate, PageElement, PageStyle, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TableElement, TableElementProps, TemplatedUrl, TextboxElement, TextboxElementProps, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive, Vega_or_VegaLite_spec };
+export type { Calculation, ChartElement, CheckboxElement, CheckboxProps, DataLoader, DataLoaderBySpec, DataSource, DataSourceBase, DataSourceBaseFormat, DataSourceByDynamicURL, DataSourceByFile, DataSourceInline, DropdownElement, DropdownElementProps, DynamicDropdownOptions, ElementBase, ElementGroup, GoogleFontsSpec, ImageElement, ImageElementProps, InteractiveDocument, InteractiveDocumentWithSchema, InteractiveElement, MarkdownElement, MermaidElement, MermaidElementProps, MermaidTemplate, OptionalVariableControl, PageElement, PageStyle, Preset, PresetsElement, PresetsElementProps, ReturnType, SliderElement, SliderElementProps, TabulatorElement, TabulatorElementProps, TemplatedUrl, TextboxElement, TextboxElementProps, Variable, VariableControl, VariableID, VariableType, VariableValue, VariableValueArray, VariableValuePrimitive, Vega_or_VegaLite_spec };

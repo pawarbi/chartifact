@@ -156,7 +156,7 @@
         "## JSON Data",
         "Load data from a static JSON array.",
         {
-          "type": "table",
+          "type": "tabulator",
           "dataSourceName": "orgChartData",
           "variableId": "orgChartDataTable",
           "editable": true,

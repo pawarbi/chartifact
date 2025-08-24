@@ -126,7 +126,7 @@
         "## JSON Data",
         "Load data from a static JSON array.",
         {
-          "type": "table",
+          "type": "tabulator",
           "dataSourceName": "jsonData",
           "variableId": "jsonTable",
           "tabulatorOptions": {
@@ -143,14 +143,8 @@
         "## CSV from URL",
         "Load CSV data from a fixed URL.",
         {
-          "type": "table",
-          "dataSourceName": "csvData",
-          "variableId": "csvTable",
-          "tabulatorOptions": {
-            "autoColumns": true,
-            "layout": "fitColumns",
-            "maxHeight": "200px"
-          }
+          "type": "tabulator",
+          "dataSourceName": "csvData"
         }
       ]
     },
@@ -169,7 +163,7 @@
           ]
         },
         {
-          "type": "table",
+          "type": "tabulator",
           "dataSourceName": "jsonUrlVariable",
           "variableId": "jsonUrlTable",
           "tabulatorOptions": {
@@ -186,14 +180,8 @@
         "## Inline CSV Data",
         "You can provide CSV data directly as a single string.",
         {
-          "type": "table",
-          "dataSourceName": "inlineCsvData",
-          "variableId": "inlineCsvTable",
-          "tabulatorOptions": {
-            "autoColumns": true,
-            "layout": "fitColumns",
-            "maxHeight": "100px"
-          }
+          "type": "tabulator",
+          "dataSourceName": "inlineCsvData"
         }
       ]
     }

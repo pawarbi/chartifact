@@ -1,10 +1,27 @@
 (function(global, factory) {
-  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Chartifact = global.Chartifact || {}, global.vega, global.vegaLite));
-})(this, (function(exports2, vega, vegaLite) {
+  typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("js-yaml"), require("vega"), require("vega-lite")) : typeof define === "function" && define.amd ? define(["exports", "js-yaml", "vega", "vega-lite"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.Chartifact = global.Chartifact || {}, global.jsyaml, global.vega, global.vegaLite));
+})(this, (function(exports2, yaml, vega, vegaLite) {
   "use strict";var __defProp = Object.defineProperty;
 var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
+  function _interopNamespaceDefault(e) {
+    const n = Object.create(null, { [Symbol.toStringTag]: { value: "Module" } });
+    if (e) {
+      for (const k2 in e) {
+        if (k2 !== "default") {
+          const d2 = Object.getOwnPropertyDescriptor(e, k2);
+          Object.defineProperty(n, k2, d2.get ? d2 : {
+            enumerable: true,
+            get: () => e[k2]
+          });
+        }
+      }
+    }
+    n.default = e;
+    return Object.freeze(n);
+  }
+  const yaml__namespace = /* @__PURE__ */ _interopNamespaceDefault(yaml);
   const defaultCommonOptions = {
     dataSignalPrefix: "data_signal:",
     groupClassName: "group"
@@ -536,20 +553,27 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     container.appendChild(comment);
     return container.innerHTML;
   }
-  function flaggableJsonPlugin(pluginName2, className2, flagger, attrs) {
+  function flaggablePlugin(pluginName2, className2, flagger, attrs) {
     const plugin = {
       name: pluginName2,
       fence: (token, index2) => {
-        let json = token.content.trim();
+        let content = token.content.trim();
         let spec;
         let flaggableSpec;
+        const info = token.info.trim();
+        const isYaml = info.startsWith("yaml ");
+        const formatName = isYaml ? "YAML" : "JSON";
         try {
-          spec = JSON.parse(json);
+          if (isYaml) {
+            spec = yaml__namespace.load(content);
+          } else {
+            spec = JSON.parse(content);
+          }
         } catch (e) {
           flaggableSpec = {
             spec: null,
             hasFlags: true,
-            reasons: [`malformed JSON`]
+            reasons: [`malformed ${formatName}`]
           };
         }
         if (spec) {
@@ -560,9 +584,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           }
         }
         if (flaggableSpec) {
-          json = JSON.stringify(flaggableSpec);
+          content = JSON.stringify(flaggableSpec);
         }
-        return sanitizedHTML("div", { class: className2, id: `${pluginName2}-${index2}`, ...attrs }, json, true);
+        return sanitizedHTML("div", { class: className2, id: `${pluginName2}-${index2}`, ...attrs }, content, true);
       },
       hydrateSpecs: (renderer, errorHandler) => {
         var _a;
@@ -593,7 +617,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   const pluginName$d = "image";
   const className$b = pluginClassName(pluginName$d);
   const imagePlugin = {
-    ...flaggableJsonPlugin(pluginName$d, className$b),
+    ...flaggablePlugin(pluginName$d, className$b),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const imageInstances = [];
       for (let index2 = 0; index2 < specs.length; index2++) {
@@ -1036,6 +1060,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           if (jsonPlugin) {
             return jsonPlugin;
           }
+        } else if (info.startsWith("yaml ")) {
+          const yamlPluginName = info.slice(5).trim();
+          const yamlPlugin = findPlugin(yamlPluginName);
+          if (yamlPlugin) {
+            return yamlPlugin;
+          }
         }
       }
       if (originalFence) {
@@ -1053,7 +1083,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   const pluginName$b = "checkbox";
   const className$a = pluginClassName(pluginName$b);
   const checkboxPlugin = {
-    ...flaggableJsonPlugin(pluginName$b, className$a),
+    ...flaggablePlugin(pluginName$b, className$a),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const { signalBus } = renderer;
       const checkboxInstances = [];
@@ -1329,7 +1359,7 @@ ${reconstitutedRules.join("\n\n")}
   const pluginName$9 = "css";
   const className$9 = pluginClassName(pluginName$9);
   const cssPlugin = {
-    ...flaggableJsonPlugin(pluginName$9, className$9),
+    ...flaggablePlugin(pluginName$9, className$9),
     fence: (token, index2) => {
       const cssContent = token.content.trim();
       const categorizedCss = categorizeCss(cssContent);
@@ -1483,7 +1513,7 @@ ${reconstitutedRules.join("\n\n")}
     };
   }
   const googleFontsPlugin = {
-    ...flaggableJsonPlugin(pluginName$8, className$8, inspectGoogleFontsSpec),
+    ...flaggablePlugin(pluginName$8, className$8, inspectGoogleFontsSpec),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const googleFontsInstances = [];
       let emitted = false;
@@ -1557,7 +1587,7 @@ ${reconstitutedRules.join("\n\n")}
   const pluginName$7 = "dropdown";
   const className$7 = pluginClassName(pluginName$7);
   const dropdownPlugin = {
-    ...flaggableJsonPlugin(pluginName$7, className$7),
+    ...flaggablePlugin(pluginName$7, className$7),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const { signalBus } = renderer;
       const dropdownInstances = [];
@@ -1783,13 +1813,20 @@ ${reconstitutedRules.join("\n\n")}
     return mermaidLoadPromise;
   }
   const mermaidPlugin = {
-    ...flaggableJsonPlugin(pluginName$6, className$6),
+    ...flaggablePlugin(pluginName$6, className$6),
     fence: (token, index2) => {
       const content = token.content.trim();
       let spec;
       let flaggableSpec;
+      const info = token.info.trim();
+      const isYaml = info.startsWith("yaml ");
       try {
-        const parsed = JSON.parse(content);
+        let parsed;
+        if (isYaml) {
+          parsed = yaml__namespace.load(content);
+        } else {
+          parsed = JSON.parse(content);
+        }
         if (parsed && typeof parsed === "object") {
           spec = parsed;
         } else {
@@ -1966,7 +2003,7 @@ ${reconstitutedRules.join("\n\n")}
   const pluginName$5 = "presets";
   const className$5 = pluginClassName(pluginName$5);
   const presetsPlugin = {
-    ...flaggableJsonPlugin(pluginName$5, className$5),
+    ...flaggablePlugin(pluginName$5, className$5),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const { signalBus } = renderer;
       const presetsInstances = [];
@@ -2061,7 +2098,7 @@ ${reconstitutedRules.join("\n\n")}
   const pluginName$4 = "slider";
   const className$4 = pluginClassName(pluginName$4);
   const sliderPlugin = {
-    ...flaggableJsonPlugin(pluginName$4, className$4),
+    ...flaggablePlugin(pluginName$4, className$4),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const { signalBus } = renderer;
       const sliderInstances = [];
@@ -2147,7 +2184,7 @@ ${reconstitutedRules.join("\n\n")}
   const pluginName$3 = "tabulator";
   const className$3 = pluginClassName(pluginName$3);
   const tabulatorPlugin = {
-    ...flaggableJsonPlugin(pluginName$3, className$3, inspectTabulatorSpec, { style: "box-sizing: border-box;" }),
+    ...flaggablePlugin(pluginName$3, className$3, inspectTabulatorSpec, { style: "box-sizing: border-box;" }),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const { signalBus } = renderer;
       const tabulatorInstances = [];
@@ -2175,8 +2212,8 @@ ${reconstitutedRules.join("\n\n")}
           errorHandler(new Error("Tabulator not found"), pluginName$3, index2, "init", container);
           continue;
         }
-        if (!spec.dataSourceName || !spec.variableId) {
-          errorHandler(new Error("Tabulator requires dataSourceName and variableId"), pluginName$3, index2, "init", container);
+        if (!spec.dataSourceName) {
+          errorHandler(new Error("Tabulator requires dataSourceName"), pluginName$3, index2, "init", container);
           continue;
         } else if (spec.dataSourceName === spec.variableId) {
           errorHandler(new Error("Tabulator dataSourceName and variableId cannot be the same"), pluginName$3, index2, "init", container);
@@ -2367,7 +2404,7 @@ ${reconstitutedRules.join("\n\n")}
   const pluginName$2 = "textbox";
   const className$2 = pluginClassName(pluginName$2);
   const textboxPlugin = {
-    ...flaggableJsonPlugin(pluginName$2, className$2),
+    ...flaggablePlugin(pluginName$2, className$2),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const { signalBus } = renderer;
       const textboxInstances = [];
@@ -2603,7 +2640,7 @@ ${reconstitutedRules.join("\n\n")}
     return flaggableSpec;
   }
   const vegaPlugin = {
-    ...flaggableJsonPlugin(pluginName$1, className$1, inspectVegaSpec),
+    ...flaggablePlugin(pluginName$1, className$1, inspectVegaSpec),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const { signalBus } = renderer;
       if (!expressionsInitialized) {
@@ -2915,18 +2952,25 @@ ${reconstitutedRules.join("\n\n")}
   const pluginName = "vega-lite";
   const className = pluginClassName(pluginName);
   const vegaLitePlugin = {
-    ...flaggableJsonPlugin(pluginName, className),
+    ...flaggablePlugin(pluginName, className),
     fence: (token, index2) => {
-      let json = token.content.trim();
+      let content = token.content.trim();
       let spec;
       let flaggableSpec;
+      const info = token.info.trim();
+      const isYaml = info.startsWith("yaml ");
+      const formatName = isYaml ? "YAML" : "JSON";
       try {
-        spec = JSON.parse(json);
+        if (isYaml) {
+          spec = yaml__namespace.load(content);
+        } else {
+          spec = JSON.parse(content);
+        }
       } catch (e) {
         flaggableSpec = {
           spec: null,
           hasFlags: true,
-          reasons: [`malformed JSON`]
+          reasons: [`malformed ${formatName}`]
         };
       }
       if (spec) {
@@ -2942,9 +2986,9 @@ ${reconstitutedRules.join("\n\n")}
         }
       }
       if (flaggableSpec) {
-        json = JSON.stringify(flaggableSpec);
+        content = JSON.stringify(flaggableSpec);
       }
-      return sanitizedHTML("div", { class: pluginClassName(vegaPlugin.name), id: `${pluginName}-${index2}` }, json, true);
+      return sanitizedHTML("div", { class: pluginClassName(vegaPlugin.name), id: `${pluginName}-${index2}` }, content, true);
     },
     hydratesBefore: vegaPlugin.name
   };

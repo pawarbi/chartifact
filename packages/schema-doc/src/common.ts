@@ -60,3 +60,7 @@ export interface VariableControl extends ElementBase {
   /** optional label if the variableId is not descriptive enough */
   label?: string;
 }
+
+export interface OptionalVariableControl extends ElementBase {
+  variableId?: VariableID;
+}

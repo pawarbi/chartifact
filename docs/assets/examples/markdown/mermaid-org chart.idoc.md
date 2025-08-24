@@ -139,43 +139,38 @@
 }
 ```
 
-# Mermaid Plugin Example - Org Chart
 
+# Mermaid Plugin Example - Org Chart
 Template-based org chart generation:
 
-```json mermaid
-{
-  "template": {
-    "dataSourceName": "orgChartDataTable",
-    "header": "graph {{direction}}",
-    "lineTemplates": {
-      "person": "{{id}}[{{label}}]",
-      "orgEdge": "{{from}} --> {{to}}"
-    }
-  },
-  "variableId": "orgChartOutput"
-}
+
+```yaml mermaid
+template:
+  dataSourceName: orgChartDataTable
+  header: graph {{direction}}
+  lineTemplates:
+    person: '{{id}}[{{label}}]'
+    orgEdge: '{{from}} --> {{to}}'
+variableId: orgChartOutput
 ```
 
-```json dropdown
-{
-  "variableId": "direction",
-  "value": "TD",
-  "options": [
-    "TD",
-    "LR"
-  ]
-}
+
+```yaml dropdown
+variableId: direction
+value: TD
+options:
+  - TD
+  - LR
 ```
+
 
 ## JSON Data
-
 Load data from a static JSON array.
+
 
 ```json tabulator
 {
   "dataSourceName": "orgChartData",
-  "variableId": "orgChartDataTable",
   "tabulatorOptions": {
     "columns": [
       {
@@ -207,6 +202,7 @@ Load data from a static JSON array.
     "layout": "fitColumns",
     "maxHeight": "300px"
   },
-  "editable": true
+  "editable": true,
+  "variableId": "orgChartDataTable"
 }
 ```

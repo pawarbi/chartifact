@@ -21,6 +21,7 @@ export const initializeResources = async (context: vscode.ExtensionContext): Pro
     'tabulator.min.css',
     'markdown-it.min.js',
     'csstree.js',
+    'js-yaml.min.js',
     'vega.min.js',
     'vega-lite.min.js',
     'tabulator.min.js',

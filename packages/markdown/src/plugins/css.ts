@@ -7,7 +7,7 @@ import { IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
 import { sanitizedHTML } from '../sanitize.js';
 import * as Csstree from 'css-tree';
 import { pluginClassName } from './util.js';
-import { flaggableJsonPlugin } from './config.js';
+import { flaggablePlugin } from './config.js';
 import { PluginNames } from './interfaces.js';
 
 // CSS Tree is expected to be available as a global variable
@@ -317,7 +317,7 @@ const pluginName: PluginNames = 'css';
 const className = pluginClassName(pluginName);
 
 export const cssPlugin: Plugin<CategorizedCss> = {
-    ...flaggableJsonPlugin<CategorizedCss>(pluginName, className),
+    ...flaggablePlugin<CategorizedCss>(pluginName, className),
     fence: (token, index) => {
         const cssContent = token.content.trim();
         // Parse and categorize CSS content

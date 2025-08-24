@@ -146,59 +146,62 @@
 
 
 ```css
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f7fa; }
-body { display: grid; grid-template-areas: 'header header header' 'revenue orders avg' 'category trend trend' 'data data data'; grid-template-columns: 1fr 1fr 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; }
-.group { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-#header { grid-area: header; background: #667eea; color: white; text-align: center; }
-#revenue { grid-area: revenue; text-align: center; }
-#orders { grid-area: orders; text-align: center; }
-#avg { grid-area: avg; text-align: center; }
-#category { grid-area: category; }
-#trend { grid-area: trend; }
-#data { grid-area: data; }
-h1 { margin: 0; padding: 10px 0; font-size: 1.5em; font-weight: 400; }
-h2 { margin: 10px 0; font-size: 2em; color: #333; }
-h3 { margin: 0 0 10px 0; font-size: 1em; color: #666; text-transform: uppercase; }
+body { font-family: 'Times New Roman', serif; margin: 0; padding: 40px; background: white; line-height: 1.6; color: #333; }
+.group { max-width: 800px; margin: 0 auto; }
+h1 { text-align: center; font-size: 2.5em; margin-bottom: 0.5em; color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 20px; }
+h2 { font-size: 1.8em; margin: 40px 0 20px 0; color: #2c3e50; border-bottom: 1px solid #bdc3c7; padding-bottom: 10px; }
+h3 { font-size: 1.3em; margin: 30px 0 15px 0; color: #34495e; }
+blockquote { background: #ecf0f1; padding: 20px; border-left: 5px solid #3498db; margin: 30px 0; font-style: normal; }
+table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+td { padding: 10px 20px; border-bottom: 1px solid #ecf0f1; }
+td:first-child { font-weight: bold; color: #2c3e50; }
+.chart-container { margin: 30px 0; padding: 20px; background: #fafafa; border: 1px solid #ecf0f1; border-radius: 5px; }
+p { margin: 15px 0; text-align: justify; }
 ```
 
 
-::: group {#header}
+::: group {#main}
 
-# Sales Performance Dashboard
-:::
-::: group {#revenue}
+# Sales Performance Report
+**Reporting Period:** August 1-6, 2025  
+**Prepared by:** Sales Analytics Team  
+**Date:** August 24, 2025
 
-### Total Revenue
-## {{totalRevenueFormatted}}
-:::
-::: group {#orders}
+## Executive Summary
 
-### Total Orders
-## {{totalOrders}}
-:::
-::: group {#avg}
+> This report analyzes sales performance for the first week of August 2025. Our analysis reveals total revenue of **{{totalRevenueFormatted}}** across **{{totalOrders}} transactions**, with an average order value of **{{averageOrderValue}}**. The data shows strong performance in the Electronics category, which represents the majority of our revenue during this period.
 
-### Average Order Value
-## {{averageOrderValue}}
-:::
-::: group {#category}
+## Key Performance Metrics
 
-### Sales by Category
+The following table summarizes our core performance indicators for the reporting period:
+
+| Metric | Value |
+|--------|-------|
+| Total Revenue | {{totalRevenueFormatted}} |
+| Number of Orders | {{totalOrders}} |
+| Average Order Value | {{averageOrderValue}} |
+| Active Sales Regions | 4 regions |
+| Product Categories | 2 categories |
+
+## Revenue Analysis by Product Category
+
+Our product portfolio performed differently across categories during this period. The chart below illustrates the revenue distribution:
 
 
 ```json vega-lite
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-  "width": "container",
   "data": {
     "name": "categoryRevenue"
   },
   "mark": "bar",
+  "width": 400,
+  "height": 250,
   "encoding": {
     "x": {
       "field": "category",
       "type": "nominal",
-      "title": "Category"
+      "title": "Product Category"
     },
     "y": {
       "field": "total_revenue",
@@ -210,8 +213,8 @@ h3 { margin: 0 0 10px 0; font-size: 1em; color: #666; text-transform: uppercase;
       "type": "nominal",
       "scale": {
         "range": [
-          "#667eea",
-          "#764ba2"
+          "#3498db",
+          "#2c3e50"
         ]
       }
     }
@@ -220,16 +223,16 @@ h3 { margin: 0 0 10px 0; font-size: 1em; color: #666; text-transform: uppercase;
 ```
 
 
-:::
-::: group {#trend}
+The Electronics category generated the majority of revenue, driven primarily by strong sales of Bluetooth Headphones and Wireless Mouse products. The Furniture category, while smaller in volume, contributed significant value through high-ticket items such as the Office Chair.
 
-### Sales Trend
+## Sales Trend Analysis
+
+Daily sales performance shows variability throughout the reporting period, with notable patterns emerging:
 
 
 ```json vega-lite
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-  "width": "container",
   "data": {
     "name": "salesData"
   },
@@ -242,8 +245,10 @@ h3 { margin: 0 0 10px 0; font-size: 1em; color: #666; text-transform: uppercase;
   "mark": {
     "type": "line",
     "point": true,
-    "strokeWidth": 3
+    "strokeWidth": 2
   },
+  "width": 500,
+  "height": 250,
   "encoding": {
     "x": {
       "field": "timestamp",
@@ -253,20 +258,21 @@ h3 { margin: 0 0 10px 0; font-size: 1em; color: #666; text-transform: uppercase;
     "y": {
       "field": "revenue",
       "type": "quantitative",
-      "title": "Revenue ($)"
+      "title": "Daily Revenue ($)"
     },
     "color": {
-      "value": "#667eea"
+      "value": "#3498db"
     }
   }
 }
 ```
 
 
-:::
-::: group {#data}
+The trend analysis reveals that August 6th recorded the highest single-day revenue of $319.96, primarily due to the sale of 4 units of Bluetooth Headphones. August 2nd also showed strong performance with $199.99 in revenue from the Office Chair sale.
 
-### Sales Data
+## Detailed Transaction Data
+
+The complete transaction dataset for the reporting period is presented below for reference and further analysis:
 
 
 ```json tabulator
@@ -276,4 +282,17 @@ h3 { margin: 0 0 10px 0; font-size: 1em; color: #666; text-transform: uppercase;
 ```
 
 
+## Conclusions and Recommendations
+
+Based on this analysis, we recommend:
+
+1. **Focus on Electronics expansion** - Given the strong performance of electronics products, consider expanding this category's inventory and marketing focus.
+
+2. **Leverage high-value furniture sales** - While furniture has lower transaction volume, the high average order values suggest opportunity for targeted premium product strategies.
+
+3. **Regional performance review** - Jane Smith's performance in the West region generated strong results and could serve as a model for other regions.
+
+4. **Inventory planning** - The Bluetooth Headphones' strong performance suggests increasing stock levels for similar high-margin electronics.
+
+*This report was generated using interactive data analysis. All figures are calculated dynamically from the underlying transaction data.*
 :::

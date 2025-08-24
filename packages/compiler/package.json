@@ -24,5 +24,9 @@
     "url": "https://github.com/microsoft/chartifact/issues"
   },
   "homepage": "https://github.com/microsoft/chartifact#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "js-yaml": "^4.1.0"
+  }
 }
