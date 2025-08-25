@@ -7,7 +7,7 @@
   "scripts": {
     "resources": "node ./scripts/resources.mjs",
     "clean": "rimraf dist && rimraf js",
-    "tsc-client": "tsc -p ./tsconfig-client.json",
+    "tsc-client": "tsc -p ./tsconfig.json",
     "tsc-server": "tsc -p ./tsconfig-server.json",
     "build": "npm run clean && npm run tsc-server && npm run tsc-client && npm run resources",
     "build:03": "npm run build"
