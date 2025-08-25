@@ -3,8 +3,10 @@
 * Licensed under the MIT License.
 */
 import { SandboxOptions, Sandbox } from '../src/index.ts';
-import { rendererCss } from '../src/resources/rendererCss.ts';
-import { rendererUmdJs } from '../src/resources/rendererUmdJs.ts';
+// @ts-ignore: import raw CSS as a string without type declarations
+import rendererCss from '../../markdown/dist/css/chartifact-reset.css?raw';
+// @ts-ignore: import raw CSS as a string without type declarations
+import rendererUmdJs from '../../markdown/dist/umd/chartifact.markdown.umd.js?raw';
 const textarea = document.getElementById('md') as HTMLTextAreaElement;
 
 class LocalSandbox extends Sandbox {

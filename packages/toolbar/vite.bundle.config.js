@@ -7,13 +7,10 @@ const commonOutputConfig = {
   name: 'Chartifact',
   extend: true,
   globals: {
-    'markdown-it': 'markdownit',
     'vega': 'vega',
     'vega-lite': 'vegaLite',
-    'css-tree': 'csstree',
-    'js-yaml': 'jsyaml',
   },
-  entryFileNames: 'chartifact.markdown.umd.js',
+  entryFileNames: 'chartifact.toolbar.umd.js',
 };
 
 export default defineConfig({
@@ -25,7 +22,7 @@ export default defineConfig({
     emptyOutDir: false,
     rollupOptions: {
       // External dependencies that the library expects consumers to provide
-      external: ['markdown-it', 'vega', 'vega-lite', 'tabulator-tables', 'css-tree', 'mermaid', 'js-yaml'],
+      external: ['vega', 'vega-lite'],
       output: [
         {
           ...commonOutputConfig,

@@ -4,8 +4,10 @@
 */
 import { SandboxOptions, Sandbox } from '@microsoft/chartifact-sandbox';
 import { Toolbar } from 'toolbar';
-import { rendererCss } from '@microsoft/chartifact-sandbox/src/resources/rendererCss.ts';
-import { rendererUmdJs } from '@microsoft/chartifact-sandbox/src/resources/rendererUmdJs.ts';
+// @ts-ignore: import raw CSS as a string without type declarations
+import rendererCss from '../../markdown/dist/css/chartifact-reset.css?raw';
+// @ts-ignore: import raw CSS as a string without type declarations
+import rendererUmdJs from '../../markdown/dist/umd/chartifact.markdown.umd.js?raw';
 import { Listener } from '../src/index.ts';
 import { InteractiveDocumentWithSchema } from '@microsoft/chartifact-schema';
 
