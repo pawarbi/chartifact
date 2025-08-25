@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
-        "outDir": "dist",
+        "declaration": true,
+        "outDir": "js",
         "module": "commonjs",
         "skipLibCheck": true,
         "target": "esnext",

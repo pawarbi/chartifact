@@ -28,10 +28,6 @@ const resources = [
     '../../packages/vscode-resources/dist/preview.js',
     '../../packages/vscode-resources/html/preview.html',
     '../../packages/vscode-resources/html/edit.html',
-    '../../packages/toolbar-resources/html/html-json.html',
-    '../../packages/toolbar-resources/html/html-markdown.html',
-    '../../packages/toolbar-resources/dist/html-json.js',
-    '../../packages/toolbar-resources/dist/html-markdown.js',
 
     //sample docs
     '../../docs/assets/examples/json/grocery-list.idoc.json',
