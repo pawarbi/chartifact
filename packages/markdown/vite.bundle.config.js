@@ -22,6 +22,7 @@ export default defineConfig({
       entry: './umd.ts',
     },
     minify: false,
+    emptyOutDir: false,
     rollupOptions: {
       // External dependencies that the library expects consumers to provide
       external: ['markdown-it', 'vega', 'vega-lite', 'tabulator-tables', 'css-tree', 'mermaid', 'js-yaml'],
