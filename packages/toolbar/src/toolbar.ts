@@ -30,13 +30,13 @@ export class Toolbar {
             throw new Error('Toolbar element not found');
         }
 
-        const { url, target } = (window.location.hostname === 'localhost')
-            ? { url: '/', target: '_self' }
-            : { url: 'https://microsoft.github.io/chartifact', target: '_blank' };
+        const { home, target } = (window.location.hostname === 'localhost')
+            ? { home: '/', target: '_self' }
+            : { home: 'https://microsoft.github.io/chartifact', target: '_blank' };
 
         const html = `
 <div>
-    <a href="${url}" target="${target}">Chartifact</a> viewer
+    <a href="${home}" target="${target}">Chartifact</a> viewer
 </div>
 <div id="folderSpan" style="display: none;"></div>
 <div>
