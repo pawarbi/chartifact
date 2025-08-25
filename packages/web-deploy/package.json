@@ -8,7 +8,7 @@
     "readme": "node ./dist/index.mjs",
     "clean": "rimraf dist && rimraf ../../docs/assets/examples/json && rimraf ../../docs/assets/examples/markdown",
     "build": "tsc -p .",
-    "deploy": "npm run clean && npm run build && && npm run readme && npm run convert"
+    "deploy": "npm run clean && npm run build && npm run readme && npm run convert"
 
   },
   "author": "Dan Marshall",
