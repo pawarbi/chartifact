@@ -1,1 +1,4 @@
 js
+!dist
+dist/html**.*
+dist/index.mjs
