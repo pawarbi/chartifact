@@ -40,7 +40,7 @@ export interface ScalarCalculation {
 export interface DataFrameCalculation {
 
   /** The upstream object array source dataSourceName(s) the dataFrameTransformations depends on. */
-  dependsOn: VariableID[];
+  dataSourceNames: VariableID[];
 
   dataFrameTransformations: Transforms[];
 }
