@@ -18,7 +18,7 @@
     "watch": "tsc -p . -w",
     "tsc": "tsc -p .",
     "bundle": "vite build --config vite.bundle.config.js",
-    "build": "npm run tsc && npm run bundle",
+    "build": "npm run tsc",
     "postbuild": "node ./scripts/copy-css.mjs",
     "build:02": "npm run build"
   },

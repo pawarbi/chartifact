@@ -10,7 +10,7 @@
     "tsc-client": "tsc -p ./tsconfig.json",
     "tsc-server": "tsc -p ./tsconfig-server.json",
     "build": "npm run clean && npm run tsc-server && npm run tsc-client && npm run resources",
-    "build:03": "npm run build"
+    "build:05": "npm run build"
   },
   "author": "Dan Marshall",
   "license": "MIT",
