@@ -4,7 +4,6 @@ import * as csstree from 'css-tree';
 import { JSDOM } from 'jsdom';
 import { Renderer, setMarkdownIt, setCssTree, setDomDocument } from '../../markdown/dist/esnext/index.js';
 
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -13,7 +12,7 @@ const jsdom = new JSDOM('<!DOCTYPE html>');
 setDomDocument(jsdom.window.document);
 setMarkdownIt(MarkdownIt);
 setCssTree(csstree);
-const renderer = new Renderer(null, {});
+const renderer = new Renderer(null, { openLinksInNewTab: false });
 
 // Load the readme file from root of the project
 const readmePath = resolve(__dirname, '../../../README.md');
