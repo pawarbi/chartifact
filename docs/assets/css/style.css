@@ -33,6 +33,6 @@ a:hover {
     text-decoration: underline;
 }
 
-a.github-repo {
+#github-repo {
     float: right;
 }
