@@ -26,7 +26,7 @@ files.forEach(file => {
   const folderData = JSON.parse(readFileSync(filePath, 'utf-8'));
 
   htmlContent += `<h2>${folderData.title}</h2>\n`;
-  htmlContent += `<a href="https://microsoft.github.io/chartifact/view?load=../assets/examples/${file}">Show all</a>\n<ul>\n`;
+  htmlContent += `<a href="https://microsoft.github.io/chartifact/view?load=../assets/examples/${file}">view all</a>\n<ul>\n`;
 
   folderData.docs.forEach(doc => {
     const link = `https://microsoft.github.io/chartifact/view/?load=../assets/examples/${doc.href}`;
