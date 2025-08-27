@@ -6,6 +6,7 @@ title: "Examples"
 # Examples
 
 ## Interactive documents
+[view all](https://microsoft.github.io/chartifact/view?load=../assets/examples/examples.markdown.folder.json)
 
 - [Why Chartifact](https://microsoft.github.io/chartifact/view/?load=../assets/examples/markdown/why-chartifact.idoc.md): Discover the capabilities and benefits of Chartifact for creating interactive data documents.
 - [Sales Dashboard](https://microsoft.github.io/chartifact/view/?load=../assets/examples/markdown/sales-dashboard.idoc.md): A comprehensive sales dashboard with interactive charts and data visualization.
@@ -14,6 +15,7 @@ title: "Examples"
 - [Mermaid Org Chart](https://microsoft.github.io/chartifact/view/?load=../assets/examples/markdown/mermaid-org-chart.idoc.md): An organizational chart created using Mermaid diagrams with dynamic data.
 
 ## Core capabilities
+[view all](https://microsoft.github.io/chartifact/view?load=../assets/examples/features.markdown.folder.json)
 
 - [Primer](https://microsoft.github.io/chartifact/view/?load=../assets/examples/./markdown/features/1.primer.idoc.md)
 - [Data Sources](https://microsoft.github.io/chartifact/view/?load=../assets/examples/markdown/features/2.data-sources.idoc.md)

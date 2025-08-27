@@ -23,7 +23,8 @@ files.forEach(file => {
   const filePath = join(examplesDir, file);
   const folderData = JSON.parse(readFileSync(filePath, 'utf-8'));
 
-  markdownContent += `## ${folderData.title}\n\n`;
+  markdownContent += `## ${folderData.title}\n`;
+  markdownContent += `[view all](https://microsoft.github.io/chartifact/view?load=../assets/examples/${file})\n\n`;
 
   folderData.docs.forEach(doc => {
     const link = `https://microsoft.github.io/chartifact/view/?load=../assets/examples/${doc.href}`;
