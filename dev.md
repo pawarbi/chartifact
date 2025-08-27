@@ -1,4 +1,4 @@
-# Jekyll Development with Docker
+# Jekyll Local Development with Docker
 
 This repository includes Docker setup for running Jekyll locally to preview the GitHub Pages site.
 
@@ -6,7 +6,7 @@ This repository includes Docker setup for running Jekyll locally to preview the 
 
 ### Start Jekyll
 ```bash
-docker-compose up
+docker-compose -f docker-compose.jekyll-local.yml up
 ```
 
 ### View your site
@@ -19,13 +19,13 @@ Type ctrl-C in the terminal running `docker-compose up`
 
 ### Rebuild after changes
 ```bash
-docker-compose build
+docker-compose -f docker-compose.jekyll-local.yml build
 ```
 
 ## Files
 
-- `Dockerfile` - Jekyll container setup
-- `docker-compose.yml` - Container orchestration
+- `Dockerfile.jekyll-local` - Jekyll container setup for local development
+- `docker-compose.jekyll-local.yml` - Container orchestration for local development
 - `docs/Gemfile` - Jekyll dependencies (same as GitHub Pages)
 - `docs/_config.yml` - Jekyll configuration
 
