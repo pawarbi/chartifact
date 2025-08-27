@@ -2142,17 +2142,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     getDependencies() {
       const { hostname, origin } = window.location;
-      const url = hostname === "localhost" ? origin : "https://microsoft.github.io/chartifact";
+      const url = hostname === "localhost" ? origin : "https://microsoft.github.io";
       return `
 <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet" />
-<link href="${url}/dist/v1/chartifact-reset.css" rel="stylesheet" />
+<link href="${url}/chartifact/dist/v1/chartifact-reset.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"><\/script>
 <script src="https://unpkg.com/css-tree/dist/csstree.js"><\/script>
 <script src="https://unpkg.com/js-yaml/dist/js-yaml.min.js"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/vega@5.29.0"><\/script>
 <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.20.1"><\/script>
 <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"><\/script>
-<script src="${url}/dist/v1/chartifact.markdown.umd.js"><\/script>
+<script src="${url}/chartifact/dist/v1/chartifact.markdown.umd.js"><\/script>
 `;
     }
   }
@@ -3119,10 +3119,10 @@ ${htmlJsonJs}
       if (!this.toolbarElement) {
         throw new Error("Toolbar element not found");
       }
-      const { home, target } = window.location.hostname === "localhost" ? { home: "/", target: "_self" } : { home: "https://microsoft.github.io/chartifact", target: "_blank" };
+      const { home, target } = window.location.hostname === "localhost" ? { home: "/", target: "_self" } : { home: "https://microsoft.github.io/", target: "_blank" };
       const html = `
 <div>
-    <a href="${home}" target="${target}">Chartifact</a> viewer
+    <a href="${home}chartifact/" target="${target}">Chartifact</a> viewer
 </div>
 <div id="folderSpan" style="display: none;"></div>
 <div>

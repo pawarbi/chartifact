@@ -188,10 +188,10 @@ ${htmlJsonJs}
       if (!this.toolbarElement) {
         throw new Error("Toolbar element not found");
       }
-      const { home, target } = window.location.hostname === "localhost" ? { home: "/", target: "_self" } : { home: "https://microsoft.github.io/chartifact", target: "_blank" };
+      const { home, target } = window.location.hostname === "localhost" ? { home: "/", target: "_self" } : { home: "https://microsoft.github.io/", target: "_blank" };
       const html = `
 <div>
-    <a href="${home}" target="${target}">Chartifact</a> viewer
+    <a href="${home}chartifact/" target="${target}">Chartifact</a> viewer
 </div>
 <div id="folderSpan" style="display: none;"></div>
 <div>
