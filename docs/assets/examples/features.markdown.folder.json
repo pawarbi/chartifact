@@ -1,6 +1,6 @@
 {
     "$schema": "../../schema/folder_v1.json",
-    "title": "Capabilities",
+    "title": "Core capabilities",
     "docs": [
         {
             "title": "Primer",

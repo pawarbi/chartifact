@@ -5,10 +5,11 @@
   "main": "index.js",
   "scripts": {
     "convert": "node ./dist/convert.mjs",
+    "example-folders": "node ./dist/example-folders.mjs",
     "readme": "node ./dist/readme.mjs",
     "clean": "rimraf dist && rimraf ../../docs/assets/examples/json && rimraf ../../docs/assets/examples/markdown",
     "build": "tsc -p .",
-    "deploy": "npm run clean && npm run build && npm run readme && npm run convert"
+    "deploy": "npm run clean && npm run build && npm run readme && npm run convert && npm run example-folders"
 
   },
   "author": "Dan Marshall",
