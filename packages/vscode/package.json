@@ -54,11 +54,6 @@
         "category": "Chartifact Interactive Documents"
       },
       {
-        "command": "chartifact.editIdoc",
-        "title": "Edit Chartifact Interactive Document",
-        "category": "Chartifact Interactive Documents"
-      },
-      {
         "command": "chartifact.previewIdocSplit",
         "title": "Preview Chartifact Interactive Document (Split View)",
         "category": "Chartifact Interactive Documents",
@@ -101,11 +96,6 @@
           "command": "chartifact.convertToMarkdown",
           "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
           "group": "chartifact"
-        },
-        {
-          "command": "chartifact.editIdoc",
-          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
-          "group": "chartifact"
         }
       ],
       "editor/title": [
@@ -143,16 +133,6 @@
         },
         {
           "command": "chartifact.convertToMarkdown",
-          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
-          "group": "chartifact"
-        },
-        {
-          "command": "chartifact.editIdoc",
-          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.md$/",
-          "group": "chartifact"
-        },
-        {
-          "command": "chartifact.editIdoc",
           "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
           "group": "chartifact"
         }
