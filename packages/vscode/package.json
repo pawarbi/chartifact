@@ -1,15 +1,13 @@
 {
   "name": "chartifact",
   "displayName": "Chartifact",
-  "private": true,
-  "description": "",
-  "version": "0.0.3",
+  "description": "Declarative, interactive data documents",
+  "version": "1.0.0",
   "publisher": "msrvida",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/microsoft/chartifact.git"
   },
-  "author": "Dan Marshall",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/microsoft/chartifact/issues"
@@ -19,7 +17,12 @@
     "vscode": "^1.101.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Visualization"
+  ],
+  "keywords": [
+    "data visualization",
+    "dataviz"
   ],
   "activationEvents": [],
   "browser": "./dist/web/extension.js",
