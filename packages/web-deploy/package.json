@@ -9,8 +9,8 @@
     "readme": "node ./dist/readme.mjs",
     "clean": "rimraf dist && rimraf ../../docs/assets/examples/json && rimraf ../../docs/assets/examples/markdown",
     "build": "tsc -p .",
-    "deploy": "npm run clean && npm run build && npm run readme && npm run convert && npm run example-folders"
-
+    "deploy": "npm run clean && npm run build && npm run readme && npm run convert && npm run example-folders && npm run zip-examples",
+    "zip-examples": "node ./dist/zip-examples.mjs"
   },
   "author": "Dan Marshall",
   "license": "MIT",
