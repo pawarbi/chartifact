@@ -54,6 +54,11 @@
         "category": "Chartifact Interactive Documents"
       },
       {
+        "command": "chartifact.createExamplesFolder",
+        "title": "Create Chartifact Examples Folder",
+        "category": "Chartifact Interactive Documents"
+      },
+      {
         "command": "chartifact.previewIdocSplit",
         "title": "Preview Chartifact Interactive Document (Split View)",
         "category": "Chartifact Interactive Documents",
@@ -95,6 +100,11 @@
         {
           "command": "chartifact.convertToMarkdown",
           "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
+          "group": "chartifact"
+        },
+        {
+          "command": "chartifact.createExamplesFolder",
+          "when": "explorerResourceIsFolder",
           "group": "chartifact"
         }
       ],
