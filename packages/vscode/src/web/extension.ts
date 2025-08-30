@@ -85,6 +85,18 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(convertToMarkdownDisposable);
 
+	// Register the create examples folder command
+	const createExamplesFolderDisposable = vscode.commands.registerCommand('chartifact.createExamplesFolder', async (uri?: vscode.Uri) => {
+		try {
+			const { createExamplesFolder } = await import('./command-create-examples.js');
+			await createExamplesFolder(uri);
+		} catch (error) {
+			vscode.window.showErrorMessage(`Failed to create examples folder: ${error}`);
+		}
+	});
+
+	context.subscriptions.push(createExamplesFolderDisposable);
+
 	// Ensure preview manager is disposed when extension deactivates
 	context.subscriptions.push({
 		dispose: () => previewManager.dispose()

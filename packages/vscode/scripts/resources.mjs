@@ -32,6 +32,7 @@ const resources = [
     //sample docs
     '../../docs/assets/examples/json/grocery-list.idoc.json',
     '../../docs/assets/examples/markdown/seattle-weather/1.idoc.md',
+    '../../docs/assets/chartifact-examples.zip',
 ];
 
 const errors = [];
