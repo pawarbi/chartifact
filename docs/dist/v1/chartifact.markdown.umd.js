@@ -1534,8 +1534,8 @@ ${reconstitutedRules.join("\n\n")}
             data
           };
           csvInstances.push(csvInstance);
-          container.innerHTML = `${csvContent}
-<!-- CSV data loaded: ${data.length} rows for variable '${spec.variableId}' -->`;
+          const comment = sanitizeHtmlComment(`CSV data loaded: ${data.length} rows for variable '${spec.variableId}'`);
+          container.insertAdjacentHTML("beforebegin", comment);
         } catch (e) {
           errorHandler(e instanceof Error ? e : new Error(String(e)), pluginName$9, index2, "parse", container);
         }
