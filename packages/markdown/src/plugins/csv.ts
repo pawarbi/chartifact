@@ -5,7 +5,7 @@
 
 import { read } from 'vega';
 import { Batch, IInstance, Plugin, RawFlaggableSpec } from '../factory.js';
-import { sanitizedHTML } from '../sanitize.js';
+import { sanitizedHTML, sanitizeHtmlComment } from '../sanitize.js';
 import { pluginClassName } from './util.js';
 import { PluginNames } from './interfaces.js';
 import { SpecReview } from 'common';
@@ -132,8 +132,9 @@ export const csvPlugin: Plugin<CsvSpec> = {
                 };
                 csvInstances.push(csvInstance);
                 
-                // Update container to show that CSV was loaded (but keep it hidden)
-                container.innerHTML = `${csvContent}\n<!-- CSV data loaded: ${data.length} rows for variable '${spec.variableId}' -->`;
+                // Add a safe comment before the container to show that CSV was loaded
+                const comment = sanitizeHtmlComment(`CSV data loaded: ${data.length} rows for variable '${spec.variableId}'`);
+                container.insertAdjacentHTML('beforebegin', comment);
                 
             } catch (e) {
                 errorHandler(e instanceof Error ? e : new Error(String(e)), pluginName, index, 'parse', container);
