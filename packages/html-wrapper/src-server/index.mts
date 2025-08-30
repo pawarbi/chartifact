@@ -1,9 +1,13 @@
+/**
+* Copyright (c) Microsoft Corporation.
+* Licensed under the MIT License.
+*/
 import htmlMarkdown from "./htmlMarkdown.mjs";
 import htmlMarkdownJs from "./htmlMarkdownJs.mjs";
 import htmlJson from "./htmlJson.mjs";
 import htmlJsonJs from "./htmlJsonJs.mjs";
 
-function htmlMarkdownWrapper(title, markdown) {
+function htmlMarkdownWrapper(title: string, markdown: string) {
     const template = htmlMarkdown;
 
     const result = template
@@ -15,7 +19,7 @@ function htmlMarkdownWrapper(title, markdown) {
     return result;
 }
 
-function htmlJsonWrapper(title, json) {
+function htmlJsonWrapper(title: string, json: string) {
     const template = htmlJson;
 
     const result = template
@@ -27,14 +31,14 @@ function htmlJsonWrapper(title, json) {
     return result;
 }
 
-function escapeTextareaContent(text) {
+function escapeTextareaContent(text: string) {
     return text
         .replace(/<\/textarea>/gi, '&lt;/textarea&gt;') // Prevent textarea breakage
         .replace(/<script/gi, '&lt;script')            // Block script tags
         .replace(/<\/script>/gi, '&lt;/script&gt;');   // Close script tag
 }
 
-function escapeHtml(text) {
+function escapeHtml(text: string) {
     return text.replace(/[&<>"']/g, (char) => {
         switch (char) {
             case '&': return '&amp;';
