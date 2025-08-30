@@ -8,6 +8,7 @@ import { registerMarkdownPlugin } from '../factory.js';
 import { checkboxPlugin } from './checkbox.js';
 import { commentPlugin } from './comment.js';
 import { cssPlugin } from './css.js';
+import { csvPlugin } from './csv.js';
 import { googleFontsPlugin } from './google-fonts.js';
 import { dropdownPlugin } from './dropdown.js';
 import { imagePlugin } from './image.js';
@@ -24,6 +25,7 @@ export function registerNativePlugins() {
     registerMarkdownPlugin(checkboxPlugin);
     registerMarkdownPlugin(commentPlugin);
     registerMarkdownPlugin(cssPlugin);
+    registerMarkdownPlugin(csvPlugin);
     registerMarkdownPlugin(googleFontsPlugin);
     registerMarkdownPlugin(dropdownPlugin);
     registerMarkdownPlugin(imagePlugin);
