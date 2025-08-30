@@ -15,7 +15,7 @@ import * as yaml from 'js-yaml';
 
 const defaultJsonIndent = 2;
 
-function tickWrap(plugin: string, content: string) {
+export function tickWrap(plugin: string, content: string) {
     return `\n\n\n\`\`\`${plugin}\n${content}\n\`\`\`\n\n\n`;
 }
 
