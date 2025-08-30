@@ -6,20 +6,20 @@
 import { DsvSpec, dsvPlugin } from './dsv.js';
 import { Plugin } from '../factory.js';
 
-export interface CsvSpec extends DsvSpec {}
+export interface TsvSpec extends DsvSpec {}
 
-// CSV plugin delegates to DSV with comma delimiter for backwards compatibility
-export const csvPlugin: Plugin<CsvSpec> = {
-    name: 'csv',
+// TSV plugin delegates to DSV with tab delimiter for backwards compatibility
+export const tsvPlugin: Plugin<TsvSpec> = {
+    name: 'tsv',
     fence: (token, index) => {
         const info = token.info.trim();
         const parts = info.split(/\s+/);
         
-        // Extract variableId from "csv variableId" or default
-        let variableId = parts.length >= 2 ? parts[1] : `csvData${index}`;
+        // Extract variableId from "tsv variableId" or default
+        let variableId = parts.length >= 2 ? parts[1] : `tsvData${index}`;
         
-        // Create DSV fence info with comma delimiter
-        const dsvInfo = `dsv delimiter:, variableId:${variableId}`;
+        // Create DSV fence info with tab delimiter
+        const dsvInfo = `dsv delimiter:\t variableId:${variableId}`;
         
         // Create a modified token with DSV info
         const dsvToken = Object.assign({}, token, { info: dsvInfo });
