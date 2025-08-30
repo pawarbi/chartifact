@@ -135,6 +135,13 @@ export function create() {
             }
         };
 
+        const findPluginByPrefix = (prefix: string) => {
+            const plugin = plugins.find(p => p.name === prefix);
+            if (plugin && plugin.fence) {
+                return plugin.fence(token, idx);
+            }
+        };
+
         // First priority: Check if it starts with "#" for comment plugin
         if (info.startsWith('#')) {
             return findPlugin('#');
@@ -145,15 +152,25 @@ export function create() {
             if (directPlugin) {
                 return directPlugin;
             }
-            // Third priority: Check if it starts with "json " and extract the plugin name
-            else if (info.startsWith('json ')) {
+            // Third priority: Check for plugin names with additional parameters (like "csv variableId")
+            else {
+                const infoWords = info.split(/\s+/);
+                if (infoWords.length > 0) {
+                    const pluginPrefix = findPluginByPrefix(infoWords[0]);
+                    if (pluginPrefix) {
+                        return pluginPrefix;
+                    }
+                }
+            }
+            // Fourth priority: Check if it starts with "json " and extract the plugin name
+            if (info.startsWith('json ')) {
                 const jsonPluginName = info.slice(5).trim();
                 const jsonPlugin = findPlugin(jsonPluginName);
                 if (jsonPlugin) {
                     return jsonPlugin;
                 }
             }
-            // Fourth priority: Check if it starts with "yaml " and extract the plugin name
+            // Fifth priority: Check if it starts with "yaml " and extract the plugin name
             else if (info.startsWith('yaml ')) {
                 const yamlPluginName = info.slice(5).trim();
                 const yamlPlugin = findPlugin(yamlPluginName);

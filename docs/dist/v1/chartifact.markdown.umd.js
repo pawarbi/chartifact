@@ -621,10 +621,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     loading: "0.1",
     error: "0.5"
   };
-  const pluginName$d = "image";
-  const className$b = pluginClassName(pluginName$d);
+  const pluginName$e = "image";
+  const className$c = pluginClassName(pluginName$e);
   const imagePlugin = {
-    ...flaggablePlugin(pluginName$d, className$b),
+    ...flaggablePlugin(pluginName$e, className$c),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const imageInstances = [];
       for (let index2 = 0; index2 < specs.length; index2++) {
@@ -639,11 +639,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           container,
           null,
           (error) => {
-            errorHandler(error, pluginName$d, index2, "load", container, img.src);
+            errorHandler(error, pluginName$e, index2, "load", container, img.src);
           }
         );
         const imageInstance = {
-          id: `${pluginName$d}-${index2}`,
+          id: `${pluginName$e}-${index2}`,
           spec,
           img: null,
           // Will be set below
@@ -701,7 +701,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (isSafeImageUrl(src)) {
         tempImg.setAttribute("src", src);
       } else {
-        errorHandler(new Error(`Unsafe image URL: ${src}`), pluginName$d, instanceIndex, "load", null, src);
+        errorHandler(new Error(`Unsafe image URL: ${src}`), pluginName$e, instanceIndex, "load", null, src);
       }
     }
     tempImg.setAttribute("alt", alt);
@@ -820,10 +820,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     return null;
   }
-  const pluginName$c = "placeholders";
-  const imageClassName = pluginClassName(pluginName$c + "_image");
+  const pluginName$d = "placeholders";
+  const imageClassName = pluginClassName(pluginName$d + "_image");
   const placeholdersPlugin = {
-    name: pluginName$c,
+    name: pluginName$d,
     initializePlugin: async (md) => {
       md.use(function(md2) {
         md2.inline.ruler.after("emphasis", "dynamic_placeholder", function(state, silent) {
@@ -944,7 +944,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       for (const element of Array.from(dynamicImages)) {
         const { dynamicUrl, img } = createImageLoadingLogic(element, null, (error) => {
           const index2 = -1;
-          errorHandler(error, pluginName$c, index2, "load", element, img.src);
+          errorHandler(error, pluginName$d, index2, "load", element, img.src);
         });
         if (!dynamicUrl) {
           continue;
@@ -969,7 +969,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       });
       const instances = [
         {
-          id: pluginName$c,
+          id: pluginName$d,
           initialSignals,
           receiveBatch: async (batch) => {
             var _a, _b;
@@ -1069,13 +1069,28 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
           return plugin.fence(token, idx);
         }
       };
+      const findPluginByPrefix = (prefix) => {
+        const plugin = plugins.find((p) => p.name === prefix);
+        if (plugin && plugin.fence) {
+          return plugin.fence(token, idx);
+        }
+      };
       if (info.startsWith("#")) {
         return findPlugin("#");
       } else {
         const directPlugin = findPlugin(info);
         if (directPlugin) {
           return directPlugin;
-        } else if (info.startsWith("json ")) {
+        } else {
+          const infoWords = info.split(/\s+/);
+          if (infoWords.length > 0) {
+            const pluginPrefix = findPluginByPrefix(infoWords[0]);
+            if (pluginPrefix) {
+              return pluginPrefix;
+            }
+          }
+        }
+        if (info.startsWith("json ")) {
           const jsonPluginName = info.slice(5).trim();
           const jsonPlugin = findPlugin(jsonPluginName);
           if (jsonPlugin) {
@@ -1101,10 +1116,10 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     };
     return md;
   }
-  const pluginName$b = "checkbox";
-  const className$a = pluginClassName(pluginName$b);
+  const pluginName$c = "checkbox";
+  const className$b = pluginClassName(pluginName$c);
   const checkboxPlugin = {
-    ...flaggablePlugin(pluginName$b, className$a),
+    ...flaggablePlugin(pluginName$c, className$b),
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const { signalBus } = renderer;
       const checkboxInstances = [];
@@ -1125,7 +1140,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
                 </form>`;
         container.innerHTML = html;
         const element = container.querySelector('input[type="checkbox"]');
-        const checkboxInstance = { id: `${pluginName$b}-${index2}`, spec, element };
+        const checkboxInstance = { id: `${pluginName$c}-${index2}`, spec, element };
         checkboxInstances.push(checkboxInstance);
       }
       const instances = checkboxInstances.map((checkboxInstance) => {
@@ -1168,9 +1183,9 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       return instances;
     }
   };
-  const pluginName$a = "#";
+  const pluginName$b = "#";
   const commentPlugin = {
-    name: pluginName$a,
+    name: pluginName$b,
     fence: (token) => {
       const content = token.content.trim();
       return sanitizeHtmlComment(content);
@@ -1377,14 +1392,14 @@ ${reconstitutedRules.join("\n\n")}
     }
     return result;
   }
-  const pluginName$9 = "css";
-  const className$9 = pluginClassName(pluginName$9);
+  const pluginName$a = "css";
+  const className$a = pluginClassName(pluginName$a);
   const cssPlugin = {
-    ...flaggablePlugin(pluginName$9, className$9),
+    ...flaggablePlugin(pluginName$a, className$a),
     fence: (token, index2) => {
       const cssContent = token.content.trim();
       const categorizedCss = categorizeCss(cssContent);
-      return sanitizedHTML("div", { id: `${pluginName$9}-${index2}`, class: className$9 }, JSON.stringify(categorizedCss), true);
+      return sanitizedHTML("div", { id: `${pluginName$a}-${index2}`, class: className$a }, JSON.stringify(categorizedCss), true);
     },
     hydrateComponent: async (renderer, errorHandler, specs) => {
       const cssInstances = [];
@@ -1406,7 +1421,7 @@ ${reconstitutedRules.join("\n\n")}
           target.appendChild(styleElement);
           comments.push(`<!-- CSS styles applied to ${renderer.shadowRoot ? "shadow DOM" : "document"} -->`);
           cssInstances.push({
-            id: `${pluginName$9}-${index2}`,
+            id: `${pluginName$a}-${index2}`,
             element: styleElement
           });
         } else {
@@ -1423,6 +1438,132 @@ ${reconstitutedRules.join("\n\n")}
             if (cssInstance.element && cssInstance.element.parentNode) {
               cssInstance.element.parentNode.removeChild(cssInstance.element);
             }
+          }
+        };
+      });
+      return instances;
+    }
+  };
+  function inspectCsvSpec(spec) {
+    const result = {
+      spec,
+      hasFlags: false,
+      reasons: []
+    };
+    if (spec.wasDefaultId) {
+      result.hasFlags = true;
+      result.reasons.push("No variable ID specified - using default");
+    }
+    return result;
+  }
+  const pluginName$9 = "csv";
+  const className$9 = pluginClassName(pluginName$9);
+  const csvPlugin = {
+    name: pluginName$9,
+    fence: (token, index2) => {
+      const csvContent = token.content.trim();
+      const info = token.info.trim();
+      const parts = info.split(/\s+/);
+      const wasDefaultId = parts.length < 2;
+      const variableId = wasDefaultId ? `csvData${index2}` : parts[1];
+      return sanitizedHTML("pre", {
+        id: `${pluginName$9}-${index2}`,
+        class: className$9,
+        style: "display:none",
+        "data-variable-id": variableId,
+        "data-was-default-id": wasDefaultId.toString()
+      }, csvContent, false);
+    },
+    hydrateSpecs: (renderer, errorHandler) => {
+      var _a;
+      const flagged = [];
+      const containers = renderer.element.querySelectorAll(`.${className$9}`);
+      for (const [index2, container] of Array.from(containers).entries()) {
+        try {
+          const variableId = container.getAttribute("data-variable-id");
+          const wasDefaultId = container.getAttribute("data-was-default-id") === "true";
+          if (!variableId) {
+            errorHandler(new Error("No variable ID found"), pluginName$9, index2, "parse", container);
+            continue;
+          }
+          const spec = { variableId, wasDefaultId };
+          const flaggableSpec = inspectCsvSpec(spec);
+          const f = {
+            approvedSpec: null,
+            pluginName: pluginName$9,
+            containerId: container.id
+          };
+          if (flaggableSpec.hasFlags) {
+            f.blockedSpec = flaggableSpec.spec;
+            f.reason = ((_a = flaggableSpec.reasons) == null ? void 0 : _a.join(", ")) || "Unknown reason";
+          } else {
+            f.approvedSpec = flaggableSpec.spec;
+          }
+          flagged.push(f);
+        } catch (e) {
+          errorHandler(e instanceof Error ? e : new Error(String(e)), pluginName$9, index2, "parse", container);
+        }
+      }
+      return flagged;
+    },
+    hydrateComponent: async (renderer, errorHandler, specs) => {
+      var _a;
+      const { signalBus } = renderer;
+      const csvInstances = [];
+      for (let index2 = 0; index2 < specs.length; index2++) {
+        const specReview = specs[index2];
+        if (!specReview.approvedSpec) {
+          continue;
+        }
+        const container = renderer.element.querySelector(`#${specReview.containerId}`);
+        if (!container) {
+          errorHandler(new Error("Container not found"), pluginName$9, index2, "init", null);
+          continue;
+        }
+        try {
+          const csvContent = (_a = container.textContent) == null ? void 0 : _a.trim();
+          if (!csvContent) {
+            errorHandler(new Error("No CSV content found"), pluginName$9, index2, "parse", container);
+            continue;
+          }
+          const spec = specReview.approvedSpec;
+          const data = vega.read(csvContent, { type: "csv" });
+          const csvInstance = {
+            id: `${pluginName$9}-${index2}`,
+            spec,
+            data
+          };
+          csvInstances.push(csvInstance);
+          const comment = sanitizeHtmlComment(`CSV data loaded: ${data.length} rows for variable '${spec.variableId}'`);
+          container.insertAdjacentHTML("beforebegin", comment);
+        } catch (e) {
+          errorHandler(e instanceof Error ? e : new Error(String(e)), pluginName$9, index2, "parse", container);
+        }
+      }
+      const instances = csvInstances.map((csvInstance) => {
+        const { spec, data } = csvInstance;
+        const initialSignals = [{
+          name: spec.variableId,
+          value: data,
+          priority: 1,
+          isData: true
+        }];
+        return {
+          ...csvInstance,
+          initialSignals,
+          beginListening() {
+            const batch = {
+              [spec.variableId]: {
+                value: data,
+                isData: true
+              }
+            };
+            signalBus.broadcast(csvInstance.id, batch);
+          },
+          getCurrentSignalValue: () => {
+            return data;
+          },
+          destroy: () => {
           }
         };
       });
@@ -3020,6 +3161,7 @@ ${reconstitutedRules.join("\n\n")}
     registerMarkdownPlugin(checkboxPlugin);
     registerMarkdownPlugin(commentPlugin);
     registerMarkdownPlugin(cssPlugin);
+    registerMarkdownPlugin(csvPlugin);
     registerMarkdownPlugin(googleFontsPlugin);
     registerMarkdownPlugin(dropdownPlugin);
     registerMarkdownPlugin(imagePlugin);
