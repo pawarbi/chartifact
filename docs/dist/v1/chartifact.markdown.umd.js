@@ -1444,6 +1444,44 @@ ${reconstitutedRules.join("\n\n")}
       return instances;
     }
   };
+  function parseVariableId(info, pluginName2, index2) {
+    const parts = info.trim().split(/\s+/);
+    for (const part of parts) {
+      if (part.startsWith("variableId:")) {
+        return {
+          variableId: part.slice(11).trim(),
+          // Remove 'variableId:' prefix and trim spaces
+          wasDefaultId: false
+        };
+      }
+    }
+    if (parts.length >= 2) {
+      const secondPart = parts[1];
+      if (!secondPart.startsWith("delimiter:") && !secondPart.startsWith("variableId:")) {
+        return {
+          variableId: secondPart,
+          wasDefaultId: false
+        };
+      }
+    }
+    return {
+      variableId: `${pluginName2}Data${index2}`,
+      wasDefaultId: true
+    };
+  }
+  function parseDelimiter(info) {
+    const parts = info.trim().split(/\s+/);
+    for (const part of parts) {
+      if (part.startsWith("delimiter:")) {
+        let delimiter = part.slice(10).trim();
+        if (delimiter === "\\t") delimiter = "	";
+        if (delimiter === "\\n") delimiter = "\n";
+        if (delimiter === "\\r") delimiter = "\r";
+        return { delimiter, wasDefaultDelimiter: false };
+      }
+    }
+    return { delimiter: ",", wasDefaultDelimiter: true };
+  }
   function inspectDsvSpec(spec) {
     const result = {
       spec,
@@ -1467,23 +1505,8 @@ ${reconstitutedRules.join("\n\n")}
     fence: (token, index2) => {
       const content = token.content.trim();
       const info = token.info.trim();
-      const parts = info.split(/\s+/);
-      let delimiter = ",";
-      let variableId = `dsvData${index2}`;
-      let wasDefaultDelimiter = true;
-      let wasDefaultId = true;
-      for (const part of parts) {
-        if (part.startsWith("delimiter:")) {
-          delimiter = part.slice(10);
-          if (delimiter === "\\t") delimiter = "	";
-          if (delimiter === "\\n") delimiter = "\n";
-          if (delimiter === "\\r") delimiter = "\r";
-          wasDefaultDelimiter = false;
-        } else if (part.startsWith("variableId:")) {
-          variableId = part.slice(11);
-          wasDefaultId = false;
-        }
-      }
+      const { delimiter, wasDefaultDelimiter } = parseDelimiter(info);
+      const { variableId, wasDefaultId } = parseVariableId(info, "dsv", index2);
       return sanitizedHTML("pre", {
         id: `${pluginName$9}-${index2}`,
         class: className$9,
@@ -1601,8 +1624,7 @@ ${reconstitutedRules.join("\n\n")}
     name: "csv",
     fence: (token, index2) => {
       const info = token.info.trim();
-      const parts = info.split(/\s+/);
-      let variableId = parts.length >= 2 ? parts[1] : `csvData${index2}`;
+      const { variableId } = parseVariableId(info, "csv", index2);
       const dsvInfo = `dsv delimiter:, variableId:${variableId}`;
       const dsvToken = Object.assign({}, token, { info: dsvInfo });
       return dsvPlugin.fence(dsvToken, index2);
@@ -2682,9 +2704,8 @@ ${reconstitutedRules.join("\n\n")}
     name: "tsv",
     fence: (token, index2) => {
       const info = token.info.trim();
-      const parts = info.split(/\s+/);
-      let variableId = parts.length >= 2 ? parts[1] : `tsvData${index2}`;
-      const dsvInfo = `dsv delimiter:	 variableId:${variableId}`;
+      const { variableId } = parseVariableId(info, "tsv", index2);
+      const dsvInfo = `dsv delimiter:\\t variableId:${variableId}`;
       const dsvToken = Object.assign({}, token, { info: dsvInfo });
       return dsvPlugin.fence(dsvToken, index2);
     },
