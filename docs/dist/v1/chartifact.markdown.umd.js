@@ -1444,7 +1444,45 @@ ${reconstitutedRules.join("\n\n")}
       return instances;
     }
   };
-  function inspectCsvSpec(spec) {
+  function parseVariableId(info, pluginName2, index2) {
+    const parts = info.trim().split(/\s+/);
+    for (const part of parts) {
+      if (part.startsWith("variableId:")) {
+        return {
+          variableId: part.slice(11).trim(),
+          // Remove 'variableId:' prefix and trim spaces
+          wasDefaultId: false
+        };
+      }
+    }
+    if (parts.length >= 2) {
+      const secondPart = parts[1];
+      if (!secondPart.startsWith("delimiter:") && !secondPart.startsWith("variableId:")) {
+        return {
+          variableId: secondPart,
+          wasDefaultId: false
+        };
+      }
+    }
+    return {
+      variableId: `${pluginName2}Data${index2}`,
+      wasDefaultId: true
+    };
+  }
+  function parseDelimiter(info) {
+    const parts = info.trim().split(/\s+/);
+    for (const part of parts) {
+      if (part.startsWith("delimiter:")) {
+        let delimiter = part.slice(10).trim();
+        if (delimiter === "\\t") delimiter = "	";
+        if (delimiter === "\\n") delimiter = "\n";
+        if (delimiter === "\\r") delimiter = "\r";
+        return { delimiter, wasDefaultDelimiter: false };
+      }
+    }
+    return { delimiter: ",", wasDefaultDelimiter: true };
+  }
+  function inspectDsvSpec(spec) {
     const result = {
       spec,
       hasFlags: false,
@@ -1454,25 +1492,30 @@ ${reconstitutedRules.join("\n\n")}
       result.hasFlags = true;
       result.reasons.push("No variable ID specified - using default");
     }
+    if (spec.wasDefaultDelimiter) {
+      result.hasFlags = true;
+      result.reasons.push("No delimiter specified - using default comma");
+    }
     return result;
   }
-  const pluginName$9 = "csv";
+  const pluginName$9 = "dsv";
   const className$9 = pluginClassName(pluginName$9);
-  const csvPlugin = {
+  const dsvPlugin = {
     name: pluginName$9,
     fence: (token, index2) => {
-      const csvContent = token.content.trim();
+      const content = token.content.trim();
       const info = token.info.trim();
-      const parts = info.split(/\s+/);
-      const wasDefaultId = parts.length < 2;
-      const variableId = wasDefaultId ? `csvData${index2}` : parts[1];
+      const { delimiter, wasDefaultDelimiter } = parseDelimiter(info);
+      const { variableId, wasDefaultId } = parseVariableId(info, "dsv", index2);
       return sanitizedHTML("pre", {
         id: `${pluginName$9}-${index2}`,
         class: className$9,
         style: "display:none",
         "data-variable-id": variableId,
-        "data-was-default-id": wasDefaultId.toString()
-      }, csvContent, false);
+        "data-delimiter": delimiter,
+        "data-was-default-id": wasDefaultId.toString(),
+        "data-was-default-delimiter": wasDefaultDelimiter.toString()
+      }, content, false);
     },
     hydrateSpecs: (renderer, errorHandler) => {
       var _a;
@@ -1481,13 +1524,19 @@ ${reconstitutedRules.join("\n\n")}
       for (const [index2, container] of Array.from(containers).entries()) {
         try {
           const variableId = container.getAttribute("data-variable-id");
+          const delimiter = container.getAttribute("data-delimiter");
           const wasDefaultId = container.getAttribute("data-was-default-id") === "true";
+          const wasDefaultDelimiter = container.getAttribute("data-was-default-delimiter") === "true";
           if (!variableId) {
             errorHandler(new Error("No variable ID found"), pluginName$9, index2, "parse", container);
             continue;
           }
-          const spec = { variableId, wasDefaultId };
-          const flaggableSpec = inspectCsvSpec(spec);
+          if (!delimiter) {
+            errorHandler(new Error("No delimiter found"), pluginName$9, index2, "parse", container);
+            continue;
+          }
+          const spec = { variableId, delimiter, wasDefaultId, wasDefaultDelimiter };
+          const flaggableSpec = inspectDsvSpec(spec);
           const f = {
             approvedSpec: null,
             pluginName: pluginName$9,
@@ -1509,7 +1558,7 @@ ${reconstitutedRules.join("\n\n")}
     hydrateComponent: async (renderer, errorHandler, specs) => {
       var _a;
       const { signalBus } = renderer;
-      const csvInstances = [];
+      const dsvInstances = [];
       for (let index2 = 0; index2 < specs.length; index2++) {
         const specReview = specs[index2];
         if (!specReview.approvedSpec) {
@@ -1521,27 +1570,28 @@ ${reconstitutedRules.join("\n\n")}
           continue;
         }
         try {
-          const csvContent = (_a = container.textContent) == null ? void 0 : _a.trim();
-          if (!csvContent) {
-            errorHandler(new Error("No CSV content found"), pluginName$9, index2, "parse", container);
+          const content = (_a = container.textContent) == null ? void 0 : _a.trim();
+          if (!content) {
+            errorHandler(new Error("No DSV content found"), pluginName$9, index2, "parse", container);
             continue;
           }
           const spec = specReview.approvedSpec;
-          const data = vega.read(csvContent, { type: "csv" });
-          const csvInstance = {
+          const data = vega.read(content, { type: "dsv", delimiter: spec.delimiter });
+          const dsvInstance = {
             id: `${pluginName$9}-${index2}`,
             spec,
             data
           };
-          csvInstances.push(csvInstance);
-          const comment = sanitizeHtmlComment(`CSV data loaded: ${data.length} rows for variable '${spec.variableId}'`);
+          dsvInstances.push(dsvInstance);
+          const delimiterName = spec.delimiter === "," ? "CSV" : spec.delimiter === "	" ? "TSV" : `DSV (delimiter: '${spec.delimiter}')`;
+          const comment = sanitizeHtmlComment(`${delimiterName} data loaded: ${data.length} rows for variable '${spec.variableId}'`);
           container.insertAdjacentHTML("beforebegin", comment);
         } catch (e) {
           errorHandler(e instanceof Error ? e : new Error(String(e)), pluginName$9, index2, "parse", container);
         }
       }
-      const instances = csvInstances.map((csvInstance) => {
-        const { spec, data } = csvInstance;
+      const instances = dsvInstances.map((dsvInstance) => {
+        const { spec, data } = dsvInstance;
         const initialSignals = [{
           name: spec.variableId,
           value: data,
@@ -1549,7 +1599,7 @@ ${reconstitutedRules.join("\n\n")}
           isData: true
         }];
         return {
-          ...csvInstance,
+          ...dsvInstance,
           initialSignals,
           beginListening() {
             const batch = {
@@ -1558,7 +1608,7 @@ ${reconstitutedRules.join("\n\n")}
                 isData: true
               }
             };
-            signalBus.broadcast(csvInstance.id, batch);
+            signalBus.broadcast(dsvInstance.id, batch);
           },
           getCurrentSignalValue: () => {
             return data;
@@ -1569,6 +1619,18 @@ ${reconstitutedRules.join("\n\n")}
       });
       return instances;
     }
+  };
+  const csvPlugin = {
+    name: "csv",
+    fence: (token, index2) => {
+      const info = token.info.trim();
+      const { variableId } = parseVariableId(info, "csv", index2);
+      const dsvInfo = `dsv delimiter:, variableId:${variableId}`;
+      const dsvToken = Object.assign({}, token, { info: dsvInfo });
+      return dsvPlugin.fence(dsvToken, index2);
+    },
+    hydrateSpecs: dsvPlugin.hydrateSpecs,
+    hydrateComponent: dsvPlugin.hydrateComponent
   };
   function isValidGoogleFontsUrl(url) {
     try {
@@ -2638,6 +2700,18 @@ ${reconstitutedRules.join("\n\n")}
       return instances;
     }
   };
+  const tsvPlugin = {
+    name: "tsv",
+    fence: (token, index2) => {
+      const info = token.info.trim();
+      const { variableId } = parseVariableId(info, "tsv", index2);
+      const dsvInfo = `dsv delimiter:\\t variableId:${variableId}`;
+      const dsvToken = Object.assign({}, token, { info: dsvInfo });
+      return dsvPlugin.fence(dsvToken, index2);
+    },
+    hydrateSpecs: dsvPlugin.hydrateSpecs,
+    hydrateComponent: dsvPlugin.hydrateComponent
+  };
   var LogLevel = /* @__PURE__ */ ((LogLevel2) => {
     LogLevel2[LogLevel2["none"] = 0] = "none";
     LogLevel2[LogLevel2["some"] = 1] = "some";
@@ -3162,6 +3236,7 @@ ${reconstitutedRules.join("\n\n")}
     registerMarkdownPlugin(commentPlugin);
     registerMarkdownPlugin(cssPlugin);
     registerMarkdownPlugin(csvPlugin);
+    registerMarkdownPlugin(dsvPlugin);
     registerMarkdownPlugin(googleFontsPlugin);
     registerMarkdownPlugin(dropdownPlugin);
     registerMarkdownPlugin(imagePlugin);
@@ -3171,6 +3246,7 @@ ${reconstitutedRules.join("\n\n")}
     registerMarkdownPlugin(sliderPlugin);
     registerMarkdownPlugin(tabulatorPlugin);
     registerMarkdownPlugin(textboxPlugin);
+    registerMarkdownPlugin(tsvPlugin);
     registerMarkdownPlugin(vegaLitePlugin);
     registerMarkdownPlugin(vegaPlugin);
   }

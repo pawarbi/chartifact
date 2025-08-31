@@ -15,7 +15,7 @@ import * as yaml from 'js-yaml';
 
 const defaultJsonIndent = 2;
 
-function tickWrap(plugin: string, content: string) {
+export function tickWrap(plugin: string, content: string) {
     return `\n\n\n\`\`\`${plugin}\n${content}\n\`\`\`\n\n\n`;
 }
 
@@ -101,7 +101,7 @@ export function targetMarkdown(page: InteractiveDocument, options?: TargetMarkdo
 
     const tabulatorElements = page.groups.flatMap(group => group.elements.filter(e => typeof e !== 'string' && e.type === 'tabulator'));
 
-    const vegaScope = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables, tabulatorElements);
+    const { vegaScope, inlineDataMd } = dataLoaderMarkdown(dataLoaders.filter(dl => dl.type !== 'spec'), variables, tabulatorElements);
 
     for (const dataLoader of dataLoaders.filter(dl => dl.type === 'spec')) {
         const useYaml = getPluginFormat('vega', finalPluginFormat) === 'yaml';
@@ -156,7 +156,7 @@ export function targetMarkdown(page: InteractiveDocument, options?: TargetMarkdo
         }
     }
 
-    const markdown = mdSections.join('\n');
+    const markdown = mdSections.concat(inlineDataMd).join('\n');
 
     return normalizeNewlines(markdown, finalOptions.extraNewlines).trim();
 }
@@ -166,15 +166,16 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], ta
     //create a Vega spec with all variables
     const spec = createSpecWithVariables(variables, tabulatorElements);
     const vegaScope = new VegaScope(spec);
+    let inlineDataMd: string[] = [];
 
     for (const dataSource of dataSources) {
         switch (dataSource.type) {
             case 'inline': {
-                addStaticDataLoaderToSpec(vegaScope, dataSource);
+                inlineDataMd.push(addStaticDataLoaderToSpec(vegaScope, dataSource));
                 break;
             }
             case 'file': {
-                addStaticDataLoaderToSpec(vegaScope, dataSource);
+                inlineDataMd.push(addStaticDataLoaderToSpec(vegaScope, dataSource));
                 break;
             }
             case 'url': {
@@ -184,7 +185,7 @@ function dataLoaderMarkdown(dataSources: DataSource[], variables: Variable[], ta
         }
     }
 
-    return vegaScope;
+    return { vegaScope, inlineDataMd };
 }
 
 type pluginSpecs = Plugins.CheckboxSpec | Plugins.DropdownSpec | Plugins.ImageSpec | Plugins.MermaidSpec | Plugins.PresetsSpec | Plugins.SliderSpec | Plugins.TabulatorSpec | Plugins.TextboxSpec;

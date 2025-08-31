@@ -44,9 +44,11 @@ interface DataSourceBase {
     dataSourceName: VariableID;
     /** optional, default is 'json' */
     format?: DataSourceBaseFormat;
+    /** only if format = dsv */
+    delimiter?: string;
     dataFrameTransformations?: Transforms[];
 }
-type DataSourceBaseFormat = 'csv' | 'json' | 'tsv';
+type DataSourceBaseFormat = 'csv' | 'json' | 'tsv' | 'dsv';
 interface ElementBase {
 }
 interface VariableControl extends ElementBase {
