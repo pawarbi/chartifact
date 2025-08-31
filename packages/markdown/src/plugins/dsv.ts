@@ -38,7 +38,7 @@ export function parseVariableId(info: string, pluginName: string, index: number)
     for (const part of parts) {
         if (part.startsWith('variableId:')) {
             return { 
-                variableId: part.slice(11), // Remove 'variableId:' prefix
+                variableId: part.slice(11).trim(), // Remove 'variableId:' prefix and trim spaces
                 wasDefaultId: false 
             };
         }
@@ -72,7 +72,7 @@ export function parseDelimiter(info: string): { delimiter: string; wasDefaultDel
     
     for (const part of parts) {
         if (part.startsWith('delimiter:')) {
-            let delimiter = part.slice(10); // Remove 'delimiter:' prefix
+            let delimiter = part.slice(10).trim(); // Remove 'delimiter:' prefix and trim spaces
             // Handle special cases
             if (delimiter === '\\t') delimiter = '\t';
             if (delimiter === '\\n') delimiter = '\n';
