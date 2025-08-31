@@ -574,6 +574,10 @@
               "$ref": "#/definitions/VariableID",
               "description": "name of the data source, used to reference it in the UI, has same constraints as VariableID"
             },
+            "delimiter": {
+              "description": "only if format = dsv",
+              "type": "string"
+            },
             "format": {
               "$ref": "#/definitions/DataSourceBaseFormat",
               "description": "optional, default is 'json'"
@@ -605,6 +609,10 @@
             "dataSourceName": {
               "$ref": "#/definitions/VariableID",
               "description": "name of the data source, used to reference it in the UI, has same constraints as VariableID"
+            },
+            "delimiter": {
+              "description": "only if format = dsv",
+              "type": "string"
             },
             "filename": {
               "type": "string"
@@ -639,6 +647,10 @@
               "$ref": "#/definitions/VariableID",
               "description": "name of the data source, used to reference it in the UI, has same constraints as VariableID"
             },
+            "delimiter": {
+              "description": "only if format = dsv",
+              "type": "string"
+            },
             "docString": {
               "description": "Assistant should not populate this.",
               "type": "string"
@@ -672,7 +684,8 @@
       "enum": [
         "csv",
         "json",
-        "tsv"
+        "tsv",
+        "dsv"
       ],
       "type": "string"
     },

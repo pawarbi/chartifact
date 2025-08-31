@@ -261,7 +261,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
   }
   function addStaticDataLoaderToSpec(vegaScope, dataSource) {
     const { spec } = vegaScope;
-    const { dataSourceName } = dataSource;
+    const { dataSourceName, delimiter } = dataSource;
+    let inlineDataMd;
     ensureDataAndSignalsArray(spec);
     spec.signals.push(dataAsSignal(dataSourceName));
     const newData = {
@@ -273,28 +274,46 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       if (dataSource.format === "json") {
         newData.values = dataSource.content;
       } else if (typeof dataSource.content === "string") {
-        const data = vega.read(dataSource.content, {
-          type: dataSource.format
-        });
-        if (Array.isArray(data)) {
-          newData.values = data;
-        } else {
-          console.warn(`Unsupported inline data format: ${dataSource.format}, type is ${typeof dataSource.content}`);
+        switch (dataSource.format) {
+          case "csv": {
+            inlineDataMd = tickWrap(`csv ${dataSourceName}`, dataSource.content);
+            break;
+          }
+          case "tsv": {
+            inlineDataMd = tickWrap(`tsv ${dataSourceName}`, dataSource.content);
+            break;
+          }
+          case "dsv": {
+            inlineDataMd = tickWrap(`dsv delimiter:${delimiter} variableId:${dataSourceName}`, dataSource.content);
+            break;
+          }
+          default: {
+            console.warn(`Unsupported inline data format: ${dataSource.format}, type is ${typeof dataSource.content}`);
+            break;
+          }
         }
       } else {
         console.warn(`Unsupported inline data format: ${dataSource.format}, type is ${typeof dataSource.content}`);
       }
     } else if (dataSource.type === "file") {
-      newData.format = {
-        type: dataSource.format
-      };
+      if (dataSource.format === "dsv") {
+        newData.format = {
+          type: dataSource.format,
+          delimiter: dataSource.delimiter
+        };
+      } else {
+        newData.format = {
+          type: dataSource.format
+        };
+      }
       newData.values = [dataSource.content];
     }
     spec.data.unshift(newData);
+    return inlineDataMd;
   }
   function addDynamicDataLoaderToSpec(vegaScope, dataSource) {
     const { spec } = vegaScope;
-    const { dataSourceName } = dataSource;
+    const { dataSourceName, delimiter } = dataSource;
     const tokens = tokenizeTemplate(dataSource.url);
     const variableCount = tokens.filter((token) => token.type === "variable").length;
     let url;
@@ -306,12 +325,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     ensureDataAndSignalsArray(spec);
     spec.signals.push(dataAsSignal(dataSourceName));
-    spec.data.unshift({
+    const data = {
       name: dataSourceName,
       url,
-      format: { type: dataSource.format || "json" },
       transform: dataSource.dataFrameTransformations || []
-    });
+    };
+    if (dataSource.format === "dsv") {
+      data.format = { type: dataSource.format, delimiter };
+    } else {
+      data.format = { type: dataSource.format || "json" };
+    }
+    spec.data.unshift(data);
   }
   class VegaScope {
     constructor(spec) {
@@ -1753,7 +1777,7 @@ ${content}
       }
     }
     const tabulatorElements = page.groups.flatMap((group) => group.elements.filter((e) => typeof e !== "string" && e.type === "tabulator"));
-    const vegaScope = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables, tabulatorElements);
+    const { vegaScope, inlineDataMd } = dataLoaderMarkdown(dataLoaders.filter((dl) => dl.type !== "spec"), variables, tabulatorElements);
     for (const dataLoader of dataLoaders.filter((dl) => dl.type === "spec")) {
       const useYaml = getPluginFormat("vega", finalPluginFormat) === "yaml";
       mdSections.push(useYaml ? chartWrapYaml(dataLoader.spec) : chartWrap(dataLoader.spec));
@@ -1794,20 +1818,21 @@ ${content}
         mdSections.unshift(tickWrap("#", JSON.stringify(page.notes, null, defaultJsonIndent)));
       }
     }
-    const markdown = mdSections.join("\n");
+    const markdown = mdSections.concat(inlineDataMd).join("\n");
     return normalizeNewlines(markdown, finalOptions.extraNewlines).trim();
   }
   function dataLoaderMarkdown(dataSources, variables, tabulatorElements) {
     const spec = createSpecWithVariables(variables, tabulatorElements);
     const vegaScope = new VegaScope(spec);
+    let inlineDataMd = [];
     for (const dataSource of dataSources) {
       switch (dataSource.type) {
         case "inline": {
-          addStaticDataLoaderToSpec(vegaScope, dataSource);
+          inlineDataMd.push(addStaticDataLoaderToSpec(vegaScope, dataSource));
           break;
         }
         case "file": {
-          addStaticDataLoaderToSpec(vegaScope, dataSource);
+          inlineDataMd.push(addStaticDataLoaderToSpec(vegaScope, dataSource));
           break;
         }
         case "url": {
@@ -1816,7 +1841,7 @@ ${content}
         }
       }
     }
-    return vegaScope;
+    return { vegaScope, inlineDataMd };
   }
   function groupMarkdown(group, variables, vegaScope, resources, pluginFormat) {
     var _a, _b, _c, _d, _e;
