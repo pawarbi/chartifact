@@ -3,7 +3,7 @@
 * Licensed under the MIT License.
 */
 
-import { DsvSpec, dsvPlugin } from './dsv.js';
+import { DsvSpec, dsvPlugin, parseVariableId } from './dsv.js';
 import { Plugin } from '../factory.js';
 
 export interface CsvSpec extends DsvSpec {}
@@ -13,10 +13,9 @@ export const csvPlugin: Plugin<CsvSpec> = {
     name: 'csv',
     fence: (token, index) => {
         const info = token.info.trim();
-        const parts = info.split(/\s+/);
         
-        // Extract variableId from "csv variableId" or default
-        let variableId = parts.length >= 2 ? parts[1] : `csvData${index}`;
+        // Use the shared utility function to parse variable ID
+        const { variableId } = parseVariableId(info, 'csv', index);
         
         // Create DSV fence info with comma delimiter
         const dsvInfo = `dsv delimiter:, variableId:${variableId}`;

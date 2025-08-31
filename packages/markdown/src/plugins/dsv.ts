@@ -23,6 +23,68 @@ export interface DsvSpec {
     wasDefaultDelimiter?: boolean;
 }
 
+/**
+ * Utility function to parse variable ID from fence info.
+ * Supports both "pluginName variableId" and "pluginName variableId:name" formats.
+ * @param info The fence info string (e.g., "csv myData" or "csv variableId:myData")
+ * @param pluginName The plugin name (csv, tsv, dsv)
+ * @param index The fence index for default naming
+ * @returns Object with variableId and wasDefaultId flag
+ */
+export function parseVariableId(info: string, pluginName: string, index: number): { variableId: string; wasDefaultId: boolean } {
+    const parts = info.trim().split(/\s+/);
+    
+    // Check for explicit variableId: parameter
+    for (const part of parts) {
+        if (part.startsWith('variableId:')) {
+            return { 
+                variableId: part.slice(11), // Remove 'variableId:' prefix
+                wasDefaultId: false 
+            };
+        }
+    }
+    
+    // Check for direct format (second parameter that's not a special parameter)
+    if (parts.length >= 2) {
+        const secondPart = parts[1];
+        if (!secondPart.startsWith('delimiter:') && !secondPart.startsWith('variableId:')) {
+            return { 
+                variableId: secondPart, 
+                wasDefaultId: false 
+            };
+        }
+    }
+    
+    // Default variable ID
+    return { 
+        variableId: `${pluginName}Data${index}`, 
+        wasDefaultId: true 
+    };
+}
+
+/**
+ * Utility function to parse delimiter from fence info.
+ * @param info The fence info string (e.g., "dsv delimiter:| variableId:myData")
+ * @returns Object with delimiter and wasDefaultDelimiter flag
+ */
+export function parseDelimiter(info: string): { delimiter: string; wasDefaultDelimiter: boolean } {
+    const parts = info.trim().split(/\s+/);
+    
+    for (const part of parts) {
+        if (part.startsWith('delimiter:')) {
+            let delimiter = part.slice(10); // Remove 'delimiter:' prefix
+            // Handle special cases
+            if (delimiter === '\\t') delimiter = '\t';
+            if (delimiter === '\\n') delimiter = '\n';
+            if (delimiter === '\\r') delimiter = '\r';
+            return { delimiter, wasDefaultDelimiter: false };
+        }
+    }
+    
+    // Default to comma
+    return { delimiter: ',', wasDefaultDelimiter: true };
+}
+
 function inspectDsvSpec(spec: DsvSpec): RawFlaggableSpec<DsvSpec> {
     const result: RawFlaggableSpec<DsvSpec> = {
         spec,
@@ -53,26 +115,9 @@ export const dsvPlugin: Plugin<DsvSpec> = {
         const content = token.content.trim();
         const info = token.info.trim();
         
-        // Parse delimiter:X and variableId:Y from the fence info
-        const parts = info.split(/\s+/);
-        let delimiter = ','; // default to comma
-        let variableId = `dsvData${index}`; // default variable ID
-        let wasDefaultDelimiter = true;
-        let wasDefaultId = true;
-        
-        for (const part of parts) {
-            if (part.startsWith('delimiter:')) {
-                delimiter = part.slice(10); // Remove 'delimiter:' prefix
-                // Handle special cases
-                if (delimiter === '\\t') delimiter = '\t';
-                if (delimiter === '\\n') delimiter = '\n';
-                if (delimiter === '\\r') delimiter = '\r';
-                wasDefaultDelimiter = false;
-            } else if (part.startsWith('variableId:')) {
-                variableId = part.slice(11); // Remove 'variableId:' prefix
-                wasDefaultId = false;
-            }
-        }
+        // Use utility functions to parse delimiter and variable ID
+        const { delimiter, wasDefaultDelimiter } = parseDelimiter(info);
+        const { variableId, wasDefaultId } = parseVariableId(info, 'dsv', index);
         
         return sanitizedHTML('pre', { 
             id: `${pluginName}-${index}`, 

@@ -3,7 +3,7 @@
 * Licensed under the MIT License.
 */
 
-import { DsvSpec, dsvPlugin } from './dsv.js';
+import { DsvSpec, dsvPlugin, parseVariableId } from './dsv.js';
 import { Plugin } from '../factory.js';
 
 export interface TsvSpec extends DsvSpec {}
@@ -13,13 +13,12 @@ export const tsvPlugin: Plugin<TsvSpec> = {
     name: 'tsv',
     fence: (token, index) => {
         const info = token.info.trim();
-        const parts = info.split(/\s+/);
         
-        // Extract variableId from "tsv variableId" or default
-        let variableId = parts.length >= 2 ? parts[1] : `tsvData${index}`;
+        // Use the shared utility function to parse variable ID
+        const { variableId } = parseVariableId(info, 'tsv', index);
         
-        // Create DSV fence info with tab delimiter
-        const dsvInfo = `dsv delimiter:\t variableId:${variableId}`;
+        // Create DSV fence info with tab delimiter (use escaped \t)
+        const dsvInfo = `dsv delimiter:\\t variableId:${variableId}`;
         
         // Create a modified token with DSV info
         const dsvToken = Object.assign({}, token, { info: dsvInfo });
