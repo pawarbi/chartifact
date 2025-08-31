@@ -2904,9 +2904,15 @@ ${details}`;
       let didError = false;
       if (interactiveDocument) {
         this.onSetMode("json", null, interactiveDocument);
+        if (this.toolbar) {
+          this.toolbar.mode = "json";
+        }
         this.renderInteractiveDocument(interactiveDocument);
       } else if (markdown) {
         this.onSetMode("markdown", markdown, null);
+        if (this.toolbar) {
+          this.toolbar.mode = "markdown";
+        }
         this.renderMarkdown(markdown);
       } else {
         this.errorHandler(
