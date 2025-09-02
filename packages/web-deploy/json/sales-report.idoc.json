@@ -22,21 +22,21 @@
             "type": "inline",
             "format": "json",
             "content": [
-                {"timestamp": "2025-07-15", "order_id": "ORD-0901", "product": "Wireless Keyboard", "category": "Electronics", "region": "North", "salesperson": "Alice Chen", "units": 2, "unit_price": 65.00},
-                {"timestamp": "2025-07-18", "order_id": "ORD-0902", "product": "Monitor Stand", "category": "Furniture", "region": "East", "salesperson": "Bob Johnson", "units": 1, "unit_price": 120.00},
-                {"timestamp": "2025-07-22", "order_id": "ORD-0903", "product": "USB Hub", "category": "Electronics", "region": "West", "salesperson": "Jane Smith", "units": 3, "unit_price": 35.99},
-                {"timestamp": "2025-07-25", "order_id": "ORD-0904", "product": "Ergonomic Mat", "category": "Furniture", "region": "South", "salesperson": "Charlie Brown", "units": 2, "unit_price": 55.50},
-                {"timestamp": "2025-07-28", "order_id": "ORD-0905", "product": "Webcam HD", "category": "Electronics", "region": "North", "salesperson": "Alice Chen", "units": 1, "unit_price": 89.99},
-                {"timestamp": "2025-08-01", "order_id": "ORD-1001", "product": "Wireless Mouse", "category": "Electronics", "region": "West", "salesperson": "Jane Smith", "units": 3, "unit_price": 25.00},
-                {"timestamp": "2025-08-02", "order_id": "ORD-1002", "product": "Office Chair", "category": "Furniture", "region": "East", "salesperson": "Bob Johnson", "units": 1, "unit_price": 199.99},
-                {"timestamp": "2025-08-03", "order_id": "ORD-1003", "product": "Laptop Stand", "category": "Electronics", "region": "North", "salesperson": "Alice Chen", "units": 2, "unit_price": 45.50},
-                {"timestamp": "2025-08-05", "order_id": "ORD-1004", "product": "Desk Lamp", "category": "Furniture", "region": "South", "salesperson": "Charlie Brown", "units": 1, "unit_price": 89.00},
-                {"timestamp": "2025-08-06", "order_id": "ORD-1005", "product": "Bluetooth Headphones", "category": "Electronics", "region": "West", "salesperson": "Jane Smith", "units": 4, "unit_price": 79.99},
-                {"timestamp": "2025-09-03", "order_id": "ORD-1101", "product": "Tablet Stand", "category": "Electronics", "region": "East", "salesperson": "Bob Johnson", "units": 2, "unit_price": 42.50},
-                {"timestamp": "2025-09-07", "order_id": "ORD-1102", "product": "Executive Chair", "category": "Furniture", "region": "West", "salesperson": "Jane Smith", "units": 1, "unit_price": 299.99},
-                {"timestamp": "2025-09-12", "order_id": "ORD-1103", "product": "Wireless Charger", "category": "Electronics", "region": "South", "salesperson": "Charlie Brown", "units": 3, "unit_price": 29.99},
-                {"timestamp": "2025-09-15", "order_id": "ORD-1104", "product": "Bookshelf", "category": "Furniture", "region": "North", "salesperson": "Alice Chen", "units": 1, "unit_price": 180.00},
-                {"timestamp": "2025-09-20", "order_id": "ORD-1105", "product": "Smart Speaker", "category": "Electronics", "region": "East", "salesperson": "Bob Johnson", "units": 2, "unit_price": 120.00}
+                {"timestamp": "2025-07-15", "order_id": "ORD-0901", "product": "Executive Desk", "category": "Furniture", "region": "North", "salesperson": "Alice Chen", "units": 1, "unit_price": 599.99},
+                {"timestamp": "2025-07-18", "order_id": "ORD-0902", "product": "Office Chair Premium", "category": "Furniture", "region": "East", "salesperson": "Bob Johnson", "units": 2, "unit_price": 299.99},
+                {"timestamp": "2025-07-22", "order_id": "ORD-0903", "product": "Wireless Mouse", "category": "Electronics", "region": "West", "salesperson": "Jane Smith", "units": 3, "unit_price": 35.99},
+                {"timestamp": "2025-07-25", "order_id": "ORD-0904", "product": "File Cabinet", "category": "Furniture", "region": "South", "salesperson": "Charlie Brown", "units": 1, "unit_price": 189.00},
+                {"timestamp": "2025-07-28", "order_id": "ORD-0905", "product": "Printer Paper Pack", "category": "Office Supplies", "region": "North", "salesperson": "Alice Chen", "units": 5, "unit_price": 24.99},
+                {"timestamp": "2025-08-01", "order_id": "ORD-1001", "product": "Software License Pro", "category": "Office Supplies", "region": "West", "salesperson": "Jane Smith", "units": 3, "unit_price": 199.99},
+                {"timestamp": "2025-08-02", "order_id": "ORD-1002", "product": "Notebook Set", "category": "Office Supplies", "region": "East", "salesperson": "Bob Johnson", "units": 10, "unit_price": 15.99},
+                {"timestamp": "2025-08-03", "order_id": "ORD-1003", "product": "Presentation Supplies", "category": "Office Supplies", "region": "North", "salesperson": "Alice Chen", "units": 2, "unit_price": 89.50},
+                {"timestamp": "2025-08-05", "order_id": "ORD-1004", "product": "Stationery Bundle", "category": "Office Supplies", "region": "South", "salesperson": "Charlie Brown", "units": 4, "unit_price": 45.00},
+                {"timestamp": "2025-08-06", "order_id": "ORD-1005", "product": "USB Hub", "category": "Electronics", "region": "West", "salesperson": "Jane Smith", "units": 2, "unit_price": 29.99},
+                {"timestamp": "2025-09-03", "order_id": "ORD-1101", "product": "Laptop Pro", "category": "Electronics", "region": "East", "salesperson": "Bob Johnson", "units": 1, "unit_price": 1299.99},
+                {"timestamp": "2025-09-07", "order_id": "ORD-1102", "product": "Monitor 4K", "category": "Electronics", "region": "West", "salesperson": "Jane Smith", "units": 2, "unit_price": 399.99},
+                {"timestamp": "2025-09-12", "order_id": "ORD-1103", "product": "Wireless Headset", "category": "Electronics", "region": "South", "salesperson": "Charlie Brown", "units": 3, "unit_price": 149.99},
+                {"timestamp": "2025-09-15", "order_id": "ORD-1104", "product": "Smartphone Pro", "category": "Electronics", "region": "North", "salesperson": "Alice Chen", "units": 1, "unit_price": 899.99},
+                {"timestamp": "2025-09-20", "order_id": "ORD-1105", "product": "Desk Organizer", "category": "Office Supplies", "region": "East", "salesperson": "Bob Johnson", "units": 4, "unit_price": 39.99}
             ]
         }
     ],
@@ -227,7 +227,7 @@
                 "encoding": {
                     "x": {"field": "category", "type": "nominal", "title": "Product Category"},
                     "y": {"field": "total_revenue", "type": "quantitative", "title": "Revenue ($)"},
-                    "color": {"field": "category", "type": "nominal", "scale": {"range": ["#3498db", "#2c3e50"]}}
+                    "color": {"field": "category", "type": "nominal", "scale": {"range": ["#3498db", "#2c3e50", "#e74c3c"]}}
                 }
             },
             "trendChart": {
