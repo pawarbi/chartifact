@@ -63,6 +63,7 @@
             "initialValue": [],
             "calculation": {
                 "dataSourceNames": ["salesData"],
+                "variableDependencies": ["selectedMonth"],
                 "dataFrameTransformations": [
                     {
                         "type": "formula",
