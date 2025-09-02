@@ -58,7 +58,7 @@
                 "dataFrameTransformations": [
                     {
                         "type": "formula",
-                        "expr": "selectedMonth === 'July' ? (month(datum.timestamp) === 6) : selectedMonth === 'August' ? (month(datum.timestamp) === 7) : selectedMonth === 'September' ? (month(datum.timestamp) === 8) : false",
+                        "expr": "selectedMonth === 'July' ? (year(datum.timestamp) === 2025 && month(datum.timestamp) === 6) : selectedMonth === 'August' ? (year(datum.timestamp) === 2025 && month(datum.timestamp) === 7) : selectedMonth === 'September' ? (year(datum.timestamp) === 2025 && month(datum.timestamp) === 8) : false",
                         "as": "monthMatch"
                     },
                     {
