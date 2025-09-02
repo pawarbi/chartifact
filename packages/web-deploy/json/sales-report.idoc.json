@@ -22,22 +22,57 @@
             "type": "inline",
             "format": "json",
             "content": [
+                {"timestamp": "2025-07-15", "order_id": "ORD-0901", "product": "Wireless Keyboard", "category": "Electronics", "region": "North", "salesperson": "Alice Chen", "units": 2, "unit_price": 65.00},
+                {"timestamp": "2025-07-18", "order_id": "ORD-0902", "product": "Monitor Stand", "category": "Furniture", "region": "East", "salesperson": "Bob Johnson", "units": 1, "unit_price": 120.00},
+                {"timestamp": "2025-07-22", "order_id": "ORD-0903", "product": "USB Hub", "category": "Electronics", "region": "West", "salesperson": "Jane Smith", "units": 3, "unit_price": 35.99},
+                {"timestamp": "2025-07-25", "order_id": "ORD-0904", "product": "Ergonomic Mat", "category": "Furniture", "region": "South", "salesperson": "Charlie Brown", "units": 2, "unit_price": 55.50},
+                {"timestamp": "2025-07-28", "order_id": "ORD-0905", "product": "Webcam HD", "category": "Electronics", "region": "North", "salesperson": "Alice Chen", "units": 1, "unit_price": 89.99},
                 {"timestamp": "2025-08-01", "order_id": "ORD-1001", "product": "Wireless Mouse", "category": "Electronics", "region": "West", "salesperson": "Jane Smith", "units": 3, "unit_price": 25.00},
                 {"timestamp": "2025-08-02", "order_id": "ORD-1002", "product": "Office Chair", "category": "Furniture", "region": "East", "salesperson": "Bob Johnson", "units": 1, "unit_price": 199.99},
                 {"timestamp": "2025-08-03", "order_id": "ORD-1003", "product": "Laptop Stand", "category": "Electronics", "region": "North", "salesperson": "Alice Chen", "units": 2, "unit_price": 45.50},
                 {"timestamp": "2025-08-05", "order_id": "ORD-1004", "product": "Desk Lamp", "category": "Furniture", "region": "South", "salesperson": "Charlie Brown", "units": 1, "unit_price": 89.00},
-                {"timestamp": "2025-08-06", "order_id": "ORD-1005", "product": "Bluetooth Headphones", "category": "Electronics", "region": "West", "salesperson": "Jane Smith", "units": 4, "unit_price": 79.99}
+                {"timestamp": "2025-08-06", "order_id": "ORD-1005", "product": "Bluetooth Headphones", "category": "Electronics", "region": "West", "salesperson": "Jane Smith", "units": 4, "unit_price": 79.99},
+                {"timestamp": "2025-09-03", "order_id": "ORD-1101", "product": "Tablet Stand", "category": "Electronics", "region": "East", "salesperson": "Bob Johnson", "units": 2, "unit_price": 42.50},
+                {"timestamp": "2025-09-07", "order_id": "ORD-1102", "product": "Executive Chair", "category": "Furniture", "region": "West", "salesperson": "Jane Smith", "units": 1, "unit_price": 299.99},
+                {"timestamp": "2025-09-12", "order_id": "ORD-1103", "product": "Wireless Charger", "category": "Electronics", "region": "South", "salesperson": "Charlie Brown", "units": 3, "unit_price": 29.99},
+                {"timestamp": "2025-09-15", "order_id": "ORD-1104", "product": "Bookshelf", "category": "Furniture", "region": "North", "salesperson": "Alice Chen", "units": 1, "unit_price": 180.00},
+                {"timestamp": "2025-09-20", "order_id": "ORD-1105", "product": "Smart Speaker", "category": "Electronics", "region": "East", "salesperson": "Bob Johnson", "units": 2, "unit_price": 120.00}
             ]
         }
     ],
     "variables": [
+        {
+            "variableId": "selectedMonth",
+            "type": "string",
+            "initialValue": "August"
+        },
+        {
+            "variableId": "filteredSalesData",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": ["salesData"],
+                "dataFrameTransformations": [
+                    {
+                        "type": "formula",
+                        "expr": "selectedMonth === 'July' ? (month(datum.timestamp) === 6) : selectedMonth === 'August' ? (month(datum.timestamp) === 7) : selectedMonth === 'September' ? (month(datum.timestamp) === 8) : false",
+                        "as": "monthMatch"
+                    },
+                    {
+                        "type": "filter",
+                        "expr": "datum.monthMatch"
+                    }
+                ]
+            }
+        },
         {
             "variableId": "revenueCalculation",
             "type": "object",
             "isArray": true,
             "initialValue": [],
             "calculation": {
-                "dataSourceNames": ["salesData"],
+                "dataSourceNames": ["filteredSalesData"],
                 "dataFrameTransformations": [
                     {
                         "type": "formula",
@@ -66,7 +101,7 @@
             "type": "number",
             "initialValue": 0,
             "calculation": {
-                "vegaExpression": "length(data('salesData'))"
+                "vegaExpression": "length(data('filteredSalesData'))"
             }
         },
         {
@@ -83,7 +118,7 @@
             "isArray": true,
             "initialValue": [],
             "calculation": {
-                "dataSourceNames": ["salesData"],
+                "dataSourceNames": ["filteredSalesData"],
                 "dataFrameTransformations": [
                     {
                         "type": "formula",
@@ -106,13 +141,19 @@
             "groupId": "main",
             "elements": [
                 "# Sales Performance Report",
-                "**Reporting Period:** August 1-6, 2025  ",
+                {
+                    "type": "dropdown",
+                    "variableId": "selectedMonth",
+                    "label": "Select Month:",
+                    "options": ["July", "August", "September"]
+                },
+                "**Reporting Period:** {{selectedMonth}} 2025  ",
                 "**Prepared by:** Sales Analytics Team  ",
                 "**Date:** August 24, 2025",
                 "",
                 "## Executive Summary",
                 "",
-                "> This report analyzes sales performance for the first week of August 2025. Our analysis reveals total revenue of **{{totalRevenueFormatted}}** across **{{totalOrders}} transactions**, with an average order value of **{{averageOrderValue}}**. The data shows strong performance in the Electronics category, which represents the majority of our revenue during this period.",
+                "> This report analyzes sales performance for {{selectedMonth}} 2025. Our analysis reveals total revenue of **{{totalRevenueFormatted}}** across **{{totalOrders}} transactions**, with an average order value of **{{averageOrderValue}}**. The data shows strong performance in the Electronics category, which represents the majority of our revenue during this period.",
                 "",
                 "## Key Performance Metrics",
                 "",
@@ -154,7 +195,7 @@
                 "",
                 {
                     "type": "tabulator",
-                    "dataSourceName": "salesData"
+                    "dataSourceName": "filteredSalesData"
                 },
                 "",
                 "## Conclusions and Recommendations",
@@ -192,7 +233,7 @@
             "trendChart": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
                 "data": {
-                    "name": "salesData"
+                    "name": "filteredSalesData"
                 },
                 "transform": [
                     {"calculate": "datum.units * datum.unit_price", "as": "revenue"}
