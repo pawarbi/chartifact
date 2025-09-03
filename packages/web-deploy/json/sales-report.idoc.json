@@ -181,6 +181,13 @@
                 "Our product portfolio performed differently across categories during this period. The chart below illustrates the revenue distribution:",
                 "",
                 {
+                    "type": "dropdown",
+                    "variableId": "selectedMonth",
+                    "label": "Select Month:",
+                    "options": ["July", "August", "September"]
+                },
+                "",
+                {
                     "type": "chart",
                     "chartKey": "categoryChart"
                 },
@@ -190,6 +197,13 @@
                 "## Sales Trend Analysis", 
                 "",
                 "Daily sales performance shows variability throughout the reporting period, with notable patterns emerging:",
+                "",
+                {
+                    "type": "dropdown",
+                    "variableId": "selectedMonth",
+                    "label": "Select Month:",
+                    "options": ["July", "August", "September"]
+                },
                 "",
                 {
                     "type": "chart",
