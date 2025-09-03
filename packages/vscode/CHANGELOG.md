@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.0.3]
+
+Updated examples
+
 ## [1.0.2]
 
 - Fixed command activation for copied idoc files with parenthesis numbering. Commands now support these file naming formats for both .md and .json files:
