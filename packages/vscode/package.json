@@ -2,7 +2,7 @@
   "name": "chartifact",
   "displayName": "Chartifact",
   "description": "Declarative, interactive data documents",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "publisher": "msrvida",
   "repository": {
     "type": "git",
@@ -79,27 +79,27 @@
         },
         {
           "command": "chartifact.previewIdoc",
-          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.md$/",
+          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc(( copy( \\d+)?)|(\\s\\(\\d+\\)))?\\.md$/",
           "group": "chartifact"
         },
         {
           "command": "chartifact.previewIdoc",
-          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc(( copy( \\d+)?)|(\\s\\(\\d+\\)))?\\.json$/",
           "group": "chartifact"
         },
         {
           "command": "chartifact.convertToHtml",
-          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.md$/",
+          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc(( copy( \\d+)?)|(\\s\\(\\d+\\)))?\\.md$/",
           "group": "chartifact"
         },
         {
           "command": "chartifact.convertToHtml",
-          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc(( copy( \\d+)?)|(\\s\\(\\d+\\)))?\\.json$/",
           "group": "chartifact"
         },
         {
           "command": "chartifact.convertToMarkdown",
-          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc(( copy( \\d+)?)|(\\s\\(\\d+\\)))?\\.json$/",
           "group": "chartifact"
         },
         {
@@ -111,39 +111,39 @@
       "editor/title": [
         {
           "command": "chartifact.previewIdocSplit",
-          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.md$/",
+          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc(( copy( \\d+)?)|(\\s\\(\\d+\\)))?\\.md$/",
           "group": "navigation"
         },
         {
           "command": "chartifact.previewIdocSplit",
-          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc(( copy( \\d+)?)|(\\s\\(\\d+\\)))?\\.json$/",
           "group": "navigation"
         }
       ],
       "editor/title/context": [
         {
           "command": "chartifact.previewIdoc",
-          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.md$/",
+          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc(( copy( \\d+)?)|(\\s\\(\\d+\\)))?\\.md$/",
           "group": "chartifact"
         },
         {
           "command": "chartifact.previewIdoc",
-          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc(( copy( \\d+)?)|(\\s\\(\\d+\\)))?\\.json$/",
           "group": "chartifact"
         },
         {
           "command": "chartifact.convertToHtml",
-          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.md$/",
+          "when": "resourceExtname == .md && resourceFilename =~ /\\.idoc(( copy( \\d+)?)|(\\s\\(\\d+\\)))?\\.md$/",
           "group": "chartifact"
         },
         {
           "command": "chartifact.convertToHtml",
-          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc(( copy( \\d+)?)|(\\s\\(\\d+\\)))?\\.json$/",
           "group": "chartifact"
         },
         {
           "command": "chartifact.convertToMarkdown",
-          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc( copy( \\d+)?)?\\.json$/",
+          "when": "resourceExtname == .json && resourceFilename =~ /\\.idoc(( copy( \\d+)?)|(\\s\\(\\d+\\)))?\\.json$/",
           "group": "chartifact"
         }
       ]

@@ -9,7 +9,7 @@ Chartifact is a low-code document format for creating interactive, data-driven p
 This extension works with two file formats: `*.idoc.md` and `*.idoc.json`.
 
 ### Unzip samples
-- **Explorer View**: Right-click on a folder and select "NewCreate Chartifact Examples Folder". This will create a folder of examples that you and your agent can use for refernce when creating your own document.
+- **Explorer View**: Right-click on a folder and select "Create Chartifact Examples Folder". This will create a folder of examples that you and your agent can use for reference when creating your own document.
 
 ### Create Documents
 - **Explorer View**: Right-click on a folder and select "New Chartifact Interactive Document (JSON)" or "New Chartifact Interactive Document (Markdown)".

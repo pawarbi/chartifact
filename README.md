@@ -11,7 +11,7 @@ C H A R T I F A C T
 
 Chartifact is a low-code document format for creating interactive, data-driven pages such as reports, dashboards, and presentations. It travels like a document and works like a mini app. Designed for use with your LLM to produce a shareable artifact of your analytic conversations.
 
-&bull; [Examples](https://microsoft.github.io/chartifact/examples) &bull; [Try now with your LLM](./llm)
+&bull; [Examples](https://microsoft.github.io/chartifact/examples) &bull; [Try with Copilot in VsCode](https://marketplace.visualstudio.com/items?itemName=msrvida.chartifact)
 
 ## Ecosystem
 
@@ -29,11 +29,11 @@ The Chartifact GitHub repo has source code for these interoperating modules:
 
 * A **sandboxed runtime** that securely renders documents.
 
-* A **set of examples** that your LLM can understand and remix for your scenario.
+* A [set of examples](https://microsoft.github.io/chartifact/examples) that your LLM can understand and remix for your scenario.
 
-* A **VS Code extension** for editing, previewing, and exporting documents.
+* A [VS Code extension](https://marketplace.visualstudio.com/items?itemName=msrvida.chartifact) for editing, previewing, and exporting documents.
 
-* A **web-based viewer and editor** for viewing, quick edits and sharing.
+* A [web-based viewer and editor](https://microsoft.github.io/chartifact/view/) for viewing, quick edits and sharing.
 
 * Tools to **export standalone HTML** documents you can share or embed anywhere.
 

@@ -3037,7 +3037,8 @@ ${reconstitutedRules.join("\n\n")}
             logReason2 = "not updating data, no match";
           } else {
             logReason2 = "updating data";
-            view.change(signalName, vega.changeset().remove(() => true).insert(batchItem.value));
+            const data = structuredClone(batchItem.value);
+            view.change(signalName, vega.changeset().remove(() => true).insert(data));
             hasAnyChange = true;
           }
         }
