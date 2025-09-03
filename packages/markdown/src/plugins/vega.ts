@@ -218,7 +218,13 @@ function receiveBatch(batch: Batch, signalBus: SignalBus, vegaInstance: VegaInst
                     logReason = 'not updating data, no match';
                 } else {
                     logReason = 'updating data';
-                    view.change(signalName, changeset().remove(() => true).insert(batchItem.value));
+                    
+                    // Use structuredClone to ensure deep copy
+                    // vega may efficiently have symbols on data to cache a datum's values
+                    // so this needs to appear to be new data
+                    const data = structuredClone(batchItem.value);
+
+                    view.change(signalName, changeset().remove(() => true).insert(data));
                     hasAnyChange = true;
                 }
             }
