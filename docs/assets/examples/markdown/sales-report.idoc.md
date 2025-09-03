@@ -4,8 +4,12 @@
   "description": "This is the central brain of the page",
   "signals": [
     {
-      "name": "revenueCalculation",
-      "update": "data('revenueCalculation')"
+      "name": "selectedMonth",
+      "value": "August"
+    },
+    {
+      "name": "filteredSalesData",
+      "update": "data('filteredSalesData')"
     },
     {
       "name": "totalRevenueFormatted",
@@ -15,7 +19,11 @@
     {
       "name": "totalOrders",
       "value": 0,
-      "update": "length(data('salesData'))"
+      "update": "length(data('filteredSalesData'))"
+    },
+    {
+      "name": "revenueCalculation",
+      "update": "data('revenueCalculation')"
     },
     {
       "name": "categoryRevenue",
@@ -36,61 +44,258 @@
       "name": "salesData",
       "values": [
         {
-          "timestamp": "2025-08-01",
-          "order_id": "ORD-1001",
+          "timestamp": "2025-07-15",
+          "order_id": "ORD-0901",
+          "product": "Executive Desk",
+          "category": "Furniture",
+          "region": "North",
+          "salesperson": "Alice Chen",
+          "units": 1,
+          "unit_price": 599.99
+        },
+        {
+          "timestamp": "2025-07-18",
+          "order_id": "ORD-0902",
+          "product": "Office Chair Premium",
+          "category": "Furniture",
+          "region": "East",
+          "salesperson": "Bob Johnson",
+          "units": 2,
+          "unit_price": 299.99
+        },
+        {
+          "timestamp": "2025-07-22",
+          "order_id": "ORD-0903",
           "product": "Wireless Mouse",
           "category": "Electronics",
           "region": "West",
           "salesperson": "Jane Smith",
           "units": 3,
-          "unit_price": 25
+          "unit_price": 35.99
         },
         {
-          "timestamp": "2025-08-02",
-          "order_id": "ORD-1002",
-          "product": "Office Chair",
-          "category": "Furniture",
-          "region": "East",
-          "salesperson": "Bob Johnson",
-          "units": 1,
-          "unit_price": 199.99
-        },
-        {
-          "timestamp": "2025-08-03",
-          "order_id": "ORD-1003",
-          "product": "Laptop Stand",
-          "category": "Electronics",
-          "region": "North",
-          "salesperson": "Alice Chen",
-          "units": 2,
-          "unit_price": 45.5
-        },
-        {
-          "timestamp": "2025-08-05",
-          "order_id": "ORD-1004",
-          "product": "Desk Lamp",
+          "timestamp": "2025-07-25",
+          "order_id": "ORD-0904",
+          "product": "File Cabinet",
           "category": "Furniture",
           "region": "South",
           "salesperson": "Charlie Brown",
           "units": 1,
-          "unit_price": 89
+          "unit_price": 189
+        },
+        {
+          "timestamp": "2025-07-28",
+          "order_id": "ORD-0905",
+          "product": "Printer Paper Pack",
+          "category": "Office Supplies",
+          "region": "North",
+          "salesperson": "Alice Chen",
+          "units": 5,
+          "unit_price": 24.99
+        },
+        {
+          "timestamp": "2025-08-01",
+          "order_id": "ORD-1001",
+          "product": "Software License Pro",
+          "category": "Office Supplies",
+          "region": "West",
+          "salesperson": "Jane Smith",
+          "units": 3,
+          "unit_price": 199.99
+        },
+        {
+          "timestamp": "2025-08-02",
+          "order_id": "ORD-1002",
+          "product": "Notebook Set",
+          "category": "Office Supplies",
+          "region": "East",
+          "salesperson": "Bob Johnson",
+          "units": 10,
+          "unit_price": 15.99
+        },
+        {
+          "timestamp": "2025-08-03",
+          "order_id": "ORD-1003",
+          "product": "Presentation Supplies",
+          "category": "Office Supplies",
+          "region": "North",
+          "salesperson": "Alice Chen",
+          "units": 2,
+          "unit_price": 89.5
+        },
+        {
+          "timestamp": "2025-08-05",
+          "order_id": "ORD-1004",
+          "product": "Stationery Bundle",
+          "category": "Office Supplies",
+          "region": "South",
+          "salesperson": "Charlie Brown",
+          "units": 4,
+          "unit_price": 45
         },
         {
           "timestamp": "2025-08-06",
           "order_id": "ORD-1005",
-          "product": "Bluetooth Headphones",
+          "product": "USB Hub",
           "category": "Electronics",
           "region": "West",
           "salesperson": "Jane Smith",
+          "units": 2,
+          "unit_price": 29.99
+        },
+        {
+          "timestamp": "2025-08-08",
+          "order_id": "ORD-1006",
+          "product": "Tablet Pro",
+          "category": "Electronics",
+          "region": "North",
+          "salesperson": "Alice Chen",
+          "units": 1,
+          "unit_price": 449.99
+        },
+        {
+          "timestamp": "2025-08-10",
+          "order_id": "ORD-1007",
+          "product": "Conference Table",
+          "category": "Furniture",
+          "region": "East",
+          "salesperson": "Bob Johnson",
+          "units": 1,
+          "unit_price": 799.99
+        },
+        {
+          "timestamp": "2025-08-12",
+          "order_id": "ORD-1008",
+          "product": "Ergonomic Chair",
+          "category": "Furniture",
+          "region": "South",
+          "salesperson": "Charlie Brown",
+          "units": 1,
+          "unit_price": 349.99
+        },
+        {
+          "timestamp": "2025-08-14",
+          "order_id": "ORD-1009",
+          "product": "Wireless Keyboard",
+          "category": "Electronics",
+          "region": "West",
+          "salesperson": "Jane Smith",
+          "units": 2,
+          "unit_price": 89.99
+        },
+        {
+          "timestamp": "2025-09-03",
+          "order_id": "ORD-1101",
+          "product": "Laptop Pro",
+          "category": "Electronics",
+          "region": "East",
+          "salesperson": "Bob Johnson",
+          "units": 1,
+          "unit_price": 1299.99
+        },
+        {
+          "timestamp": "2025-09-07",
+          "order_id": "ORD-1102",
+          "product": "Monitor 4K",
+          "category": "Electronics",
+          "region": "West",
+          "salesperson": "Jane Smith",
+          "units": 2,
+          "unit_price": 399.99
+        },
+        {
+          "timestamp": "2025-09-12",
+          "order_id": "ORD-1103",
+          "product": "Wireless Headset",
+          "category": "Electronics",
+          "region": "South",
+          "salesperson": "Charlie Brown",
+          "units": 3,
+          "unit_price": 149.99
+        },
+        {
+          "timestamp": "2025-09-15",
+          "order_id": "ORD-1104",
+          "product": "Smartphone Pro",
+          "category": "Electronics",
+          "region": "North",
+          "salesperson": "Alice Chen",
+          "units": 1,
+          "unit_price": 899.99
+        },
+        {
+          "timestamp": "2025-09-20",
+          "order_id": "ORD-1105",
+          "product": "Desk Organizer",
+          "category": "Office Supplies",
+          "region": "East",
+          "salesperson": "Bob Johnson",
           "units": 4,
+          "unit_price": 39.99
+        },
+        {
+          "timestamp": "2025-09-05",
+          "order_id": "ORD-1106",
+          "product": "Standing Desk",
+          "category": "Furniture",
+          "region": "North",
+          "salesperson": "Alice Chen",
+          "units": 1,
+          "unit_price": 699.99
+        },
+        {
+          "timestamp": "2025-09-08",
+          "order_id": "ORD-1107",
+          "product": "Bookshelf Unit",
+          "category": "Furniture",
+          "region": "West",
+          "salesperson": "Jane Smith",
+          "units": 1,
+          "unit_price": 299.99
+        },
+        {
+          "timestamp": "2025-09-18",
+          "order_id": "ORD-1108",
+          "product": "Calculator Pro",
+          "category": "Office Supplies",
+          "region": "South",
+          "salesperson": "Charlie Brown",
+          "units": 3,
           "unit_price": 79.99
+        },
+        {
+          "timestamp": "2025-09-22",
+          "order_id": "ORD-1109",
+          "product": "Whiteboard Large",
+          "category": "Office Supplies",
+          "region": "East",
+          "salesperson": "Bob Johnson",
+          "units": 1,
+          "unit_price": 199.99
+        }
+      ]
+    },
+    {
+      "name": "filteredSalesData",
+      "source": [
+        "salesData"
+      ],
+      "transform": [
+        {
+          "type": "formula",
+          "expr": "selectedMonth === 'July' ? (year(datum.timestamp) === 2025 && month(datum.timestamp) === 6) : selectedMonth === 'August' ? (year(datum.timestamp) === 2025 && month(datum.timestamp) === 7) : selectedMonth === 'September' ? (year(datum.timestamp) === 2025 && month(datum.timestamp) === 8) : false",
+          "as": "monthMatch"
+        },
+        {
+          "type": "filter",
+          "expr": "datum.monthMatch"
         }
       ]
     },
     {
       "name": "revenueCalculation",
       "source": [
-        "salesData"
+        "filteredSalesData"
       ],
       "transform": [
         {
@@ -115,7 +320,7 @@
     {
       "name": "categoryRevenue",
       "source": [
-        "salesData"
+        "filteredSalesData"
       ],
       "transform": [
         {
@@ -163,13 +368,26 @@ p { margin: 15px 0; text-align: justify; }
 ::: group {#main}
 
 # Sales Performance Report
-**Reporting Period:** August 1-6, 2025  
+
+
+```yaml dropdown
+variableId: selectedMonth
+value: August
+label: 'Select Month:'
+options:
+  - July
+  - August
+  - September
+```
+
+
+**Reporting Period:** {{selectedMonth}} 2025  
 **Prepared by:** Sales Analytics Team  
 **Date:** August 24, 2025
 
 ## Executive Summary
 
-> This report analyzes sales performance for the first week of August 2025. Our analysis reveals total revenue of **{{totalRevenueFormatted}}** across **{{totalOrders}} transactions**, with an average order value of **{{averageOrderValue}}**. The data shows strong performance in the Electronics category, which represents the majority of our revenue during this period.
+> This report analyzes sales performance for {{selectedMonth}} 2025. Our analysis reveals total revenue of **{{totalRevenueFormatted}}** across **{{totalOrders}} transactions**, with an average order value of **{{averageOrderValue}}**. The data shows strong performance in the Electronics category, which represents the majority of our revenue during this period.
 
 ## Key Performance Metrics
 
@@ -186,6 +404,17 @@ The following table summarizes our core performance indicators for the reporting
 ## Revenue Analysis by Product Category
 
 Our product portfolio performed differently across categories during this period. The chart below illustrates the revenue distribution:
+
+
+```yaml dropdown
+variableId: selectedMonth
+value: August
+label: 'Select Month:'
+options:
+  - July
+  - August
+  - September
+```
 
 
 ```json vega-lite
@@ -214,7 +443,8 @@ Our product portfolio performed differently across categories during this period
       "scale": {
         "range": [
           "#3498db",
-          "#2c3e50"
+          "#2c3e50",
+          "#e74c3c"
         ]
       }
     }
@@ -230,11 +460,22 @@ The Electronics category generated the majority of revenue, driven primarily by 
 Daily sales performance shows variability throughout the reporting period, with notable patterns emerging:
 
 
+```yaml dropdown
+variableId: selectedMonth
+value: August
+label: 'Select Month:'
+options:
+  - July
+  - August
+  - September
+```
+
+
 ```json vega-lite
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
   "data": {
-    "name": "salesData"
+    "name": "filteredSalesData"
   },
   "transform": [
     {
@@ -277,7 +518,7 @@ The complete transaction dataset for the reporting period is presented below for
 
 ```json tabulator
 {
-  "dataSourceName": "salesData"
+  "dataSourceName": "filteredSalesData"
 }
 ```
 
