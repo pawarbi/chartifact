@@ -1,5 +1,10 @@
 # Change Log
 
+
+## [1.0.4]
+
+Fix html wrapper for json files
+
 ## [1.0.3]
 
 Updated examples
