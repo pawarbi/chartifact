@@ -4,9 +4,11 @@
     "style": {
         "css": [
             "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f8fafc; }",
-            "body { display: grid; grid-template-areas: 'header header' 'habits progress' 'stats stats'; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }",
+            "body { display: grid; grid-template-areas: 'header header' 'controls controls' 'heatmap heatmap' 'habits progress' 'stats stats'; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }",
             ".group { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }",
             "#header { grid-area: header; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; border-radius: 12px; }",
+            "#controls { grid-area: controls; }",
+            "#heatmap { grid-area: heatmap; }",
             "#habits { grid-area: habits; }",
             "#progress { grid-area: progress; }",
             "#stats { grid-area: stats; }",
@@ -94,11 +96,98 @@
                 {"date": "2024-01-20", "habit_id": 2, "habit_name": "Read for 30min", "completed": false},
                 {"date": "2024-01-20", "habit_id": 3, "habit_name": "Meditate", "completed": true},
                 {"date": "2024-01-21", "habit_id": 3, "habit_name": "Meditate", "completed": true},
-                {"date": "2024-01-22", "habit_id": 3, "habit_name": "Meditate", "completed": true}
+                {"date": "2024-01-22", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-01-22", "habit_id": 2, "habit_name": "Read for 30min", "completed": true},
+                {"date": "2024-01-22", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-01-23", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-01-23", "habit_id": 4, "habit_name": "Write Journal", "completed": true},
+                {"date": "2024-01-24", "habit_id": 2, "habit_name": "Read for 30min", "completed": true},
+                {"date": "2024-01-24", "habit_id": 3, "habit_name": "Meditate", "completed": false},
+                {"date": "2024-01-25", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-01-25", "habit_id": 5, "habit_name": "Learn New Language", "completed": true},
+                {"date": "2024-01-26", "habit_id": 2, "habit_name": "Read for 30min", "completed": true},
+                {"date": "2024-01-26", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-01-27", "habit_id": 1, "habit_name": "Morning Exercise", "completed": false},
+                {"date": "2024-01-27", "habit_id": 4, "habit_name": "Write Journal", "completed": true},
+                {"date": "2024-01-28", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-01-28", "habit_id": 6, "habit_name": "Call Family", "completed": true},
+                {"date": "2024-02-01", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-02-01", "habit_id": 2, "habit_name": "Read for 30min", "completed": true},
+                {"date": "2024-02-01", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-02-02", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-02-02", "habit_id": 4, "habit_name": "Write Journal", "completed": true},
+                {"date": "2024-02-02", "habit_id": 5, "habit_name": "Learn New Language", "completed": true},
+                {"date": "2024-02-03", "habit_id": 2, "habit_name": "Read for 30min", "completed": false},
+                {"date": "2024-02-03", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-02-04", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-02-04", "habit_id": 6, "habit_name": "Call Family", "completed": true},
+                {"date": "2024-02-05", "habit_id": 2, "habit_name": "Read for 30min", "completed": true},
+                {"date": "2024-02-05", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-02-05", "habit_id": 4, "habit_name": "Write Journal", "completed": false},
+                {"date": "2024-02-06", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-02-06", "habit_id": 5, "habit_name": "Learn New Language", "completed": true},
+                {"date": "2024-02-07", "habit_id": 2, "habit_name": "Read for 30min", "completed": true},
+                {"date": "2024-02-07", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-02-08", "habit_id": 1, "habit_name": "Morning Exercise", "completed": false},
+                {"date": "2024-02-08", "habit_id": 4, "habit_name": "Write Journal", "completed": true},
+                {"date": "2024-02-09", "habit_id": 2, "habit_name": "Read for 30min", "completed": true},
+                {"date": "2024-02-09", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-02-10", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-02-10", "habit_id": 5, "habit_name": "Learn New Language", "completed": false},
+                {"date": "2024-03-01", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-03-01", "habit_id": 2, "habit_name": "Read for 30min", "completed": true},
+                {"date": "2024-03-02", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-03-02", "habit_id": 4, "habit_name": "Write Journal", "completed": true},
+                {"date": "2024-03-03", "habit_id": 1, "habit_name": "Morning Exercise", "completed": false},
+                {"date": "2024-03-03", "habit_id": 5, "habit_name": "Learn New Language", "completed": true},
+                {"date": "2024-03-04", "habit_id": 2, "habit_name": "Read for 30min", "completed": true},
+                {"date": "2024-03-04", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-03-04", "habit_id": 6, "habit_name": "Call Family", "completed": true},
+                {"date": "2024-03-05", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-03-05", "habit_id": 4, "habit_name": "Write Journal", "completed": false},
+                {"date": "2024-03-06", "habit_id": 2, "habit_name": "Read for 30min", "completed": true},
+                {"date": "2024-03-06", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-03-07", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-03-07", "habit_id": 5, "habit_name": "Learn New Language", "completed": true},
+                {"date": "2024-03-08", "habit_id": 2, "habit_name": "Read for 30min", "completed": false},
+                {"date": "2024-03-08", "habit_id": 4, "habit_name": "Write Journal", "completed": true},
+                {"date": "2024-03-09", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-03-09", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-03-10", "habit_id": 2, "habit_name": "Read for 30min", "completed": true},
+                {"date": "2024-03-10", "habit_id": 6, "habit_name": "Call Family", "completed": true}
             ]
         }
     ],
     "variables": [
+        {
+            "variableId": "selectedMonth",
+            "type": "string",
+            "initialValue": "2024-01",
+            "input": {
+                "type": "dropdown",
+                "options": [
+                    {"value": "All", "label": "All Months"},
+                    {"value": "2024-01", "label": "January 2024"},
+                    {"value": "2024-02", "label": "February 2024"},
+                    {"value": "2024-03", "label": "March 2024"}
+                ]
+            }
+        },
+        {
+            "variableId": "filteredProgressData",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": ["progressDataTable"],
+                "dataFrameTransformations": [
+                    {
+                        "type": "filter",
+                        "expr": "selectedMonth === 'All' || slice(datum.date, 0, 7) === selectedMonth"
+                    }
+                ]
+            }
+        },
         {
             "variableId": "totalHabits",
             "type": "number",
@@ -113,7 +202,7 @@
             "isArray": true,
             "initialValue": [],
             "calculation": {
-                "dataSourceNames": ["progressDataTable"],
+                "dataSourceNames": ["filteredProgressData"],
                 "dataFrameTransformations": [
                     {
                         "type": "aggregate",
@@ -143,7 +232,7 @@
             "isArray": true,
             "initialValue": [],
             "calculation": {
-                "dataSourceNames": ["progressDataTable"],
+                "dataSourceNames": ["filteredProgressData"],
                 "dataFrameTransformations": [
                     {
                         "type": "aggregate",
@@ -169,7 +258,7 @@
             "isArray": true,
             "initialValue": [],
             "calculation": {
-                "dataSourceNames": ["progressDataTable"],
+                "dataSourceNames": ["filteredProgressData"],
                 "dataFrameTransformations": [
                     {
                         "type": "filter",
@@ -202,6 +291,63 @@
             ]
         },
         {
+            "groupId": "controls",
+            "elements": [
+                "## 🎛️ Filters",
+                "",
+                "**Month:** {{selectedMonth}}"
+            ]
+        },
+        {
+            "groupId": "heatmap",
+            "elements": [
+                "## 🗓️ Habit Completion Heatmap",
+                {
+                    "type": "vega-lite",
+                    "spec": {
+                        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                        "data": {"name": "filteredProgressData"},
+                        "mark": {"type": "rect", "stroke": "#f1f5f9", "strokeWidth": 1},
+                        "encoding": {
+                            "x": {
+                                "field": "date",
+                                "type": "temporal",
+                                "title": "Date",
+                                "axis": {"format": "%b %d", "labelAngle": -45}
+                            },
+                            "y": {
+                                "field": "habit_name",
+                                "type": "nominal",
+                                "title": "Habit",
+                                "sort": null
+                            },
+                            "color": {
+                                "field": "completed",
+                                "type": "nominal",
+                                "scale": {
+                                    "domain": [true, false],
+                                    "range": ["#22c55e", "#ef4444"]
+                                },
+                                "legend": {
+                                    "title": "Completed",
+                                    "values": [true, false],
+                                    "labelExpr": "datum.value ? 'Yes' : 'No'"
+                                }
+                            },
+                            "tooltip": [
+                                {"field": "date", "type": "temporal", "title": "Date"},
+                                {"field": "habit_name", "type": "nominal", "title": "Habit"},
+                                {"field": "completed", "type": "nominal", "title": "Completed"}
+                            ]
+                        },
+                        "width": "container",
+                        "height": 200,
+                        "background": "transparent"
+                    }
+                }
+            ]
+        },
+        {
             "groupId": "habits",
             "elements": [
                 "## 📋 My Habits",
@@ -230,7 +376,7 @@
         {
             "groupId": "progress",
             "elements": [
-                "## 📈 Recent Progress",
+                "## 📈 Progress (Filtered by Month)",
                 {
                     "type": "tabulator",
                     "dataSourceName": "progressData",
