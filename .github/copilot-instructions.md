@@ -46,6 +46,20 @@ Chartifact consists of several interoperating modules:
    - No custom JavaScript execution or raw HTML in Markdown.
    - For layouts and styling, use only CSS classes applied to groups and standard Markdown elements.
 
+## Component Capabilities and Constraints
+
+1. **Dropdown Components**:
+   - Dropdown options must be strings only - no objects with value/label properties
+   - Use simple string arrays for options: `"options": ["Option1", "Option2"]`
+   - For data-driven options, use `dynamicOptions` with a data source
+   - Objects in dropdown options will display as "[object Object]"
+
+2. **Chart Components**:
+   - Heatmaps and complex visualizations should use the `chart` type with `chartKey`
+   - Place chart specifications in the `resources.charts` section
+   - Reference charts using `{"type": "chart", "chartKey": "yourChartKey"}`
+   - Direct `vega-lite` type elements may not render properly for complex charts
+
 ## Examples
 
 - Source code for examples is in the packages/web-deploy/json folder

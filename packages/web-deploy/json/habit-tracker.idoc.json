@@ -24,6 +24,17 @@
     },
     "dataLoaders": [
         {
+            "dataSourceName": "monthOptions",
+            "type": "inline",
+            "format": "json",
+            "content": [
+                {"value": "All", "label": "All Months"},
+                {"value": "2024-01", "label": "January 2024"},
+                {"value": "2024-02", "label": "February 2024"},
+                {"value": "2024-03", "label": "March 2024"}
+            ]
+        },
+        {
             "dataSourceName": "habitsData",
             "type": "inline",
             "format": "json",
@@ -290,12 +301,10 @@
                     "type": "dropdown",
                     "variableId": "selectedMonth",
                     "label": "Select Month:",
-                    "options": [
-                        {"value": "All", "label": "All Months"},
-                        {"value": "2024-01", "label": "January 2024"},
-                        {"value": "2024-02", "label": "February 2024"},
-                        {"value": "2024-03", "label": "March 2024"}
-                    ]
+                    "dynamicOptions": {
+                        "dataSourceName": "monthOptions",
+                        "fieldName": "value"
+                    }
                 }
             ]
         },
@@ -304,47 +313,8 @@
             "elements": [
                 "## 🗓️ Habit Completion Heatmap",
                 {
-                    "type": "vega-lite",
-                    "spec": {
-                        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-                        "data": {"name": "filteredProgressData"},
-                        "mark": {"type": "rect", "stroke": "#f1f5f9", "strokeWidth": 1},
-                        "encoding": {
-                            "x": {
-                                "field": "date",
-                                "type": "temporal",
-                                "title": "Date",
-                                "axis": {"format": "%b %d", "labelAngle": -45}
-                            },
-                            "y": {
-                                "field": "habit_name",
-                                "type": "nominal",
-                                "title": "Habit",
-                                "sort": null
-                            },
-                            "color": {
-                                "field": "completed",
-                                "type": "nominal",
-                                "scale": {
-                                    "domain": [true, false],
-                                    "range": ["#22c55e", "#ef4444"]
-                                },
-                                "legend": {
-                                    "title": "Completed",
-                                    "values": [true, false],
-                                    "labelExpr": "datum.value ? 'Yes' : 'No'"
-                                }
-                            },
-                            "tooltip": [
-                                {"field": "date", "type": "temporal", "title": "Date"},
-                                {"field": "habit_name", "type": "nominal", "title": "Habit"},
-                                {"field": "completed", "type": "nominal", "title": "Completed"}
-                            ]
-                        },
-                        "width": "container",
-                        "height": 200,
-                        "background": "transparent"
-                    }
+                    "type": "chart",
+                    "chartKey": "heatmap"
                 }
             ]
         },
@@ -412,5 +382,49 @@
                 "**Total Completed:** {{totalCompleted}} habits"
             ]
         }
-    ]
+    ],
+    "resources": {
+        "charts": {
+            "heatmap": {
+                "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                "data": {"name": "filteredProgressData"},
+                "mark": {"type": "rect", "stroke": "#f1f5f9", "strokeWidth": 1},
+                "encoding": {
+                    "x": {
+                        "field": "date",
+                        "type": "temporal",
+                        "title": "Date",
+                        "axis": {"format": "%b %d", "labelAngle": -45}
+                    },
+                    "y": {
+                        "field": "habit_name",
+                        "type": "nominal",
+                        "title": "Habit",
+                        "sort": null
+                    },
+                    "color": {
+                        "field": "completed",
+                        "type": "nominal",
+                        "scale": {
+                            "domain": [true, false],
+                            "range": ["#22c55e", "#ef4444"]
+                        },
+                        "legend": {
+                            "title": "Completed",
+                            "values": [true, false],
+                            "labelExpr": "datum.value ? 'Yes' : 'No'"
+                        }
+                    },
+                    "tooltip": [
+                        {"field": "date", "type": "temporal", "title": "Date"},
+                        {"field": "habit_name", "type": "nominal", "title": "Habit"},
+                        {"field": "completed", "type": "nominal", "title": "Completed"}
+                    ]
+                },
+                "width": "container",
+                "height": 200,
+                "background": "transparent"
+            }
+        }
+    }
 }
