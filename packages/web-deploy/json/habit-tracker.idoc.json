@@ -30,49 +30,37 @@
                     "habit_id": 1,
                     "habit_name": "Morning Exercise",
                     "category": "Health",
-                    "target_frequency": "Daily",
-                    "current_streak": 5,
-                    "best_streak": 12
+                    "target_frequency": "Daily"
                 },
                 {
                     "habit_id": 2,
                     "habit_name": "Read for 30min",
                     "category": "Learning",
-                    "target_frequency": "Daily",
-                    "current_streak": 3,
-                    "best_streak": 21
+                    "target_frequency": "Daily"
                 },
                 {
                     "habit_id": 3,
                     "habit_name": "Meditate",
                     "category": "Wellness",
-                    "target_frequency": "Daily",
-                    "current_streak": 8,
-                    "best_streak": 15
+                    "target_frequency": "Daily"
                 },
                 {
                     "habit_id": 4,
                     "habit_name": "Write Journal",
                     "category": "Wellness",
-                    "target_frequency": "Daily",
-                    "current_streak": 2,
-                    "best_streak": 7
+                    "target_frequency": "Daily"
                 },
                 {
                     "habit_id": 5,
                     "habit_name": "Learn New Language",
                     "category": "Learning",
-                    "target_frequency": "3x per week",
-                    "current_streak": 1,
-                    "best_streak": 4
+                    "target_frequency": "3x per week"
                 },
                 {
                     "habit_id": 6,
                     "habit_name": "Call Family",
                     "category": "Social",
-                    "target_frequency": "Weekly",
-                    "current_streak": 2,
-                    "best_streak": 8
+                    "target_frequency": "Weekly"
                 }
             ]
         },
@@ -176,27 +164,32 @@
             }
         },
         {
-            "variableId": "averageStreak",
-            "type": "string",
-            "initialValue": "0",
+            "variableId": "totalCompletedEntries",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
             "calculation": {
-                "dataSourceNames": ["habitsData"],
+                "dataSourceNames": ["progressData"],
                 "dataFrameTransformations": [
                     {
+                        "type": "filter",
+                        "expr": "datum.completed === true"
+                    },
+                    {
                         "type": "aggregate",
-                        "ops": ["mean"],
-                        "fields": ["current_streak"],
-                        "as": ["avg_streak"]
+                        "ops": ["count"],
+                        "fields": ["completed"],
+                        "as": ["completed_count"]
                     }
                 ]
             }
         },
         {
-            "variableId": "avgStreakFormatted",
-            "type": "string",
-            "initialValue": "0.0",
+            "variableId": "totalCompleted",
+            "type": "number",
+            "initialValue": 0,
             "calculation": {
-                "vegaExpression": "format(data('averageStreak')[0] ? data('averageStreak')[0].avg_streak : 0, '.1f')"
+                "vegaExpression": "data('totalCompletedEntries')[0] ? data('totalCompletedEntries')[0].completed_count : 0"
             }
         }
     ],
@@ -217,11 +210,9 @@
                     "dataSourceName": "habitsData",
                     "tabulatorOptions": {
                         "columns": [
-                            {"field": "habit_name", "title": "Habit", "width": 150},
-                            {"field": "category", "title": "Category", "width": 100},
-                            {"field": "target_frequency", "title": "Target", "width": 120},
-                            {"field": "current_streak", "title": "Streak", "width": 80, "hozAlign": "center"},
-                            {"field": "best_streak", "title": "Best", "width": 70, "hozAlign": "center"}
+                            {"field": "habit_name", "title": "Habit", "width": 200},
+                            {"field": "category", "title": "Category", "width": 120},
+                            {"field": "target_frequency", "title": "Target", "width": 150}
                         ],
                         "layout": "fitColumns",
                         "height": "300px",
@@ -267,7 +258,7 @@
                 "",
                 "**Days Tracked:** {{totalActiveDays}}",
                 "",
-                "**Average Streak:** {{avgStreakFormatted}} days"
+                "**Total Completed:** {{totalCompleted}} habits"
             ]
         }
     ]
