@@ -162,16 +162,7 @@
         {
             "variableId": "selectedMonth",
             "type": "string",
-            "initialValue": "2024-01",
-            "input": {
-                "type": "dropdown",
-                "options": [
-                    {"value": "All", "label": "All Months"},
-                    {"value": "2024-01", "label": "January 2024"},
-                    {"value": "2024-02", "label": "February 2024"},
-                    {"value": "2024-03", "label": "March 2024"}
-                ]
-            }
+            "initialValue": "All"
         },
         {
             "variableId": "filteredProgressData",
@@ -295,7 +286,17 @@
             "elements": [
                 "## 🎛️ Filters",
                 "",
-                "**Month:** {{selectedMonth}}"
+                {
+                    "type": "dropdown",
+                    "variableId": "selectedMonth",
+                    "label": "Select Month:",
+                    "options": [
+                        {"value": "All", "label": "All Months"},
+                        {"value": "2024-01", "label": "January 2024"},
+                        {"value": "2024-02", "label": "February 2024"},
+                        {"value": "2024-03", "label": "March 2024"}
+                    ]
+                }
             ]
         },
         {
