@@ -4,7 +4,7 @@
     "style": {
         "css": [
             "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f8fafc; }",
-            "body { display: grid; grid-template-areas: 'header header' 'controls controls' 'heatmap heatmap' 'habits progress' 'stats stats'; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }",
+            "body { display: grid; grid-template-areas: 'header header' 'controls controls' 'heatmap heatmap' 'habits progress' 'stats stats' 'debug debug'; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }",
             ".group { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }",
             "#header { grid-area: header; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; border-radius: 12px; }",
             "#controls { grid-area: controls; }",
@@ -12,6 +12,7 @@
             "#habits { grid-area: habits; }",
             "#progress { grid-area: progress; }",
             "#stats { grid-area: stats; }",
+            "#debug { grid-area: debug; }",
             "h1 { margin: 0; padding: 20px 0; font-size: 2em; font-weight: 600; }",
             "h2 { margin: 0 0 15px 0; font-size: 1.4em; color: #2d3748; font-weight: 600; }",
             "h3 { margin: 0 0 10px 0; font-size: 1.1em; color: #4a5568; font-weight: 500; }",
@@ -199,10 +200,15 @@
                 "dataSourceNames": ["filteredProgressData"],
                 "dataFrameTransformations": [
                     {
+                        "type": "formula",
+                        "expr": "datum.completed ? 1 : 0",
+                        "as": "completed_numeric"
+                    },
+                    {
                         "type": "aggregate",
                         "groupby": ["date"],
                         "ops": ["sum", "count"],
-                        "fields": ["completed", "completed"],
+                        "fields": ["completed_numeric", "completed_numeric"],
                         "as": ["completed_count", "total_habits"]
                     },
                     {
@@ -235,9 +241,14 @@
                 "dataSourceNames": ["filteredProgressData"],
                 "dataFrameTransformations": [
                     {
+                        "type": "formula",
+                        "expr": "datum.completed ? 1 : 0",
+                        "as": "completed_numeric"
+                    },
+                    {
                         "type": "aggregate",
                         "ops": ["count", "sum"],
-                        "fields": ["completed", "completed"],
+                        "fields": ["completed_numeric", "completed_numeric"],
                         "as": ["total_entries", "completed_count"]
                     },
                     {
@@ -408,6 +419,16 @@
                 "**Days Tracked:** {{totalActiveDays}}",
                 "",
                 "**Total Completed:** {{totalCompleted}} habits"
+            ]
+        },
+        {
+            "groupId": "debug",
+            "elements": [
+                "## 🔍 Debug: Daily Completion Data",
+                {
+                    "type": "tabulator",
+                    "dataSourceName": "dailyCompletionData"
+                }
             ]
         }
     ],
