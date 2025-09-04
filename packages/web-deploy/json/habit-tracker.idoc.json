@@ -1,0 +1,276 @@
+{
+    "$schema": "../../../docs/schema/idoc_v1.json",
+    "title": "Habit Tracker",
+    "style": {
+        "css": [
+            "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f8fafc; }",
+            "body { display: grid; grid-template-areas: 'header header' 'habits progress' 'stats stats'; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }",
+            ".group { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }",
+            "#header { grid-area: header; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; border-radius: 12px; }",
+            "#habits { grid-area: habits; }",
+            "#progress { grid-area: progress; }",
+            "#stats { grid-area: stats; }",
+            "h1 { margin: 0; padding: 20px 0; font-size: 2em; font-weight: 600; }",
+            "h2 { margin: 0 0 15px 0; font-size: 1.4em; color: #2d3748; font-weight: 600; }",
+            "h3 { margin: 0 0 10px 0; font-size: 1.1em; color: #4a5568; font-weight: 500; }",
+            ".stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }",
+            ".stat-card { background: #f7fafc; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0; }",
+            ".stat-number { font-size: 2em; font-weight: bold; color: #667eea; margin-bottom: 5px; }",
+            ".stat-label { color: #718096; font-size: 0.9em; }",
+            ".tabulator { border-radius: 8px; overflow: hidden; }",
+            ".tabulator .tabulator-header { background: #f7fafc; }",
+            ".tabulator .tabulator-header .tabulator-col { border-right: 1px solid #e2e8f0; }",
+            ".tabulator .tabulator-row { border-bottom: 1px solid #f1f5f9; }",
+            ".tabulator .tabulator-row:hover { background: #f8fafc; }"
+        ]
+    },
+    "dataLoaders": [
+        {
+            "dataSourceName": "habitsData",
+            "type": "inline",
+            "format": "json",
+            "content": [
+                {
+                    "habit_id": 1,
+                    "habit_name": "Morning Exercise",
+                    "category": "Health",
+                    "target_frequency": "Daily",
+                    "current_streak": 5,
+                    "best_streak": 12
+                },
+                {
+                    "habit_id": 2,
+                    "habit_name": "Read for 30min",
+                    "category": "Learning",
+                    "target_frequency": "Daily",
+                    "current_streak": 3,
+                    "best_streak": 21
+                },
+                {
+                    "habit_id": 3,
+                    "habit_name": "Meditate",
+                    "category": "Wellness",
+                    "target_frequency": "Daily",
+                    "current_streak": 8,
+                    "best_streak": 15
+                },
+                {
+                    "habit_id": 4,
+                    "habit_name": "Write Journal",
+                    "category": "Wellness",
+                    "target_frequency": "Daily",
+                    "current_streak": 2,
+                    "best_streak": 7
+                },
+                {
+                    "habit_id": 5,
+                    "habit_name": "Learn New Language",
+                    "category": "Learning",
+                    "target_frequency": "3x per week",
+                    "current_streak": 1,
+                    "best_streak": 4
+                },
+                {
+                    "habit_id": 6,
+                    "habit_name": "Call Family",
+                    "category": "Social",
+                    "target_frequency": "Weekly",
+                    "current_streak": 2,
+                    "best_streak": 8
+                }
+            ]
+        },
+        {
+            "dataSourceName": "progressData",
+            "type": "inline",
+            "format": "json",
+            "content": [
+                {"date": "2024-01-15", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-01-15", "habit_id": 2, "habit_name": "Read for 30min", "completed": true},
+                {"date": "2024-01-15", "habit_id": 3, "habit_name": "Meditate", "completed": false},
+                {"date": "2024-01-16", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-01-16", "habit_id": 2, "habit_name": "Read for 30min", "completed": true},
+                {"date": "2024-01-16", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-01-16", "habit_id": 4, "habit_name": "Write Journal", "completed": true},
+                {"date": "2024-01-17", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-01-17", "habit_id": 2, "habit_name": "Read for 30min", "completed": false},
+                {"date": "2024-01-17", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-01-17", "habit_id": 4, "habit_name": "Write Journal", "completed": true},
+                {"date": "2024-01-17", "habit_id": 5, "habit_name": "Learn New Language", "completed": true},
+                {"date": "2024-01-18", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-01-18", "habit_id": 2, "habit_name": "Read for 30min", "completed": true},
+                {"date": "2024-01-18", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-01-18", "habit_id": 6, "habit_name": "Call Family", "completed": true},
+                {"date": "2024-01-19", "habit_id": 1, "habit_name": "Morning Exercise", "completed": true},
+                {"date": "2024-01-19", "habit_id": 2, "habit_name": "Read for 30min", "completed": true},
+                {"date": "2024-01-19", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-01-19", "habit_id": 4, "habit_name": "Write Journal", "completed": false},
+                {"date": "2024-01-19", "habit_id": 5, "habit_name": "Learn New Language", "completed": false},
+                {"date": "2024-01-20", "habit_id": 1, "habit_name": "Morning Exercise", "completed": false},
+                {"date": "2024-01-20", "habit_id": 2, "habit_name": "Read for 30min", "completed": false},
+                {"date": "2024-01-20", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-01-21", "habit_id": 3, "habit_name": "Meditate", "completed": true},
+                {"date": "2024-01-22", "habit_id": 3, "habit_name": "Meditate", "completed": true}
+            ]
+        }
+    ],
+    "variables": [
+        {
+            "variableId": "totalHabits",
+            "type": "number",
+            "initialValue": 0,
+            "calculation": {
+                "vegaExpression": "length(data('habitsData'))"
+            }
+        },
+        {
+            "variableId": "completionRateData",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": ["progressData"],
+                "dataFrameTransformations": [
+                    {
+                        "type": "aggregate",
+                        "ops": ["count", "sum"],
+                        "fields": ["completed", "completed"],
+                        "as": ["total_entries", "completed_count"]
+                    },
+                    {
+                        "type": "formula",
+                        "expr": "datum.completed_count / datum.total_entries * 100",
+                        "as": "completion_rate"
+                    }
+                ]
+            }
+        },
+        {
+            "variableId": "overallCompletionRate",
+            "type": "string",
+            "initialValue": "0%",
+            "calculation": {
+                "vegaExpression": "format(data('completionRateData')[0] ? data('completionRateData')[0].completion_rate : 0, '.1f') + '%'"
+            }
+        },
+        {
+            "variableId": "activeDaysData",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": ["progressData"],
+                "dataFrameTransformations": [
+                    {
+                        "type": "aggregate",
+                        "groupby": ["date"],
+                        "ops": ["count"],
+                        "fields": ["habit_id"],
+                        "as": ["habits_tracked"]
+                    }
+                ]
+            }
+        },
+        {
+            "variableId": "totalActiveDays",
+            "type": "number",
+            "initialValue": 0,
+            "calculation": {
+                "vegaExpression": "length(data('activeDaysData'))"
+            }
+        },
+        {
+            "variableId": "averageStreak",
+            "type": "string",
+            "initialValue": "0",
+            "calculation": {
+                "dataSourceNames": ["habitsData"],
+                "dataFrameTransformations": [
+                    {
+                        "type": "aggregate",
+                        "ops": ["mean"],
+                        "fields": ["current_streak"],
+                        "as": ["avg_streak"]
+                    }
+                ]
+            }
+        },
+        {
+            "variableId": "avgStreakFormatted",
+            "type": "string",
+            "initialValue": "0.0",
+            "calculation": {
+                "vegaExpression": "format(data('averageStreak')[0] ? data('averageStreak')[0].avg_streak : 0, '.1f')"
+            }
+        }
+    ],
+    "groups": [
+        {
+            "groupId": "header",
+            "elements": [
+                "# 🎯 Habit Tracker",
+                "Track your daily habits and build consistent routines for personal growth."
+            ]
+        },
+        {
+            "groupId": "habits",
+            "elements": [
+                "## 📋 My Habits",
+                {
+                    "type": "tabulator",
+                    "dataSourceName": "habitsData",
+                    "tabulatorOptions": {
+                        "columns": [
+                            {"field": "habit_name", "title": "Habit", "width": 150},
+                            {"field": "category", "title": "Category", "width": 100},
+                            {"field": "target_frequency", "title": "Target", "width": 120},
+                            {"field": "current_streak", "title": "Streak", "width": 80, "hozAlign": "center"},
+                            {"field": "best_streak", "title": "Best", "width": 70, "hozAlign": "center"}
+                        ],
+                        "layout": "fitColumns",
+                        "height": "300px",
+                        "rowHeader": {
+                            "width": 40,
+                            "hozAlign": "center",
+                            "formatter": "rownum"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "groupId": "progress",
+            "elements": [
+                "## 📈 Recent Progress",
+                {
+                    "type": "tabulator",
+                    "dataSourceName": "progressData",
+                    "tabulatorOptions": {
+                        "columns": [
+                            {"field": "date", "title": "Date", "width": 100},
+                            {"field": "habit_name", "title": "Habit", "width": 150},
+                            {"field": "completed", "title": "✓", "width": 50, "hozAlign": "center", "formatter": "tickCross"}
+                        ],
+                        "layout": "fitColumns",
+                        "height": "300px",
+                        "initialSort": [
+                            {"column": "date", "dir": "desc"}
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "groupId": "stats",
+            "elements": [
+                "## 📊 Statistics",
+                "<div class=\"stat-grid\">",
+                "<div class=\"stat-card\"><div class=\"stat-number\">{{totalHabits}}</div><div class=\"stat-label\">Active Habits</div></div>",
+                "<div class=\"stat-card\"><div class=\"stat-number\">{{overallCompletionRate}}</div><div class=\"stat-label\">Completion Rate</div></div>",
+                "<div class=\"stat-card\"><div class=\"stat-number\">{{totalActiveDays}}</div><div class=\"stat-label\">Days Tracked</div></div>",
+                "<div class=\"stat-card\"><div class=\"stat-number\">{{avgStreakFormatted}}</div><div class=\"stat-label\">Avg Streak</div></div>",
+                "</div>"
+            ]
+        }
+    ]
+}
