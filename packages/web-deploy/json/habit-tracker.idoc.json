@@ -209,6 +209,11 @@
                         "type": "formula",
                         "expr": "datum.completed_count / datum.total_habits",
                         "as": "completion_rate"
+                    },
+                    {
+                        "type": "formula",
+                        "expr": "datetime(year(datum.date), month(datum.date), date(datum.date))",
+                        "as": "date_parsed"
                     }
                 ]
             }
@@ -424,13 +429,14 @@
                 "mark": {
                     "type": "rect",
                     "stroke": "#ffffff",
-                    "strokeWidth": 2
+                    "strokeWidth": 2,
+                    "opacity": 0.8
                 },
                 "encoding": {
                     "x": {
                         "field": "date",
                         "timeUnit": "date",
-                        "type": "ordinal",
+                        "type": "temporal",
                         "title": "Day of Month",
                         "axis": {
                             "labelAngle": 0,
@@ -440,7 +446,7 @@
                     "y": {
                         "field": "date",
                         "timeUnit": "month",
-                        "type": "ordinal",
+                        "type": "temporal",
                         "title": "Month"
                     },
                     "color": {
