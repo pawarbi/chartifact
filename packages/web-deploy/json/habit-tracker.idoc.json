@@ -191,6 +191,29 @@
             }
         },
         {
+            "variableId": "dailyCompletionData",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": ["filteredProgressData"],
+                "dataFrameTransformations": [
+                    {
+                        "type": "aggregate",
+                        "groupby": ["date"],
+                        "ops": ["sum", "count"],
+                        "fields": ["completed", "completed"],
+                        "as": ["completed_count", "total_habits"]
+                    },
+                    {
+                        "type": "formula",
+                        "expr": "datum.completed_count / datum.total_habits",
+                        "as": "completion_rate"
+                    }
+                ]
+            }
+        },
+        {
             "variableId": "totalHabits",
             "type": "number",
             "initialValue": 0,
@@ -387,42 +410,60 @@
         "charts": {
             "heatmap": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-                "data": {"name": "filteredProgressData"},
-                "mark": {"type": "rect", "stroke": "#f1f5f9", "strokeWidth": 1},
+                "data": {"name": "dailyCompletionData"},
+                "title": "Daily Habit Completion Rate",
+                "config": {
+                    "view": {
+                        "strokeWidth": 0,
+                        "step": 13
+                    },
+                    "axis": {
+                        "domain": false
+                    }
+                },
+                "mark": {
+                    "type": "rect",
+                    "stroke": "#ffffff",
+                    "strokeWidth": 2
+                },
                 "encoding": {
                     "x": {
                         "field": "date",
-                        "type": "temporal",
-                        "title": "Date",
-                        "axis": {"format": "%b %d", "labelAngle": -45}
+                        "timeUnit": "date",
+                        "type": "ordinal",
+                        "title": "Day of Month",
+                        "axis": {
+                            "labelAngle": 0,
+                            "format": "%e"
+                        }
                     },
                     "y": {
-                        "field": "habit_name",
-                        "type": "nominal",
-                        "title": "Habit",
-                        "sort": null
+                        "field": "date",
+                        "timeUnit": "month",
+                        "type": "ordinal",
+                        "title": "Month"
                     },
                     "color": {
-                        "field": "completed",
-                        "type": "nominal",
+                        "field": "completion_rate",
+                        "type": "quantitative",
                         "scale": {
-                            "domain": [true, false],
-                            "range": ["#22c55e", "#ef4444"]
+                            "scheme": "greens",
+                            "domain": [0, 1]
                         },
                         "legend": {
-                            "title": "Completed",
-                            "values": [true, false],
-                            "labelExpr": "datum.value ? 'Yes' : 'No'"
+                            "title": "Completion Rate",
+                            "format": ".0%"
                         }
                     },
                     "tooltip": [
                         {"field": "date", "type": "temporal", "title": "Date"},
-                        {"field": "habit_name", "type": "nominal", "title": "Habit"},
-                        {"field": "completed", "type": "nominal", "title": "Completed"}
+                        {"field": "completed_count", "type": "quantitative", "title": "Completed Habits"},
+                        {"field": "total_habits", "type": "quantitative", "title": "Total Habits"},
+                        {"field": "completion_rate", "type": "quantitative", "title": "Completion Rate", "format": ".1%"}
                     ]
                 },
                 "width": "container",
-                "height": 200,
+                "height": 150,
                 "background": "transparent"
             }
         }
