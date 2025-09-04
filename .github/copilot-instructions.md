@@ -42,7 +42,9 @@ Chartifact consists of several interoperating modules:
 
 4. **Security**:
    - Documents are rendered in sandboxed iframes.
+   - **NO HTML elements are allowed** - use only Markdown formatting.
    - No custom JavaScript execution or raw HTML in Markdown.
+   - For layouts and styling, use only CSS classes applied to groups and standard Markdown elements.
 
 ## Examples
 
@@ -50,6 +52,7 @@ Chartifact consists of several interoperating modules:
 - Examples in this repo use the json format and are compiled to markdown.
 - If you are asked to create an example, do it in the packages/web-deploy/json folder, do not modify the destination folder docs/assets/examples - this will be populated by a build.
 - The examples are built manually for now.
+- **IMPORTANT**: When creating examples, use only Markdown formatting - NO HTML elements are allowed. Use plain text, Markdown headers, bold/italic formatting, and CSS styling for visual presentation.
 
 ## Runtime host
 
