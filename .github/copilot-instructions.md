@@ -58,4 +58,4 @@ Chartifact consists of several interoperating modules:
 
 - There is a sandboxed runtime that securely renders documents available at https://microsoft.github.io/chartifact/view
 - The url above can accept a `load` parameter to specify the document to render, for example https://microsoft.github.io/chartifact/view/?load=https://raw.githubusercontent.com/microsoft/chartifact/562d086/packages/web-deploy/json/sales-dashboard.idoc.json
-- If you are asked to create an example, please provide a link in the PR comments so it can be previewed.
+- **ALWAYS provide a preview link when creating or modifying examples** - include the preview link in PR comments and descriptions automatically so examples can be tested immediately without being asked.
