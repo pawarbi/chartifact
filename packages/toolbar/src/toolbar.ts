@@ -51,8 +51,8 @@ export class Toolbar {
     <div style="margin-bottom: 8px;">Download as:</div>
     <ul>
         <li>
-            Source markdown (just the content)<br/>
-            <button type="button" id="download-md" style="margin-right: 8px;">Source markdown</button>
+            Source content (just the content)<br/>
+            <button type="button" id="download-md" style="margin-right: 8px;">Source content</button>
         </li>
         <li>
             HTML wrapper (content plus a shareable viewer)<br/>
@@ -127,8 +127,10 @@ export class Toolbar {
             const textarea = this.options.textarea;
             if (!textarea) return;
             const content = textarea.value;
-            const filename = `${filenameWithoutPathOrExtension(this.filename)}.idoc.md`;
-            this.triggerDownload(content, filename, 'text/markdown');
+            const extension = this.mode === 'json' ? '.idoc.json' : '.idoc.md';
+            const mimeType = this.mode === 'json' ? 'application/json' : 'text/markdown';
+            const filename = `${filenameWithoutPathOrExtension(this.filename)}${extension}`;
+            this.triggerDownload(content, filename, mimeType);
         });
 
         // Download as HTML wrapper
