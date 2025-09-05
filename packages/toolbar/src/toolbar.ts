@@ -10,6 +10,11 @@ export interface ToolbarOptions {
     downloadButton?: boolean;
     restartButton?: boolean;
     textarea?: HTMLTextAreaElement;
+    /**
+     * Mode to display content, allowed values: 'markdown' | 'json'.
+     * Only trusted values should be supplied.
+     * If an untrusted value is provided, it will be ignored and replaced with 'markdown'.
+     */
     mode?: 'markdown' | 'json';
     filename?: string;
 }
@@ -26,7 +31,9 @@ export class Toolbar {
 
     constructor(toolbarElementOrSelector: HTMLElement | string, public options: ToolbarOptions = {}) {
         this.filename = options.filename || 'sample';
-        this.mode = options.mode || 'markdown';
+        // Runtime check to restrict mode to allowed values only
+        const allowedModes = ['markdown', 'json'];
+        this.mode = allowedModes.includes(options.mode as string) ? options.mode as 'markdown' | 'json' : 'markdown';
         this.toolbarElement = typeof toolbarElementOrSelector === 'string' ? document.querySelector(toolbarElementOrSelector) : toolbarElementOrSelector;
 
         if (!this.toolbarElement) {
