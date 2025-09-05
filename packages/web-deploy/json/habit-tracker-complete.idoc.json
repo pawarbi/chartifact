@@ -505,7 +505,7 @@
         "charts": {
             "monthlyHeatmap": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-                "data": {"name": "dailyCompletionData"},
+                "data": {"name": "filteredProgressData"},
                 "title": "Daily Habit Completion Rate for Selected Month",
                 "config": {
                     "view": {
@@ -516,28 +516,21 @@
                         "domain": false
                     }
                 },
-                "mark": {
-                    "type": "rect",
-                    "stroke": "#ffffff",
-                    "strokeWidth": 2,
-                    "opacity": 0.8
-                },
+                "mark": "rect",
                 "encoding": {
                     "x": {
                         "field": "date",
                         "timeUnit": "date",
                         "type": "ordinal",
-                        "title": "Day of Month",
+                        "title": "Day",
                         "axis": {
                             "labelAngle": 0,
                             "format": "%e"
-                        },
-                        "scale": {
-                            "domain": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
                         }
                     },
                     "color": {
-                        "field": "completion_rate",
+                        "field": "completed",
+                        "aggregate": "mean",
                         "type": "quantitative",
                         "scale": {
                             "scheme": "greens",
@@ -550,18 +543,15 @@
                     },
                     "tooltip": [
                         {"field": "date", "type": "temporal", "title": "Date"},
-                        {"field": "completed_count", "type": "quantitative", "title": "Completed Habits"},
-                        {"field": "total_habits", "type": "quantitative", "title": "Total Habits"},
-                        {"field": "completion_rate", "type": "quantitative", "title": "Completion Rate", "format": ".1%"}
+                        {"field": "completed", "aggregate": "mean", "type": "quantitative", "title": "Completion Rate", "format": ".1%"}
                     ]
                 },
                 "width": "container",
-                "height": 100,
-                "background": "transparent"
+                "height": 100
             },
             "annualHeatmap": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-                "data": {"name": "annualCompletionData"},
+                "data": {"name": "progressDataTable"},
                 "title": "Annual Habit Completion Overview",
                 "config": {
                     "view": {
@@ -572,37 +562,27 @@
                         "domain": false
                     }
                 },
-                "mark": {
-                    "type": "rect",
-                    "stroke": "#ffffff",
-                    "strokeWidth": 2,
-                    "opacity": 0.8
-                },
+                "mark": "rect",
                 "encoding": {
                     "x": {
                         "field": "date",
                         "timeUnit": "date",
                         "type": "ordinal",
-                        "title": "Day of Month",
+                        "title": "Day",
                         "axis": {
                             "labelAngle": 0,
                             "format": "%e"
-                        },
-                        "scale": {
-                            "domain": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
                         }
                     },
                     "y": {
                         "field": "date",
                         "timeUnit": "month",
                         "type": "ordinal",
-                        "title": "Month",
-                        "axis": {
-                            "format": "%B"
-                        }
+                        "title": "Month"
                     },
                     "color": {
-                        "field": "completion_rate",
+                        "field": "completed",
+                        "aggregate": "mean",
                         "type": "quantitative",
                         "scale": {
                             "scheme": "blues",
@@ -615,14 +595,11 @@
                     },
                     "tooltip": [
                         {"field": "date", "type": "temporal", "title": "Date"},
-                        {"field": "completed_count", "type": "quantitative", "title": "Completed Habits"},
-                        {"field": "total_habits", "type": "quantitative", "title": "Total Habits"},
-                        {"field": "completion_rate", "type": "quantitative", "title": "Completion Rate", "format": ".1%"}
+                        {"field": "completed", "aggregate": "mean", "type": "quantitative", "title": "Completion Rate", "format": ".1%"}
                     ]
                 },
                 "width": "container",
-                "height": 150,
-                "background": "transparent"
+                "height": 150
             }
         }
     }
