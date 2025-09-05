@@ -535,7 +535,7 @@
                     "x": {
                         "field": "date",
                         "timeUnit": "date",
-                        "type": "temporal",
+                        "type": "ordinal",
                         "title": "Day of Month",
                         "axis": {
                             "labelAngle": 0,
@@ -588,7 +588,7 @@
                     "x": {
                         "field": "date",
                         "timeUnit": "date",
-                        "type": "temporal",
+                        "type": "ordinal",
                         "title": "Day of Month",
                         "axis": {
                             "labelAngle": 0,
@@ -598,7 +598,7 @@
                     "y": {
                         "field": "date",
                         "timeUnit": "month",
-                        "type": "temporal",
+                        "type": "ordinal",
                         "title": "Month"
                     },
                     "color": {
