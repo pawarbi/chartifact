@@ -1,0 +1,369 @@
+{
+    "$schema": "../../../docs/schema/idoc_v1.json",
+    "title": "Simple Habit Tracker",
+    "style": {
+        "css": [
+            "body { font-family: sans-serif; margin: 0; padding: 20px; background: #f8fafc; max-width: 1200px; margin: 0 auto; }",
+            "#header, #table, #heatmap { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }",
+            "#header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; color: white; text-align: center; }",
+            "h1 { margin: 0; padding: 20px 0; font-size: 2em; font-weight: 600; }",
+            "h2 { margin: 0 0 15px 0; font-size: 1.4em; color: #2d3748; font-weight: 600; }",
+            ".tabulator { max-width: 100%; overflow: auto; }",
+            ".tabulator .tabulator-table { min-width: fit-content; }",
+            "#heatmap .vega-embed .vega-actions { display: none; }",
+            "body { display: grid; gap: 20px; grid-template-columns: 1fr; grid-template-areas: 'header' 'table' 'heatmap'; }",
+            "#header { grid-area: header; }",
+            "#table { grid-area: table; min-width: 0; }",
+            "#heatmap { grid-area: heatmap; min-width: 0; overflow: hidden; }"
+        ]
+    },
+    "dataLoaders": [
+        {
+            "dataSourceName": "habitData",
+            "type": "inline",
+            "format": "json",
+            "content": [
+                {
+                    "date": "2024-01-01",
+                    "habit": "Exercise",
+                    "completed": true
+                },
+                {
+                    "date": "2024-01-01",
+                    "habit": "Read",
+                    "completed": false
+                },
+                {
+                    "date": "2024-01-15",
+                    "habit": "Exercise",
+                    "completed": true
+                },
+                {
+                    "date": "2024-01-15",
+                    "habit": "Read",
+                    "completed": true
+                },
+                {
+                    "date": "2024-01-31",
+                    "habit": "Exercise",
+                    "completed": true
+                },
+                {
+                    "date": "2024-01-31",
+                    "habit": "Read",
+                    "completed": true
+                },
+                {
+                    "date": "2024-02-01",
+                    "habit": "Exercise",
+                    "completed": false
+                },
+                {
+                    "date": "2024-02-01",
+                    "habit": "Read",
+                    "completed": true
+                },
+                {
+                    "date": "2024-02-14",
+                    "habit": "Exercise",
+                    "completed": true
+                },
+                {
+                    "date": "2024-02-14",
+                    "habit": "Read",
+                    "completed": false
+                },
+                {
+                    "date": "2024-02-29",
+                    "habit": "Exercise",
+                    "completed": true
+                },
+                {
+                    "date": "2024-02-29",
+                    "habit": "Read",
+                    "completed": true
+                },
+                {
+                    "date": "2024-03-01",
+                    "habit": "Exercise",
+                    "completed": true
+                },
+                {
+                    "date": "2024-03-01",
+                    "habit": "Read",
+                    "completed": false
+                },
+                {
+                    "date": "2024-03-17",
+                    "habit": "Exercise",
+                    "completed": false
+                },
+                {
+                    "date": "2024-03-17",
+                    "habit": "Read",
+                    "completed": false
+                },
+                {
+                    "date": "2024-03-31",
+                    "habit": "Exercise",
+                    "completed": false
+                },
+                {
+                    "date": "2024-03-31",
+                    "habit": "Read",
+                    "completed": true
+                },
+                {
+                    "date": "2024-04-01",
+                    "habit": "Exercise",
+                    "completed": true
+                },
+                {
+                    "date": "2024-04-01",
+                    "habit": "Read",
+                    "completed": true
+                },
+                {
+                    "date": "2024-04-15",
+                    "habit": "Exercise",
+                    "completed": true
+                },
+                {
+                    "date": "2024-04-15",
+                    "habit": "Read",
+                    "completed": true
+                },
+                {
+                    "date": "2024-04-30",
+                    "habit": "Exercise",
+                    "completed": true
+                },
+                {
+                    "date": "2024-04-30",
+                    "habit": "Read",
+                    "completed": false
+                }
+            ]
+        }
+    ],
+    "variables": [
+        {
+            "variableId": "dailyCompletionData",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": [
+                    "habitDataTable"
+                ],
+                "dataFrameTransformations": [
+                    {
+                        "type": "formula",
+                        "expr": "parseInt(slice(datum.date, 8, 10))",
+                        "as": "day_of_month"
+                    },
+                    {
+                        "type": "formula",
+                        "expr": "parseInt(slice(datum.date, 5, 7))",
+                        "as": "month_number"
+                    },
+                    {
+                        "type": "formula",
+                        "expr": "datum.completed ? 1 : 0",
+                        "as": "completed_numeric"
+                    },
+                    {
+                        "type": "aggregate",
+                        "groupby": [
+                            "date",
+                            "day_of_month",
+                            "month_number"
+                        ],
+                        "ops": [
+                            "sum",
+                            "count"
+                        ],
+                        "fields": [
+                            "completed_numeric",
+                            "completed_numeric"
+                        ],
+                        "as": [
+                            "completed_count",
+                            "total_habits"
+                        ]
+                    },
+                    {
+                        "type": "formula",
+                        "expr": "datum.completed_count / datum.total_habits",
+                        "as": "completion_rate"
+                    }
+                ]
+            }
+        }
+    ],
+    "groups": [
+        {
+            "groupId": "header",
+            "elements": [
+                "# 🎯 Simple Habit Tracker",
+                "A minimal habit tracker with editable data and heatmap visualization."
+            ]
+        },
+        {
+            "groupId": "table",
+            "elements": [
+                "## 📋 Habit Data",
+                {
+                    "type": "tabulator",
+                    "dataSourceName": "habitData",
+                    "variableId": "habitDataTable",
+                    "editable": true,
+                    "tabulatorOptions": {
+                        "maxHeight": "210px",
+                        "autoColumns": true,
+                        "layout": "fitColumns"
+                    }
+                }
+            ]
+        },
+        {
+            "groupId": "heatmap",
+            "elements": [
+                "## 🗓️ Completion Heatmap",
+                {
+                    "type": "chart",
+                    "chartKey": "completionHeatmap"
+                }
+            ]
+        }
+    ],
+    "resources": {
+        "charts": {
+            "completionHeatmap": {
+                "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                "data": {
+                    "name": "dailyCompletionData"
+                },
+                "title": "Daily Habit Completion Rate",
+                "config": {
+                    "view": {
+                        "strokeWidth": 0,
+                        "step": 13,
+                        "fill": "transparent"
+                    },
+                    "axis": {
+                        "domain": false
+                    },
+                    "background": "transparent"
+                },
+                "mark": "rect",
+                "encoding": {
+                    "x": {
+                        "field": "day_of_month",
+                        "type": "ordinal",
+                        "title": "Day",
+                        "scale": {
+                            "domain": [
+                                1,
+                                2,
+                                3,
+                                4,
+                                5,
+                                6,
+                                7,
+                                8,
+                                9,
+                                10,
+                                11,
+                                12,
+                                13,
+                                14,
+                                15,
+                                16,
+                                17,
+                                18,
+                                19,
+                                20,
+                                21,
+                                22,
+                                23,
+                                24,
+                                25,
+                                26,
+                                27,
+                                28,
+                                29,
+                                30,
+                                31
+                            ]
+                        }
+                    },
+                    "y": {
+                        "field": "month_number",
+                        "type": "ordinal",
+                        "title": "Month",
+                        "scale": {
+                            "domain": [
+                                1,
+                                2,
+                                3,
+                                4,
+                                5,
+                                6,
+                                7,
+                                8,
+                                9,
+                                10,
+                                11,
+                                12
+                            ]
+                        },
+                        "axis": {
+                            "labelExpr": "['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][datum.value]"
+                        }
+                    },
+                    "color": {
+                        "field": "completion_rate",
+                        "type": "quantitative",
+                        "scale": {
+                            "scheme": "greens",
+                            "domain": [
+                                0,
+                                1
+                            ]
+                        },
+                        "legend": {
+                            "title": "Completion Rate",
+                            "format": ".0%"
+                        }
+                    },
+                    "tooltip": [
+                        {
+                            "field": "date",
+                            "type": "temporal",
+                            "title": "Date"
+                        },
+                        {
+                            "field": "completed_count",
+                            "type": "quantitative",
+                            "title": "Completed Habits"
+                        },
+                        {
+                            "field": "total_habits",
+                            "type": "quantitative",
+                            "title": "Total Habits"
+                        },
+                        {
+                            "field": "completion_rate",
+                            "type": "quantitative",
+                            "title": "Completion Rate",
+                            "format": ".1%"
+                        }
+                    ]
+                },
+                "width": "container",
+                "height": 150
+            }
+        }
+    }
+}
