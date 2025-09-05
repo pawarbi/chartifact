@@ -210,11 +210,6 @@
                         "type": "formula",
                         "expr": "datum.completed_count / datum.total_habits",
                         "as": "completion_rate"
-                    },
-                    {
-                        "type": "formula",
-                        "expr": "datetime(year(datum.date), month(datum.date), date(datum.date))",
-                        "as": "date_parsed"
                     }
                 ]
             }
@@ -243,11 +238,6 @@
                         "type": "formula",
                         "expr": "datum.completed_count / datum.total_habits",
                         "as": "completion_rate"
-                    },
-                    {
-                        "type": "formula",
-                        "expr": "datetime(year(datum.date), month(datum.date), date(datum.date))",
-                        "as": "date_parsed"
                     }
                 ]
             }
