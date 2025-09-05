@@ -504,7 +504,31 @@
         "charts": {
             "monthlyHeatmap": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-                "data": {"name": "dailyCompletionData"},
+                "data": {
+                    "sequence": {
+                        "start": 1,
+                        "stop": 32
+                    }
+                },
+                "transform": [
+                    {
+                        "calculate": "selectedMonth + '-' + format(datum.data, '02d')",
+                        "as": "date_string"
+                    },
+                    {
+                        "calculate": "datetime(year(datetime(selectedMonth + '-01')), month(datetime(selectedMonth + '-01')), datum.data)",
+                        "as": "date"
+                    },
+                    {
+                        "lookup": "date_string",
+                        "from": {
+                            "data": {"name": "dailyCompletionData"},
+                            "key": "date",
+                            "fields": ["completion_rate", "completed_count", "total_habits"]
+                        },
+                        "default": {"completion_rate": 0, "completed_count": 0, "total_habits": 0}
+                    }
+                ],
                 "title": "Daily Habit Completion Rate for Selected Month",
                 "config": {
                     "view": {
@@ -557,7 +581,31 @@
             },
             "annualHeatmap": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-                "data": {"name": "annualCompletionData"},
+                "data": {
+                    "sequence": {
+                        "start": 1,
+                        "stop": 366
+                    }
+                },
+                "transform": [
+                    {
+                        "calculate": "datetime(2024, floor((datum.data - 1) / 31), ((datum.data - 1) % 31) + 1)",
+                        "as": "date"
+                    },
+                    {
+                        "calculate": "year(datum.date) + '-' + format(month(datum.date) + 1, '02d') + '-' + format(date(datum.date), '02d')",
+                        "as": "date_string"
+                    },
+                    {
+                        "lookup": "date_string",
+                        "from": {
+                            "data": {"name": "annualCompletionData"},
+                            "key": "date",
+                            "fields": ["completion_rate", "completed_count", "total_habits"]
+                        },
+                        "default": {"completion_rate": 0, "completed_count": 0, "total_habits": 0}
+                    }
+                ],
                 "title": "Annual Habit Completion Overview",
                 "config": {
                     "view": {
