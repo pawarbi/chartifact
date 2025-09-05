@@ -182,11 +182,11 @@
             "isArray": true,
             "initialValue": [],
             "calculation": {
-                "dataSourceNames": ["progressDataTable", "habitsDataTable"],
+                "dataSourceNames": ["progressData", "habitsData"],
                 "dataFrameTransformations": [
                     {
                         "type": "lookup",
-                        "from": "habitsDataTable",
+                        "from": "habitsData",
                         "key": "habit_id",
                         "fields": ["category", "target_frequency"],
                         "as": ["category", "target_frequency"]
