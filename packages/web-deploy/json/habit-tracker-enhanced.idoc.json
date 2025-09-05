@@ -199,7 +199,7 @@
             "isArray": true,
             "initialValue": [],
             "calculation": {
-                "dataSourceNames": ["progressDataTable"],
+                "dataSourceNames": ["enrichedProgressData"],
                 "dataFrameTransformations": [
                     {
                         "type": "filter",
@@ -252,7 +252,7 @@
             "isArray": true,
             "initialValue": [],
             "calculation": {
-                "dataSourceNames": ["progressDataTable"],
+                "dataSourceNames": ["enrichedProgressData"],
                 "dataFrameTransformations": [
                     {
                         "type": "formula",
@@ -261,7 +261,7 @@
                     },
                     {
                         "type": "aggregate",
-                        "groupby": ["date", "habit_name"],
+                        "groupby": ["date", "category"],
                         "ops": ["sum", "count"],
                         "fields": ["completed_numeric", "completed_numeric"],
                         "as": ["completed_count", "total_habits"]
@@ -479,7 +479,7 @@
         {
             "groupId": "alltime",
             "elements": [
-                "## 🌟 All-Time Habit Performance",
+                "## 🌟 All-Time Habit Performance by Category",
                 {
                     "type": "chart",
                     "chartKey": "allTimeHeatmap"
@@ -551,7 +551,7 @@
             "allTimeHeatmap": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
                 "data": {"name": "allTimeHeatmapData"},
-                "title": "All-Time Daily Completion by Habit",
+                "title": "All-Time Daily Completion by Category",
                 "config": {
                     "view": {
                         "strokeWidth": 0,
@@ -579,9 +579,10 @@
                         }
                     },
                     "y": {
-                        "field": "habit_name",
+                        "field": "category",
                         "type": "nominal",
-                        "title": "Habit"
+                        "title": "Category",
+                        "sort": ["Health", "Learning", "Wellness", "Social"]
                     },
                     "color": {
                         "field": "completion_rate",
@@ -591,13 +592,13 @@
                             "domain": [0, 1]
                         },
                         "legend": {
-                            "title": "Habit Completion Rate",
+                            "title": "Category Completion Rate",
                             "format": ".0%"
                         }
                     },
                     "tooltip": [
                         {"field": "date", "type": "temporal", "title": "Date"},
-                        {"field": "habit_name", "type": "nominal", "title": "Habit"},
+                        {"field": "category", "type": "nominal", "title": "Category"},
                         {"field": "completed_count", "type": "quantitative", "title": "Completed Habits"},
                         {"field": "total_habits", "type": "quantitative", "title": "Total Habits"},
                         {"field": "completion_rate", "type": "quantitative", "title": "Completion Rate", "format": ".1%"}
