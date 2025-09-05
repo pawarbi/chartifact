@@ -4,9 +4,9 @@
     "style": {
         "css": [
             "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f8fafc; }",
-            "body { display: grid; grid-template-areas: 'header header' 'controls controls' 'heatmap heatmap' 'habits progress' 'stats stats' 'annual annual'; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }",
-            "@media (max-width: 768px) { body { grid-template-areas: 'header' 'controls' 'heatmap' 'habits' 'progress' 'stats' 'annual'; grid-template-columns: 1fr; } }",
-            ".group { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }",
+            "body { display: grid; grid-template-areas: 'header header' 'controls controls' 'heatmap heatmap' 'habits progress' 'stats stats' 'annual annual' 'debug debug'; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }",
+            "@media (max-width: 768px) { body { grid-template-areas: 'header' 'controls' 'heatmap' 'habits' 'progress' 'stats' 'annual' 'debug'; grid-template-columns: 1fr; } }",
+            "[id] { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }",
             "#header { grid-area: header; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; border-radius: 12px; }",
             "#controls { grid-area: controls; }",
             "#heatmap { grid-area: heatmap; }",
@@ -14,6 +14,7 @@
             "#progress { grid-area: progress; }",
             "#stats { grid-area: stats; }",
             "#annual { grid-area: annual; }",
+            "#debug { grid-area: debug; }",
             "h1 { margin: 0; padding: 20px 0; font-size: 2em; font-weight: 600; }",
             "h2 { margin: 0 0 15px 0; font-size: 1.4em; color: #2d3748; font-weight: 600; }",
             "h3 { margin: 0 0 10px 0; font-size: 1.1em; color: #4a5568; font-weight: 500; }",
@@ -354,6 +355,24 @@
             "calculation": {
                 "vegaExpression": "data('totalCompletedEntries')[0] ? data('totalCompletedEntries')[0].completed_count : 0"
             }
+        },
+        {
+            "variableId": "enrichedProgressData",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": ["progressDataTable", "habitsDataTable"],
+                "dataFrameTransformations": [
+                    {
+                        "type": "lookup",
+                        "from": "habitsDataTable",
+                        "key": "habit_id",
+                        "fields": ["category", "target_frequency"],
+                        "as": ["category", "target_frequency"]
+                    }
+                ]
+            }
         }
     ],
     "groups": [
@@ -461,6 +480,29 @@
                 {
                     "type": "chart",
                     "chartKey": "annualHeatmap"
+                }
+            ]
+        },
+        {
+            "groupId": "debug",
+            "elements": [
+                "## 🔍 Debug: Progress with Categories",
+                {
+                    "type": "tabulator",
+                    "dataSourceName": "enrichedProgressData",
+                    "tabulatorOptions": {
+                        "columns": [
+                            {"field": "date", "title": "Date", "width": 100},
+                            {"field": "habit_name", "title": "Habit", "width": 150},
+                            {"field": "category", "title": "Category", "width": 100},
+                            {"field": "completed", "title": "✓", "width": 50, "hozAlign": "center", "formatter": "tickCross"}
+                        ],
+                        "layout": "fitColumns",
+                        "height": "200px",
+                        "initialSort": [
+                            {"column": "date", "dir": "desc"}
+                        ]
+                    }
                 }
             ]
         }
