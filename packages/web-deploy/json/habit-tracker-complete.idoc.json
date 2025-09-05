@@ -506,6 +506,12 @@
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
                 "data": {"name": "dailyCompletionData"},
                 "title": "Daily Habit Completion Rate for Selected Month",
+                "transform": [
+                    {
+                        "calculate": "utcParse(datum.date, '%Y-%m-%d')",
+                        "as": "date_parsed"
+                    }
+                ],
                 "config": {
                     "view": {
                         "strokeWidth": 0,
@@ -523,7 +529,7 @@
                 },
                 "encoding": {
                     "x": {
-                        "field": "date",
+                        "field": "date_parsed",
                         "timeUnit": "date",
                         "type": "ordinal",
                         "title": "Day of Month",
@@ -545,7 +551,7 @@
                         }
                     },
                     "tooltip": [
-                        {"field": "date", "type": "temporal", "title": "Date"},
+                        {"field": "date_parsed", "type": "temporal", "title": "Date"},
                         {"field": "completed_count", "type": "quantitative", "title": "Completed Habits"},
                         {"field": "total_habits", "type": "quantitative", "title": "Total Habits"},
                         {"field": "completion_rate", "type": "quantitative", "title": "Completion Rate", "format": ".1%"}
@@ -559,6 +565,12 @@
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
                 "data": {"name": "annualCompletionData"},
                 "title": "Annual Habit Completion Overview",
+                "transform": [
+                    {
+                        "calculate": "utcParse(datum.date, '%Y-%m-%d')",
+                        "as": "date_parsed"
+                    }
+                ],
                 "config": {
                     "view": {
                         "strokeWidth": 0,
@@ -576,7 +588,7 @@
                 },
                 "encoding": {
                     "x": {
-                        "field": "date",
+                        "field": "date_parsed",
                         "timeUnit": "date",
                         "type": "ordinal",
                         "title": "Day of Month",
@@ -586,7 +598,7 @@
                         }
                     },
                     "y": {
-                        "field": "date",
+                        "field": "date_parsed",
                         "timeUnit": "month",
                         "type": "ordinal",
                         "title": "Month"
@@ -604,7 +616,7 @@
                         }
                     },
                     "tooltip": [
-                        {"field": "date", "type": "temporal", "title": "Date"},
+                        {"field": "date_parsed", "type": "temporal", "title": "Date"},
                         {"field": "completed_count", "type": "quantitative", "title": "Completed Habits"},
                         {"field": "total_habits", "type": "quantitative", "title": "Total Habits"},
                         {"field": "completion_rate", "type": "quantitative", "title": "Completion Rate", "format": ".1%"}
