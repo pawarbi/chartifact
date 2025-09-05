@@ -11,13 +11,33 @@
             ".tabulator { max-width: 100%; overflow: auto; }",
             ".tabulator .tabulator-table { min-width: fit-content; }",
             "#heatmap .vega-embed .vega-actions { display: none; }",
-            "body { display: grid; gap: 20px; grid-template-columns: 1fr; grid-template-areas: 'header' 'table' 'heatmap'; }",
+            "body { display: grid; gap: 20px; grid-template-columns: 1fr 1fr; grid-template-areas: 'header header' 'habits table' 'debug debug' 'heatmap heatmap'; }",
             "#header { grid-area: header; }",
+            "#habits { grid-area: habits; min-width: 0; }",
             "#table { grid-area: table; min-width: 0; }",
-            "#heatmap { grid-area: heatmap; min-width: 0; overflow: hidden; }"
+            "#debug { grid-area: debug; min-width: 0; }",
+            "#heatmap { grid-area: heatmap; min-width: 0; overflow: hidden; }",
+            "@media (max-width: 768px) { body { grid-template-columns: 1fr; grid-template-areas: 'header' 'habits' 'table' 'debug' 'heatmap'; } }"
         ]
     },
     "dataLoaders": [
+        {
+            "dataSourceName": "habitsData",
+            "type": "inline",
+            "format": "json",
+            "content": [
+                {
+                    "habit_name": "Exercise",
+                    "category": "Health",
+                    "target_frequency": "Daily"
+                },
+                {
+                    "habit_name": "Read",
+                    "category": "Learning", 
+                    "target_frequency": "Daily"
+                }
+            ]
+        },
         {
             "dataSourceName": "habitData",
             "type": "inline",
@@ -146,7 +166,35 @@
             ]
         }
     ],
+    ],
     "variables": [
+        {
+            "variableId": "enrichedHabitData",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": [
+                    "habitDataTable"
+                ],
+                "dataFrameTransformations": [
+                    {
+                        "type": "lookup",
+                        "from": "habitsDataTable",
+                        "key": "habit_name",
+                        "fields": [
+                            "habit"
+                        ],
+                        "values": ["category", "target_frequency"]
+                    },
+                    {
+                        "type": "formula",
+                        "expr": "datum.category || 'Unknown'",
+                        "as": "category"
+                    }
+                ]
+            }
+        },
         {
             "variableId": "dailyCompletionData",
             "type": "object",
@@ -210,9 +258,26 @@
             ]
         },
         {
+            "groupId": "habits",
+            "elements": [
+                "## 🎯 Habits Configuration",
+                {
+                    "type": "tabulator",
+                    "dataSourceName": "habitsData",
+                    "variableId": "habitsDataTable",
+                    "editable": true,
+                    "tabulatorOptions": {
+                        "maxHeight": "180px",
+                        "autoColumns": true,
+                        "layout": "fitColumns"
+                    }
+                }
+            ]
+        },
+        {
             "groupId": "table",
             "elements": [
-                "## 📋 Habit Data",
+                "## 📋 Daily Progress",
                 {
                     "type": "tabulator",
                     "dataSourceName": "habitData",
@@ -220,6 +285,21 @@
                     "editable": true,
                     "tabulatorOptions": {
                         "maxHeight": "210px",
+                        "autoColumns": true,
+                        "layout": "fitColumns"
+                    }
+                }
+            ]
+        },
+        {
+            "groupId": "debug",
+            "elements": [
+                "## 🔍 Debug: Enriched Data",
+                {
+                    "type": "tabulator",
+                    "dataSourceName": "enrichedHabitData",
+                    "tabulatorOptions": {
+                        "maxHeight": "200px",
                         "autoColumns": true,
                         "layout": "fitColumns"
                     }
