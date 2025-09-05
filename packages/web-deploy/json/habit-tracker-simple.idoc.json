@@ -11,16 +11,28 @@
             ".tabulator { max-width: 100%; overflow: auto; }",
             ".tabulator .tabulator-table { min-width: fit-content; }",
             "#heatmap .vega-embed .vega-actions { display: none; }",
-            "body { display: grid; gap: 20px; grid-template-columns: 1fr 1fr; grid-template-areas: 'header header' 'habits table' 'debug debug' 'heatmap heatmap'; }",
+            "body { display: grid; gap: 20px; grid-template-columns: 1fr 1fr; grid-template-areas: 'header header' 'controls controls' 'habits table' 'debug debug' 'heatmap heatmap'; }",
             "#header { grid-area: header; }",
+            "#controls { grid-area: controls; min-width: 0; }",
             "#habits { grid-area: habits; min-width: 0; }",
             "#table { grid-area: table; min-width: 0; }",
             "#debug { grid-area: debug; min-width: 0; }",
             "#heatmap { grid-area: heatmap; min-width: 0; overflow: hidden; }",
-            "@media (max-width: 768px) { body { grid-template-columns: 1fr; grid-template-areas: 'header' 'habits' 'table' 'debug' 'heatmap'; } }"
+            "@media (max-width: 768px) { body { grid-template-columns: 1fr; grid-template-areas: 'header' 'controls' 'habits' 'table' 'debug' 'heatmap'; } }"
         ]
     },
     "dataLoaders": [
+        {
+            "dataSourceName": "monthOptions",
+            "type": "inline",
+            "format": "json",
+            "content": [
+                {"value": "2024-01", "label": "January 2024"},
+                {"value": "2024-02", "label": "February 2024"},
+                {"value": "2024-03", "label": "March 2024"},
+                {"value": "2024-04", "label": "April 2024"}
+            ]
+        },
         {
             "dataSourceName": "habitsData",
             "type": "inline",
@@ -166,8 +178,12 @@
             ]
         }
     ],
-    ],
     "variables": [
+        {
+            "variableId": "selectedMonth",
+            "type": "string",
+            "initialValue": "2024-01"
+        },
         {
             "variableId": "enrichedHabitData",
             "type": "object",
@@ -191,6 +207,22 @@
                         "type": "formula",
                         "expr": "datum.category || 'Unknown'",
                         "as": "category"
+                    }
+                ]
+            }
+        },
+        {
+            "variableId": "filteredEnrichedData",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": ["enrichedHabitData"],
+                "variableDependencies": ["selectedMonth"],
+                "dataFrameTransformations": [
+                    {
+                        "type": "filter",
+                        "expr": "slice(datum.date, 0, 7) === selectedMonth"
                     }
                 ]
             }
@@ -258,6 +290,21 @@
             ]
         },
         {
+            "groupId": "controls",
+            "elements": [
+                "## 🎛️ Month Filter",
+                {
+                    "type": "dropdown",
+                    "variableId": "selectedMonth",
+                    "label": "Select Month:",
+                    "dynamicOptions": {
+                        "dataSourceName": "monthOptions",
+                        "fieldName": "value"
+                    }
+                }
+            ]
+        },
+        {
             "groupId": "habits",
             "elements": [
                 "## 🎯 Habits Configuration",
@@ -294,10 +341,10 @@
         {
             "groupId": "debug",
             "elements": [
-                "## 🔍 Debug: Enriched Data",
+                "## 🔍 Debug: Filtered Enriched Data (Selected Month)",
                 {
                     "type": "tabulator",
-                    "dataSourceName": "enrichedHabitData",
+                    "dataSourceName": "filteredEnrichedData",
                     "tabulatorOptions": {
                         "maxHeight": "200px",
                         "autoColumns": true,
