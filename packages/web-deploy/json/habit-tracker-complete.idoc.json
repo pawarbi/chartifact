@@ -178,10 +178,11 @@
             "initialValue": [],
             "calculation": {
                 "dataSourceNames": ["progressDataTable"],
+                "variableDependencies": ["selectedMonth"],
                 "dataFrameTransformations": [
                     {
                         "type": "filter",
-                        "expr": "slice(datum.date, 0, 7) === '2024-01'"
+                        "expr": "slice(datum.date, 0, 7) === selectedMonth"
                     }
                 ]
             }
