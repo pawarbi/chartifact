@@ -508,8 +508,10 @@
                 "title": "Daily Habit Completion Rate for Selected Month",
                 "transform": [
                     {
-                        "calculate": "utcParse(datum.date, '%Y-%m-%d')",
-                        "as": "date_parsed"
+                        "field": "date",
+                        "type": "timeunit",
+                        "units": ["utcdate"],
+                        "as": ["date_date", "date_date_end"]
                     }
                 ],
                 "config": {
@@ -529,13 +531,13 @@
                 },
                 "encoding": {
                     "x": {
-                        "field": "date_parsed",
-                        "timeUnit": "date",
+                        "field": "date_date",
                         "type": "ordinal",
                         "title": "Day of Month",
                         "axis": {
                             "labelAngle": 0,
-                            "format": "%e"
+                            "format": "%e",
+                            "formatType": "utc"
                         }
                     },
                     "color": {
@@ -551,7 +553,7 @@
                         }
                     },
                     "tooltip": [
-                        {"field": "date_parsed", "type": "temporal", "title": "Date"},
+                        {"field": "date", "type": "temporal", "title": "Date"},
                         {"field": "completed_count", "type": "quantitative", "title": "Completed Habits"},
                         {"field": "total_habits", "type": "quantitative", "title": "Total Habits"},
                         {"field": "completion_rate", "type": "quantitative", "title": "Completion Rate", "format": ".1%"}
@@ -567,8 +569,16 @@
                 "title": "Annual Habit Completion Overview",
                 "transform": [
                     {
-                        "calculate": "utcParse(datum.date, '%Y-%m-%d')",
-                        "as": "date_parsed"
+                        "field": "date",
+                        "type": "timeunit",
+                        "units": ["utcdate"],
+                        "as": ["date_date", "date_date_end"]
+                    },
+                    {
+                        "field": "date",
+                        "type": "timeunit",
+                        "units": ["utcmonth"],
+                        "as": ["month_date", "month_date_end"]
                     }
                 ],
                 "config": {
@@ -588,20 +598,23 @@
                 },
                 "encoding": {
                     "x": {
-                        "field": "date_parsed",
-                        "timeUnit": "date",
+                        "field": "date_date",
                         "type": "ordinal",
                         "title": "Day of Month",
                         "axis": {
                             "labelAngle": 0,
-                            "format": "%e"
+                            "format": "%e",
+                            "formatType": "utc"
                         }
                     },
                     "y": {
-                        "field": "date_parsed",
-                        "timeUnit": "month",
+                        "field": "month_date",
                         "type": "ordinal",
-                        "title": "Month"
+                        "title": "Month",
+                        "axis": {
+                            "format": "%B",
+                            "formatType": "utc"
+                        }
                     },
                     "color": {
                         "field": "completion_rate",
@@ -616,7 +629,7 @@
                         }
                     },
                     "tooltip": [
-                        {"field": "date_parsed", "type": "temporal", "title": "Date"},
+                        {"field": "date", "type": "temporal", "title": "Date"},
                         {"field": "completed_count", "type": "quantitative", "title": "Completed Habits"},
                         {"field": "total_habits", "type": "quantitative", "title": "Total Habits"},
                         {"field": "completion_rate", "type": "quantitative", "title": "Completion Rate", "format": ".1%"}
