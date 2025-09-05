@@ -11,14 +11,15 @@
             ".tabulator { max-width: 100%; overflow: auto; }",
             ".tabulator .tabulator-table { min-width: fit-content; }",
             "#heatmap .vega-embed .vega-actions { display: none; }",
-            "body { display: grid; gap: 20px; grid-template-columns: 1fr 1fr; grid-template-areas: 'header header' 'controls controls' 'habits table' 'debug debug' 'heatmap heatmap'; }",
+            "body { display: grid; gap: 20px; grid-template-columns: 1fr 1fr; grid-template-areas: 'header header' 'controls controls' 'habits table' 'debug debug' 'monthly monthly' 'heatmap heatmap'; }",
             "#header { grid-area: header; }",
             "#controls { grid-area: controls; min-width: 0; }",
             "#habits { grid-area: habits; min-width: 0; }",
             "#table { grid-area: table; min-width: 0; }",
             "#debug { grid-area: debug; min-width: 0; }",
+            "#monthly { grid-area: monthly; min-width: 0; overflow: hidden; }",
             "#heatmap { grid-area: heatmap; min-width: 0; overflow: hidden; }",
-            "@media (max-width: 768px) { body { grid-template-columns: 1fr; grid-template-areas: 'header' 'controls' 'habits' 'table' 'debug' 'heatmap'; } }"
+            "@media (max-width: 768px) { body { grid-template-columns: 1fr; grid-template-areas: 'header' 'controls' 'habits' 'table' 'debug' 'monthly' 'heatmap'; } }"
         ]
     },
     "dataLoaders": [
@@ -354,9 +355,19 @@
             ]
         },
         {
+            "groupId": "monthly",
+            "elements": [
+                "## 📊 Monthly Heatmap by Category",
+                {
+                    "type": "chart",
+                    "chartKey": "monthlyHeatmap"
+                }
+            ]
+        },
+        {
             "groupId": "heatmap",
             "elements": [
-                "## 🗓️ Completion Heatmap",
+                "## 🗓️ Annual Calendar View",
                 {
                     "type": "chart",
                     "chartKey": "completionHeatmap"
@@ -366,6 +377,86 @@
     ],
     "resources": {
         "charts": {
+            "monthlyHeatmap": {
+                "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                "data": {
+                    "name": "filteredEnrichedData"
+                },
+                "title": "Daily Habit Completion by Category (Selected Month)",
+                "config": {
+                    "view": {
+                        "strokeWidth": 0,
+                        "step": 13,
+                        "fill": "transparent"
+                    },
+                    "axis": {
+                        "domain": false
+                    },
+                    "background": "transparent"
+                },
+                "transform": [
+                    {
+                        "calculate": "parseInt(slice(datum.date, 8, 10))",
+                        "as": "day_of_month"
+                    },
+                    {
+                        "calculate": "datum.completed ? 1 : 0",
+                        "as": "completed_numeric"
+                    }
+                ],
+                "mark": "rect",
+                "encoding": {
+                    "x": {
+                        "field": "day_of_month",
+                        "type": "ordinal",
+                        "title": "Day of Month",
+                        "scale": {
+                            "domain": [
+                                1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31
+                            ]
+                        }
+                    },
+                    "y": {
+                        "field": "category",
+                        "type": "nominal",
+                        "title": "Category"
+                    },
+                    "color": {
+                        "aggregate": "mean",
+                        "field": "completed_numeric",
+                        "type": "quantitative",
+                        "scale": {
+                            "scheme": "blues",
+                            "domain": [0, 1]
+                        },
+                        "legend": {
+                            "title": "Completion Rate",
+                            "format": ".0%"
+                        }
+                    },
+                    "tooltip": [
+                        {
+                            "field": "category",
+                            "type": "nominal",
+                            "title": "Category"
+                        },
+                        {
+                            "field": "day_of_month",
+                            "type": "ordinal",
+                            "title": "Day"
+                        },
+                        {
+                            "aggregate": "mean",
+                            "field": "completed_numeric",
+                            "type": "quantitative",
+                            "title": "Completion Rate",
+                            "format": ".1%"
+                        }
+                    ]
+                },
+                "width": "container",
+                "height": 120
+            },
             "completionHeatmap": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
                 "data": {
