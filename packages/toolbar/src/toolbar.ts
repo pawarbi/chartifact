@@ -51,8 +51,8 @@ export class Toolbar {
     <div style="margin-bottom: 8px;">Download as:</div>
     <ul>
         <li>
-            Source content (just the content)<br/>
-            <button type="button" id="download-md" style="margin-right: 8px;">Source content</button>
+            Source (just the json/markdown content)<br/>
+            <button type="button" id="download-md" style="margin-right: 8px;">Source</button>
         </li>
         <li>
             HTML wrapper (content plus a shareable viewer)<br/>
