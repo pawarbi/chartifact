@@ -506,14 +506,6 @@
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
                 "data": {"name": "dailyCompletionData"},
                 "title": "Daily Habit Completion Rate for Selected Month",
-                "transform": [
-                    {
-                        "field": "date",
-                        "type": "timeunit",
-                        "units": ["utcdate"],
-                        "as": ["date_date", "date_date_end"]
-                    }
-                ],
                 "config": {
                     "view": {
                         "strokeWidth": 0,
@@ -531,13 +523,13 @@
                 },
                 "encoding": {
                     "x": {
-                        "field": "date_date",
+                        "field": "date",
+                        "timeUnit": "utcdate",
                         "type": "ordinal",
                         "title": "Day of Month",
                         "axis": {
                             "labelAngle": 0,
-                            "format": "%e",
-                            "formatType": "utc"
+                            "format": "%e"
                         }
                     },
                     "color": {
@@ -567,20 +559,6 @@
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
                 "data": {"name": "annualCompletionData"},
                 "title": "Annual Habit Completion Overview",
-                "transform": [
-                    {
-                        "field": "date",
-                        "type": "timeunit",
-                        "units": ["utcdate"],
-                        "as": ["date_date", "date_date_end"]
-                    },
-                    {
-                        "field": "date",
-                        "type": "timeunit",
-                        "units": ["utcmonth"],
-                        "as": ["month_date", "month_date_end"]
-                    }
-                ],
                 "config": {
                     "view": {
                         "strokeWidth": 0,
@@ -598,22 +576,22 @@
                 },
                 "encoding": {
                     "x": {
-                        "field": "date_date",
+                        "field": "date",
+                        "timeUnit": "utcdate",
                         "type": "ordinal",
                         "title": "Day of Month",
                         "axis": {
                             "labelAngle": 0,
-                            "format": "%e",
-                            "formatType": "utc"
+                            "format": "%e"
                         }
                     },
                     "y": {
-                        "field": "month_date",
+                        "field": "date",
+                        "timeUnit": "utcmonth",
                         "type": "ordinal",
                         "title": "Month",
                         "axis": {
-                            "format": "%B",
-                            "formatType": "utc"
+                            "format": "%B"
                         }
                     },
                     "color": {
