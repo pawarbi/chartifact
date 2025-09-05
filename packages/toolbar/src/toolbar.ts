@@ -51,7 +51,7 @@ export class Toolbar {
     <div style="margin-bottom: 8px;">Download as:</div>
     <ul>
         <li>
-            Source (just the json/markdown content)<br/>
+            Source (just the ${this.mode} content)<br/>
             <button type="button" id="download-md" style="margin-right: 8px;">Source</button>
         </li>
         <li>
