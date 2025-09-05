@@ -29,9 +29,9 @@
             "type": "inline",
             "format": "json",
             "content": [
-                "2024-01",
-                "2024-02", 
-                "2024-03"
+                {"value": "2024-01", "label": "January 2024"},
+                {"value": "2024-02", "label": "February 2024"},
+                {"value": "2024-03", "label": "March 2024"}
             ]
         },
         {
@@ -199,7 +199,7 @@
             "isArray": true,
             "initialValue": [],
             "calculation": {
-                "dataSourceNames": ["enrichedProgressData"],
+                "dataSourceNames": ["progressDataTable"],
                 "dataFrameTransformations": [
                     {
                         "type": "filter",
@@ -252,7 +252,7 @@
             "isArray": true,
             "initialValue": [],
             "calculation": {
-                "dataSourceNames": ["enrichedProgressData"],
+                "dataSourceNames": ["progressDataTable"],
                 "dataFrameTransformations": [
                     {
                         "type": "formula",
@@ -261,7 +261,7 @@
                     },
                     {
                         "type": "aggregate",
-                        "groupby": ["date", "category"],
+                        "groupby": ["date", "habit_name"],
                         "ops": ["sum", "count"],
                         "fields": ["completed_numeric", "completed_numeric"],
                         "as": ["completed_count", "total_habits"]
@@ -396,7 +396,8 @@
                     "variableId": "selectedMonth",
                     "label": "Select Month:",
                     "dynamicOptions": {
-                        "dataSourceName": "monthOptions"
+                        "dataSourceName": "monthOptions",
+                        "fieldName": "value"
                     }
                 }
             ]
@@ -478,7 +479,7 @@
         {
             "groupId": "alltime",
             "elements": [
-                "## 🌟 All-Time Habit Performance by Category",
+                "## 🌟 All-Time Habit Performance",
                 {
                     "type": "chart",
                     "chartKey": "allTimeHeatmap"
@@ -550,7 +551,7 @@
             "allTimeHeatmap": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
                 "data": {"name": "allTimeHeatmapData"},
-                "title": "All-Time Daily Completion by Category",
+                "title": "All-Time Daily Completion by Habit",
                 "config": {
                     "view": {
                         "strokeWidth": 0,
@@ -578,10 +579,9 @@
                         }
                     },
                     "y": {
-                        "field": "category",
+                        "field": "habit_name",
                         "type": "nominal",
-                        "title": "Category",
-                        "sort": ["Health", "Learning", "Wellness", "Social"]
+                        "title": "Habit"
                     },
                     "color": {
                         "field": "completion_rate",
@@ -591,13 +591,13 @@
                             "domain": [0, 1]
                         },
                         "legend": {
-                            "title": "Category Completion Rate",
+                            "title": "Habit Completion Rate",
                             "format": ".0%"
                         }
                     },
                     "tooltip": [
                         {"field": "date", "type": "temporal", "title": "Date"},
-                        {"field": "category", "type": "nominal", "title": "Category"},
+                        {"field": "habit_name", "type": "nominal", "title": "Habit"},
                         {"field": "completed_count", "type": "quantitative", "title": "Completed Habits"},
                         {"field": "total_habits", "type": "quantitative", "title": "Total Habits"},
                         {"field": "completion_rate", "type": "quantitative", "title": "Completion Rate", "format": ".1%"}
