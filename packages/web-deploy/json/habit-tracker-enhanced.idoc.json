@@ -5,6 +5,7 @@
         "css": [
             "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f8fafc; }",
             "body { display: grid; grid-template-areas: 'header header' 'controls controls' 'heatmap heatmap' 'habits progress' 'stats stats' 'alltime alltime'; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; }",
+            "@media (max-width: 768px) { body { grid-template-areas: 'header' 'controls' 'heatmap' 'habits' 'progress' 'stats' 'alltime'; grid-template-columns: 1fr; } }",
             ".group { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }",
             "#header { grid-area: header; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; border-radius: 12px; }",
             "#controls { grid-area: controls; }",
@@ -223,7 +224,7 @@
                     },
                     {
                         "type": "aggregate",
-                        "groupby": ["date"],
+                        "groupby": ["date", "category"],
                         "ops": ["sum", "count"],
                         "fields": ["completed_numeric", "completed_numeric"],
                         "as": ["completed_count", "total_habits"]
@@ -261,7 +262,7 @@
                     },
                     {
                         "type": "aggregate",
-                        "groupby": ["date", "category"],
+                        "groupby": ["date"],
                         "ops": ["sum", "count"],
                         "fields": ["completed_numeric", "completed_numeric"],
                         "as": ["completed_count", "total_habits"]
@@ -275,6 +276,16 @@
                         "type": "formula",
                         "expr": "datetime(year(datum.date), month(datum.date), date(datum.date))",
                         "as": "date_parsed"
+                    },
+                    {
+                        "type": "formula",
+                        "expr": "date(datum.date)",
+                        "as": "day_of_month"
+                    },
+                    {
+                        "type": "formula",
+                        "expr": "timeFormat(datum.date, '%B')",
+                        "as": "month_name"
                     }
                 ]
             }
@@ -441,7 +452,7 @@
         {
             "groupId": "progress",
             "elements": [
-                "## 📈 Progress (Filtered by Month)",
+                "## 📈 Progress",
                 {
                     "type": "tabulator",
                     "dataSourceName": "progressData",
@@ -479,7 +490,7 @@
         {
             "groupId": "alltime",
             "elements": [
-                "## 🌟 All-Time Habit Performance by Category",
+                "## 🌟 Annual Habit Performance",
                 {
                     "type": "chart",
                     "chartKey": "allTimeHeatmap"
@@ -492,7 +503,7 @@
             "monthlyHeatmap": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
                 "data": {"name": "monthlyHeatmapData"},
-                "title": "Daily Completion Rate - Selected Month",
+                "title": "Daily Completion Rate by Category - Selected Month",
                 "config": {
                     "view": {
                         "strokeWidth": 0,
@@ -521,9 +532,10 @@
                         }
                     },
                     "y": {
-                        "datum": 1,
-                        "type": "ordinal",
-                        "title": ""
+                        "field": "category",
+                        "type": "nominal",
+                        "title": "Category",
+                        "sort": ["Health", "Learning", "Wellness", "Social"]
                     },
                     "color": {
                         "field": "completion_rate",
@@ -539,19 +551,20 @@
                     },
                     "tooltip": [
                         {"field": "date", "type": "temporal", "title": "Date"},
+                        {"field": "category", "type": "nominal", "title": "Category"},
                         {"field": "completed_count", "type": "quantitative", "title": "Completed Habits"},
                         {"field": "total_habits", "type": "quantitative", "title": "Total Habits"},
                         {"field": "completion_rate", "type": "quantitative", "title": "Completion Rate", "format": ".1%"}
                     ]
                 },
                 "width": "container",
-                "height": 60,
+                "height": 120,
                 "background": "transparent"
             },
             "allTimeHeatmap": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
                 "data": {"name": "allTimeHeatmapData"},
-                "title": "All-Time Daily Completion by Category",
+                "title": "Annual Completion Calendar - All Categories",
                 "config": {
                     "view": {
                         "strokeWidth": 0,
@@ -569,20 +582,21 @@
                 },
                 "encoding": {
                     "x": {
-                        "field": "date",
-                        "timeUnit": "date",
-                        "type": "temporal",
+                        "field": "day_of_month",
+                        "type": "ordinal",
                         "title": "Day of Month",
+                        "scale": {
+                            "domain": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+                        },
                         "axis": {
-                            "labelAngle": 0,
-                            "format": "%e"
+                            "labelAngle": 0
                         }
                     },
                     "y": {
-                        "field": "category",
+                        "field": "month_name",
                         "type": "nominal",
-                        "title": "Category",
-                        "sort": ["Health", "Learning", "Wellness", "Social"]
+                        "title": "Month",
+                        "sort": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
                     },
                     "color": {
                         "field": "completion_rate",
@@ -592,13 +606,13 @@
                             "domain": [0, 1]
                         },
                         "legend": {
-                            "title": "Category Completion Rate",
+                            "title": "Completion Rate",
                             "format": ".0%"
                         }
                     },
                     "tooltip": [
                         {"field": "date", "type": "temporal", "title": "Date"},
-                        {"field": "category", "type": "nominal", "title": "Category"},
+                        {"field": "month_name", "type": "nominal", "title": "Month"},
                         {"field": "completed_count", "type": "quantitative", "title": "Completed Habits"},
                         {"field": "total_habits", "type": "quantitative", "title": "Total Habits"},
                         {"field": "completion_rate", "type": "quantitative", "title": "Completion Rate", "format": ".1%"}
