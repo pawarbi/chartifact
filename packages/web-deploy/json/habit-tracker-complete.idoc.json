@@ -506,7 +506,7 @@
             "monthlyHeatmap": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
                 "data": {"name": "filteredProgressData"},
-                "title": "Daily Habit Completion Rate for Selected Month",
+                "title": "Monthly progress by category",
                 "config": {
                     "view": {
                         "strokeWidth": 0,
@@ -543,7 +543,7 @@
                             "domain": [0, 1]
                         },
                         "legend": {
-                            "title": "Completion Rate",
+                            "title": "% complete",
                             "format": ".0%"
                         }
                     },
@@ -558,7 +558,7 @@
             "annualHeatmap": {
                 "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
                 "data": {"name": "progressDataTable"},
-                "title": "Annual Habit Completion Overview",
+                "title": "Annual progress",
                 "config": {
                     "view": {
                         "strokeWidth": 0,
@@ -601,7 +601,7 @@
                             "domain": [0, 1]
                         },
                         "legend": {
-                            "title": "Completion Rate",
+                            "title": "% complete",
                             "format": ".0%"
                         }
                     },

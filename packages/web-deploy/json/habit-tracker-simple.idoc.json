@@ -572,7 +572,7 @@
                 "data": {
                     "name": "filteredEnrichedData"
                 },
-                "title": "Daily Habit Completion by Category (Selected Month)",
+                "title": "Monthly progress by category",
                 "config": {
                     "view": {
                         "strokeWidth": 0,
@@ -623,7 +623,7 @@
                             "domain": [0, 1]
                         },
                         "legend": {
-                            "title": "Completion Rate",
+                            "title": "% complete",
                             "format": ".0%"
                         }
                     },
@@ -655,7 +655,7 @@
                 "data": {
                     "name": "dailyCompletionData"
                 },
-                "title": "Daily Habit Completion Rate",
+                "title": "Annual progress",
                 "config": {
                     "view": {
                         "strokeWidth": 0,
@@ -744,7 +744,7 @@
                             ]
                         },
                         "legend": {
-                            "title": "Completion Rate",
+                            "title": "% complete",
                             "format": ".0%"
                         }
                     },
