@@ -1216,7 +1216,7 @@ ${reconstitutedRules.join("\n\n")}
   }
   function reconstituteCss(atRules) {
     const cssBlocks = [];
-    for (const atRule of Object.values(atRules)) {
+    for (const atRule of Object.keys(atRules).map((key) => atRules[key])) {
       const reconstructed = reconstituteAtRule(atRule);
       if (reconstructed.trim()) {
         cssBlocks.push(reconstructed);
@@ -1254,7 +1254,38 @@ ${reconstitutedRules.join("\n\n")}
       "starting-style",
       "position-try"
     ];
-    function checkSecurityIssues(node) {
+    const findAtRuleContext = (targetNode, rootNode) => {
+      let context = "";
+      csstree.walk(rootNode, (node, item, list) => {
+        if (node.type === "Atrule" && node.block) {
+          const atRuleSignature = `@${node.name}${node.prelude ? ` ${csstree.generate(node.prelude)}` : ""}`;
+          let foundTarget = false;
+          csstree.walk(node.block, (innerNode) => {
+            if (innerNode === targetNode) {
+              foundTarget = true;
+            }
+          });
+          if (foundTarget) {
+            context = atRuleSignature;
+          }
+        }
+      });
+      return context;
+    };
+    const addRuleToContext = (rule, context) => {
+      if (!spec.atRules[context]) {
+        spec.atRules[context] = {
+          signature: context,
+          rules: []
+        };
+      }
+      if (spec.atRules[context].rules) {
+        spec.atRules[context].rules.push(rule);
+      } else {
+        spec.atRules[context].rules = [rule];
+      }
+    };
+    const checkSecurityIssues = (node) => {
       if (node.type === "Function" && node.name === "expression") {
         return { flag: "scriptExec", reason: "CSS expression() function detected" };
       }
@@ -1267,8 +1298,8 @@ ${reconstitutedRules.join("\n\n")}
           return { flag: "scriptExec", reason: `${urlStr.split(":")[0]} URL detected` };
         }
         if (urlStr.startsWith("data:")) {
-          if (urlStr.includes("data:image/svg+xml")) {
-            if (urlStr.includes("<script")) {
+          if (urlStr.indexOf("data:image/svg+xml") !== -1) {
+            if (urlStr.indexOf("<script") !== -1) {
               return { flag: "svgDataUrl", reason: "SVG data URL with script detected" };
             }
             return { flag: "svgDataUrl", reason: "SVG data URL detected - requires approval" };
@@ -1285,33 +1316,16 @@ ${reconstitutedRules.join("\n\n")}
         const value = node.value || node.name || "";
         if (typeof value === "string") {
           const valueStr = value.toLowerCase();
-          if (valueStr.includes("\\") && (valueStr.includes("3c") || valueStr.includes("3e") || valueStr.includes("22") || valueStr.includes("27"))) {
+          if (valueStr.indexOf("\\") !== -1 && (valueStr.indexOf("3c") !== -1 || valueStr.indexOf("3e") !== -1 || valueStr.indexOf("22") !== -1 || valueStr.indexOf("27") !== -1)) {
             return { flag: "xss", reason: "Potential CSS-encoded XSS detected" };
           }
         }
       }
       return null;
-    }
+    };
     try {
-      let addCurrentRule = function() {
-        if (currentRule && currentRule.declarations.length > 0) {
-          const targetAtRule = currentAtRuleSignature;
-          if (!spec.atRules[targetAtRule]) {
-            spec.atRules[targetAtRule] = {
-              signature: targetAtRule,
-              rules: []
-            };
-          }
-          if (spec.atRules[targetAtRule].rules) {
-            spec.atRules[targetAtRule].rules.push(currentRule);
-          } else {
-            spec.atRules[targetAtRule].rules = [currentRule];
-          }
-        }
-      };
       const ast = csstree.parse(cssContent);
-      let currentRule = null;
-      let currentAtRuleSignature = "";
+      const pendingRules = [];
       csstree.walk(ast, (node) => {
         if (node.type === "Atrule") {
           const atRuleSignature = `@${node.name}${node.prelude ? ` ${csstree.generate(node.prelude)}` : ""}`;
@@ -1328,7 +1342,7 @@ ${reconstitutedRules.join("\n\n")}
             result.reasons.push(reason);
             return;
           }
-          if (completeBlockAtRules.includes(node.name)) {
+          if (completeBlockAtRules.indexOf(node.name) !== -1) {
             const ruleContent = csstree.generate(node);
             spec.atRules[atRuleSignature] = {
               signature: atRuleSignature,
@@ -1343,7 +1357,6 @@ ${reconstitutedRules.join("\n\n")}
                 rules: []
               };
             }
-            currentAtRuleSignature = atRuleSignature;
           } else {
             const ruleContent = csstree.generate(node);
             spec.atRules[atRuleSignature] = {
@@ -1352,41 +1365,50 @@ ${reconstitutedRules.join("\n\n")}
             };
           }
         } else if (node.type === "Rule") {
-          addCurrentRule();
+          const context = findAtRuleContext(node, ast);
           const selector = csstree.generate(node.prelude);
-          currentRule = {
+          const rule = {
             selector,
             declarations: []
           };
-        } else if (node.type === "Declaration" && currentRule) {
-          const declCss = csstree.generate(node);
-          const declaration = { css: declCss };
-          const securityCheck = checkSecurityIssues(node);
-          if (securityCheck) {
-            declaration.css = `/* omitted (${securityCheck.reason}) */`;
-            declaration.unsafeCss = declCss;
-            declaration.flag = securityCheck.flag;
-            declaration.reason = securityCheck.reason;
-            result.hasFlags = true;
-            result.reasons.push(securityCheck.reason);
-          }
-          currentRule.declarations.push(declaration);
-        } else if (currentRule && (node.type === "Function" || node.type === "Url" || node.type === "String" || node.type === "Identifier")) {
-          const securityCheck = checkSecurityIssues(node);
-          if (securityCheck && currentRule.declarations.length > 0) {
-            const lastDecl = currentRule.declarations[currentRule.declarations.length - 1];
-            if (!lastDecl.flag) {
-              lastDecl.unsafeCss = lastDecl.css;
-              lastDecl.css = `/* omitted (${securityCheck.reason}) */`;
-              lastDecl.flag = securityCheck.flag;
-              lastDecl.reason = securityCheck.reason;
-              result.hasFlags = true;
-              result.reasons.push(securityCheck.reason);
-            }
-          }
+          pendingRules.push({ rule, context, node });
         }
       });
-      addCurrentRule();
+      for (const { rule, context, node } of pendingRules) {
+        csstree.walk(node, (declNode) => {
+          if (declNode.type === "Declaration") {
+            const declCss = csstree.generate(declNode);
+            const declaration = { css: declCss };
+            const securityCheck = checkSecurityIssues(declNode);
+            if (securityCheck) {
+              declaration.css = `/* omitted (${securityCheck.reason}) */`;
+              declaration.unsafeCss = declCss;
+              declaration.flag = securityCheck.flag;
+              declaration.reason = securityCheck.reason;
+              result.hasFlags = true;
+              result.reasons.push(securityCheck.reason);
+            } else {
+              csstree.walk(declNode, (childNode) => {
+                if (childNode !== declNode && (childNode.type === "Function" || childNode.type === "Url" || childNode.type === "String" || childNode.type === "Identifier")) {
+                  const childSecurityCheck = checkSecurityIssues(childNode);
+                  if (childSecurityCheck && !declaration.flag) {
+                    declaration.unsafeCss = declaration.css;
+                    declaration.css = `/* omitted (${childSecurityCheck.reason}) */`;
+                    declaration.flag = childSecurityCheck.flag;
+                    declaration.reason = childSecurityCheck.reason;
+                    result.hasFlags = true;
+                    result.reasons.push(childSecurityCheck.reason);
+                  }
+                }
+              });
+            }
+            rule.declarations.push(declaration);
+          }
+        });
+        if (rule.declarations.length > 0) {
+          addRuleToContext(rule, context);
+        }
+      }
     } catch (parseError) {
       throw new Error(`CSS parsing failed: ${parseError.message}`);
     }
