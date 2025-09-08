@@ -4,21 +4,21 @@
     "style": {
         "css": [
             "body { font-family: sans-serif; margin: 0; padding: 20px; background: #f8fafc; max-width: 1200px; margin: 0 auto; }",
-            "#header, #habits, #table, #monthly, #heatmap { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }",
+            "#header, #habits, #table, #monthly, #annual { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }",
             "#header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; color: white; text-align: center; }",
             "h1 { margin: 0; padding: 20px 0; font-size: 2em; font-weight: 600; }",
             "h2 { margin: 0 0 15px 0; font-size: 1.4em; color: #2d3748; font-weight: 600; }",
             ".tabulator { max-width: 100%; overflow: auto; }",
             ".tabulator .tabulator-table { min-width: fit-content; }",
             "#heatmap .vega-embed .vega-actions { display: none; }",
-            "body { display: grid; gap: 20px; grid-template-columns: 1fr 1fr; grid-template-areas: 'header header' 'habits table' 'monthly monthly' 'heatmap heatmap'; }",
+            "body { display: grid; gap: 20px; grid-template-columns: 1fr 1fr; grid-template-areas: 'header header' 'habits table' 'monthly monthly' 'annual annual'; }",
             "#header { grid-area: header; }",
             "#habits { grid-area: habits; min-width: 0; }",
             "#table { grid-area: table; min-width: 0; }",
 
             "#monthly { grid-area: monthly; min-width: 0; overflow: hidden; }",
-            "#heatmap { grid-area: heatmap; min-width: 0; overflow: hidden; }",
-            "@media (max-width: 768px) { body { grid-template-columns: 1fr; grid-template-areas: 'header' 'habits' 'table' 'monthly' 'heatmap'; } }"
+            "#annual { grid-area: annual; min-width: 0; overflow: hidden; }",
+            "@media (max-width: 768px) { body { grid-template-columns: 1fr; grid-template-areas: 'header' 'habits' 'table' 'monthly' 'annual'; } }"
         ]
     },
     "dataLoaders": [
@@ -555,7 +555,7 @@
             ]
         },
         {
-            "groupId": "heatmap",
+            "groupId": "annual",
             "elements": [
                 "## 🗓️ Annual Calendar View",
                 {
