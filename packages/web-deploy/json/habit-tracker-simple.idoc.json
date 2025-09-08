@@ -16,8 +16,8 @@
             "#habits { grid-area: habits; min-width: 0; }",
             "#table { grid-area: table; min-width: 0; }",
 
-            "#monthly { grid-area: monthly; min-width: 0; overflow: hidden; grid-column: 1 / -1; }",
-            "#heatmap { grid-area: heatmap; min-width: 0; overflow: hidden; grid-column: 1 / -1; }",
+            "#monthly { grid-area: monthly; min-width: 0; overflow: hidden; }",
+            "#heatmap { grid-area: heatmap; min-width: 0; overflow: hidden; }",
             "@media (max-width: 768px) { body { grid-template-columns: 1fr; grid-template-areas: 'header' 'habits' 'table' 'monthly' 'heatmap'; } }"
         ]
     },
