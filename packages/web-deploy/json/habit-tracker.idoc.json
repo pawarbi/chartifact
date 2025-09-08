@@ -1,6 +1,6 @@
 {
     "$schema": "../../../docs/schema/idoc_v1.json",
-    "title": "Simple Habit Tracker",
+    "title": "Habit Tracker",
     "style": {
         "css": [
             "body { font-family: sans-serif; margin: 0; padding: 20px; background: #f8fafc; max-width: 1200px; margin: 0 auto; }",
@@ -496,7 +496,7 @@
         {
             "groupId": "header",
             "elements": [
-                "# 🎯 Simple Habit Tracker",
+                "# 🎯 Habit Tracker",
                 "A minimal habit tracker with editable data and heatmap visualization."
             ]
         },
