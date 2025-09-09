@@ -1,0 +1,283 @@
+{
+    "$schema": "../../../docs/schema/idoc_v1.json",
+    "title": "Plugin Syntax Guide - JSON vs YAML",
+    "style": {
+        "css": [
+            "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f8f9fa; line-height: 1.6; }",
+            ".group { background: white; padding: 25px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }",
+            "h1 { color: #2c3e50; text-align: center; margin-bottom: 10px; }",
+            "h2 { color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 8px; margin-top: 30px; }",
+            "h3 { color: #7f8c8d; margin-top: 20px; }",
+            "code { background: #ecf0f1; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }",
+            "pre { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 6px; overflow-x: auto; }",
+            ".example-box { background: #e8f4f8; border-left: 4px solid #3498db; padding: 15px; margin: 15px 0; }",
+            ".highlight { background: #fffbdd; padding: 15px; border-radius: 6px; margin: 15px 0; border: 1px solid #f4d03f; }",
+            ".format-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }",
+            ".format-box { background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #dee2e6; }",
+            "@media (max-width: 768px) { .format-comparison { grid-template-columns: 1fr; } }"
+        ]
+    },
+    "variables": [
+        {
+            "variableId": "selectedFormat",
+            "type": "string",
+            "initialValue": "json"
+        },
+        {
+            "variableId": "userInput",
+            "type": "string",
+            "initialValue": "Hello from textbox!"
+        },
+        {
+            "variableId": "sliderValue",
+            "type": "number",
+            "initialValue": 50
+        },
+        {
+            "variableId": "isChecked",
+            "type": "boolean",
+            "initialValue": true
+        }
+    ],
+    "dataLoaders": [
+        {
+            "dataSourceName": "exampleData",
+            "type": "inline",
+            "format": "json",
+            "content": [
+                {"category": "A", "value": 28},
+                {"category": "B", "value": 55},
+                {"category": "C", "value": 43},
+                {"category": "D", "value": 91}
+            ]
+        }
+    ],
+    "groups": [
+        {
+            "groupId": "header",
+            "elements": [
+                "# Plugin Syntax Guide",
+                "## Understanding Triple Backticks in Chartifact",
+                "",
+                "In Chartifact, **triple backticks** (```) define plugin instances that add interactivity and functionality to your documents. You can choose between **JSON** and **YAML** formats interchangeably based on your preference.",
+                "",
+                "<div class=\"highlight\">",
+                "**Key Point**: The syntax is <code>```[format] [plugin-type]</code> where format can be either <code>json</code> or <code>yaml</code>",
+                "</div>"
+            ]
+        },
+        {
+            "groupId": "format-selector",
+            "elements": [
+                "## Choose Your Preferred Format",
+                "",
+                {
+                    "type": "dropdown",
+                    "variableId": "selectedFormat",
+                    "label": "Select format to see examples in:",
+                    "options": ["json", "yaml"]
+                }
+            ]
+        },
+        {
+            "groupId": "syntax-overview",
+            "elements": [
+                "## Basic Syntax",
+                "",
+                "Plugin instances are created using fenced code blocks with a specific format:",
+                "",
+                "<div class=\"format-comparison\">",
+                "<div class=\"format-box\">",
+                "<h3>JSON Format</h3>",
+                "<pre>```json plugin-type\n{\n  \"property\": \"value\",\n  \"anotherProperty\": 123\n}\n```</pre>",
+                "</div>",
+                "<div class=\"format-box\">",
+                "<h3>YAML Format</h3>",
+                "<pre>```yaml plugin-type\nproperty: value\nanotherProperty: 123\n```</pre>",
+                "</div>",
+                "</div>"
+            ]
+        },
+        {
+            "groupId": "input-examples",
+            "elements": [
+                "## Input Plugins",
+                "",
+                "### Textbox Plugin",
+                "Create text input fields for user interaction.",
+                "",
+                "<div class=\"example-box\">",
+                "**Live Example**: Try typing in the textbox below!",
+                "</div>",
+                "",
+                {
+                    "type": "textbox",
+                    "variableId": "userInput",
+                    "label": "Enter some text:",
+                    "placeholder": "Type something here..."
+                },
+                "",
+                "**You typed**: {{userInput}}",
+                "",
+                "### Slider Plugin",
+                "Create numeric sliders for value selection.",
+                "",
+                {
+                    "type": "slider",
+                    "variableId": "sliderValue",
+                    "label": "Adjust the value:",
+                    "min": 0,
+                    "max": 100,
+                    "step": 1
+                },
+                "",
+                "**Current value**: {{sliderValue}}",
+                "",
+                "### Checkbox Plugin",
+                "Create boolean checkboxes for true/false selections.",
+                "",
+                {
+                    "type": "checkbox",
+                    "variableId": "isChecked",
+                    "label": "Check this box"
+                },
+                "",
+                "**Checkbox is**: {{isChecked}}"
+            ]
+        },
+        {
+            "groupId": "chart-example",
+            "elements": [
+                "## Chart Plugins",
+                "",
+                "### Vega-Lite Chart",
+                "Create interactive data visualizations.",
+                "",
+                "<div class=\"example-box\">",
+                "**Live Example**: This chart is rendered from the plugin below",
+                "</div>",
+                "",
+                {
+                    "type": "chart",
+                    "chartKey": "barChart"
+                }
+            ]
+        },
+        {
+            "groupId": "table-example",
+            "elements": [
+                "## Table Plugins",
+                "",
+                "### Tabulator Plugin",
+                "Create interactive data tables.",
+                "",
+                "<div class=\"example-box\">",
+                "**Live Example**: Interactive table with our sample data",
+                "</div>",
+                "",
+                {
+                    "type": "tabulator",
+                    "dataSourceName": "exampleData",
+                    "tabulatorOptions": {
+                        "autoColumns": true,
+                        "layout": "fitColumns",
+                        "maxHeight": "200px"
+                    }
+                }
+            ]
+        },
+        {
+            "groupId": "format-comparison",
+            "elements": [
+                "## Format Comparison",
+                "",
+                "Here's how the same textbox plugin looks in both formats:",
+                "",
+                "<div class=\"format-comparison\">",
+                "<div class=\"format-box\">",
+                "<h3>JSON Format</h3>",
+                "<pre>```json textbox\n{\n  \"variableId\": \"myVariable\",\n  \"label\": \"Enter text:\",\n  \"placeholder\": \"Type here...\"\n}\n```</pre>",
+                "</div>",
+                "<div class=\"format-box\">",
+                "<h3>YAML Format</h3>",
+                "<pre>```yaml textbox\nvariableId: myVariable\nlabel: \"Enter text:\"\nplaceholder: \"Type here...\"\n```</pre>",
+                "</div>",
+                "</div>"
+            ]
+        },
+        {
+            "groupId": "available-plugins",
+            "elements": [
+                "## Available Plugin Types",
+                "",
+                "You can use triple backticks with these plugin types:",
+                "",
+                "### Input Plugins",
+                "- `textbox` - Text input fields",
+                "- `slider` - Numeric sliders",
+                "- `dropdown` - Selection dropdowns", 
+                "- `checkbox` - Boolean checkboxes",
+                "",
+                "### Visualization Plugins",
+                "- `vega` - Full Vega specifications",
+                "- `vega-lite` - Vega-Lite chart specifications",
+                "- `chart` - Referenced charts from resources",
+                "",
+                "### Data Plugins",
+                "- `tabulator` - Interactive data tables",
+                "",
+                "### Other Plugins",
+                "- `mermaid` - Diagram generation",
+                "- And more..."
+            ]
+        },
+        {
+            "groupId": "tips",
+            "elements": [
+                "## Tips for Plugin Usage",
+                "",
+                "1. **Choose your format**: Use JSON if you prefer explicit syntax, YAML if you prefer cleaner, more readable format",
+                "",
+                "2. **Variable binding**: Use `variableId` to bind plugins to document variables for reactivity",
+                "",
+                "3. **Data integration**: Use `dataSourceName` to connect plugins with your document's data sources",
+                "",
+                "4. **Validation**: Your editor will validate plugin syntax against the document schema",
+                "",
+                "5. **Interchangeable**: You can mix JSON and YAML plugins in the same document!"
+            ]
+        }
+    ],
+    "resources": {
+        "charts": {
+            "barChart": {
+                "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                "description": "A simple bar chart showing example data",
+                "data": {
+                    "name": "exampleData"
+                },
+                "mark": "bar",
+                "encoding": {
+                    "x": {
+                        "field": "category",
+                        "type": "nominal",
+                        "title": "Category"
+                    },
+                    "y": {
+                        "field": "value",
+                        "type": "quantitative",
+                        "title": "Value"
+                    },
+                    "color": {
+                        "field": "category",
+                        "type": "nominal",
+                        "scale": {
+                            "range": ["#3498db", "#e74c3c", "#f39c12", "#27ae60"]
+                        },
+                        "legend": null
+                    }
+                }
+            }
+        }
+    }
+}
