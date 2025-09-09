@@ -273,18 +273,19 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     if (dataSource.type === "inline") {
       if (dataSource.format === "json") {
         newData.values = dataSource.content;
-      } else if (typeof dataSource.content === "string") {
+      } else if (typeof dataSource.content === "string" || Array.isArray(dataSource.content) && typeof dataSource.content[0] === "string") {
+        const content = dataSource.content;
         switch (dataSource.format) {
           case "csv": {
-            inlineDataMd = tickWrap(`csv ${dataSourceName}`, dataSource.content);
+            inlineDataMd = tickWrap(`csv ${dataSourceName}`, dsvContent(content));
             break;
           }
           case "tsv": {
-            inlineDataMd = tickWrap(`tsv ${dataSourceName}`, dataSource.content);
+            inlineDataMd = tickWrap(`tsv ${dataSourceName}`, dsvContent(content));
             break;
           }
           case "dsv": {
-            inlineDataMd = tickWrap(`dsv delimiter:${delimiter} variableId:${dataSourceName}`, dataSource.content);
+            inlineDataMd = tickWrap(`dsv delimiter:${delimiter} variableId:${dataSourceName}`, dsvContent(content));
             break;
           }
           default: {
@@ -310,6 +311,12 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     spec.data.unshift(newData);
     return inlineDataMd;
+  }
+  function dsvContent(content) {
+    if (Array.isArray(content)) {
+      return content.join("\n");
+    }
+    return content;
   }
   function addDynamicDataLoaderToSpec(vegaScope, dataSource) {
     const { spec } = vegaScope;

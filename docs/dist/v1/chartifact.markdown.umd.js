@@ -1214,20 +1214,33 @@ ${reconstitutedRules.join("\n\n")}
 }`;
     }
   }
-  function reconstituteCss(atRules) {
+  function reconstituteCss(orderedBlocks) {
     const cssBlocks = [];
-    for (const atRule of Object.keys(atRules).map((key) => atRules[key])) {
-      const reconstructed = reconstituteAtRule(atRule);
-      if (reconstructed.trim()) {
-        cssBlocks.push(reconstructed);
+    for (const block of orderedBlocks) {
+      if (block.type === "atRule" && block.atRule) {
+        const reconstructed = reconstituteAtRule(block.atRule);
+        if (reconstructed.trim()) {
+          cssBlocks.push(reconstructed);
+        }
+      } else if (block.type === "rule" && block.rule) {
+        const rule = block.rule;
+        if (rule.declarations.length > 0) {
+          const validDeclarations = rule.declarations.map((decl) => decl.css).filter((css) => css.trim() !== "");
+          if (validDeclarations.length > 0) {
+            cssBlocks.push(`${rule.selector} {
+  ${validDeclarations.join(";\n  ")};
+}`);
+          }
+        }
       }
     }
     return cssBlocks.join("\n\n");
   }
   function categorizeCss(cssContent) {
     const spec = {
-      atRules: {}
+      orderedBlocks: []
     };
+    const orderedBlocks = spec.orderedBlocks;
     const result = {
       spec,
       hasFlags: false,
@@ -1254,37 +1267,6 @@ ${reconstitutedRules.join("\n\n")}
       "starting-style",
       "position-try"
     ];
-    const findAtRuleContext = (targetNode, rootNode) => {
-      let context = "";
-      csstree.walk(rootNode, (node, item, list) => {
-        if (node.type === "Atrule" && node.block) {
-          const atRuleSignature = `@${node.name}${node.prelude ? ` ${csstree.generate(node.prelude)}` : ""}`;
-          let foundTarget = false;
-          csstree.walk(node.block, (innerNode) => {
-            if (innerNode === targetNode) {
-              foundTarget = true;
-            }
-          });
-          if (foundTarget) {
-            context = atRuleSignature;
-          }
-        }
-      });
-      return context;
-    };
-    const addRuleToContext = (rule, context) => {
-      if (!spec.atRules[context]) {
-        spec.atRules[context] = {
-          signature: context,
-          rules: []
-        };
-      }
-      if (spec.atRules[context].rules) {
-        spec.atRules[context].rules.push(rule);
-      } else {
-        spec.atRules[context].rules = [rule];
-      }
-    };
     const checkSecurityIssues = (node) => {
       if (node.type === "Function" && node.name === "expression") {
         return { flag: "scriptExec", reason: "CSS expression() function detected" };
@@ -1326,55 +1308,71 @@ ${reconstitutedRules.join("\n\n")}
     try {
       const ast = csstree.parse(cssContent);
       const pendingRules = [];
-      csstree.walk(ast, (node) => {
-        if (node.type === "Atrule") {
-          const atRuleSignature = `@${node.name}${node.prelude ? ` ${csstree.generate(node.prelude)}` : ""}`;
-          if (node.name === "import") {
-            const ruleContent = csstree.generate(node);
-            const reason = "@import rule detected - requires approval";
-            spec.atRules[atRuleSignature] = {
-              signature: atRuleSignature,
-              css: ruleContent,
-              flag: "importRule",
-              reason
-            };
-            result.hasFlags = true;
-            result.reasons.push(reason);
-            return;
-          }
-          if (completeBlockAtRules.indexOf(node.name) !== -1) {
-            const ruleContent = csstree.generate(node);
-            spec.atRules[atRuleSignature] = {
-              signature: atRuleSignature,
-              css: ruleContent
-            };
-            return;
-          }
-          if (node.block) {
-            if (!spec.atRules[atRuleSignature]) {
-              spec.atRules[atRuleSignature] = {
+      if (ast.type === "StyleSheet" && ast.children) {
+        ast.children.forEach((node) => {
+          if (node.type === "Atrule") {
+            const atRuleSignature = `@${node.name}${node.prelude ? ` ${csstree.generate(node.prelude)}` : ""}`;
+            if (node.name === "import") {
+              const ruleContent = csstree.generate(node);
+              const reason = "@import rule detected - requires approval";
+              const atRuleObj = {
+                signature: atRuleSignature,
+                css: ruleContent,
+                flag: "importRule",
+                reason
+              };
+              orderedBlocks.push({ type: "atRule", key: atRuleSignature, atRule: atRuleObj });
+              result.hasFlags = true;
+              result.reasons.push(reason);
+              return;
+            }
+            if (completeBlockAtRules.indexOf(node.name) !== -1) {
+              const ruleContent = csstree.generate(node);
+              const atRuleObj = {
+                signature: atRuleSignature,
+                css: ruleContent
+              };
+              orderedBlocks.push({ type: "atRule", key: atRuleSignature, atRule: atRuleObj });
+              return;
+            }
+            if (node.block) {
+              const atRuleObj = {
                 signature: atRuleSignature,
                 rules: []
               };
+              orderedBlocks.push({ type: "atRule", key: atRuleSignature, atRule: atRuleObj });
+              if (node.block.children) {
+                node.block.children.forEach((childNode) => {
+                  if (childNode.type === "Rule") {
+                    const selector = csstree.generate(childNode.prelude);
+                    const rule = {
+                      selector,
+                      declarations: []
+                    };
+                    pendingRules.push({ rule, context: atRuleSignature, node: childNode, atRuleObj });
+                  }
+                });
+              }
+            } else {
+              const ruleContent = csstree.generate(node);
+              const atRuleObj = {
+                signature: atRuleSignature,
+                css: ruleContent
+              };
+              orderedBlocks.push({ type: "atRule", key: atRuleSignature, atRule: atRuleObj });
             }
-          } else {
-            const ruleContent = csstree.generate(node);
-            spec.atRules[atRuleSignature] = {
-              signature: atRuleSignature,
-              css: ruleContent
+          } else if (node.type === "Rule") {
+            const selector = csstree.generate(node.prelude);
+            const rule = {
+              selector,
+              declarations: []
             };
+            pendingRules.push({ rule, context: "", node });
+            orderedBlocks.push({ type: "rule", rule, key: "" });
           }
-        } else if (node.type === "Rule") {
-          const context = findAtRuleContext(node, ast);
-          const selector = csstree.generate(node.prelude);
-          const rule = {
-            selector,
-            declarations: []
-          };
-          pendingRules.push({ rule, context, node });
-        }
-      });
-      for (const { rule, context, node } of pendingRules) {
+        });
+      }
+      for (const { rule, context, node, atRuleObj } of pendingRules) {
         csstree.walk(node, (declNode) => {
           if (declNode.type === "Declaration") {
             const declCss = csstree.generate(declNode);
@@ -1406,7 +1404,9 @@ ${reconstitutedRules.join("\n\n")}
           }
         });
         if (rule.declarations.length > 0) {
-          addRuleToContext(rule, context);
+          if (atRuleObj && atRuleObj.rules) {
+            atRuleObj.rules.push(rule);
+          }
         }
       }
     } catch (parseError) {
@@ -1431,9 +1431,10 @@ ${reconstitutedRules.join("\n\n")}
           continue;
         }
         const container = renderer.element.querySelector(`#${specReview.containerId}`);
-        const categorizedCss = specReview.approvedSpec;
+        specReview.approvedSpec;
+        const orderedBlocks = specReview.approvedSpec.orderedBlocks;
         const comments = [];
-        const safeCss = reconstituteCss(categorizedCss.atRules);
+        const safeCss = reconstituteCss(orderedBlocks);
         if (safeCss.trim().length > 0) {
           const styleElement = document.createElement("style");
           styleElement.type = "text/css";

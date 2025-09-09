@@ -270,9 +270,6 @@
         "dataSourceNames": [
           "salesData"
         ],
-        "variableDependencies": [
-          "selectedMonth"
-        ],
         "dataFrameTransformations": [
           {
             "type": "formula",

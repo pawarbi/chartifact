@@ -65,10 +65,10 @@ interface ReturnType {
     isArray?: boolean;
 }
 /** Data source types */
-/** JSON data */
+/** JSON data or CSV / TSV / DSV */
 interface DataSourceInline extends DataSourceBase {
     type: 'inline';
-    content: object[] | string;
+    content: object[] | string | string[];
 }
 /** User uploaded their own data file */
 interface DataSourceByFile extends DataSourceBase {
