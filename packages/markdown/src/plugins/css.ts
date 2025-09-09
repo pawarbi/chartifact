@@ -30,7 +30,7 @@ interface AtRule {
 }
 
 interface CategorizedCss {
-    atRules: { [atRuleSignature: string]: AtRule };
+    orderedBlocks: Array<{ type: 'atRule' | 'rule', key?: string, rule?: Rule, atRule?: AtRule }>;
 }
 
 // Helper function to reconstitute an at-rule block from at-rule data
@@ -66,14 +66,26 @@ function reconstituteAtRule(atRule: AtRule): string {
     }
 }
 
-// Helper function to reconstitute complete CSS from categorized rules
-function reconstituteCss(atRules: { [atRuleSignature: string]: AtRule }): string {
+// Helper function to reconstitute complete CSS from ordered blocks
+function reconstituteCss(orderedBlocks: Array<{ type: 'atRule' | 'rule', key?: string, rule?: Rule, atRule?: AtRule }>): string {
     const cssBlocks: string[] = [];
 
-    for (const atRule of Object.keys(atRules).map(key => atRules[key])) {
-        const reconstructed = reconstituteAtRule(atRule);
-        if (reconstructed.trim()) {
-            cssBlocks.push(reconstructed);
+    for (const block of orderedBlocks) {
+        if (block.type === 'atRule' && block.atRule) {
+            const reconstructed = reconstituteAtRule(block.atRule);
+            if (reconstructed.trim()) {
+                cssBlocks.push(reconstructed);
+            }
+        } else if (block.type === 'rule' && block.rule) {
+            const rule = block.rule;
+            if (rule.declarations.length > 0) {
+                const validDeclarations = rule.declarations
+                    .map(decl => decl.css)
+                    .filter(css => css.trim() !== '');
+                if (validDeclarations.length > 0) {
+                    cssBlocks.push(`${rule.selector} {\n  ${validDeclarations.join(';\n  ')};\n}`);
+                }
+            }
         }
     }
 
@@ -82,8 +94,11 @@ function reconstituteCss(atRules: { [atRuleSignature: string]: AtRule }): string
 
 function categorizeCss(cssContent: string) {
     const spec: CategorizedCss = {
-        atRules: {},
+        orderedBlocks: [],
     };
+
+    // Track the order of rules and at-rules as they appear
+    const orderedBlocks = spec.orderedBlocks;
 
     const result: RawFlaggableSpec<CategorizedCss> = {
         spec,
@@ -113,48 +128,6 @@ function categorizeCss(cssContent: string) {
         'starting-style',
         'position-try'
     ];
-
-    // Helper function to find the at-rule context for a given node
-    const findAtRuleContext = (targetNode: any, rootNode: any): string => {
-        let context = ''; // Default to global context
-        
-        // Walk through the AST to find the parent at-rule that contains our target node
-        csstree.walk(rootNode, (node, item, list) => {
-            if (node.type === 'Atrule' && node.block) {
-                const atRuleSignature = `@${node.name}${node.prelude ? ` ${csstree.generate(node.prelude)}` : ''}`;
-                
-                // Check if our target node is inside this at-rule's block
-                let foundTarget = false;
-                csstree.walk(node.block, (innerNode) => {
-                    if (innerNode === targetNode) {
-                        foundTarget = true;
-                    }
-                });
-                
-                if (foundTarget) {
-                    context = atRuleSignature;
-                }
-            }
-        });
-        
-        return context;
-    };
-
-    // Helper function to add a rule to the correct at-rule context
-    const addRuleToContext = (rule: Rule, context: string) => {
-        if (!spec.atRules[context]) {
-            spec.atRules[context] = {
-                signature: context,
-                rules: []
-            };
-        }
-
-        if (spec.atRules[context].rules) {
-            spec.atRules[context].rules.push(rule);
-        } else {
-            spec.atRules[context].rules = [rule];
-        }
-    };
 
     // Helper function to check for security issues using AST node analysis
     const checkSecurityIssues = (node: any): Pick<Declaration, 'flag' | 'reason'> | null => {
@@ -219,75 +192,86 @@ function categorizeCss(cssContent: string) {
         const ast = csstree.parse(cssContent);
 
         // Track rules and their declarations as we build them
-        const pendingRules: { rule: Rule; context: string; node: any }[] = [];
+        const pendingRules: { rule: Rule; context: string; node: any; atRuleObj?: AtRule }[] = [];
 
-        // First pass: collect all at-rules and rules
-        csstree.walk(ast, (node) => {
-            if (node.type === 'Atrule') {
-                const atRuleSignature = `@${node.name}${node.prelude ? ` ${csstree.generate(node.prelude)}` : ''}`;
+        // First pass: collect all at-rules and rules in document order
+        // Use children iteration instead of csstree.walk to preserve order
+        if (ast.type === 'StyleSheet' && (ast as any).children) {
+            (ast as any).children.forEach((node: any) => {
+                if (node.type === 'Atrule') {
+                    const atRuleSignature = `@${node.name}${node.prelude ? ` ${csstree.generate(node.prelude)}` : ''}`;
 
-                // Check for @import specifically
-                if (node.name === 'import') {
-                    const ruleContent = csstree.generate(node);
-                    const reason = '@import rule detected - requires approval';
-                    spec.atRules[atRuleSignature] = {
-                        signature: atRuleSignature,
-                        css: ruleContent,
-                        flag: 'importRule',
-                        reason,
-                    };
-                    result.hasFlags = true;
-                    result.reasons.push(reason);
-                    return;
-                }
+                    // Check for @import specifically
+                    if (node.name === 'import') {
+                        const ruleContent = csstree.generate(node);
+                        const reason = '@import rule detected - requires approval';
+                        const atRuleObj: AtRule = {
+                            signature: atRuleSignature,
+                            css: ruleContent,
+                            flag: 'importRule',
+                            reason,
+                        };
+                        orderedBlocks.push({ type: 'atRule', key: atRuleSignature, atRule: atRuleObj });
+                        result.hasFlags = true;
+                        result.reasons.push(reason);
+                        return;
+                    }
 
-                // For at-rules that should be treated as complete blocks
-                if (completeBlockAtRules.indexOf(node.name) !== -1) {
-                    // Store the entire rule as CSS and validate it as a complete block
-                    const ruleContent = csstree.generate(node);
-                    spec.atRules[atRuleSignature] = {
-                        signature: atRuleSignature,
-                        css: ruleContent
-                    };
-                    return;
-                }
+                    // For at-rules that should be treated as complete blocks
+                    if (completeBlockAtRules.indexOf(node.name) !== -1) {
+                        const ruleContent = csstree.generate(node);
+                        const atRuleObj: AtRule = {
+                            signature: atRuleSignature,
+                            css: ruleContent
+                        };
+                        orderedBlocks.push({ type: 'atRule', key: atRuleSignature, atRule: atRuleObj });
+                        return;
+                    }
 
-                // For other at-rules that contain rules (like @media, @supports)
-                if (node.block) {
-                    // Initialize the at-rule container if it doesn't exist
-                    if (!spec.atRules[atRuleSignature]) {
-                        spec.atRules[atRuleSignature] = {
+                    // For other at-rules that contain rules (like @media, @supports)
+                    if (node.block) {
+                        const atRuleObj: AtRule = {
                             signature: atRuleSignature,
                             rules: []
                         };
-                    }
-                } else {
-                    // Simple at-rule without block
-                    const ruleContent = csstree.generate(node);
-                    spec.atRules[atRuleSignature] = {
-                        signature: atRuleSignature,
-                        css: ruleContent
-                    };
-                }
+                        orderedBlocks.push({ type: 'atRule', key: atRuleSignature, atRule: atRuleObj });
 
-            } else if (node.type === 'Rule') {
-                // Determine the correct context for this rule
-                const context = findAtRuleContext(node, ast);
-                
-                // Start building the rule
-                const selector = csstree.generate(node.prelude);
-                const rule: Rule = {
-                    selector,
-                    declarations: []
-                };
-                
-                // Store the rule with its context for later processing
-                pendingRules.push({ rule, context, node });
-            }
-        });
+                        // Process rules within this at-rule block
+                        if (node.block.children) {
+                            node.block.children.forEach((childNode) => {
+                                if (childNode.type === 'Rule') {
+                                    const selector = csstree.generate(childNode.prelude);
+                                    const rule: Rule = {
+                                        selector,
+                                        declarations: []
+                                    };
+                                    pendingRules.push({ rule, context: atRuleSignature, node: childNode, atRuleObj });
+                                }
+                            });
+                        }
+                    } else {
+                        const ruleContent = csstree.generate(node);
+                        const atRuleObj: AtRule = {
+                            signature: atRuleSignature,
+                            css: ruleContent
+                        };
+                        orderedBlocks.push({ type: 'atRule', key: atRuleSignature, atRule: atRuleObj });
+                    }
+
+                } else if (node.type === 'Rule') {
+                    const selector = csstree.generate(node.prelude);
+                    const rule: Rule = {
+                        selector,
+                        declarations: []
+                    };
+                    pendingRules.push({ rule, context: '', node });
+                    orderedBlocks.push({ type: 'rule', rule, key: '' });
+                }
+            });
+        }
 
         // Second pass: process declarations for each rule
-        for (const { rule, context, node } of pendingRules) {
+        for (const { rule, context, node, atRuleObj } of pendingRules) {
             csstree.walk(node, (declNode) => {
                 if (declNode.type === 'Declaration') {
                     // Process declaration within the current rule
@@ -306,9 +290,9 @@ function categorizeCss(cssContent: string) {
                     } else {
                         // Check child nodes of the declaration for security issues
                         csstree.walk(declNode, (childNode) => {
-                            if (childNode !== declNode && 
+                            if (childNode !== declNode &&
                                 (childNode.type === 'Function' || childNode.type === 'Url' ||
-                                 childNode.type === 'String' || childNode.type === 'Identifier')) {
+                                    childNode.type === 'String' || childNode.type === 'Identifier')) {
                                 const childSecurityCheck = checkSecurityIssues(childNode);
                                 if (childSecurityCheck && !declaration.flag) {
                                     declaration.unsafeCss = declaration.css;
@@ -325,10 +309,14 @@ function categorizeCss(cssContent: string) {
                     rule.declarations.push(declaration);
                 }
             });
-            
+
             // Add the completed rule to the correct context
             if (rule.declarations.length > 0) {
-                addRuleToContext(rule, context);
+                if (atRuleObj && atRuleObj.rules) {
+                    // Add rule to the at-rule that's already in orderedBlocks
+                    atRuleObj.rules.push(rule);
+                }
+                // Global rules are already added to orderedBlocks
             }
         }
 
@@ -362,10 +350,11 @@ export const cssPlugin: Plugin<CategorizedCss> = {
             const container = renderer.element.querySelector(`#${specReview.containerId}`);
 
             const categorizedCss = specReview.approvedSpec;
+            const orderedBlocks = specReview.approvedSpec.orderedBlocks;
             const comments: string[] = [];
 
             // Generate and apply safe CSS
-            const safeCss = reconstituteCss(categorizedCss.atRules);
+            const safeCss = reconstituteCss(orderedBlocks);
 
             if (safeCss.trim().length > 0) {
                 const styleElement = document.createElement('style');
