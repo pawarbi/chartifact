@@ -25,6 +25,4 @@ export const csvPlugin: Plugin<CsvSpec> = {
         
         return dsvPlugin.fence!(dsvToken, index);
     },
-    hydrateSpecs: dsvPlugin.hydrateSpecs,
-    hydrateComponent: dsvPlugin.hydrateComponent,
 };

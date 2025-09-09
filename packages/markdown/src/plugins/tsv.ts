@@ -25,6 +25,4 @@ export const tsvPlugin: Plugin<TsvSpec> = {
         
         return dsvPlugin.fence!(dsvToken, index);
     },
-    hydrateSpecs: dsvPlugin.hydrateSpecs,
-    hydrateComponent: dsvPlugin.hydrateComponent,
 };
