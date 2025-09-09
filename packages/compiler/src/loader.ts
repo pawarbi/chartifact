@@ -28,19 +28,21 @@ export function addStaticDataLoaderToSpec(vegaScope: VegaScope, dataSource: Data
 
         if (dataSource.format === 'json') {
             newData.values = dataSource.content as object[];
-        } else if (typeof dataSource.content === 'string') {
+        } else if (typeof dataSource.content === 'string' || (Array.isArray(dataSource.content) && typeof dataSource.content[0] === 'string')) {
+
+            const content = dataSource.content as string | string[];
 
             switch (dataSource.format) {
                 case 'csv': {
-                    inlineDataMd = tickWrap(`csv ${dataSourceName}`, dataSource.content);
+                    inlineDataMd = tickWrap(`csv ${dataSourceName}`, dsvContent(content));
                     break;
                 }
                 case 'tsv': {
-                    inlineDataMd = tickWrap(`tsv ${dataSourceName}`, dataSource.content);
+                    inlineDataMd = tickWrap(`tsv ${dataSourceName}`, dsvContent(content));
                     break;
                 }
                 case 'dsv': {
-                    inlineDataMd = tickWrap(`dsv delimiter:${delimiter} variableId:${dataSourceName}`, dataSource.content);
+                    inlineDataMd = tickWrap(`dsv delimiter:${delimiter} variableId:${dataSourceName}`, dsvContent(content));
                     break;
                 }
                 default: {
@@ -70,6 +72,13 @@ export function addStaticDataLoaderToSpec(vegaScope: VegaScope, dataSource: Data
     spec.data.unshift(newData);
 
     return inlineDataMd;
+}
+
+function dsvContent(content: string | string[]) {
+    if (Array.isArray(content)) {
+        return content.join('\n');
+    }
+    return content;
 }
 
 export function addDynamicDataLoaderToSpec(vegaScope: VegaScope, dataSource: DataSourceByDynamicURL) {

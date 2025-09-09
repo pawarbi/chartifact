@@ -26,6 +26,11 @@
       "title": "Mermaid Org Chart",
       "description": "An organizational chart created using Mermaid diagrams with dynamic data.",
       "href": "markdown/mermaid-org-chart.idoc.md"
+    },
+    {
+      "title": "Habit Tracker",
+      "description": "A minimal habit tracker with editable data and heatmap visualization.",
+      "href": "markdown/habit-tracker.idoc.md"
     }
   ]
 }
