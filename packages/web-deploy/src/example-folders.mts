@@ -16,9 +16,10 @@ title: Chartifact Examples
 ---
 <a href="/chartifact/">Chartifact home</a>
 <a id="github-repo" href="https://github.com/microsoft/chartifact">GitHub Repository</a>
-<a href="/chartifact/assets/chartifact-examples.zip" download>Download All Examples (ZIP)</a>
 
 <h1>Chartifact Examples</h1>
+
+<a href="/chartifact/assets/chartifact-examples.zip" download>Download All Examples (ZIP)</a>
 
 `;
 
