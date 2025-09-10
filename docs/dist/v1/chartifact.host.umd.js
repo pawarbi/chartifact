@@ -2363,6 +2363,162 @@ ${guardedJs}
       return false;
     }
   }
+  const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+  function decamelize(str2, separator = "-") {
+    return str2.replace(/([a-z\d])([A-Z])/g, "$1" + separator + "$2").replace(/([A-Z]+)([A-Z][a-z\d]+)/g, "$1" + separator + "$2").toLowerCase();
+  }
+  function createElement(tag, attrs, ...children) {
+    if (typeof tag === "function") {
+      const fn = tag;
+      let props = attrs;
+      if (props === null || props === void 0) {
+        props = { children };
+      } else {
+        props.children = children;
+      }
+      return fn(props);
+    } else {
+      const ns = tag === "svg" ? SVG_NAMESPACE : null;
+      const el = ns ? document.createElementNS(ns, tag) : document.createElement(tag);
+      const map2 = attrs;
+      let ref;
+      for (let name in map2) {
+        if (name && map2.hasOwnProperty(name)) {
+          let value = map2[name];
+          if (name === "className" && value !== void 0) {
+            setAttribute(el, ns, "class", value.toString());
+          } else if (name === "disabled" && !value) ;
+          else if (value === null || value === void 0) {
+            continue;
+          } else if (value === true) {
+            setAttribute(el, ns, name, name);
+          } else if (typeof value === "function") {
+            if (name === "ref") {
+              ref = value;
+            } else {
+              el[name.toLowerCase()] = value;
+            }
+          } else if (typeof value === "object") {
+            setAttribute(el, ns, name, flatten(value));
+          } else {
+            setAttribute(el, ns, name, value.toString());
+          }
+        }
+      }
+      if (children && children.length > 0) {
+        appendChildren(el, children);
+      }
+      if (ref) {
+        ref(el);
+      }
+      return el;
+    }
+  }
+  function setAttribute(el, ns, name, value) {
+    if (ns) {
+      el.setAttributeNS(null, name, value);
+    } else {
+      el.setAttribute(name, value);
+    }
+  }
+  function flatten(o) {
+    const arr = [];
+    for (let prop in o)
+      arr.push(`${decamelize(prop, "-")}:${o[prop]}`);
+    return arr.join(";");
+  }
+  function isInsideForeignObject(element) {
+    let current = element;
+    while (current) {
+      if (current.tagName.toLowerCase() === "foreignobject") {
+        return true;
+      }
+      current = current.parentElement;
+    }
+    return false;
+  }
+  function recreateWithSvgNamespace(element) {
+    const svgElement = document.createElementNS(SVG_NAMESPACE, element.tagName.toLowerCase());
+    for (let i2 = 0; i2 < element.attributes.length; i2++) {
+      const attr = element.attributes[i2];
+      svgElement.setAttributeNS(null, attr.name, attr.value);
+    }
+    const eventProperties = [
+      "onclick",
+      "onmousedown",
+      "onmouseup",
+      "onmouseover",
+      "onmouseout",
+      "onmousemove",
+      "onkeydown",
+      "onkeyup",
+      "onkeypress",
+      "onfocus",
+      "onblur"
+    ];
+    for (const prop of eventProperties) {
+      if (element[prop]) {
+        svgElement[prop] = element[prop];
+      }
+    }
+    for (let i2 = 0; i2 < element.childNodes.length; i2++) {
+      const child = element.childNodes[i2];
+      if (child.nodeType === Node.ELEMENT_NODE) {
+        svgElement.appendChild(recreateWithSvgNamespace(child));
+      } else {
+        svgElement.appendChild(child.cloneNode(true));
+      }
+    }
+    return svgElement;
+  }
+  function addChild(parentElement, child) {
+    if (child === null || child === void 0 || typeof child === "boolean") {
+      return;
+    } else if (Array.isArray(child)) {
+      appendChildren(parentElement, child);
+    } else if (isElement(child)) {
+      const childEl = child;
+      if (parentElement.namespaceURI === SVG_NAMESPACE && childEl.namespaceURI !== SVG_NAMESPACE && childEl.tagName.toLowerCase() !== "foreignobject" && !isInsideForeignObject(parentElement)) {
+        const recreated = recreateWithSvgNamespace(childEl);
+        parentElement.appendChild(recreated);
+      } else {
+        parentElement.appendChild(childEl);
+      }
+    } else {
+      parentElement.appendChild(document.createTextNode(child.toString()));
+    }
+  }
+  function appendChildren(parentElement, children) {
+    children.forEach((child) => addChild(parentElement, child));
+  }
+  function isElement(el) {
+    return !!el.nodeType;
+  }
+  function mount(element, container) {
+    container.innerHTML = "";
+    if (element) {
+      addChild(container, element);
+    }
+  }
+  const FolderDisplay = (props) => {
+    const { title, docIndex, docs, prevClick, nextClick } = props;
+    return /* @__PURE__ */ createElement("span", null, /* @__PURE__ */ createElement("span", null, title), /* @__PURE__ */ createElement("div", { style: { display: "inline-block", marginRight: "0.5em" } }), /* @__PURE__ */ createElement("span", null, "(document ", docIndex + 1, " of ", docs.length, ")"), /* @__PURE__ */ createElement("div", { style: { display: "inline-block" } }, /* @__PURE__ */ createElement("button", { type: "button", id: "prevBtn", disabled: docIndex === 0, onClick: prevClick }, "Previous"), /* @__PURE__ */ createElement(
+      "select",
+      {
+        id: "pageSelect",
+        title: `Select document (1 to ${docs.length})`,
+        onChange: (e) => props.pageSelectChange(parseInt(e.target.value, 10) - 1)
+      },
+      docs.map((doc, index2) => /* @__PURE__ */ createElement(
+        "option",
+        {
+          key: index2,
+          value: index2 + 1
+        },
+        doc.title ? doc.title : `Page ${index2 + 1}`
+      ))
+    ), /* @__PURE__ */ createElement("button", { type: "button", id: "nextBtn", disabled: docIndex === docs.length - 1, onClick: nextClick }, "Next")));
+  };
   function loadFolder(folderUrl, folder, host) {
     if (!folder || !folder.docs) {
       host.errorHandler(
@@ -2386,27 +2542,6 @@ ${guardedJs}
       return;
     }
     let docIndex = 0;
-    const { folderSpan } = host.toolbar;
-    folderSpan.style.display = "";
-    const prevBtn = document.createElement("button");
-    prevBtn.textContent = "Previous";
-    prevBtn.disabled = docIndex === 0;
-    const nextBtn = document.createElement("button");
-    nextBtn.textContent = "Next";
-    nextBtn.disabled = docIndex === folder.docs.length - 1;
-    const pageSelect = document.createElement("select");
-    for (let i2 = 0; i2 < folder.docs.length; i2++) {
-      const option = document.createElement("option");
-      option.value = (i2 + 1).toString();
-      option.textContent = folder.docs[i2].title ? folder.docs[i2].title : `Page ${i2 + 1}`;
-      pageSelect.appendChild(option);
-    }
-    pageSelect.value = (docIndex + 1).toString();
-    const navDiv = document.createElement("div");
-    navDiv.style.display = "inline-block";
-    navDiv.appendChild(prevBtn);
-    navDiv.appendChild(pageSelect);
-    navDiv.appendChild(nextBtn);
     function getHashParam(key) {
       const params = new URLSearchParams(window.location.hash.slice(1));
       return params.get(key) ?? void 0;
@@ -2416,47 +2551,39 @@ ${guardedJs}
       params.set(key, value.toString());
       window.location.hash = params.toString();
     }
-    function updateFolderTitle() {
-      folderSpan.innerHTML = "";
-      const label = document.createElement("span");
-      label.textContent = `${folder.title} `;
-      const docCountDiv = document.createElement("div");
-      docCountDiv.style.display = "inline-block";
-      docCountDiv.style.marginRight = "0.5em";
-      docCountDiv.textContent = `(document ${docIndex + 1} of ${folder.docs.length}) `;
-      folderSpan.appendChild(label);
-      folderSpan.appendChild(docCountDiv);
-      folderSpan.appendChild(navDiv);
-    }
-    updateFolderTitle();
+    const props = {
+      title: folder.title,
+      docIndex,
+      docs: folder.docs,
+      prevClick: () => {
+        if (docIndex > 0) {
+          updatePage(docIndex - 1, true);
+        }
+      },
+      nextClick: () => {
+        if (docIndex < folder.docs.length - 1) {
+          updatePage(docIndex + 1, true);
+        }
+      },
+      pageSelectChange: (index2) => {
+        if (index2 >= 0 && index2 <= folder.docs.length - 1) {
+          updatePage(index2, true);
+        }
+      }
+    };
     function updatePage(newDocIndex, setHash = false) {
       docIndex = newDocIndex;
       if (setHash) {
         setHashParam("page", docIndex + 1);
       }
-      prevBtn.disabled = docIndex === 0;
-      nextBtn.disabled = docIndex === folder.docs.length - 1;
-      pageSelect.value = (docIndex + 1).toString();
-      updateFolderTitle();
+      host.toolbar.addChildren(/* @__PURE__ */ createElement(FolderDisplay, { ...{ ...props, docIndex } }));
+      const pageSelect = document.querySelector("#pageSelect");
+      if (pageSelect) {
+        pageSelect.value = (docIndex + 1).toString();
+      }
       const title = folder.docs[docIndex].title || `Page ${docIndex + 1}`;
       resolveUrl(title, folderUrl, folder.docs[docIndex].href, host);
     }
-    pageSelect.onchange = () => {
-      const selectedPage = parseInt(pageSelect.value, 10);
-      if (selectedPage >= 1 && selectedPage <= folder.docs.length) {
-        updatePage(selectedPage - 1, true);
-      }
-    };
-    prevBtn.onclick = () => {
-      if (docIndex > 0) {
-        updatePage(docIndex - 1, true);
-      }
-    };
-    nextBtn.onclick = () => {
-      if (docIndex < folder.docs.length - 1) {
-        updatePage(docIndex + 1, true);
-      }
-    };
     function goToPageFromHash() {
       const pageStr = getHashParam("page");
       let newIndex = 0;
@@ -2473,7 +2600,6 @@ ${guardedJs}
       setHashParam("page", docIndex + 1);
     }
     goToPageFromHash();
-    folderSpan.appendChild(navDiv);
   }
   async function resolveUrl(title, base, relativeOrAbsolute, host) {
     let url;
@@ -3140,145 +3266,8 @@ ${htmlJsonJs}
     htmlMarkdownWrapper,
     htmlJsonWrapper
   };
-  const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
-  function decamelize(str2, separator = "-") {
-    return str2.replace(/([a-z\d])([A-Z])/g, "$1" + separator + "$2").replace(/([A-Z]+)([A-Z][a-z\d]+)/g, "$1" + separator + "$2").toLowerCase();
-  }
-  function createElement(tag, attrs, ...children) {
-    if (typeof tag === "function") {
-      const fn = tag;
-      let props = attrs;
-      if (props === null || props === void 0) {
-        props = { children };
-      } else {
-        props.children = children;
-      }
-      return fn(props);
-    } else {
-      const ns = tag === "svg" ? SVG_NAMESPACE : null;
-      const el = ns ? document.createElementNS(ns, tag) : document.createElement(tag);
-      const map2 = attrs;
-      let ref;
-      for (let name in map2) {
-        if (name && map2.hasOwnProperty(name)) {
-          let value = map2[name];
-          if (name === "className" && value !== void 0) {
-            setAttribute(el, ns, "class", value.toString());
-          } else if (name === "disabled" && !value) ;
-          else if (value === null || value === void 0) {
-            continue;
-          } else if (value === true) {
-            setAttribute(el, ns, name, name);
-          } else if (typeof value === "function") {
-            if (name === "ref") {
-              ref = value;
-            } else {
-              el[name.toLowerCase()] = value;
-            }
-          } else if (typeof value === "object") {
-            setAttribute(el, ns, name, flatten(value));
-          } else {
-            setAttribute(el, ns, name, value.toString());
-          }
-        }
-      }
-      if (children && children.length > 0) {
-        appendChildren(el, children);
-      }
-      if (ref) {
-        ref(el);
-      }
-      return el;
-    }
-  }
-  function setAttribute(el, ns, name, value) {
-    if (ns) {
-      el.setAttributeNS(null, name, value);
-    } else {
-      el.setAttribute(name, value);
-    }
-  }
-  function flatten(o) {
-    const arr = [];
-    for (let prop in o)
-      arr.push(`${decamelize(prop, "-")}:${o[prop]}`);
-    return arr.join(";");
-  }
-  function isInsideForeignObject(element) {
-    let current = element;
-    while (current) {
-      if (current.tagName.toLowerCase() === "foreignobject") {
-        return true;
-      }
-      current = current.parentElement;
-    }
-    return false;
-  }
-  function recreateWithSvgNamespace(element) {
-    const svgElement = document.createElementNS(SVG_NAMESPACE, element.tagName.toLowerCase());
-    for (let i2 = 0; i2 < element.attributes.length; i2++) {
-      const attr = element.attributes[i2];
-      svgElement.setAttributeNS(null, attr.name, attr.value);
-    }
-    const eventProperties = [
-      "onclick",
-      "onmousedown",
-      "onmouseup",
-      "onmouseover",
-      "onmouseout",
-      "onmousemove",
-      "onkeydown",
-      "onkeyup",
-      "onkeypress",
-      "onfocus",
-      "onblur"
-    ];
-    for (const prop of eventProperties) {
-      if (element[prop]) {
-        svgElement[prop] = element[prop];
-      }
-    }
-    for (let i2 = 0; i2 < element.childNodes.length; i2++) {
-      const child = element.childNodes[i2];
-      if (child.nodeType === Node.ELEMENT_NODE) {
-        svgElement.appendChild(recreateWithSvgNamespace(child));
-      } else {
-        svgElement.appendChild(child.cloneNode(true));
-      }
-    }
-    return svgElement;
-  }
-  function addChild(parentElement, child) {
-    if (child === null || child === void 0 || typeof child === "boolean") {
-      return;
-    } else if (Array.isArray(child)) {
-      appendChildren(parentElement, child);
-    } else if (isElement(child)) {
-      const childEl = child;
-      if (parentElement.namespaceURI === SVG_NAMESPACE && childEl.namespaceURI !== SVG_NAMESPACE && childEl.tagName.toLowerCase() !== "foreignobject" && !isInsideForeignObject(parentElement)) {
-        const recreated = recreateWithSvgNamespace(childEl);
-        parentElement.appendChild(recreated);
-      } else {
-        parentElement.appendChild(childEl);
-      }
-    } else {
-      parentElement.appendChild(document.createTextNode(child.toString()));
-    }
-  }
-  function appendChildren(parentElement, children) {
-    children.forEach((child) => addChild(parentElement, child));
-  }
-  function isElement(el) {
-    return !!el.nodeType;
-  }
-  function mount(element, container) {
-    container.innerHTML = "";
-    if (element) {
-      addChild(container, element);
-    }
-  }
   const ToolbarElement = (props) => {
-    const { mode, restartClick, tweakClick, downloadClick, restartDisplay, tweakDisplay, downloadDisplay, downloadSource, downloadHtml } = props;
+    const { mode, restartClick, tweakClick, downloadClick, restartDisplay, tweakDisplay, downloadDisplay, downloadSource, downloadHtml, children } = props;
     const { home, target } = window.location.hostname === "localhost" ? { home: "/", target: "_self" } : { home: "https://microsoft.github.io/", target: "_blank" };
     const displayMode = mode === "json" ? "json" : "markdown";
     return createElement(
@@ -3290,7 +3279,7 @@ ${htmlJsonJs}
         createElement("a", { href: `${home}chartifact/`, target }, "Chartifact"),
         " viewer"
       ),
-      createElement("div", { className: "toolbar-item", id: "folderSpan", style: { display: "none" } }),
+      createElement("div", { className: "toolbar-item", id: "folderSpan", style: { display: children ? "" : "none" } }, children),
       createElement(
         "div",
         { className: "toolbar-item" },
@@ -3411,6 +3400,10 @@ ${htmlJsonJs}
       } else if (this.mode === "json") {
         return index$1.htmlJsonWrapper(this.filename, this.options.textarea.value);
       }
+    }
+    addChildren(children) {
+      this.props.children = children;
+      this.render();
     }
     render() {
       mount(ToolbarElement(this.props), this.toolbarElement);
