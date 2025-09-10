@@ -19,6 +19,8 @@ title: Chartifact Examples
 
 <h1>Chartifact Examples</h1>
 
+<p>Explore these interactive documents to see what's possible with Chartifact. <a href="./prompt">Want to create your own? Use AI to get started!</a></p>
+
 <a href="/chartifact/assets/chartifact-examples.zip" download>Download All Examples (ZIP)</a>
 
 `;
