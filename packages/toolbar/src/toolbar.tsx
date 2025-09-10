@@ -82,6 +82,7 @@ const ToolbarElement = (props: ToolbarProps) => {
 
 export class Toolbar {
     public toolbarElement: HTMLElement;
+    public folderSpan: HTMLElement;
     public downloadButton: HTMLButtonElement;
     public downloadPopup: HTMLDivElement;
     public mode: 'markdown' | 'json';
@@ -108,7 +109,7 @@ export class Toolbar {
             },
             downloadClick: () => {
                 const { downloadPopup, downloadButton } = this;
-                
+
                 // Position popup near the button
                 const rect = downloadButton.getBoundingClientRect();
                 const viewportWidth = window.innerWidth;
@@ -177,6 +178,7 @@ export class Toolbar {
         mount(ToolbarElement(this.props), this.toolbarElement);
         this.downloadButton = this.toolbarElement.querySelector('#download') as HTMLButtonElement;
         this.downloadPopup = this.toolbarElement.querySelector('#downloadPopup') as HTMLDivElement;
+        this.folderSpan = this.toolbarElement.querySelector('#folderSpan') as HTMLDivElement;
     }
 
     // Helper method to trigger a download
