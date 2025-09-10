@@ -2576,6 +2576,8 @@ ${guardedJs}
       if (setHash) {
         setHashParam("page", docIndex + 1);
       }
+      const mode = folder.docs[docIndex].href.endsWith(".idoc.md") ? "markdown" : "json";
+      host.toolbar.mode = mode;
       host.toolbar.addChildren(/* @__PURE__ */ createElement(FolderDisplay, { ...{ ...props, docIndex } }));
       const pageSelect = document.querySelector("#pageSelect");
       if (pageSelect) {
@@ -3283,9 +3285,15 @@ ${htmlJsonJs}
       createElement(
         "div",
         { className: "toolbar-item" },
-        createElement("button", { type: "button", id: "restart", style: { display: restartDisplay }, onClick: restartClick }, "start over"),
-        createElement("button", { type: "button", id: "tweak", style: { display: tweakDisplay }, onClick: tweakClick }, "view source"),
-        createElement("button", { type: "button", id: "download", style: { display: downloadDisplay }, onClick: downloadClick }, "download")
+        createElement(
+          "span",
+          { className: "toolbar-mode" },
+          displayMode,
+          " mode "
+        ),
+        createElement("button", { type: "button", style: { display: restartDisplay }, onClick: restartClick }, "start over"),
+        createElement("button", { type: "button", style: { display: tweakDisplay }, onClick: tweakClick }, "view source"),
+        createElement("button", { type: "button", style: { display: downloadDisplay }, onClick: downloadClick, id: "download" }, "download")
       ),
       createElement(
         "div",
@@ -3338,7 +3346,7 @@ ${htmlJsonJs}
         throw new Error("Toolbar element not found");
       }
       this.props = {
-        mode: this.mode,
+        mode: null,
         restartClick: () => window.location.reload(),
         tweakClick: () => {
           this.options.textarea.style.display = this.options.textarea.style.display === "none" ? "" : "none";
@@ -3405,7 +3413,7 @@ ${htmlJsonJs}
       this.render();
     }
     render() {
-      mount(ToolbarElement(this.props), this.toolbarElement);
+      mount(ToolbarElement({ ...this.props, mode: this.mode }), this.toolbarElement);
       this.downloadButton = this.toolbarElement.querySelector("#download");
       this.downloadPopup = this.toolbarElement.querySelector("#downloadPopup");
     }

@@ -111,6 +111,10 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
             setHashParam('page', docIndex + 1);
         }
 
+        //get mode from document extension
+        const mode = folder.docs[docIndex].href.endsWith('.idoc.md') ? 'markdown' : 'json';
+
+        host.toolbar.mode = mode;
         host.toolbar.addChildren(<FolderDisplay {...{ ...props, docIndex }} />);
 
         const pageSelect = document.querySelector('#pageSelect') as HTMLSelectElement;

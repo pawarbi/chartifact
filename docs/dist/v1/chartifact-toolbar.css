@@ -57,6 +57,11 @@
   margin-top: 0;
 }
 
+.chartifact-toolbar .toolbar-mode {
+  font-size: smaller;
+  opacity: 0.8;
+}
+
 /* Default: stack toolbar sections vertically */
 .chartifact-toolbar .toolbar-item {
   margin: 6px 0;

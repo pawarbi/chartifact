@@ -2,6 +2,8 @@
 
 **Declarative, interactive data documents**
 
+**[Visit the Chartifact Homepage](https://microsoft.github.io/chartifact/)**
+
 Chartifact is a low-code document format for creating interactive, data-driven pages such as reports, dashboards, and presentations. It travels like a document and works like an app. Designed for use with your LLM to produce a shareable artifact of your analytic conversations.
 
 ## Features

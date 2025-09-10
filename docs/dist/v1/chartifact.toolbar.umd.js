@@ -313,7 +313,7 @@ ${htmlJsonJs}
     const { mode, restartClick, tweakClick, downloadClick, restartDisplay, tweakDisplay, downloadDisplay, downloadSource, downloadHtml, children } = props;
     const { home, target } = window.location.hostname === "localhost" ? { home: "/", target: "_self" } : { home: "https://microsoft.github.io/", target: "_blank" };
     const displayMode = mode === "json" ? "json" : "markdown";
-    return /* @__PURE__ */ createElement("div", { className: "toolbar-group", style: { backgroundColor: "inherit" } }, /* @__PURE__ */ createElement("div", { className: "toolbar-item" }, /* @__PURE__ */ createElement("a", { href: `${home}chartifact/`, target }, "Chartifact"), " viewer"), /* @__PURE__ */ createElement("div", { className: "toolbar-item", style: { display: children ? "" : "none" } }, children), /* @__PURE__ */ createElement("div", { className: "toolbar-item" }, /* @__PURE__ */ createElement("button", { type: "button", id: "restart", style: { display: restartDisplay }, onClick: restartClick }, "start over"), /* @__PURE__ */ createElement("button", { type: "button", id: "tweak", style: { display: tweakDisplay }, onClick: tweakClick }, "view source"), /* @__PURE__ */ createElement("button", { type: "button", id: "download", style: { display: downloadDisplay }, onClick: downloadClick }, "download")), /* @__PURE__ */ createElement("div", { id: "downloadPopup", style: {
+    return /* @__PURE__ */ createElement("div", { className: "toolbar-group", style: { backgroundColor: "inherit" } }, /* @__PURE__ */ createElement("div", { className: "toolbar-item" }, /* @__PURE__ */ createElement("a", { href: `${home}chartifact/`, target }, "Chartifact"), " viewer"), /* @__PURE__ */ createElement("div", { className: "toolbar-item", style: { display: children ? "" : "none" } }, children), /* @__PURE__ */ createElement("div", { className: "toolbar-item" }, /* @__PURE__ */ createElement("span", { className: "toolbar-mode" }, displayMode, " mode "), /* @__PURE__ */ createElement("button", { type: "button", style: { display: restartDisplay }, onClick: restartClick }, "start over"), /* @__PURE__ */ createElement("button", { type: "button", style: { display: tweakDisplay }, onClick: tweakClick }, "view source"), /* @__PURE__ */ createElement("button", { type: "button", style: { display: downloadDisplay }, onClick: downloadClick, id: "download" }, "download")), /* @__PURE__ */ createElement("div", { id: "downloadPopup", style: {
       position: "absolute",
       display: "none",
       padding: "12px 16px",
@@ -338,7 +338,7 @@ ${htmlJsonJs}
         throw new Error("Toolbar element not found");
       }
       this.props = {
-        mode: this.mode,
+        mode: null,
         restartClick: () => window.location.reload(),
         tweakClick: () => {
           this.options.textarea.style.display = this.options.textarea.style.display === "none" ? "" : "none";
@@ -403,7 +403,7 @@ ${htmlJsonJs}
       this.render();
     }
     render() {
-      mount(ToolbarElement(this.props), this.toolbarElement);
+      mount(ToolbarElement({ ...this.props, mode: this.mode }), this.toolbarElement);
       this.downloadButton = this.toolbarElement.querySelector("#download");
       this.downloadPopup = this.toolbarElement.querySelector("#downloadPopup");
     }
