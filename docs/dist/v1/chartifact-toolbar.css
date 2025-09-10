@@ -57,18 +57,23 @@
   margin-top: 0;
 }
 
+.chartifact-toolbar .toolbar-mode {
+  font-size: smaller;
+  opacity: 0.8;
+}
+
 /* Default: stack toolbar sections vertically */
-.chartifact-toolbar > div {
+.chartifact-toolbar .toolbar-item {
   margin: 6px 0;
 }
 
 /* Wide screens: layout horizontally */
 @media (min-width: 1000px) {
-  .chartifact-toolbar {
+  .chartifact-toolbar .toolbar-group {
     display: flex;
     justify-content: space-between;
   }
-  .chartifact-toolbar > div {
+  .chartifact-toolbar .toolbar-item {
     display: inline-block;
     margin: 0;
   }

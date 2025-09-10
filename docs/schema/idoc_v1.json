@@ -568,7 +568,8 @@
                   },
                   "type": "array"
                 }
-              ]
+              ],
+              "description": "object array or a string or string array of CSV / TSV / DSV"
             },
             "dataFrameTransformations": {
               "items": {

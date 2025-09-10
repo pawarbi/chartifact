@@ -3,9 +3,48 @@
 * Licensed under the MIT License.
 */
 
-import { Folder } from "@microsoft/chartifact-schema-folder";
+import { Folder, DocRef } from "@microsoft/chartifact-schema-folder";
 import { Listener } from "./listener.js";
 import { loadViaUrl } from "./url.js";
+import { createElement } from 'tsx-create-element';
+
+interface FolderDisplayProps {
+    title: string;
+    docIndex: number;
+    docs: DocRef[];
+    prevClick: () => void;
+    nextClick: () => void;
+    pageSelectChange: (index: number) => void;
+}
+
+const FolderDisplay = (props: FolderDisplayProps) => {
+    const { title, docIndex, docs, prevClick, nextClick } = props;
+    return (
+        <span>
+            <span>{title}</span>
+            <div style={{ display: 'inline-block', marginRight: '0.5em' }}></div>
+            <span>(document {docIndex + 1} of {docs.length})</span>
+            <div style={{ display: 'inline-block' }}>
+                <button type="button" id="prevBtn" disabled={docIndex === 0} onClick={prevClick}>Previous</button>
+                <select
+                    id="pageSelect"
+                    title={`Select document (1 to ${docs.length})`}
+                    onChange={(e) => props.pageSelectChange(parseInt(e.target.value, 10) - 1)}
+                >
+                    {docs.map((doc, index) => (
+                        <option
+                            key={index}
+                            value={(index + 1)}
+                        >
+                            {doc.title ? doc.title : `Page ${index + 1}`}
+                        </option>
+                    ))}
+                </select>
+                <button type="button" id="nextBtn" disabled={docIndex === docs.length - 1} onClick={nextClick}>Next</button>
+            </div>
+        </span>
+    );
+}
 
 export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
     if (!folder || !folder.docs) {
@@ -34,35 +73,6 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
 
     let docIndex = 0;
 
-    const { folderSpan } = host.toolbar;
-    folderSpan.style.display = '';
-
-    // Create Previous and Next buttons
-    const prevBtn = document.createElement('button');
-    prevBtn.textContent = 'Previous';
-    prevBtn.disabled = docIndex === 0;
-
-    const nextBtn = document.createElement('button');
-    nextBtn.textContent = 'Next';
-    nextBtn.disabled = docIndex === folder.docs.length - 1;
-
-    // Create dropdown for page selection
-    const pageSelect = document.createElement('select');
-    for (let i = 0; i < folder.docs.length; i++) {
-        const option = document.createElement('option');
-        option.value = (i + 1).toString();
-        option.textContent = folder.docs[i].title ? folder.docs[i].title : `Page ${i + 1}`;
-        pageSelect.appendChild(option);
-    }
-    pageSelect.value = (docIndex + 1).toString();
-
-    // --- Wrap controls in a div ---
-    const navDiv = document.createElement('div');
-    navDiv.style.display = 'inline-block';
-    navDiv.appendChild(prevBtn);
-    navDiv.appendChild(pageSelect);
-    navDiv.appendChild(nextBtn);
-
     function getHashParam(key: string): string | undefined {
         const params = new URLSearchParams(window.location.hash.slice(1));
         return params.get(key) ?? undefined;
@@ -74,63 +84,47 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
         window.location.hash = params.toString();
     }
 
-    function updateFolderTitle() {
-        // Clear previous content
-        folderSpan.innerHTML = '';
-
-        // Folder label
-        const label = document.createElement('span');
-        label.textContent = `${folder.title} `;
-
-        // Document count in its own inline-block div
-        const docCountDiv = document.createElement('div');
-        docCountDiv.style.display = 'inline-block';
-        docCountDiv.style.marginRight = '0.5em';
-        docCountDiv.textContent = `(document ${docIndex + 1} of ${folder.docs.length}) `;
-
-        folderSpan.appendChild(label);
-        folderSpan.appendChild(docCountDiv);
-        folderSpan.appendChild(navDiv);
-    }
-
-    // Initial folder title
-    updateFolderTitle();
+    const props: FolderDisplayProps = {
+        title: folder.title,
+        docIndex,
+        docs: folder.docs,
+        prevClick: () => {
+            if (docIndex > 0) {
+                updatePage(docIndex - 1, true);
+            }
+        },
+        nextClick: () => {
+            if (docIndex < folder.docs.length - 1) {
+                updatePage(docIndex + 1, true);
+            }
+        },
+        pageSelectChange: (index) => {
+            if (index >= 0 && index <= folder.docs.length - 1) {
+                updatePage(index, true);
+            }
+        }
+    };
 
     function updatePage(newDocIndex: number, setHash: boolean = false) {
         docIndex = newDocIndex;
         if (setHash) {
             setHashParam('page', docIndex + 1);
         }
-        prevBtn.disabled = docIndex === 0;
-        nextBtn.disabled = docIndex === folder.docs.length - 1;
-        pageSelect.value = (docIndex + 1).toString();
 
-        // Use the function to update the folder title
-        updateFolderTitle();
+        //get mode from document extension
+        const mode = folder.docs[docIndex].href.endsWith('.idoc.md') ? 'markdown' : 'json';
+
+        host.toolbar.mode = mode;
+        host.toolbar.addChildren(<FolderDisplay {...{ ...props, docIndex }} />);
+
+        const pageSelect = document.querySelector('#pageSelect') as HTMLSelectElement;
+        if (pageSelect) {
+            pageSelect.value = (docIndex + 1).toString();
+        }
 
         const title = folder.docs[docIndex].title || `Page ${docIndex + 1}`;
         resolveUrl(title, folderUrl, folder.docs[docIndex].href, host);
     }
-
-    pageSelect.onchange = () => {
-        const selectedPage = parseInt(pageSelect.value, 10);
-        if (selectedPage >= 1 && selectedPage <= folder.docs.length) {
-            updatePage(selectedPage - 1, true);
-        }
-    };
-
-    // Button click handlers
-    prevBtn.onclick = () => {
-        if (docIndex > 0) {
-            updatePage(docIndex - 1, true);
-        }
-    };
-
-    nextBtn.onclick = () => {
-        if (docIndex < folder.docs.length - 1) {
-            updatePage(docIndex + 1, true);
-        }
-    };
 
     // Set initial hash and handle hash navigation
     function goToPageFromHash() {
@@ -152,9 +146,6 @@ export function loadFolder(folderUrl: string, folder: Folder, host: Listener) {
         setHashParam('page', docIndex + 1);
     }
     goToPageFromHash();
-
-    // Add buttons and dropdown to the toolbar
-    folderSpan.appendChild(navDiv);
 
     //resolveUrl(folderUrl, folder.docUrls[docIndex], host);
 }

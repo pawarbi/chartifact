@@ -68,6 +68,7 @@ interface ReturnType {
 /** JSON data or CSV / TSV / DSV */
 interface DataSourceInline extends DataSourceBase {
     type: 'inline';
+    /** object array or a string or string array of CSV / TSV / DSV */
     content: object[] | string | string[];
 }
 /** User uploaded their own data file */
