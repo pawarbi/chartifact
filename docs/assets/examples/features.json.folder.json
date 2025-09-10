@@ -1,0 +1,58 @@
+{
+    "$schema": "../../schema/folder_v1.json",
+    "title": "Core capabilities",
+    "docs": [
+        {
+            "title": "Primer",
+            "href": "./json/features/1.primer.idoc.json"
+        },
+        {
+            "title": "Data Source: Inline JSON Data",
+            "href": "json/features/2.1.inline-json-data.idoc.json"
+        },
+        {
+            "title": "Data Source: CSV from URL", 
+            "href": "json/features/2.2.csv-from-url.idoc.json"
+        },
+        {
+            "title": "Data Source: Dynamic URL Variables",
+            "href": "json/features/2.3.dynamic-url-variables.idoc.json"
+        },
+        {
+            "title": "Data Source: Inline CSV Data",
+            "href": "json/features/2.4.inline-csv-data.idoc.json"
+        },
+        {
+            "title": "Chart",
+            "href": "json/features/3.chart.idoc.json"
+        },
+        {
+            "title": "Table",
+            "href": "json/features/4.table.idoc.json"
+        },
+        {
+            "title": "Styling",
+            "href": "json/features/5.styling.idoc.json"
+        },
+        {
+            "title": "Data Transformations",
+            "href": "json/features/6.data-transformations.idoc.json"
+        },
+        {
+            "title": "Dynamic Dropdown",
+            "href": "json/features/7.dropdown.idoc.json"
+        },
+        {
+            "title": "Presets",
+            "href": "json/features/8.presets.idoc.json"
+        },
+        {
+            "title": "Mermaid",
+            "href": "json/features/9.mermaid.idoc.json"
+        },
+        {
+            "title": "Images",
+            "href": "json/features/10.images.idoc.json"
+        }
+    ]
+}

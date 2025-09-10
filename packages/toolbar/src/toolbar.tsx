@@ -101,7 +101,7 @@ export class Toolbar {
         }
 
         this.props = {
-            mode: this.mode,
+            mode: null,
             restartClick: () => window.location.reload(),
             tweakClick: () => {
                 this.options.textarea.style.display = this.options.textarea.style.display === 'none' ? '' : 'none';
@@ -179,7 +179,7 @@ export class Toolbar {
     }
 
     render() {
-        mount(ToolbarElement(this.props), this.toolbarElement);
+        mount(ToolbarElement({ ...this.props, mode: this.mode }), this.toolbarElement);
         this.downloadButton = this.toolbarElement.querySelector('#download') as HTMLButtonElement;
         this.downloadPopup = this.toolbarElement.querySelector('#downloadPopup') as HTMLDivElement;
     }
