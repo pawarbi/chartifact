@@ -24,7 +24,7 @@ title: "Try now with your LLM - Chartifact"
 <pre style="margin: 0; white-space: pre-wrap; font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; font-size: 13px; line-height: 1.45;"><code>I want you to help me create a Chartifact document. Chartifact is a format for creating interactive, data-driven documents that work like mini apps.
 
 Here are some example Chartifact documents for reference:
-[Paste your chosen example files here]
+[Add your chosen example files to the chat]
 
 Please create a new Chartifact document that:
 - Uses the same format as the examples (either .idoc.md or .idoc.json)
@@ -34,10 +34,15 @@ Please create a new Chartifact document that:
 
 Key requirements:
 - Save the output as a file ending in .idoc.md (markdown format) or .idoc.json (JSON format)
+- Choose one format and stick with it - do not mix formats in a single document
 - Use only Markdown formatting - NO HTML elements are allowed
 - For complex charts, use the chart component with chartKey and place specifications in resources.charts
 - For dropdown options, use simple string arrays, not objects
 - Include CSS styling for good visual presentation
+
+Note: If your chat interface renders markdown instead of showing the source code, request the JSON format (.idoc.json) instead as it's easier to copy.
+
+When finished, you can preview and edit your document at: https://microsoft.github.io/chartifact/view/
 
 Return the complete file content that I can save and use directly.</code></pre>
 </div>
@@ -57,8 +62,18 @@ Return the complete file content that I can save and use directly.</code></pre>
 <li><strong>Reports</strong> - Data analysis with charts, tables, and narrative text</li>
 <li><strong>Presentations</strong> - Slide-like documents with interactive elements</li>
 <li><strong>Forms</strong> - Data collection interfaces with validation</li>
-<li><strong>Calculators</strong> - Interactive tools for scenarios and modeling</li>
+<li><strong>Calculators &amp; What-if Analysis</strong> - Interactive tools for scenarios and modeling</li>
 <li><strong>Documentation</strong> - Technical docs with live examples and demos</li>
 </ul>
+
+<h2>Remixing and Format Conversion</h2>
+<p>You can easily convert existing documents between different formats and styles:</p>
+<ul>
+<li><strong>Report to Slideshow</strong> - Transform a data report into a presentation format</li>
+<li><strong>Dashboard to Report</strong> - Convert interactive dashboards into narrative reports</li>
+<li><strong>Static to Interactive</strong> - Add input controls and interactivity to static documents</li>
+<li><strong>Format Conversion</strong> - Convert between .idoc.md and .idoc.json formats</li>
+</ul>
+<p>Simply provide your existing document and ask your LLM to convert it to the desired format or style while maintaining the core functionality.</p>
 
 <p><strong>Ready to get started?</strong> Head to the <a href="./examples">examples gallery</a> to choose your templates!</p>
