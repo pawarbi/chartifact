@@ -17,7 +17,7 @@ export interface ReturnType {
 export interface DataSourceInline extends DataSourceBase {
   type: 'inline';
 
-  /* handles JSON arrays or a string of CSV / TSV / DSV */
+  /** object array or a string or string array of CSV / TSV / DSV */
   content: object[] | string | string[];
 }
 

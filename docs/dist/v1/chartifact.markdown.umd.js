@@ -1651,9 +1651,7 @@ ${reconstitutedRules.join("\n\n")}
       const dsvInfo = `dsv delimiter:, variableId:${variableId}`;
       const dsvToken = Object.assign({}, token, { info: dsvInfo });
       return dsvPlugin.fence(dsvToken, index2);
-    },
-    hydrateSpecs: dsvPlugin.hydrateSpecs,
-    hydrateComponent: dsvPlugin.hydrateComponent
+    }
   };
   function isValidGoogleFontsUrl(url) {
     try {
@@ -2731,9 +2729,7 @@ ${reconstitutedRules.join("\n\n")}
       const dsvInfo = `dsv delimiter:\\t variableId:${variableId}`;
       const dsvToken = Object.assign({}, token, { info: dsvInfo });
       return dsvPlugin.fence(dsvToken, index2);
-    },
-    hydrateSpecs: dsvPlugin.hydrateSpecs,
-    hydrateComponent: dsvPlugin.hydrateComponent
+    }
   };
   var LogLevel = /* @__PURE__ */ ((LogLevel2) => {
     LogLevel2[LogLevel2["none"] = 0] = "none";
