@@ -53,3 +53,19 @@ if (!existsSync(outputDir)) {
 const zipped = zipSync(zipFiles);
 writeFileSync(outputZip, zipped);
 console.log(`Zip file created: ${outputZip}`);
+
+// Create markdown-only zip
+const markdownZipFiles: Record<string, Uint8Array> = {};
+Object.assign(markdownZipFiles, addDirectoryToZip(resolve(__dirname, '../../../docs/assets/examples/markdown')));
+const markdownZipPath = resolve(__dirname, '../../../docs/assets/chartifact-examples-markdown.zip');
+writeFileSync(markdownZipPath, zipSync(markdownZipFiles));
+console.log(`Markdown zip file created: ${markdownZipPath}`);
+
+// Create json-only zip (including schema)
+const jsonZipFiles: Record<string, Uint8Array> = {};
+Object.assign(jsonZipFiles, addDirectoryToZip(resolve(__dirname, '../../../docs/assets/examples/json')));
+jsonZipFiles['schema/idoc_v1.d.ts'] = readFileSync(resolve(__dirname, '../../../docs/schema/idoc_v1.d.ts'));
+jsonZipFiles['schema/idoc_v1.json'] = readFileSync(resolve(__dirname, '../../../docs/schema/idoc_v1.json'));
+const jsonZipPath = resolve(__dirname, '../../../docs/assets/chartifact-examples-json.zip');
+writeFileSync(jsonZipPath, zipSync(jsonZipFiles));
+console.log(`JSON zip file created: ${jsonZipPath}`);
