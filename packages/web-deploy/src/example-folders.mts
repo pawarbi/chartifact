@@ -21,8 +21,6 @@ title: Chartifact Examples
 
 <p>Explore these interactive documents to see what's possible with Chartifact. <a href="./prompt">Want to create your own? Use AI to get started!</a></p>
 
-<a href="/chartifact/assets/chartifact-examples.zip" download>Download All Examples (ZIP)</a>
-
 `;
 
 files.forEach(file => {
@@ -44,7 +42,15 @@ files.forEach(file => {
   htmlContent += `</ul>\n`;
 });
 
-htmlContent += `</body>`;
+htmlContent += `
+<h2>Downloads</h2>
+<ul>
+  <li><a href="/chartifact/assets/chartifact-examples.zip" download>Download All Examples (ZIP)</a></li>
+  <li><a href="/chartifact/assets/chartifact-markdown-examples.zip" download>Download Markdown Only (ZIP)</a></li>
+  <li><a href="/chartifact/assets/chartifact-json-examples.zip" download>Download JSON + Schema (ZIP)</a></li>
+</ul>
+
+</body>`;
 
 writeFileSync(outputFile, htmlContent, 'utf-8');
 
