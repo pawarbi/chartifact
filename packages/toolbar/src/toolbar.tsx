@@ -30,11 +30,12 @@ interface ToolbarProps {
     downloadDisplay: 'none' | '';
     downloadSource: () => void;
     downloadHtml: () => void;
+    children?: JSX.Element;
 }
 
 const ToolbarElement = (props: ToolbarProps) => {
 
-    const { mode, restartClick, tweakClick, downloadClick, restartDisplay, tweakDisplay, downloadDisplay, downloadSource, downloadHtml } = props;
+    const { mode, restartClick, tweakClick, downloadClick, restartDisplay, tweakDisplay, downloadDisplay, downloadSource, downloadHtml, children } = props;
 
     const { home, target } = (window.location.hostname === 'localhost')
         ? { home: '/', target: '_self' }
@@ -47,7 +48,9 @@ const ToolbarElement = (props: ToolbarProps) => {
             <div className='toolbar-item'>
                 <a href={`${home}chartifact/`} target={target}>Chartifact</a> viewer
             </div>
-            <div className='toolbar-item' id="folderSpan" style={{ display: 'none' }}></div>
+            <div className='toolbar-item' id="folderSpan" style={{ display: children ? '' : 'none' }}>
+                {children}
+            </div>
             <div className='toolbar-item'>
                 <button type="button" id="restart" style={{ display: restartDisplay }} onClick={restartClick}>start over</button>
                 <button type="button" id="tweak" style={{ display: tweakDisplay }} onClick={tweakClick}>view source</button>
@@ -168,6 +171,11 @@ export class Toolbar {
         } else if (this.mode === 'json') {
             return hw.default.htmlJsonWrapper(this.filename, this.options.textarea.value);
         }
+    }
+
+    addChildren(children: JSX.Element) {
+        this.props.children = children;
+        this.render();
     }
 
     render() {
