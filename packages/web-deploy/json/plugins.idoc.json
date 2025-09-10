@@ -4,11 +4,6 @@
 
     "variables": [
         {
-            "variableId": "selectedFormat",
-            "type": "string",
-            "initialValue": "json"
-        },
-        {
             "variableId": "userInput",
             "type": "string",
             "initialValue": "Hello from textbox!"
@@ -56,42 +51,23 @@
             ]
         },
         {
-            "groupId": "format-selector",
-            "elements": [
-                "## Choose Your Preferred Format",
-                "",
-                {
-                    "type": "dropdown",
-                    "variableId": "selectedFormat",
-                    "label": "Select format to see examples in:",
-                    "options": ["json", "yaml"]
-                }
-            ]
-        },
-        {
             "groupId": "syntax-overview",
             "elements": [
-                "## Basic Syntax",
+                "## Understanding Plugin Syntax",
                 "",
-                "Plugin instances are created using fenced code blocks with a specific format:",
+                "The best way to learn plugin syntax is to **view the source of this document**! All the interactive elements you see here are created using plugin syntax.",
                 "",
-                "### JSON Format",
+                "### Basic Syntax Pattern",
                 "```",
-                "```json plugin-type",
-                "{",
-                "  \"property\": \"value\",",
-                "  \"anotherProperty\": 123",
-                "}",
+                "```[format] [plugin-type]",
+                "[configuration]",
                 "```",
                 "```",
                 "",
-                "### YAML Format",
-                "```",
-                "```yaml plugin-type",
-                "property: value",
-                "anotherProperty: 123",
-                "```",
-                "```"
+                "Where:",
+                "- `[format]` can be either `json` or `yaml`",
+                "- `[plugin-type]` is the type of plugin (textbox, slider, chart, etc.)",
+                "- `[configuration]` contains the plugin settings"
             ]
         },
         {
@@ -181,31 +157,15 @@
             ]
         },
         {
-            "groupId": "format-comparison",
+            "groupId": "format-guidance",
             "elements": [
-                "## Format Comparison",
+                "## JSON vs YAML: When to Use Each",
                 "",
-                "Here's how the same textbox plugin looks in both formats:",
+                "**System Recommendation:**",
+                "- **Use YAML mostly** - for cleaner, more readable configuration",
+                "- **Use JSON for complex plugins** - especially when copying configuration from programmatic libraries like Vega and Tabulator, where most examples will be in JSON format",
                 "",
-                "### JSON Format (Copy from libraries)",
-                "```",
-                "```json textbox",
-                "{",
-                "  \"variableId\": \"myVariable\",",
-                "  \"label\": \"Enter text:\",",
-                "  \"placeholder\": \"Type here...\"",
-                "}",
-                "```",
-                "```",
-                "",
-                "### YAML Format (Recommended for most cases)",
-                "```",
-                "```yaml textbox",
-                "variableId: myVariable",
-                "label: \"Enter text:\"",
-                "placeholder: \"Type here...\"",
-                "```",
-                "```"
+                "**Tip**: View the source of this document to see real examples of both JSON and YAML plugin syntax in action!"
             ]
         },
         {
