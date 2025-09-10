@@ -52,9 +52,10 @@ const ToolbarElement = (props: ToolbarProps) => {
                 {children}
             </div>
             <div className='toolbar-item'>
-                <button type="button" id="restart" style={{ display: restartDisplay }} onClick={restartClick}>start over</button>
-                <button type="button" id="tweak" style={{ display: tweakDisplay }} onClick={tweakClick}>view source</button>
-                <button type="button" id="download" style={{ display: downloadDisplay }} onClick={downloadClick}>download</button>
+                <span className='toolbar-mode'>{displayMode} mode </span>
+                <button type="button" style={{ display: restartDisplay }} onClick={restartClick}>start over</button>
+                <button type="button" style={{ display: tweakDisplay }} onClick={tweakClick}>view source</button>
+                <button type="button" style={{ display: downloadDisplay }} onClick={downloadClick} id="download">download</button>
             </div>
             <div id="downloadPopup" style={{
                 position: 'absolute',
