@@ -12,19 +12,22 @@ title: "Try now with your LLM - Chartifact"
 <h2>How to Use</h2>
 <ol>
 <li><strong>Choose examples</strong>: Browse the <a href="./examples">examples gallery</a> and select 2-3 documents that are similar to what you want to create</li>
+<li><strong>Add examples to chat</strong>: Add your chosen example files to the chat along with the prompt below</li>
 <li><strong>Copy the prompt</strong>: Use the prompt below with your chosen examples</li>
 <li><strong>Generate your document</strong>: Your LLM will create a Chartifact document (ending in <code>.idoc.md</code> or <code>.idoc.json</code>)</li>
 <li><strong>Preview and refine</strong>: Drop your file into the <a href="./view/">online viewer</a> to preview, make edits, and download a shareable HTML file</li>
 </ol>
 
+<p><strong>Important:</strong> Choose one format (.idoc.md or .idoc.json) and stick with it - do not mix formats in a single document. If your chat interface renders markdown instead of showing the source code, use the JSON format (.idoc.json) as it's easier to copy.</p>
+
 <h2>Copy This Prompt</h2>
 <p>Copy the prompt below and paste it into your LLM along with your chosen example files:</p>
 
-<div style="background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 16px; margin: 16px 0;">
-<pre style="margin: 0; white-space: pre-wrap; font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; font-size: 13px; line-height: 1.45;"><code>I want you to help me create a Chartifact document. Chartifact is a format for creating interactive, data-driven documents that work like mini apps.
+<div style="background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 16px; margin: 16px 0; position: relative;">
+<button onclick="copyPrompt()" style="position: absolute; top: 8px; right: 8px; background: #0969da; color: white; border: none; border-radius: 4px; padding: 4px 8px; font-size: 12px; cursor: pointer;">Copy</button>
+<pre style="margin: 0; white-space: pre-wrap; font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; font-size: 13px; line-height: 1.45;" id="promptText"><code>I want you to help me create a Chartifact document. Chartifact is a format for creating interactive, data-driven documents that work like mini apps.
 
-Here are some example Chartifact documents for reference:
-[Add your chosen example files to the chat]
+See attached example Chartifact documents for reference.
 
 Please create a new Chartifact document that:
 - Uses the same format as the examples (either .idoc.md or .idoc.json)
@@ -40,12 +43,26 @@ Key requirements:
 - For dropdown options, use simple string arrays, not objects
 - Include CSS styling for good visual presentation
 
-Note: If your chat interface renders markdown instead of showing the source code, request the JSON format (.idoc.json) instead as it's easier to copy.
-
 When finished, you can preview and edit your document at: https://microsoft.github.io/chartifact/view/
 
 Return the complete file content that I can save and use directly.</code></pre>
 </div>
+
+<script>
+function copyPrompt() {
+    const text = document.getElementById('promptText').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        const button = document.querySelector('button[onclick="copyPrompt()"]');
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        button.style.background = '#28a745';
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = '#0969da';
+        }, 2000);
+    });
+}
+</script>
 
 <h2>Tips for Better Results</h2>
 <ul>
@@ -53,6 +70,7 @@ Return the complete file content that I can save and use directly.</code></pre>
 <li><strong>Choose relevant examples</strong>: Pick examples that match your desired document type (dashboard, report, presentation, etc.)</li>
 <li><strong>Start simple</strong>: Begin with basic functionality and iterate to add complexity</li>
 <li><strong>Use the viewer</strong>: The <a href="./view/">online viewer</a> lets you test, edit, and refine your document instantly</li>
+<li><strong>Format selection</strong>: If your chat interface renders markdown instead of showing the source code, request the JSON format (.idoc.json) as it's easier to copy</li>
 </ul>
 
 <h2>What You Can Create</h2>
@@ -64,6 +82,7 @@ Return the complete file content that I can save and use directly.</code></pre>
 <li><strong>Forms</strong> - Data collection interfaces with validation</li>
 <li><strong>Calculators &amp; What-if Analysis</strong> - Interactive tools for scenarios and modeling</li>
 <li><strong>Documentation</strong> - Technical docs with live examples and demos</li>
+<li><strong>Research Summaries</strong> - Perfect for creating visual reports at the end of deep research projects where you have findings and want to present them in an interactive format</li>
 </ul>
 
 <h2>Remixing and Format Conversion</h2>
@@ -72,7 +91,6 @@ Return the complete file content that I can save and use directly.</code></pre>
 <li><strong>Report to Slideshow</strong> - Transform a data report into a presentation format</li>
 <li><strong>Dashboard to Report</strong> - Convert interactive dashboards into narrative reports</li>
 <li><strong>Static to Interactive</strong> - Add input controls and interactivity to static documents</li>
-<li><strong>Format Conversion</strong> - Convert between .idoc.md and .idoc.json formats</li>
 </ul>
 <p>Simply provide your existing document and ask your LLM to convert it to the desired format or style while maintaining the core functionality.</p>
 
