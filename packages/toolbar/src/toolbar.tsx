@@ -48,7 +48,7 @@ const ToolbarElement = (props: ToolbarProps) => {
             <div className='toolbar-item'>
                 <a href={`${home}chartifact/`} target={target}>Chartifact</a> viewer
             </div>
-            <div className='toolbar-item' id="folderSpan" style={{ display: children ? '' : 'none' }}>
+            <div className='toolbar-item' style={{ display: children ? '' : 'none' }}>
                 {children}
             </div>
             <div className='toolbar-item'>
@@ -81,7 +81,6 @@ const ToolbarElement = (props: ToolbarProps) => {
 
 export class Toolbar {
     public toolbarElement: HTMLElement;
-    public folderSpan: HTMLElement;
     public downloadButton: HTMLButtonElement;
     public downloadPopup: HTMLDivElement;
     public mode: 'markdown' | 'json';
@@ -182,7 +181,6 @@ export class Toolbar {
         mount(ToolbarElement(this.props), this.toolbarElement);
         this.downloadButton = this.toolbarElement.querySelector('#download') as HTMLButtonElement;
         this.downloadPopup = this.toolbarElement.querySelector('#downloadPopup') as HTMLDivElement;
-        this.folderSpan = this.toolbarElement.querySelector('#folderSpan') as HTMLDivElement;
     }
 
     // Helper method to trigger a download
