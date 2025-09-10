@@ -13,12 +13,12 @@ export interface ReturnType {
 
 /** Data source types */
 
-/** JSON data */
+/** JSON data or CSV / TSV / DSV */
 export interface DataSourceInline extends DataSourceBase {
   type: 'inline';
 
-  /* handles JSON arrays or a string of CSV / TSV */
-  content: object[] | string;
+  /** object array or a string or string array of CSV / TSV / DSV */
+  content: object[] | string | string[];
 }
 
 /** User uploaded their own data file */

@@ -1214,20 +1214,33 @@ ${reconstitutedRules.join("\n\n")}
 }`;
     }
   }
-  function reconstituteCss(atRules) {
+  function reconstituteCss(orderedBlocks) {
     const cssBlocks = [];
-    for (const atRule of Object.values(atRules)) {
-      const reconstructed = reconstituteAtRule(atRule);
-      if (reconstructed.trim()) {
-        cssBlocks.push(reconstructed);
+    for (const block of orderedBlocks) {
+      if (block.type === "atRule" && block.atRule) {
+        const reconstructed = reconstituteAtRule(block.atRule);
+        if (reconstructed.trim()) {
+          cssBlocks.push(reconstructed);
+        }
+      } else if (block.type === "rule" && block.rule) {
+        const rule = block.rule;
+        if (rule.declarations.length > 0) {
+          const validDeclarations = rule.declarations.map((decl) => decl.css).filter((css) => css.trim() !== "");
+          if (validDeclarations.length > 0) {
+            cssBlocks.push(`${rule.selector} {
+  ${validDeclarations.join(";\n  ")};
+}`);
+          }
+        }
       }
     }
     return cssBlocks.join("\n\n");
   }
   function categorizeCss(cssContent) {
     const spec = {
-      atRules: {}
+      orderedBlocks: []
     };
+    const orderedBlocks = spec.orderedBlocks;
     const result = {
       spec,
       hasFlags: false,
@@ -1254,7 +1267,7 @@ ${reconstitutedRules.join("\n\n")}
       "starting-style",
       "position-try"
     ];
-    function checkSecurityIssues(node) {
+    const checkSecurityIssues = (node) => {
       if (node.type === "Function" && node.name === "expression") {
         return { flag: "scriptExec", reason: "CSS expression() function detected" };
       }
@@ -1267,8 +1280,8 @@ ${reconstitutedRules.join("\n\n")}
           return { flag: "scriptExec", reason: `${urlStr.split(":")[0]} URL detected` };
         }
         if (urlStr.startsWith("data:")) {
-          if (urlStr.includes("data:image/svg+xml")) {
-            if (urlStr.includes("<script")) {
+          if (urlStr.indexOf("data:image/svg+xml") !== -1) {
+            if (urlStr.indexOf("<script") !== -1) {
               return { flag: "svgDataUrl", reason: "SVG data URL with script detected" };
             }
             return { flag: "svgDataUrl", reason: "SVG data URL detected - requires approval" };
@@ -1285,108 +1298,117 @@ ${reconstitutedRules.join("\n\n")}
         const value = node.value || node.name || "";
         if (typeof value === "string") {
           const valueStr = value.toLowerCase();
-          if (valueStr.includes("\\") && (valueStr.includes("3c") || valueStr.includes("3e") || valueStr.includes("22") || valueStr.includes("27"))) {
+          if (valueStr.indexOf("\\") !== -1 && (valueStr.indexOf("3c") !== -1 || valueStr.indexOf("3e") !== -1 || valueStr.indexOf("22") !== -1 || valueStr.indexOf("27") !== -1)) {
             return { flag: "xss", reason: "Potential CSS-encoded XSS detected" };
           }
         }
       }
       return null;
-    }
+    };
     try {
-      let addCurrentRule = function() {
-        if (currentRule && currentRule.declarations.length > 0) {
-          const targetAtRule = currentAtRuleSignature;
-          if (!spec.atRules[targetAtRule]) {
-            spec.atRules[targetAtRule] = {
-              signature: targetAtRule,
-              rules: []
-            };
-          }
-          if (spec.atRules[targetAtRule].rules) {
-            spec.atRules[targetAtRule].rules.push(currentRule);
-          } else {
-            spec.atRules[targetAtRule].rules = [currentRule];
-          }
-        }
-      };
       const ast = csstree.parse(cssContent);
-      let currentRule = null;
-      let currentAtRuleSignature = "";
-      csstree.walk(ast, (node) => {
-        if (node.type === "Atrule") {
-          const atRuleSignature = `@${node.name}${node.prelude ? ` ${csstree.generate(node.prelude)}` : ""}`;
-          if (node.name === "import") {
-            const ruleContent = csstree.generate(node);
-            const reason = "@import rule detected - requires approval";
-            spec.atRules[atRuleSignature] = {
-              signature: atRuleSignature,
-              css: ruleContent,
-              flag: "importRule",
-              reason
-            };
-            result.hasFlags = true;
-            result.reasons.push(reason);
-            return;
-          }
-          if (completeBlockAtRules.includes(node.name)) {
-            const ruleContent = csstree.generate(node);
-            spec.atRules[atRuleSignature] = {
-              signature: atRuleSignature,
-              css: ruleContent
-            };
-            return;
-          }
-          if (node.block) {
-            if (!spec.atRules[atRuleSignature]) {
-              spec.atRules[atRuleSignature] = {
+      const pendingRules = [];
+      if (ast.type === "StyleSheet" && ast.children) {
+        ast.children.forEach((node) => {
+          if (node.type === "Atrule") {
+            const atRuleSignature = `@${node.name}${node.prelude ? ` ${csstree.generate(node.prelude)}` : ""}`;
+            if (node.name === "import") {
+              const ruleContent = csstree.generate(node);
+              const reason = "@import rule detected - requires approval";
+              const atRuleObj = {
+                signature: atRuleSignature,
+                css: ruleContent,
+                flag: "importRule",
+                reason
+              };
+              orderedBlocks.push({ type: "atRule", key: atRuleSignature, atRule: atRuleObj });
+              result.hasFlags = true;
+              result.reasons.push(reason);
+              return;
+            }
+            if (completeBlockAtRules.indexOf(node.name) !== -1) {
+              const ruleContent = csstree.generate(node);
+              const atRuleObj = {
+                signature: atRuleSignature,
+                css: ruleContent
+              };
+              orderedBlocks.push({ type: "atRule", key: atRuleSignature, atRule: atRuleObj });
+              return;
+            }
+            if (node.block) {
+              const atRuleObj = {
                 signature: atRuleSignature,
                 rules: []
               };
+              orderedBlocks.push({ type: "atRule", key: atRuleSignature, atRule: atRuleObj });
+              if (node.block.children) {
+                node.block.children.forEach((childNode) => {
+                  if (childNode.type === "Rule") {
+                    const selector = csstree.generate(childNode.prelude);
+                    const rule = {
+                      selector,
+                      declarations: []
+                    };
+                    pendingRules.push({ rule, context: atRuleSignature, node: childNode, atRuleObj });
+                  }
+                });
+              }
+            } else {
+              const ruleContent = csstree.generate(node);
+              const atRuleObj = {
+                signature: atRuleSignature,
+                css: ruleContent
+              };
+              orderedBlocks.push({ type: "atRule", key: atRuleSignature, atRule: atRuleObj });
             }
-            currentAtRuleSignature = atRuleSignature;
-          } else {
-            const ruleContent = csstree.generate(node);
-            spec.atRules[atRuleSignature] = {
-              signature: atRuleSignature,
-              css: ruleContent
+          } else if (node.type === "Rule") {
+            const selector = csstree.generate(node.prelude);
+            const rule = {
+              selector,
+              declarations: []
             };
+            pendingRules.push({ rule, context: "", node });
+            orderedBlocks.push({ type: "rule", rule, key: "" });
           }
-        } else if (node.type === "Rule") {
-          addCurrentRule();
-          const selector = csstree.generate(node.prelude);
-          currentRule = {
-            selector,
-            declarations: []
-          };
-        } else if (node.type === "Declaration" && currentRule) {
-          const declCss = csstree.generate(node);
-          const declaration = { css: declCss };
-          const securityCheck = checkSecurityIssues(node);
-          if (securityCheck) {
-            declaration.css = `/* omitted (${securityCheck.reason}) */`;
-            declaration.unsafeCss = declCss;
-            declaration.flag = securityCheck.flag;
-            declaration.reason = securityCheck.reason;
-            result.hasFlags = true;
-            result.reasons.push(securityCheck.reason);
-          }
-          currentRule.declarations.push(declaration);
-        } else if (currentRule && (node.type === "Function" || node.type === "Url" || node.type === "String" || node.type === "Identifier")) {
-          const securityCheck = checkSecurityIssues(node);
-          if (securityCheck && currentRule.declarations.length > 0) {
-            const lastDecl = currentRule.declarations[currentRule.declarations.length - 1];
-            if (!lastDecl.flag) {
-              lastDecl.unsafeCss = lastDecl.css;
-              lastDecl.css = `/* omitted (${securityCheck.reason}) */`;
-              lastDecl.flag = securityCheck.flag;
-              lastDecl.reason = securityCheck.reason;
+        });
+      }
+      for (const { rule, context, node, atRuleObj } of pendingRules) {
+        csstree.walk(node, (declNode) => {
+          if (declNode.type === "Declaration") {
+            const declCss = csstree.generate(declNode);
+            const declaration = { css: declCss };
+            const securityCheck = checkSecurityIssues(declNode);
+            if (securityCheck) {
+              declaration.css = `/* omitted (${securityCheck.reason}) */`;
+              declaration.unsafeCss = declCss;
+              declaration.flag = securityCheck.flag;
+              declaration.reason = securityCheck.reason;
               result.hasFlags = true;
               result.reasons.push(securityCheck.reason);
+            } else {
+              csstree.walk(declNode, (childNode) => {
+                if (childNode !== declNode && (childNode.type === "Function" || childNode.type === "Url" || childNode.type === "String" || childNode.type === "Identifier")) {
+                  const childSecurityCheck = checkSecurityIssues(childNode);
+                  if (childSecurityCheck && !declaration.flag) {
+                    declaration.unsafeCss = declaration.css;
+                    declaration.css = `/* omitted (${childSecurityCheck.reason}) */`;
+                    declaration.flag = childSecurityCheck.flag;
+                    declaration.reason = childSecurityCheck.reason;
+                    result.hasFlags = true;
+                    result.reasons.push(childSecurityCheck.reason);
+                  }
+                }
+              });
             }
+            rule.declarations.push(declaration);
+          }
+        });
+        if (rule.declarations.length > 0) {
+          if (atRuleObj && atRuleObj.rules) {
+            atRuleObj.rules.push(rule);
           }
         }
-      });
-      addCurrentRule();
+      }
     } catch (parseError) {
       throw new Error(`CSS parsing failed: ${parseError.message}`);
     }
@@ -1409,9 +1431,10 @@ ${reconstitutedRules.join("\n\n")}
           continue;
         }
         const container = renderer.element.querySelector(`#${specReview.containerId}`);
-        const categorizedCss = specReview.approvedSpec;
+        specReview.approvedSpec;
+        const orderedBlocks = specReview.approvedSpec.orderedBlocks;
         const comments = [];
-        const safeCss = reconstituteCss(categorizedCss.atRules);
+        const safeCss = reconstituteCss(orderedBlocks);
         if (safeCss.trim().length > 0) {
           const styleElement = document.createElement("style");
           styleElement.type = "text/css";
@@ -1628,9 +1651,7 @@ ${reconstitutedRules.join("\n\n")}
       const dsvInfo = `dsv delimiter:, variableId:${variableId}`;
       const dsvToken = Object.assign({}, token, { info: dsvInfo });
       return dsvPlugin.fence(dsvToken, index2);
-    },
-    hydrateSpecs: dsvPlugin.hydrateSpecs,
-    hydrateComponent: dsvPlugin.hydrateComponent
+    }
   };
   function isValidGoogleFontsUrl(url) {
     try {
@@ -2708,9 +2729,7 @@ ${reconstitutedRules.join("\n\n")}
       const dsvInfo = `dsv delimiter:\\t variableId:${variableId}`;
       const dsvToken = Object.assign({}, token, { info: dsvInfo });
       return dsvPlugin.fence(dsvToken, index2);
-    },
-    hydrateSpecs: dsvPlugin.hydrateSpecs,
-    hydrateComponent: dsvPlugin.hydrateComponent
+    }
   };
   var LogLevel = /* @__PURE__ */ ((LogLevel2) => {
     LogLevel2[LogLevel2["none"] = 0] = "none";

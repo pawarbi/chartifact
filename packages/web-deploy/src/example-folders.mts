@@ -19,6 +19,8 @@ title: Chartifact Examples
 
 <h1>Chartifact Examples</h1>
 
+<a href="/chartifact/assets/chartifact-examples.zip" download>Download All Examples (ZIP)</a>
+
 `;
 
 files.forEach(file => {
