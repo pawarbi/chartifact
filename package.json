@@ -51,6 +51,7 @@
     "rimraf": "^6.0.1",
     "rollup-plugin-dts": "^6.2.1",
     "ts-json-schema-generator": "^2.4.0",
+    "tsx-create-element": "^2.3.0",
     "typescript": "^5.8.3",
     "vega-typings": "^2.0.1",
     "vite": "^6.3.6"

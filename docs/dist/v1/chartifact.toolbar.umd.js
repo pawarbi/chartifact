@@ -172,109 +172,224 @@ ${htmlJsonJs}
     htmlMarkdownWrapper,
     htmlJsonWrapper
   };
+  const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+  function decamelize(str, separator = "-") {
+    return str.replace(/([a-z\d])([A-Z])/g, "$1" + separator + "$2").replace(/([A-Z]+)([A-Z][a-z\d]+)/g, "$1" + separator + "$2").toLowerCase();
+  }
+  function createElement(tag, attrs, ...children) {
+    if (typeof tag === "function") {
+      const fn = tag;
+      let props = attrs;
+      if (props === null || props === void 0) {
+        props = { children };
+      } else {
+        props.children = children;
+      }
+      return fn(props);
+    } else {
+      const ns = tag === "svg" ? SVG_NAMESPACE : null;
+      const el = ns ? document.createElementNS(ns, tag) : document.createElement(tag);
+      const map = attrs;
+      let ref;
+      for (let name in map) {
+        if (name && map.hasOwnProperty(name)) {
+          let value = map[name];
+          if (name === "className" && value !== void 0) {
+            setAttribute(el, ns, "class", value.toString());
+          } else if (name === "disabled" && !value) ;
+          else if (value === null || value === void 0) {
+            continue;
+          } else if (value === true) {
+            setAttribute(el, ns, name, name);
+          } else if (typeof value === "function") {
+            if (name === "ref") {
+              ref = value;
+            } else {
+              el[name.toLowerCase()] = value;
+            }
+          } else if (typeof value === "object") {
+            setAttribute(el, ns, name, flatten(value));
+          } else {
+            setAttribute(el, ns, name, value.toString());
+          }
+        }
+      }
+      if (children && children.length > 0) {
+        appendChildren(el, children);
+      }
+      if (ref) {
+        ref(el);
+      }
+      return el;
+    }
+  }
+  function setAttribute(el, ns, name, value) {
+    if (ns) {
+      el.setAttributeNS(null, name, value);
+    } else {
+      el.setAttribute(name, value);
+    }
+  }
+  function flatten(o) {
+    const arr = [];
+    for (let prop in o)
+      arr.push(`${decamelize(prop, "-")}:${o[prop]}`);
+    return arr.join(";");
+  }
+  function isInsideForeignObject(element) {
+    let current = element;
+    while (current) {
+      if (current.tagName.toLowerCase() === "foreignobject") {
+        return true;
+      }
+      current = current.parentElement;
+    }
+    return false;
+  }
+  function recreateWithSvgNamespace(element) {
+    const svgElement = document.createElementNS(SVG_NAMESPACE, element.tagName.toLowerCase());
+    for (let i = 0; i < element.attributes.length; i++) {
+      const attr = element.attributes[i];
+      svgElement.setAttributeNS(null, attr.name, attr.value);
+    }
+    const eventProperties = [
+      "onclick",
+      "onmousedown",
+      "onmouseup",
+      "onmouseover",
+      "onmouseout",
+      "onmousemove",
+      "onkeydown",
+      "onkeyup",
+      "onkeypress",
+      "onfocus",
+      "onblur"
+    ];
+    for (const prop of eventProperties) {
+      if (element[prop]) {
+        svgElement[prop] = element[prop];
+      }
+    }
+    for (let i = 0; i < element.childNodes.length; i++) {
+      const child = element.childNodes[i];
+      if (child.nodeType === Node.ELEMENT_NODE) {
+        svgElement.appendChild(recreateWithSvgNamespace(child));
+      } else {
+        svgElement.appendChild(child.cloneNode(true));
+      }
+    }
+    return svgElement;
+  }
+  function addChild(parentElement, child) {
+    if (child === null || child === void 0 || typeof child === "boolean") {
+      return;
+    } else if (Array.isArray(child)) {
+      appendChildren(parentElement, child);
+    } else if (isElement(child)) {
+      const childEl = child;
+      if (parentElement.namespaceURI === SVG_NAMESPACE && childEl.namespaceURI !== SVG_NAMESPACE && childEl.tagName.toLowerCase() !== "foreignobject" && !isInsideForeignObject(parentElement)) {
+        const recreated = recreateWithSvgNamespace(childEl);
+        parentElement.appendChild(recreated);
+      } else {
+        parentElement.appendChild(childEl);
+      }
+    } else {
+      parentElement.appendChild(document.createTextNode(child.toString()));
+    }
+  }
+  function appendChildren(parentElement, children) {
+    children.forEach((child) => addChild(parentElement, child));
+  }
+  function isElement(el) {
+    return !!el.nodeType;
+  }
+  function mount(element, container) {
+    container.innerHTML = "";
+    if (element) {
+      addChild(container, element);
+    }
+  }
+  const ToolbarElement = (props) => {
+    const { mode, restartClick, tweakClick, downloadClick, restartDisplay, tweakDisplay, downloadDisplay, downloadSource, downloadHtml, children } = props;
+    const { home, target } = window.location.hostname === "localhost" ? { home: "/", target: "_self" } : { home: "https://microsoft.github.io/", target: "_blank" };
+    const displayMode = mode === "json" ? "json" : "markdown";
+    return /* @__PURE__ */ createElement("div", { className: "toolbar-group", style: { backgroundColor: "inherit" } }, /* @__PURE__ */ createElement("div", { className: "toolbar-item" }, /* @__PURE__ */ createElement("a", { href: `${home}chartifact/`, target }, "Chartifact"), " viewer"), /* @__PURE__ */ createElement("div", { className: "toolbar-item", style: { display: children ? "" : "none" } }, children), /* @__PURE__ */ createElement("div", { className: "toolbar-item" }, /* @__PURE__ */ createElement("button", { type: "button", id: "restart", style: { display: restartDisplay }, onClick: restartClick }, "start over"), /* @__PURE__ */ createElement("button", { type: "button", id: "tweak", style: { display: tweakDisplay }, onClick: tweakClick }, "view source"), /* @__PURE__ */ createElement("button", { type: "button", id: "download", style: { display: downloadDisplay }, onClick: downloadClick }, "download")), /* @__PURE__ */ createElement("div", { id: "downloadPopup", style: {
+      position: "absolute",
+      display: "none",
+      padding: "12px 16px",
+      zIndex: 1,
+      backgroundColor: "inherit"
+    } }, /* @__PURE__ */ createElement("div", { style: { marginBottom: "8px" } }, "Download as:"), /* @__PURE__ */ createElement("ul", null, /* @__PURE__ */ createElement("li", null, "Source (just the ", displayMode, " content)", /* @__PURE__ */ createElement("br", null), /* @__PURE__ */ createElement("button", { type: "button", id: "download-md", style: { marginRight: "8px" }, onClick: downloadSource }, "Source")), /* @__PURE__ */ createElement("li", null, "HTML wrapper (content plus a shareable viewer)", /* @__PURE__ */ createElement("br", null), /* @__PURE__ */ createElement("button", { type: "button", id: "download-html", onClick: downloadHtml }, "HTML wrapper")))));
+  };
   class Toolbar {
     constructor(toolbarElementOrSelector, options = {}) {
       __publicField(this, "toolbarElement");
-      __publicField(this, "folderSpan");
-      __publicField(this, "tweakButton");
-      __publicField(this, "restartButton");
       __publicField(this, "downloadButton");
+      __publicField(this, "downloadPopup");
       __publicField(this, "mode");
       __publicField(this, "filename");
-      __publicField(this, "downloadPopup");
-      var _a, _b, _c, _d, _e;
+      __publicField(this, "props");
       this.options = options;
       this.filename = options.filename || "sample";
-      this.mode = options.mode || "markdown";
+      const allowedModes = ["markdown", "json"];
+      this.mode = allowedModes.includes(options.mode) ? options.mode : "markdown";
       this.toolbarElement = typeof toolbarElementOrSelector === "string" ? document.querySelector(toolbarElementOrSelector) : toolbarElementOrSelector;
       if (!this.toolbarElement) {
         throw new Error("Toolbar element not found");
       }
-      const { home, target } = window.location.hostname === "localhost" ? { home: "/", target: "_self" } : { home: "https://microsoft.github.io/", target: "_blank" };
-      const html = `
-<div>
-    <a href="${home}chartifact/" target="${target}">Chartifact</a> viewer
-</div>
-<div id="folderSpan" style="display: none;"></div>
-<div>
-    <button type="button" id="restart" style="display: none;">start over</button>
-    <button type="button" id="tweak" style="display: none;">view source</button>
-    <button type="button" id="download" style="display: none;">download</button>
-</div>
-<div id="downloadPopup" style="position: absolute; display: none; padding: 12px 16px; z-index: 1; background-color: inherit;">
-    <div style="margin-bottom: 8px;">Download as:</div>
-    <ul>
-        <li>
-            Source markdown (just the content)<br/>
-            <button type="button" id="download-md" style="margin-right: 8px;">Source markdown</button>
-        </li>
-        <li>
-            HTML wrapper (content plus a shareable viewer)<br/>
-            <button type="button" id="download-html">HTML wrapper</button>
-        </li>
-    </ul>
-</div>
-        `;
-      this.toolbarElement.innerHTML = html;
-      this.folderSpan = this.toolbarElement.querySelector("#folderSpan");
-      this.tweakButton = this.toolbarElement.querySelector("#tweak");
-      this.restartButton = this.toolbarElement.querySelector("#restart");
-      this.downloadButton = this.toolbarElement.querySelector("#download");
-      this.downloadPopup = this.toolbarElement.querySelector("#downloadPopup");
-      if (this.options.tweakButton) {
-        this.showTweakButton();
-      }
-      if (this.options.restartButton) {
-        this.showRestartButton();
-      }
-      if (this.options.downloadButton) {
-        this.showDownloadButton();
-      }
-      (_a = this.tweakButton) == null ? void 0 : _a.addEventListener("click", () => {
-        this.options.textarea.style.display = this.options.textarea.style.display === "none" ? "" : "none";
-      });
-      (_b = this.restartButton) == null ? void 0 : _b.addEventListener("click", () => {
-        window.location.reload();
-      });
-      (_c = this.downloadButton) == null ? void 0 : _c.addEventListener("click", (e) => {
-        const rect = this.downloadButton.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const buttonCenter = rect.left + rect.width / 2;
-        const isLeftOfCenter = buttonCenter < viewportWidth / 2;
-        if (isLeftOfCenter) {
-          this.downloadPopup.style.left = `${rect.left + window.scrollX}px`;
-          this.downloadPopup.style.right = "";
-        } else {
-          this.downloadPopup.offsetWidth;
-          this.downloadPopup.style.right = `${viewportWidth - rect.right - window.scrollX}px`;
-          this.downloadPopup.style.left = "";
-        }
-        this.downloadPopup.style.top = `${rect.bottom + window.scrollY + 4}px`;
-        this.downloadPopup.style.display = "block";
-        const hidePopup = (evt) => {
-          if (!this.downloadPopup.contains(evt.target) && evt.target !== this.downloadButton) {
-            this.downloadPopup.style.display = "none";
-            document.removeEventListener("mousedown", hidePopup);
+      this.props = {
+        mode: this.mode,
+        restartClick: () => window.location.reload(),
+        tweakClick: () => {
+          this.options.textarea.style.display = this.options.textarea.style.display === "none" ? "" : "none";
+        },
+        downloadClick: () => {
+          const { downloadPopup, downloadButton } = this;
+          const rect = downloadButton.getBoundingClientRect();
+          const viewportWidth = window.innerWidth;
+          const buttonCenter = rect.left + rect.width / 2;
+          const isLeftOfCenter = buttonCenter < viewportWidth / 2;
+          if (isLeftOfCenter) {
+            downloadPopup.style.left = `${rect.left + window.scrollX}px`;
+            downloadPopup.style.right = "";
+          } else {
+            downloadPopup.offsetWidth;
+            downloadPopup.style.right = `${viewportWidth - rect.right - window.scrollX}px`;
+            downloadPopup.style.left = "";
           }
-        };
-        setTimeout(() => document.addEventListener("mousedown", hidePopup), 0);
-      });
-      (_d = this.downloadPopup.querySelector("#download-md")) == null ? void 0 : _d.addEventListener("click", () => {
-        this.downloadPopup.style.display = "none";
-        const textarea = this.options.textarea;
-        if (!textarea) return;
-        const content = textarea.value;
-        const filename = `${filenameWithoutPathOrExtension(this.filename)}.idoc.md`;
-        this.triggerDownload(content, filename, "text/markdown");
-      });
-      (_e = this.downloadPopup.querySelector("#download-html")) == null ? void 0 : _e.addEventListener("click", () => {
-        this.downloadPopup.style.display = "none";
-        const textarea = this.options.textarea;
-        if (!textarea) return;
-        const filename = `${filenameWithoutPathOrExtension(this.filename)}.idoc.html`;
-        const html2 = this.htmlWrapper();
-        this.triggerDownload(html2, filename, "text/html");
-      });
+          downloadPopup.style.top = `${rect.bottom + window.scrollY + 4}px`;
+          downloadPopup.style.display = "block";
+          const hidePopup = (evt) => {
+            if (!downloadPopup.contains(evt.target) && evt.target !== downloadButton) {
+              downloadPopup.style.display = "none";
+              document.removeEventListener("mousedown", hidePopup);
+            }
+          };
+          setTimeout(() => document.addEventListener("mousedown", hidePopup), 0);
+        },
+        restartDisplay: this.options.restartButton ? "" : "none",
+        tweakDisplay: this.options.tweakButton ? "" : "none",
+        downloadDisplay: this.options.downloadButton ? "" : "none",
+        downloadSource: () => {
+          this.downloadPopup.style.display = "none";
+          const textarea = this.options.textarea;
+          if (!textarea) return;
+          const content = textarea.value;
+          const extension = this.mode === "json" ? ".idoc.json" : ".idoc.md";
+          const mimeType = this.mode === "json" ? "application/json" : "text/markdown";
+          const filename = `${filenameWithoutPathOrExtension(this.filename)}${extension}`;
+          this.triggerDownload(content, filename, mimeType);
+        },
+        downloadHtml: () => {
+          this.downloadPopup.style.display = "none";
+          const textarea = this.options.textarea;
+          if (!textarea) return;
+          const html = this.htmlWrapper();
+          const filename = `${filenameWithoutPathOrExtension(this.filename)}.idoc.html`;
+          this.triggerDownload(html, filename, "text/html");
+        }
+      };
+      this.render();
     }
     htmlWrapper() {
       if (this.mode === "markdown") {
@@ -282,6 +397,15 @@ ${htmlJsonJs}
       } else if (this.mode === "json") {
         return index$1.htmlJsonWrapper(this.filename, this.options.textarea.value);
       }
+    }
+    addChildren(children) {
+      this.props.children = children;
+      this.render();
+    }
+    render() {
+      mount(ToolbarElement(this.props), this.toolbarElement);
+      this.downloadButton = this.toolbarElement.querySelector("#download");
+      this.downloadPopup = this.toolbarElement.querySelector("#downloadPopup");
     }
     // Helper method to trigger a download
     triggerDownload(content, filename, mimeType) {
@@ -298,13 +422,16 @@ ${htmlJsonJs}
       }, 0);
     }
     showTweakButton() {
-      this.tweakButton.style.display = "";
+      this.props.tweakDisplay = "";
+      this.render();
     }
     showRestartButton() {
-      this.restartButton.style.display = "";
+      this.props.restartDisplay = "";
+      this.render();
     }
     showDownloadButton() {
-      this.downloadButton.style.display = "";
+      this.props.downloadDisplay = "";
+      this.render();
     }
     manageTextareaVisibilityForAgents() {
       const { textarea } = this.options;
