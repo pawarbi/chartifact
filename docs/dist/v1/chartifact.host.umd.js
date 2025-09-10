@@ -3279,7 +3279,7 @@ ${htmlJsonJs}
         createElement("a", { href: `${home}chartifact/`, target }, "Chartifact"),
         " viewer"
       ),
-      createElement("div", { className: "toolbar-item", id: "folderSpan", style: { display: children ? "" : "none" } }, children),
+      createElement("div", { className: "toolbar-item", style: { display: children ? "" : "none" } }, children),
       createElement(
         "div",
         { className: "toolbar-item" },
@@ -3324,7 +3324,6 @@ ${htmlJsonJs}
     constructor(toolbarElementOrSelector, options = {}) {
       __publicField(this, "options");
       __publicField(this, "toolbarElement");
-      __publicField(this, "folderSpan");
       __publicField(this, "downloadButton");
       __publicField(this, "downloadPopup");
       __publicField(this, "mode");
@@ -3409,7 +3408,6 @@ ${htmlJsonJs}
       mount(ToolbarElement(this.props), this.toolbarElement);
       this.downloadButton = this.toolbarElement.querySelector("#download");
       this.downloadPopup = this.toolbarElement.querySelector("#downloadPopup");
-      this.folderSpan = this.toolbarElement.querySelector("#folderSpan");
     }
     // Helper method to trigger a download
     triggerDownload(content, filename, mimeType) {
