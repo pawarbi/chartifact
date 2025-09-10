@@ -28,8 +28,6 @@ interface ToolbarProps {
     restartDisplay: 'none' | '';
     tweakDisplay: 'none' | '';
     downloadDisplay: 'none' | '';
-    popupLeft?: string;
-    popupRight?: string;
     downloadSource: () => void;
     downloadHtml: () => void;
 }
@@ -45,12 +43,12 @@ const ToolbarElement = (props: ToolbarProps) => {
     const displayMode = mode === 'json' ? 'json' : 'markdown';
 
     return (
-        <div style={{ backgroundColor: 'inherit' }}>
-            <div>
+        <div className='toolbar-group' style={{ backgroundColor: 'inherit' }}>
+            <div className='toolbar-item'>
                 <a href={`${home}chartifact/`} target={target}>Chartifact</a> viewer
             </div>
-            <div id="folderSpan" style={{ display: 'none' }}></div>
-            <div>
+            <div className='toolbar-item' id="folderSpan" style={{ display: 'none' }}></div>
+            <div className='toolbar-item'>
                 <button type="button" id="restart" style={{ display: restartDisplay }} onClick={restartClick}>start over</button>
                 <button type="button" id="tweak" style={{ display: tweakDisplay }} onClick={tweakClick}>view source</button>
                 <button type="button" id="download" style={{ display: downloadDisplay }} onClick={downloadClick}>download</button>
@@ -61,8 +59,6 @@ const ToolbarElement = (props: ToolbarProps) => {
                 padding: '12px 16px',
                 zIndex: 1,
                 backgroundColor: 'inherit',
-                left: props.popupLeft,
-                right: props.popupRight,
             }}>
                 <div style={{ marginBottom: '8px' }}>Download as:</div>
                 <ul>
