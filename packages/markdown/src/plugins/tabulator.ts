@@ -57,21 +57,11 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
             }
 
             const spec: TabulatorSpec = specReview.approvedSpec;
-            const selectableRows = !!spec.tabulatorOptions?.selectableRows || false;
             
-            const editButtons = spec.editable
-                ? `<button type="button" class="tabulator-add-row">Add Row</button>
-                   <button type="button" class="tabulator-reset">Reset</button>`
-                : '';
-            
-            const selectionButtons = selectableRows
-                ? `<button type="button" class="tabulator-invert-selection">Invert Selection</button>`
-                : '';
-            
-            const buttons = (editButtons || selectionButtons)
+            const buttons = spec.editable
                 ? `<div class="tabulator-buttons">
-                        ${editButtons}
-                        ${selectionButtons}
+                        <button type="button" class="tabulator-add-row">Add Row</button>
+                        <button type="button" class="tabulator-reset">Reset</button>
                    </div>`
                 : '';
 
@@ -111,6 +101,21 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
             }
 
             const table = new Tabulator(nestedDiv as HTMLElement, options);
+
+            // Add selection button after we know if selection is enabled
+            if (selectableRows) {
+                const existingButtons = container.querySelector('.tabulator-buttons');
+                if (existingButtons) {
+                    // Add to existing buttons
+                    existingButtons.insertAdjacentHTML('beforeend', '<button type="button" class="tabulator-invert-selection">Invert Selection</button>');
+                } else {
+                    // Create new button container
+                    const parentDiv = container.querySelector('.tabulator-parent');
+                    if (parentDiv) {
+                        parentDiv.insertAdjacentHTML('beforeend', '<div class="tabulator-buttons"><button type="button" class="tabulator-invert-selection">Invert Selection</button></div>');
+                    }
+                }
+            }
 
             const tabulatorInstance: TabulatorInstance = {
                 id: `${pluginName}-${index}`,
