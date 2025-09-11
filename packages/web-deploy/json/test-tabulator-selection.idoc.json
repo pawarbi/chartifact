@@ -17,10 +17,12 @@
     ],
     "variables": [
         {
-            "variableId": "selectedEmployees",
-            "type": "object",
-            "isArray": true,
-            "initialValue": []
+            "variableId": "selectedEmployeesCount",
+            "type": "number",
+            "initialValue": 0,
+            "calculation": {
+                "vegaExpression": "length(data('selectedEmployees'))"
+            }
         }
     ],
     "groups": [
@@ -66,7 +68,7 @@
             "elements": [
                 "## Selected Employees",
                 "",
-                "Count of selected employees: **{{selectedEmployees.length}}**"
+                "Count of selected employees: **{{selectedEmployeesCount}}**"
             ]
         },
         {
