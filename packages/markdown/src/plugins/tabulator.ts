@@ -57,19 +57,7 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
             }
 
             const spec: TabulatorSpec = specReview.approvedSpec;
-            const buttons = spec.editable
-                ? `<div class="tabulator-buttons">
-                        <button type="button" class="tabulator-add-row">Add Row</button>
-                        <button type="button" class="tabulator-reset">Reset</button>
-                   </div>`
-                : '';
-
-            container.innerHTML = `<div class="tabulator-parent">
-                <div class="tabulator-nested"></div>
-                ${buttons}
-            </div>`;
-            const nestedDiv = container.querySelector('.tabulator-nested');
-
+            
             if (!Tabulator && index === 0) {
                 errorHandler(new Error('Tabulator not found'), pluginName, index, 'init', container);
                 continue;
@@ -98,6 +86,29 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
             if (spec.editable && selectableRows) {
                 delete options.selectableRows; //remove selectableRows from options if editable
             }
+
+            // Build all buttons in one HTML string
+            let buttonsHtml = '';
+            if (spec.editable || selectableRows) {
+                buttonsHtml = '<div class="tabulator-buttons">';
+                
+                if (spec.editable) {
+                    buttonsHtml += '<button type="button" class="tabulator-add-row">Add Row</button>';
+                    buttonsHtml += '<button type="button" class="tabulator-reset">Reset</button>';
+                }
+                
+                if (selectableRows) {
+                    buttonsHtml += '<button type="button" class="tabulator-invert-selection">Invert Selection</button>';
+                }
+                
+                buttonsHtml += '</div>';
+            }
+
+            container.innerHTML = `<div class="tabulator-parent">
+                <div class="tabulator-nested"></div>
+                ${buttonsHtml}
+            </div>`;
+            const nestedDiv = container.querySelector('.tabulator-nested');
 
             const table = new Tabulator(nestedDiv as HTMLElement, options);
 
@@ -211,6 +222,11 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     }
                     table.setColumns(columns);
 
+                    // Select all rows by default if selectableRows is enabled
+                    if (selectableRows && data.length > 0) {
+                        table.selectRow('all');
+                    }
+
                     if (tabulatorInstance.listening) {
                         outputData();
                     }
@@ -238,6 +254,30 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                         if (Array.isArray(value)) {
                             setData(value);
                         }
+                    };
+                }
+            }
+
+            if (selectableRows) {
+                const invertBtn = container.querySelector('.tabulator-invert-selection') as HTMLButtonElement;
+                
+                if (invertBtn) {
+                    invertBtn.onclick = () => {
+                        const allRows = table.getRows();
+                        const selectedRows = table.getSelectedRows();
+                        
+                        // Create a set of selected row IDs for quick lookup
+                        const selectedRowIds = new Set(selectedRows.map(row => row.getIndex()));
+                        
+                        // Invert selection: select unselected rows, deselect selected rows
+                        allRows.forEach(row => {
+                            const rowId = row.getIndex();
+                            if (selectedRowIds.has(rowId)) {
+                                row.deselect();
+                            } else {
+                                row.select();
+                            }
+                        });
                     };
                 }
             }
