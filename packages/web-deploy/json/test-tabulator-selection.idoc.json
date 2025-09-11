@@ -23,17 +23,21 @@
             "initialValue": []
         }
     ],
-    "elements": [
+    "groups": [
         {
-            "groupId": "content",
+            "groupId": "header",
             "elements": [
                 "# Tabulator Selection Test",
                 "",
                 "This example demonstrates the new tabulator selection features:",
                 "",
                 "1. **Default Selection**: All rows are selected by default when `selectableRows` is enabled",
-                "2. **Invert Selection Button**: Click the 'Invert Selection' button to toggle selection state",
-                "",
+                "2. **Invert Selection Button**: Click the 'Invert Selection' button to toggle selection state"
+            ]
+        },
+        {
+            "groupId": "table",
+            "elements": [
                 "## Selectable Employee Table",
                 "",
                 {
@@ -54,12 +58,20 @@
                             "width": 40
                         }
                     }
-                },
-                "",
+                }
+            ]
+        },
+        {
+            "groupId": "summary",
+            "elements": [
                 "## Selected Employees",
                 "",
-                "Count of selected employees: **{{selectedEmployees.length}}**",
-                "",
+                "Count of selected employees: **{{selectedEmployees.length}}**"
+            ]
+        },
+        {
+            "groupId": "chart",
+            "elements": [
                 "### Selected Employee Details:",
                 "",
                 {
