@@ -57,10 +57,21 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
             }
 
             const spec: TabulatorSpec = specReview.approvedSpec;
-            const buttons = spec.editable
+            const selectableRows = !!spec.tabulatorOptions?.selectableRows || false;
+            
+            const editButtons = spec.editable
+                ? `<button type="button" class="tabulator-add-row">Add Row</button>
+                   <button type="button" class="tabulator-reset">Reset</button>`
+                : '';
+            
+            const selectionButtons = selectableRows
+                ? `<button type="button" class="tabulator-invert-selection">Invert Selection</button>`
+                : '';
+            
+            const buttons = (editButtons || selectionButtons)
                 ? `<div class="tabulator-buttons">
-                        <button type="button" class="tabulator-add-row">Add Row</button>
-                        <button type="button" class="tabulator-reset">Reset</button>
+                        ${editButtons}
+                        ${selectionButtons}
                    </div>`
                 : '';
 
@@ -211,6 +222,11 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                     }
                     table.setColumns(columns);
 
+                    // Select all rows by default if selectableRows is enabled
+                    if (selectableRows && data.length > 0) {
+                        table.selectRow('all');
+                    }
+
                     if (tabulatorInstance.listening) {
                         outputData();
                     }
@@ -238,6 +254,30 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                         if (Array.isArray(value)) {
                             setData(value);
                         }
+                    };
+                }
+            }
+
+            if (selectableRows) {
+                const invertBtn = container.querySelector('.tabulator-invert-selection') as HTMLButtonElement;
+                
+                if (invertBtn) {
+                    invertBtn.onclick = () => {
+                        const allRows = table.getRows();
+                        const selectedRows = table.getSelectedRows();
+                        
+                        // Create a set of selected row IDs for quick lookup
+                        const selectedRowIds = new Set(selectedRows.map(row => row.getIndex()));
+                        
+                        // Invert selection: select unselected rows, deselect selected rows
+                        allRows.forEach(row => {
+                            const rowId = row.getIndex();
+                            if (selectedRowIds.has(rowId)) {
+                                row.deselect();
+                            } else {
+                                row.select();
+                            }
+                        });
                     };
                 }
             }

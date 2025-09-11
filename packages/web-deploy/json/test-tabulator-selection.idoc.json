@@ -1,0 +1,90 @@
+{
+    "$schema": "../../../docs/schema/idoc_v1.json",
+    "title": "Tabulator Selection Test",
+    "dataLoaders": [
+        {
+            "dataSourceName": "testData",
+            "type": "inline",
+            "format": "json",
+            "content": [
+                {"name": "Alice", "age": 25, "city": "New York", "department": "Sales"},
+                {"name": "Bob", "age": 30, "city": "Chicago", "department": "Engineering"},
+                {"name": "Carol", "age": 35, "city": "Los Angeles", "department": "Marketing"},
+                {"name": "David", "age": 28, "city": "Seattle", "department": "Engineering"},
+                {"name": "Eve", "age": 32, "city": "Boston", "department": "HR"}
+            ]
+        }
+    ],
+    "variables": [
+        {
+            "variableId": "selectedEmployees",
+            "type": "object",
+            "isArray": true,
+            "initialValue": []
+        }
+    ],
+    "elements": [
+        {
+            "groupId": "content",
+            "elements": [
+                "# Tabulator Selection Test",
+                "",
+                "This example demonstrates the new tabulator selection features:",
+                "",
+                "1. **Default Selection**: All rows are selected by default when `selectableRows` is enabled",
+                "2. **Invert Selection Button**: Click the 'Invert Selection' button to toggle selection state",
+                "",
+                "## Selectable Employee Table",
+                "",
+                {
+                    "type": "tabulator",
+                    "dataSourceName": "testData",
+                    "variableId": "selectedEmployees",
+                    "tabulatorOptions": {
+                        "autoColumns": true,
+                        "layout": "fitColumns",
+                        "maxHeight": "300px",
+                        "selectableRows": true,
+                        "rowHeader": {
+                            "formatter": "rowSelection",
+                            "titleFormatter": "rowSelection",
+                            "headerSort": false,
+                            "headerHozAlign": "center",
+                            "hozAlign": "center",
+                            "width": 40
+                        }
+                    }
+                },
+                "",
+                "## Selected Employees",
+                "",
+                "Count of selected employees: **{{selectedEmployees.length}}**",
+                "",
+                "### Selected Employee Details:",
+                "",
+                {
+                    "type": "vega-lite",
+                    "spec": {
+                        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                        "data": {
+                            "name": "selectedEmployees"
+                        },
+                        "transform": [
+                            {
+                                "aggregate": [{"op": "count", "as": "count"}],
+                                "groupby": ["department"]
+                            }
+                        ],
+                        "mark": "bar",
+                        "encoding": {
+                            "x": {"field": "department", "type": "nominal", "title": "Department"},
+                            "y": {"field": "count", "type": "quantitative", "title": "Selected Employees"},
+                            "color": {"field": "department", "type": "nominal", "legend": null}
+                        },
+                        "title": "Selected Employees by Department"
+                    }
+                }
+            ]
+        }
+    ]
+}
