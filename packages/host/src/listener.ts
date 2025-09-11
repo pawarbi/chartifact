@@ -67,6 +67,8 @@ export class Listener {
 
   private removeInteractionHandlers: (() => void)[];
   private sandboxConstructor?: typeof Sandbox;
+  private currentMarkdown: string = '';
+  private visibilityChangeHandler: () => void;
 
   constructor(options: InitializeOptions) {
     this.sandboxConstructor = options.sandboxConstructor || Sandbox;
@@ -114,6 +116,9 @@ export class Listener {
       show(this.loadingDiv, false);
       show(this.helpDiv, true);
     }
+
+    // Setup page visibility handling for mobile tombstoning
+    this.setupPageVisibilityHandling();
   }
 
   public createSandbox(markdown: string) {
@@ -232,6 +237,9 @@ export class Listener {
 
   public renderMarkdown(markdown: string) {
     this.hideLoadingAndHelp();
+    
+    // Store current markdown for potential restoration
+    this.currentMarkdown = markdown;
 
     try {
       postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'rendering', details: 'Starting markdown rendering' });
@@ -248,6 +256,71 @@ export class Listener {
         'Error rendering markdown content'
       );
       postStatus(this.options.postMessageTarget, { type: 'hostStatus', hostStatus: 'error', details: `Rendering failed: ${error.message}` });
+    }
+  }
+
+  /**
+   * Setup page visibility event handling to detect when tab is restored from tombstoning
+   */
+  private setupPageVisibilityHandling() {
+    this.visibilityChangeHandler = () => {
+      if (document.visibilityState === 'visible') {
+        this.handlePageBecameVisible();
+      }
+    };
+
+    document.addEventListener('visibilitychange', this.visibilityChangeHandler);
+  }
+
+  /**
+   * Handle when page becomes visible - check if sandbox needs to be restored
+   */
+  private handlePageBecameVisible() {
+    // Only restore if we have content to restore and sandbox exists
+    if (this.currentMarkdown && this.sandbox) {
+      // Check if the sandbox iframe is still accessible
+      if (!this.isSandboxFunctional()) {
+        // Recreate the sandbox with the current content
+        this.createSandbox(this.currentMarkdown);
+        show(this.sandbox.element, true);
+      }
+    }
+  }
+
+  /**
+   * Check if the sandbox iframe is still functional by testing if we can access its content window
+   */
+  private isSandboxFunctional(): boolean {
+    try {
+      if (!this.sandbox || !this.sandbox.iframe) {
+        return false;
+      }
+      
+      // Try to access the iframe's content window and check if the src is still valid
+      const iframe = this.sandbox.iframe;
+      const contentWindow = iframe.contentWindow;
+      
+      // If we can't access the content window or the src is invalid, sandbox is not functional
+      if (!contentWindow || !iframe.src || iframe.src === 'about:blank') {
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      // If accessing iframe throws an error, it's not functional
+      return false;
+    }
+  }
+
+  /**
+   * Cleanup method to remove event listeners
+   */
+  public destroy() {
+    if (this.visibilityChangeHandler) {
+      document.removeEventListener('visibilitychange', this.visibilityChangeHandler);
+    }
+    if (this.sandbox) {
+      this.sandbox.destroy();
     }
   }
 

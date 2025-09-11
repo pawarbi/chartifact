@@ -2938,6 +2938,8 @@ ${guardedJs}
       __publicField(this, "onSetMode");
       __publicField(this, "removeInteractionHandlers");
       __publicField(this, "sandboxConstructor");
+      __publicField(this, "currentMarkdown", "");
+      __publicField(this, "visibilityChangeHandler");
       this.sandboxConstructor = options.sandboxConstructor || Sandbox;
       this.options = { ...defaultOptions, ...options == null ? void 0 : options.options };
       this.onApprove = options.onApprove;
@@ -2974,6 +2976,7 @@ ${guardedJs}
         show(this.loadingDiv, false);
         show(this.helpDiv, true);
       }
+      this.setupPageVisibilityHandling();
     }
     createSandbox(markdown) {
       if (this.sandbox) {
@@ -3079,6 +3082,7 @@ ${details}`;
     }
     renderMarkdown(markdown) {
       this.hideLoadingAndHelp();
+      this.currentMarkdown = markdown;
       try {
         postStatus(this.options.postMessageTarget, { type: "hostStatus", hostStatus: "rendering", details: "Starting markdown rendering" });
         if (!this.sandbox || !this.sandboxReady) {
@@ -3094,6 +3098,57 @@ ${details}`;
           "Error rendering markdown content"
         );
         postStatus(this.options.postMessageTarget, { type: "hostStatus", hostStatus: "error", details: `Rendering failed: ${error.message}` });
+      }
+    }
+    /**
+     * Setup page visibility event handling to detect when tab is restored from tombstoning
+     */
+    setupPageVisibilityHandling() {
+      this.visibilityChangeHandler = () => {
+        if (document.visibilityState === "visible") {
+          this.handlePageBecameVisible();
+        }
+      };
+      document.addEventListener("visibilitychange", this.visibilityChangeHandler);
+    }
+    /**
+     * Handle when page becomes visible - check if sandbox needs to be restored
+     */
+    handlePageBecameVisible() {
+      if (this.currentMarkdown && this.sandbox) {
+        if (!this.isSandboxFunctional()) {
+          this.createSandbox(this.currentMarkdown);
+          show(this.sandbox.element, true);
+        }
+      }
+    }
+    /**
+     * Check if the sandbox iframe is still functional by testing if we can access its content window
+     */
+    isSandboxFunctional() {
+      try {
+        if (!this.sandbox || !this.sandbox.iframe) {
+          return false;
+        }
+        const iframe = this.sandbox.iframe;
+        const contentWindow = iframe.contentWindow;
+        if (!contentWindow || !iframe.src || iframe.src === "about:blank") {
+          return false;
+        }
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+    /**
+     * Cleanup method to remove event listeners
+     */
+    destroy() {
+      if (this.visibilityChangeHandler) {
+        document.removeEventListener("visibilitychange", this.visibilityChangeHandler);
+      }
+      if (this.sandbox) {
+        this.sandbox.destroy();
       }
     }
   }
