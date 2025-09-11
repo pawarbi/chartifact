@@ -58,19 +58,6 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
 
             const spec: TabulatorSpec = specReview.approvedSpec;
             
-            const buttons = spec.editable
-                ? `<div class="tabulator-buttons">
-                        <button type="button" class="tabulator-add-row">Add Row</button>
-                        <button type="button" class="tabulator-reset">Reset</button>
-                   </div>`
-                : '';
-
-            container.innerHTML = `<div class="tabulator-parent">
-                <div class="tabulator-nested"></div>
-                ${buttons}
-            </div>`;
-            const nestedDiv = container.querySelector('.tabulator-nested');
-
             if (!Tabulator && index === 0) {
                 errorHandler(new Error('Tabulator not found'), pluginName, index, 'init', container);
                 continue;
@@ -100,22 +87,30 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
                 delete options.selectableRows; //remove selectableRows from options if editable
             }
 
-            const table = new Tabulator(nestedDiv as HTMLElement, options);
-
-            // Add selection button after we know if selection is enabled
-            if (selectableRows) {
-                const existingButtons = container.querySelector('.tabulator-buttons');
-                if (existingButtons) {
-                    // Add to existing buttons
-                    existingButtons.insertAdjacentHTML('beforeend', '<button type="button" class="tabulator-invert-selection">Invert Selection</button>');
-                } else {
-                    // Create new button container
-                    const parentDiv = container.querySelector('.tabulator-parent');
-                    if (parentDiv) {
-                        parentDiv.insertAdjacentHTML('beforeend', '<div class="tabulator-buttons"><button type="button" class="tabulator-invert-selection">Invert Selection</button></div>');
-                    }
+            // Build all buttons in one HTML string
+            let buttonsHtml = '';
+            if (spec.editable || selectableRows) {
+                buttonsHtml = '<div class="tabulator-buttons">';
+                
+                if (spec.editable) {
+                    buttonsHtml += '<button type="button" class="tabulator-add-row">Add Row</button>';
+                    buttonsHtml += '<button type="button" class="tabulator-reset">Reset</button>';
                 }
+                
+                if (selectableRows) {
+                    buttonsHtml += '<button type="button" class="tabulator-invert-selection">Invert Selection</button>';
+                }
+                
+                buttonsHtml += '</div>';
             }
+
+            container.innerHTML = `<div class="tabulator-parent">
+                <div class="tabulator-nested"></div>
+                ${buttonsHtml}
+            </div>`;
+            const nestedDiv = container.querySelector('.tabulator-nested');
+
+            const table = new Tabulator(nestedDiv as HTMLElement, options);
 
             const tabulatorInstance: TabulatorInstance = {
                 id: `${pluginName}-${index}`,
