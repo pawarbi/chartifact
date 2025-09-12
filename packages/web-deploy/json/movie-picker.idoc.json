@@ -1,70 +1,58 @@
 {
     "$schema": "../../../docs/schema/idoc_v1.json",
     "title": "🎬 Movie Picker",
-    "style": {
-        "css": [
-            "body { font-family: sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }",
-            ".group { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }",
-            "h1 { color: #333; text-align: center; }",
-            "h2 { color: #555; margin-top: 0; }"
-        ]
-    },
     "dataLoaders": [
         {
-            "dataSourceName": "movies",
+            "dataSourceName": "moviesData",
             "type": "inline",
             "format": "json",
             "content": [
-                {"title": "The Dark Knight", "year": 2008, "genre": "Action", "rating": 9.0},
-                {"title": "Inception", "year": 2010, "genre": "Sci-Fi", "rating": 8.8},
-                {"title": "The Godfather", "year": 1972, "genre": "Drama", "rating": 9.2},
-                {"title": "Pulp Fiction", "year": 1994, "genre": "Drama", "rating": 8.9},
-                {"title": "The Matrix", "year": 1999, "genre": "Sci-Fi", "rating": 8.7}
+                {
+                    "title": "The Dark Knight",
+                    "year": 2008,
+                    "genre": "Action",
+                    "rating": 9.0
+                },
+                {
+                    "title": "Inception",
+                    "year": 2010,
+                    "genre": "Sci-Fi",
+                    "rating": 8.8
+                },
+                {
+                    "title": "The Godfather",
+                    "year": 1972,
+                    "genre": "Drama",
+                    "rating": 9.2
+                },
+                {
+                    "title": "Pulp Fiction",
+                    "year": 1994,
+                    "genre": "Drama",
+                    "rating": 8.9
+                },
+                {
+                    "title": "The Matrix",
+                    "year": 1999,
+                    "genre": "Sci-Fi",
+                    "rating": 8.7
+                }
             ]
-        }
-    ],
-    "variables": [
-        {
-            "variableId": "selectedGenre",
-            "type": "string",
-            "initialValue": "All"
         }
     ],
     "groups": [
         {
-            "groupId": "header",
+            "groupId": "main",
             "elements": [
-                "# 🎬 Movie Picker",
-                "**Find your perfect movie!**"
-            ]
-        },
-        {
-            "groupId": "filter",
-            "elements": [
-                "## Filter by Genre",
-                {
-                    "type": "dropdown",
-                    "variableId": "selectedGenre",
-                    "label": "Choose a genre:",
-                    "options": ["All", "Action", "Sci-Fi", "Drama"]
-                }
-            ]
-        },
-        {
-            "groupId": "movies",
-            "elements": [
-                "## Movies",
+                "## 🎬 Movie Collection\n",
                 {
                     "type": "tabulator",
-                    "dataSourceName": "movies",
+                    "dataSourceName": "moviesData",
                     "tabulatorOptions": {
+                        "autoColumns": true,
                         "layout": "fitColumns",
-                        "columns": [
-                            {"title": "Title", "field": "title"},
-                            {"title": "Year", "field": "year"},
-                            {"title": "Genre", "field": "genre"},
-                            {"title": "Rating", "field": "rating"}
-                        ]
+                        "minHeight": "200px",
+                        "maxHeight": "300px"
                     }
                 }
             ]
