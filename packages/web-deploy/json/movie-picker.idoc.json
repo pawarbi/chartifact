@@ -1,60 +1,25 @@
 {
     "$schema": "../../../docs/schema/idoc_v1.json",
-    "title": "🎬 Movie Picker - Find Your Perfect Movie",
+    "title": "🎬 Movie Picker",
     "style": {
         "css": [
-            "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }",
-            "body { display: grid; grid-template-areas: 'header header header' 'filters filters filters' 'stats charts charts' 'recommendations recommendations recommendations' 'movies movies movies'; grid-template-columns: 1fr 1fr 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; }",
-            ".group { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); }",
-            "#header { grid-area: header; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; text-align: center; border-radius: 12px; }",
-            "#filters { grid-area: filters; background: #f8f9ff; border: 2px solid #e1e8ff; }",
-            "#stats { grid-area: stats; text-align: center; background: #fff4e6; border-left: 4px solid #ff8c00; }",
-            "#charts { grid-area: charts; }",
-            "#recommendations { grid-area: recommendations; background: #f0fff4; border-left: 4px solid #32cd32; }",
-            "#movies { grid-area: movies; }",
-            "h1 { margin: 0; padding: 20px 0; font-size: 2.5em; font-weight: 300; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }",
-            "h2 { margin: 10px 0; font-size: 2.2em; color: #333; font-weight: 600; }",
-            "h3 { margin: 0 0 15px 0; font-size: 1.2em; color: #555; text-transform: uppercase; letter-spacing: 1px; }",
-            ".vega-bindings { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }",
-            ".vega-bind { margin: 0; }",
-            ".vega-bind-name { font-weight: 600; color: #2c3e50; margin-right: 8px; }",
-            ".vega-bind-select { padding: 8px 12px; border: 2px solid #bdc3c7; border-radius: 6px; font-size: 14px; }",
-            ".recommendation { background: #e8f5e8; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #27ae60; }",
-            ".movie-title { font-weight: bold; color: #2c3e50; font-size: 1.1em; }",
-            ".movie-details { color: #7f8c8d; margin-top: 5px; }"
+            "body { font-family: sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }",
+            ".group { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }",
+            "h1 { color: #333; text-align: center; }",
+            "h2 { color: #555; margin-top: 0; }"
         ]
     },
     "dataLoaders": [
         {
-            "dataSourceName": "moviesData",
+            "dataSourceName": "movies",
             "type": "inline",
             "format": "json",
             "content": [
-                {"Title": "The Dark Knight", "Release Date": 2008, "Major Genre": "Action", "Director": "Christopher Nolan", "IMDB Rating": 9.0, "Runtime (min)": 152, "Production Budget": 185000000, "Worldwide Gross": 1004558444},
-                {"Title": "Inception", "Release Date": 2010, "Major Genre": "Sci-Fi", "Director": "Christopher Nolan", "IMDB Rating": 8.8, "Runtime (min)": 148, "Production Budget": 160000000, "Worldwide Gross": 836836967},
-                {"Title": "Pulp Fiction", "Release Date": 1994, "Major Genre": "Crime", "Director": "Quentin Tarantino", "IMDB Rating": 8.9, "Runtime (min)": 154, "Production Budget": 8000000, "Worldwide Gross": 214179088},
-                {"Title": "The Shawshank Redemption", "Release Date": 1994, "Major Genre": "Drama", "Director": "Frank Darabont", "IMDB Rating": 9.3, "Runtime (min)": 142, "Production Budget": 25000000, "Worldwide Gross": 16000000},
-                {"Title": "Forrest Gump", "Release Date": 1994, "Major Genre": "Drama", "Director": "Robert Zemeckis", "IMDB Rating": 8.8, "Runtime (min)": 142, "Production Budget": 55000000, "Worldwide Gross": 677387716},
-                {"Title": "The Matrix", "Release Date": 1999, "Major Genre": "Sci-Fi", "Director": "The Wachowskis", "IMDB Rating": 8.7, "Runtime (min)": 136, "Production Budget": 63000000, "Worldwide Gross": 463517383},
-                {"Title": "Goodfellas", "Release Date": 1990, "Major Genre": "Crime", "Director": "Martin Scorsese", "IMDB Rating": 8.7, "Runtime (min)": 146, "Production Budget": 25000000, "Worldwide Gross": 46836394},
-                {"Title": "The Godfather", "Release Date": 1972, "Major Genre": "Crime", "Director": "Francis Ford Coppola", "IMDB Rating": 9.2, "Runtime (min)": 175, "Production Budget": 6000000, "Worldwide Gross": 246120974},
-                {"Title": "Schindler's List", "Release Date": 1993, "Major Genre": "Drama", "Director": "Steven Spielberg", "IMDB Rating": 8.9, "Runtime (min)": 195, "Production Budget": 22000000, "Worldwide Gross": 321365567},
-                {"Title": "Fight Club", "Release Date": 1999, "Major Genre": "Drama", "Director": "David Fincher", "IMDB Rating": 8.8, "Runtime (min)": 139, "Production Budget": 63000000, "Worldwide Gross": 100853753},
-                {"Title": "The Lord of the Rings: The Fellowship of the Ring", "Release Date": 2001, "Major Genre": "Adventure", "Director": "Peter Jackson", "IMDB Rating": 8.8, "Runtime (min)": 178, "Production Budget": 93000000, "Worldwide Gross": 871530324},
-                {"Title": "Star Wars: Episode IV - A New Hope", "Release Date": 1977, "Major Genre": "Adventure", "Director": "George Lucas", "IMDB Rating": 8.6, "Runtime (min)": 121, "Production Budget": 11000000, "Worldwide Gross": 775398007},
-                {"Title": "Casablanca", "Release Date": 1942, "Major Genre": "Romance", "Director": "Michael Curtiz", "IMDB Rating": 8.5, "Runtime (min)": 102, "Production Budget": 1000000, "Worldwide Gross": 4219709},
-                {"Title": "The Silence of the Lambs", "Release Date": 1991, "Major Genre": "Thriller", "Director": "Jonathan Demme", "IMDB Rating": 8.6, "Runtime (min)": 118, "Production Budget": 19000000, "Worldwide Gross": 272742922},
-                {"Title": "Saving Private Ryan", "Release Date": 1998, "Major Genre": "Drama", "Director": "Steven Spielberg", "IMDB Rating": 8.6, "Runtime (min)": 169, "Production Budget": 70000000, "Worldwide Gross": 481840909},
-                {"Title": "Jurassic Park", "Release Date": 1993, "Major Genre": "Adventure", "Director": "Steven Spielberg", "IMDB Rating": 8.1, "Runtime (min)": 127, "Production Budget": 63000000, "Worldwide Gross": 1034280960},
-                {"Title": "Titanic", "Release Date": 1997, "Major Genre": "Romance", "Director": "James Cameron", "IMDB Rating": 7.8, "Runtime (min)": 194, "Production Budget": 200000000, "Worldwide Gross": 2195170000},
-                {"Title": "The Avengers", "Release Date": 2012, "Major Genre": "Action", "Director": "Joss Whedon", "IMDB Rating": 8.0, "Runtime (min)": 143, "Production Budget": 220000000, "Worldwide Gross": 1518812988},
-                {"Title": "Avatar", "Release Date": 2009, "Major Genre": "Sci-Fi", "Director": "James Cameron", "IMDB Rating": 7.8, "Runtime (min)": 162, "Production Budget": 237000000, "Worldwide Gross": 2923706026},
-                {"Title": "Interstellar", "Release Date": 2014, "Major Genre": "Sci-Fi", "Director": "Christopher Nolan", "IMDB Rating": 8.6, "Runtime (min)": 169, "Production Budget": 165000000, "Worldwide Gross": 701729206},
-                {"Title": "The Social Network", "Release Date": 2010, "Major Genre": "Drama", "Director": "David Fincher", "IMDB Rating": 7.7, "Runtime (min)": 120, "Production Budget": 40000000, "Worldwide Gross": 224920315},
-                {"Title": "Gladiator", "Release Date": 2000, "Major Genre": "Action", "Director": "Ridley Scott", "IMDB Rating": 8.5, "Runtime (min)": 155, "Production Budget": 103000000, "Worldwide Gross": 460583960},
-                {"Title": "The Departed", "Release Date": 2006, "Major Genre": "Crime", "Director": "Martin Scorsese", "IMDB Rating": 8.5, "Runtime (min)": 151, "Production Budget": 90000000, "Worldwide Gross": 291465374},
-                {"Title": "Whiplash", "Release Date": 2014, "Major Genre": "Drama", "Director": "Damien Chazelle", "IMDB Rating": 8.5, "Runtime (min)": 107, "Production Budget": 3300000, "Worldwide Gross": 48929765},
-                {"Title": "Parasite", "Release Date": 2019, "Major Genre": "Thriller", "Director": "Bong Joon-ho", "IMDB Rating": 8.6, "Runtime (min)": 132, "Production Budget": 11400000, "Worldwide Gross": 263125421}
+                {"title": "The Dark Knight", "year": 2008, "genre": "Action", "rating": 9.0},
+                {"title": "Inception", "year": 2010, "genre": "Sci-Fi", "rating": 8.8},
+                {"title": "The Godfather", "year": 1972, "genre": "Drama", "rating": 9.2},
+                {"title": "Pulp Fiction", "year": 1994, "genre": "Drama", "rating": 8.9},
+                {"title": "The Matrix", "year": 1999, "genre": "Sci-Fi", "rating": 8.7}
             ]
         }
     ],
@@ -62,193 +27,47 @@
         {
             "variableId": "selectedGenre",
             "type": "string",
-            "initialValue": "All Genres"
-        },
-        {
-            "variableId": "selectedMinRating",
-            "type": "number",
-            "initialValue": 7.0
-        },
-        {
-            "variableId": "selectedDecade",
-            "type": "string", 
-            "initialValue": "All Decades"
-        },
-        {
-            "variableId": "filteredMovies",
-            "type": "object",
-            "isArray": true,
-            "initialValue": [],
-            "calculation": {
-                "dataSourceNames": ["moviesData"],
-                "dataFrameTransformations": [
-                    {
-                        "type": "filter",
-                        "expr": "(selectedGenre === 'All Genres' || datum['Major Genre'] === selectedGenre) && datum['IMDB Rating'] >= selectedMinRating && (selectedDecade === 'All Decades' || (selectedDecade === '1970s' && datum['Release Date'] >= 1970 && datum['Release Date'] < 1980) || (selectedDecade === '1980s' && datum['Release Date'] >= 1980 && datum['Release Date'] < 1990) || (selectedDecade === '1990s' && datum['Release Date'] >= 1990 && datum['Release Date'] < 2000) || (selectedDecade === '2000s' && datum['Release Date'] >= 2000 && datum['Release Date'] < 2010) || (selectedDecade === '2010s' && datum['Release Date'] >= 2010 && datum['Release Date'] < 2020) || (selectedDecade === '2020s' && datum['Release Date'] >= 2020))"
-                    }
-                ]
-            }
-        },
-        {
-            "variableId": "movieCount",
-            "type": "number",
-            "initialValue": 0,
-            "calculation": {
-                "vegaExpression": "length(data('filteredMovies'))"
-            }
-        },
-        {
-            "variableId": "averageRating",
-            "type": "string",
-            "initialValue": "0.0",
-            "calculation": {
-                "vegaExpression": "movieCount > 0 ? format(data('filteredMovies') |> map(.['IMDB Rating']) |> mean(.), '.1f') : '0.0'"
-            }
-        },
-        {
-            "variableId": "topRecommendation",
-            "type": "object",
-            "initialValue": {},
-            "calculation": {
-                "vegaExpression": "movieCount > 0 ? (data('filteredMovies') |> sort(.['IMDB Rating']) |> reverse() |> .[0]) : {}"
-            }
-        },
-        {
-            "variableId": "genreDistribution",
-            "type": "object",
-            "isArray": true,
-            "initialValue": [],
-            "calculation": {
-                "dataSourceNames": ["filteredMovies"],
-                "dataFrameTransformations": [
-                    {
-                        "type": "aggregate",
-                        "groupby": ["Major Genre"],
-                        "ops": ["count"],
-                        "fields": [null],
-                        "as": ["count"]
-                    }
-                ]
-            }
+            "initialValue": "All"
         }
     ],
     "groups": [
         {
             "groupId": "header",
             "elements": [
-                "# 🎬 Movie Picker - Find Your Perfect Movie",
-                "**Discover amazing movies tailored to your preferences!**"
+                "# 🎬 Movie Picker",
+                "**Find your perfect movie!**"
             ]
         },
         {
-            "groupId": "filters",
+            "groupId": "filter",
             "elements": [
-                "### 🔍 Filter Movies",
+                "## Filter by Genre",
                 {
                     "type": "dropdown",
                     "variableId": "selectedGenre",
-                    "label": "Genre:",
-                    "options": ["All Genres", "Action", "Adventure", "Crime", "Drama", "Romance", "Sci-Fi", "Thriller"]
-                },
-                {
-                    "type": "dropdown",
-                    "variableId": "selectedMinRating",
-                    "label": "Minimum Rating:",
-                    "options": [7.0, 7.5, 8.0, 8.5, 9.0]
-                },
-                {
-                    "type": "dropdown",
-                    "variableId": "selectedDecade",
-                    "label": "Decade:",
-                    "options": ["All Decades", "1970s", "1980s", "1990s", "2000s", "2010s", "2020s"]
+                    "label": "Choose a genre:",
+                    "options": ["All", "Action", "Sci-Fi", "Drama"]
                 }
-            ]
-        },
-        {
-            "groupId": "stats",
-            "elements": [
-                "### 📊 Statistics",
-                "**{{movieCount}}** movies found",
-                "Average Rating: **{{averageRating}}** ⭐"
-            ]
-        },
-        {
-            "groupId": "charts",
-            "elements": [
-                "### 📈 Movies by Genre",
-                {
-                    "type": "chart",
-                    "chartKey": "genreChart"
-                }
-            ]
-        },
-        {
-            "groupId": "recommendations",
-            "elements": [
-                "### 🎯 Top Recommendation",
-                "**{{topRecommendation.Title}}** ({{topRecommendation['Release Date']}})",
-                "",
-                "⭐ **{{topRecommendation['IMDB Rating']}}/10** | 🎬 **{{topRecommendation['Major Genre']}}** | 🎥 **{{topRecommendation.Director}}**",
-                "",
-                "⏱️ Runtime: {{topRecommendation['Runtime (min)']}} minutes"
             ]
         },
         {
             "groupId": "movies",
             "elements": [
-                "### 🎞️ All Movies Matching Your Criteria",
+                "## Movies",
                 {
                     "type": "tabulator",
-                    "dataSourceName": "filteredMovies",
+                    "dataSourceName": "movies",
                     "tabulatorOptions": {
-                        "autoColumns": true,
                         "layout": "fitColumns",
-                        "maxHeight": "400px",
-                        "pagination": "local",
-                        "paginationSize": 10,
                         "columns": [
-                            {"title": "Title", "field": "Title", "width": 200},
-                            {"title": "Year", "field": "Release Date", "width": 80},
-                            {"title": "Genre", "field": "Major Genre", "width": 100},
-                            {"title": "Director", "field": "Director", "width": 150},
-                            {"title": "Rating", "field": "IMDB Rating", "width": 80},
-                            {"title": "Runtime", "field": "Runtime (min)", "width": 80}
+                            {"title": "Title", "field": "title"},
+                            {"title": "Year", "field": "year"},
+                            {"title": "Genre", "field": "genre"},
+                            {"title": "Rating", "field": "rating"}
                         ]
                     }
                 }
             ]
         }
-    ],
-    "resources": {
-        "charts": {
-            "genreChart": {
-                "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-                "width": "container",
-                "height": 200,
-                "data": {
-                    "name": "genreDistribution"
-                },
-                "mark": {
-                    "type": "arc",
-                    "innerRadius": 50,
-                    "stroke": "#fff",
-                    "strokeWidth": 2
-                },
-                "encoding": {
-                    "theta": {"field": "count", "type": "quantitative"},
-                    "color": {
-                        "field": "Major Genre", 
-                        "type": "nominal",
-                        "scale": {
-                            "range": ["#667eea", "#764ba2", "#f093fb", "#4facfe", "#00f2fe", "#43e97b", "#38f9d7", "#ffecd2", "#fcb69f"]
-                        }
-                    },
-                    "tooltip": [
-                        {"field": "Major Genre", "type": "nominal", "title": "Genre"},
-                        {"field": "count", "type": "quantitative", "title": "Movies"}
-                    ]
-                }
-            }
-        }
-    }
+    ]
 }
