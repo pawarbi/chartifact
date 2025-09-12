@@ -31,6 +31,16 @@
       "title": "Habit Tracker",
       "description": "A minimal habit tracker with editable data and heatmap visualization.",
       "href": "markdown/habit-tracker.idoc.md"
+    },
+    {
+      "title": "Movie Wizard",
+      "description": "A theatre-themed slideshow wizard for progressive movie filtering with cinematic design.",
+      "href": "markdown/movie-picker.idoc.md"
+    },
+    {
+      "title": "Movies Database Explorer",
+      "description": "Progressive filtering interface for exploring a movie database with multiple filter stages.",
+      "href": "markdown/movie-picker-basic.idoc.md"
     }
   ]
 }
