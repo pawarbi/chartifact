@@ -26,7 +26,7 @@
             "initialValue": ""
         },
         {
-            "variableId": "selected_Major_Genre",
+            "variableId": "tableHeaderText",
             "type": "string",
             "initialValue": "All Movies",
             "calculation": {
@@ -49,12 +49,12 @@
             }
         },
         {
-            "variableId": "selectedCreativeType",
+            "variableId": "selectedDirector",
             "type": "string",
             "initialValue": ""
         },
         {
-            "variableId": "filteredByCreativeType",
+            "variableId": "filteredByDirector",
             "type": "object",
             "isArray": true,
             "initialValue": [],
@@ -63,17 +63,17 @@
                 "dataFrameTransformations": [
                     {
                         "type": "filter",
-                        "expr": "!selectedCreativeType || selectedCreativeType === '' || selectedCreativeType === 'null' || datum['Creative Type'] === selectedCreativeType"
+                        "expr": "!selectedDirector || selectedDirector === '' || selectedDirector === 'null' || datum['Director'] === selectedDirector"
                     }
                 ]
             }
         },
         {
-            "variableId": "selected_Creative_Type",
+            "variableId": "directorTableHeaderText",
             "type": "string",
-            "initialValue": "All Creative Types",
+            "initialValue": "All Directors",
             "calculation": {
-                "vegaExpression": "selectedCreativeType && selectedCreativeType !== 'null' && selectedCreativeType !== '' ? selectedCreativeType + ' Movies' : 'All Creative Types'"
+                "vegaExpression": "selectedDirector && selectedDirector !== 'null' && selectedDirector !== '' ? selectedDirector + ' Movies' : 'All Directors'"
             }
         }
     ],
@@ -97,7 +97,7 @@
                         "fieldName": "Major Genre"
                     }
                 },
-                "## {{selected_Major_Genre}}\n",
+                "## {{tableHeaderText}}\n",
                 {
                     "type": "tabulator",
                     "dataSourceName": "filteredByGenre",
@@ -113,22 +113,22 @@
             ]
         },
         {
-            "groupId": "creativeTypeFilter",
+            "groupId": "directorFilter",
             "className": "filter-stage",
             "elements": [
-                "## Step 2: Filter by Creative Type\n\n**Select Creative Type:**",
+                "## Step 2: Filter by Director\n\n**Select Director:**",
                 {
                     "type": "dropdown",
-                    "variableId": "selectedCreativeType",
+                    "variableId": "selectedDirector",
                     "dynamicOptions": {
                         "dataSourceName": "filteredByGenre",
-                        "fieldName": "Creative Type"
+                        "fieldName": "Director"
                     }
                 },
-                "## {{selected_Creative_Type}}\n",
+                "## {{directorTableHeaderText}}\n",
                 {
                     "type": "tabulator",
-                    "dataSourceName": "filteredByCreativeType",
+                    "dataSourceName": "filteredByDirector",
                     "tabulatorOptions": {
                         "autoColumns": true,
                         "layout": "fitColumns",
@@ -138,8 +138,7 @@
                         "paginationSize": 15,
                         "columns": [
                             {"title": "Title", "field": "Title"},
-                            {"title": "Director", "field": "Director"},
-                            {"title": "Creative Type", "field": "Creative Type", "visible": false},
+                            {"title": "Director", "field": "Director", "visible": false},
                             {"title": "Release Date", "field": "Release Date"},
                             {"title": "MPAA Rating", "field": "MPAA Rating"},
                             {"title": "Running Time", "field": "Running Time min"},
