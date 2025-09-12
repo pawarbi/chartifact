@@ -1,5 +1,9 @@
 # Change Log
 
+## [1.0.5]
+
+Renderer bug fixes
+Updated examples
 
 ## [1.0.4]
 
