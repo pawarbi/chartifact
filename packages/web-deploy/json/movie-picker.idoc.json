@@ -32,6 +32,11 @@
             "initialValue": "All Genres"
         },
         {
+            "variableId": "selectedDecade",
+            "type": "string",
+            "initialValue": "All Decades"
+        },
+        {
             "variableId": "filteredMovies",
             "type": "object",
             "isArray": true,
@@ -40,8 +45,13 @@
                 "dataSourceNames": ["moviesData"],
                 "dataFrameTransformations": [
                     {
+                        "type": "formula",
+                        "expr": "year(datum.Release_Date)",
+                        "as": "release_year"
+                    },
+                    {
                         "type": "filter",
-                        "expr": "selectedGenre === 'All Genres' || datum.Major_Genre === selectedGenre"
+                        "expr": "(selectedGenre === 'All Genres' || datum.Major_Genre === selectedGenre) && (selectedDecade === 'All Decades' || (selectedDecade === '1970s' && datum.release_year >= 1970 && datum.release_year < 1980) || (selectedDecade === '1980s' && datum.release_year >= 1980 && datum.release_year < 1990) || (selectedDecade === '1990s' && datum.release_year >= 1990 && datum.release_year < 2000) || (selectedDecade === '2000s' && datum.release_year >= 2000 && datum.release_year < 2010) || (selectedDecade === '2010s' && datum.release_year >= 2010 && datum.release_year < 2020))"
                     }
                 ]
             }
@@ -84,6 +94,12 @@
                             "type": "dropdown",
                             "variableId": "selectedGenre",
                             "options": ["All Genres", "Action", "Adventure", "Comedy", "Drama", "Horror", "Romance", "Thriller", "Documentary", "Animation", "Musical", "Western"]
+                        },
+                        "**Decade:**",
+                        {
+                            "type": "dropdown",
+                            "variableId": "selectedDecade",
+                            "options": ["All Decades", "1970s", "1980s", "1990s", "2000s", "2010s"]
                         }
                     ]
                 }
