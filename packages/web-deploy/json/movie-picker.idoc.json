@@ -1,6 +1,18 @@
 {
     "$schema": "../../../docs/schema/idoc_v1.json",
-    "title": "Movies Database",
+    "title": "Movies Database Explorer",
+    "style": {
+        "css": [
+            "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f7fa; }",
+            "#header, #filters, #table { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }",
+            "#header { background: #667eea; color: white; text-align: center; }",
+            "h1 { margin: 0; padding: 10px 0; font-size: 1.8em; font-weight: 400; }",
+            "h2 { margin: 0 0 15px 0; color: #333; font-size: 1.2em; }",
+            ".filter-row { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }",
+            ".filter-row label { font-weight: 500; color: #555; min-width: 80px; }",
+            ".tabulator { max-width: 100%; overflow: auto; }"
+        ]
+    },
     "dataLoaders": [
         {
             "dataSourceName": "moviesData",
@@ -10,20 +22,66 @@
         }
     ],
     "variables": [
+        {
+            "variableId": "selectedGenre",
+            "type": "string",
+            "initialValue": "All Genres"
+        },
+        {
+            "variableId": "filteredMovies",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": ["moviesData"],
+                "dataFrameTransformations": [
+                    {
+                        "type": "filter",
+                        "expr": "selectedGenre === 'All Genres' || datum.Major_Genre === selectedGenre"
+                    }
+                ]
+            }
+        }
     ],
     "groups": [
         {
-            "groupId": "main",
+            "groupId": "header",
             "elements": [
-                "## Movies Database\n",
+                "# Movies Database Explorer"
+            ]
+        },
+        {
+            "groupId": "filters",
+            "elements": [
+                "## Filters\n",
+                {
+                    "type": "group",
+                    "className": "filter-row",
+                    "elements": [
+                        "**Genre:**",
+                        {
+                            "type": "dropdown",
+                            "variableId": "selectedGenre",
+                            "options": ["All Genres", "Action", "Adventure", "Comedy", "Drama", "Horror", "Romance", "Thriller", "Documentary", "Animation", "Musical", "Western"]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "groupId": "table",
+            "elements": [
+                "## Movie Listings\n",
                 {
                     "type": "tabulator",
-                    "dataSourceName": "moviesData",
+                    "dataSourceName": "filteredMovies",
                     "tabulatorOptions": {
                         "autoColumns": true,
                         "layout": "fitColumns",
-                        "minHeight": "400px",
-                        "maxHeight": "400px"
+                        "minHeight": "500px",
+                        "maxHeight": "500px",
+                        "pagination": "local",
+                        "paginationSize": 20
                     }
                 }
             ]
