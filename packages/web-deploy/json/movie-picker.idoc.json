@@ -26,6 +26,14 @@
             "initialValue": ""
         },
         {
+            "variableId": "tableHeaderText",
+            "type": "string",
+            "initialValue": "All Movies",
+            "calculation": {
+                "vegaExpression": "selectedGenre && selectedGenre !== 'null' && selectedGenre !== '' ? selectedGenre + ' Movies' : 'All Movies'"
+            }
+        },
+        {
             "variableId": "filteredByGenre",
             "type": "object",
             "isArray": true,
@@ -35,9 +43,37 @@
                 "dataFrameTransformations": [
                     {
                         "type": "filter",
-                        "expr": "selectedGenre === '' || datum['Major Genre'] === selectedGenre"
+                        "expr": "!selectedGenre || selectedGenre === '' || selectedGenre === 'null' || datum['Major Genre'] === selectedGenre"
                     }
                 ]
+            }
+        },
+        {
+            "variableId": "selectedDirector",
+            "type": "string",
+            "initialValue": ""
+        },
+        {
+            "variableId": "filteredByDirector",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": ["filteredByGenre"],
+                "dataFrameTransformations": [
+                    {
+                        "type": "filter",
+                        "expr": "!selectedDirector || selectedDirector === '' || selectedDirector === 'null' || datum['Director'] === selectedDirector"
+                    }
+                ]
+            }
+        },
+        {
+            "variableId": "directorTableHeaderText",
+            "type": "string",
+            "initialValue": "All Directors",
+            "calculation": {
+                "vegaExpression": "selectedDirector && selectedDirector !== 'null' && selectedDirector !== '' ? selectedDirector + ' Movies' : 'All Directors'"
             }
         }
     ],
@@ -61,7 +97,7 @@
                         "fieldName": "Major Genre"
                     }
                 },
-                "## {{selectedGenre ? selectedGenre + ' Movies' : 'All Movies'}}\n",
+                "## {{tableHeaderText}}\n",
                 {
                     "type": "tabulator",
                     "dataSourceName": "filteredByGenre",
@@ -72,6 +108,44 @@
                         "maxHeight": "400px",
                         "pagination": "local",
                         "paginationSize": 15
+                    }
+                }
+            ]
+        },
+        {
+            "groupId": "directorFilter",
+            "className": "filter-stage",
+            "elements": [
+                "## Step 2: Filter by Director\n\n**Select Director:**",
+                {
+                    "type": "dropdown",
+                    "variableId": "selectedDirector",
+                    "dynamicOptions": {
+                        "dataSourceName": "filteredByGenre",
+                        "fieldName": "Director"
+                    }
+                },
+                "## {{directorTableHeaderText}}\n",
+                {
+                    "type": "tabulator",
+                    "dataSourceName": "filteredByDirector",
+                    "tabulatorOptions": {
+                        "autoColumns": true,
+                        "layout": "fitColumns",
+                        "minHeight": "400px",
+                        "maxHeight": "400px",
+                        "pagination": "local",
+                        "paginationSize": 15,
+                        "columns": [
+                            {"title": "Title", "field": "Title"},
+                            {"title": "Director", "field": "Director", "visible": false},
+                            {"title": "Release Date", "field": "Release Date"},
+                            {"title": "MPAA Rating", "field": "MPAA Rating"},
+                            {"title": "Running Time", "field": "Running Time min"},
+                            {"title": "IMDB Rating", "field": "IMDB Rating"},
+                            {"title": "US Gross", "field": "US Gross", "formatter": "money"},
+                            {"title": "Worldwide Gross", "field": "Worldwide Gross", "formatter": "money"}
+                        ]
                     }
                 }
             ]
