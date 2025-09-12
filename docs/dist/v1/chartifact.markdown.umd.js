@@ -2444,15 +2444,6 @@ ${reconstitutedRules.join("\n\n")}
           continue;
         }
         const spec = specReview.approvedSpec;
-        const buttons = spec.editable ? `<div class="tabulator-buttons">
-                        <button type="button" class="tabulator-add-row">Add Row</button>
-                        <button type="button" class="tabulator-reset">Reset</button>
-                   </div>` : "";
-        container.innerHTML = `<div class="tabulator-parent">
-                <div class="tabulator-nested"></div>
-                ${buttons}
-            </div>`;
-        const nestedDiv = container.querySelector(".tabulator-nested");
         if (!Tabulator && index2 === 0) {
           errorHandler(new Error("Tabulator not found"), pluginName$3, index2, "init", container);
           continue;
@@ -2476,6 +2467,23 @@ ${reconstitutedRules.join("\n\n")}
         if (spec.editable && selectableRows) {
           delete options.selectableRows;
         }
+        let buttonsHtml = "";
+        if (spec.editable || selectableRows) {
+          buttonsHtml = '<div class="tabulator-buttons">';
+          if (spec.editable) {
+            buttonsHtml += '<button type="button" class="tabulator-add-row">Add Row</button>';
+            buttonsHtml += '<button type="button" class="tabulator-reset">Reset</button>';
+          }
+          if (selectableRows) {
+            buttonsHtml += '<button type="button" class="tabulator-invert-selection">Invert Selection</button>';
+          }
+          buttonsHtml += "</div>";
+        }
+        container.innerHTML = `<div class="tabulator-parent">
+                <div class="tabulator-nested"></div>
+                ${buttonsHtml}
+            </div>`;
+        const nestedDiv = container.querySelector(".tabulator-nested");
         const table = new Tabulator(nestedDiv, options);
         const tabulatorInstance = {
           id: `${pluginName$3}-${index2}`,
@@ -2565,6 +2573,9 @@ ${reconstitutedRules.join("\n\n")}
               });
             }
             table.setColumns(columns);
+            if (selectableRows && data.length > 0) {
+              table.selectRow("all");
+            }
             if (tabulatorInstance.listening) {
               outputData();
             }
@@ -2588,6 +2599,22 @@ ${reconstitutedRules.join("\n\n")}
               if (Array.isArray(value)) {
                 setData(value);
               }
+            };
+          }
+        }
+        if (selectableRows) {
+          const invertBtn = container.querySelector(".tabulator-invert-selection");
+          if (invertBtn) {
+            invertBtn.onclick = () => {
+              const allRows = table.getRows();
+              const selectedRows = new Set(table.getSelectedRows());
+              allRows.forEach((row) => {
+                if (selectedRows.has(row)) {
+                  row.deselect();
+                } else {
+                  row.select();
+                }
+              });
             };
           }
         }

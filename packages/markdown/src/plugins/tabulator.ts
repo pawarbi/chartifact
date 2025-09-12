@@ -260,19 +260,12 @@ export const tabulatorPlugin: Plugin<TabulatorSpec> = {
 
             if (selectableRows) {
                 const invertBtn = container.querySelector('.tabulator-invert-selection') as HTMLButtonElement;
-                
                 if (invertBtn) {
                     invertBtn.onclick = () => {
                         const allRows = table.getRows();
-                        const selectedRows = table.getSelectedRows();
-                        
-                        // Create a set of selected row IDs for quick lookup
-                        const selectedRowIds = new Set(selectedRows.map(row => row.getIndex()));
-                        
-                        // Invert selection: select unselected rows, deselect selected rows
+                        const selectedRows = new Set(table.getSelectedRows());
                         allRows.forEach(row => {
-                            const rowId = row.getIndex();
-                            if (selectedRowIds.has(rowId)) {
+                            if (selectedRows.has(row)) {
                                 row.deselect();
                             } else {
                                 row.select();
