@@ -1,6 +1,6 @@
 {
     "$schema": "../../../docs/schema/idoc_v1.json",
-    "title": "Select Items to Buy",
+    "title": "Select Movies to Watch",
     "dataLoaders": [
         {
             "dataSourceName": "itemsData",
@@ -190,42 +190,10 @@
                         }
                     }
                 },
-                "## Total Price\n\n${{total}}\n\n### Categories",
-                {
-                    "type": "chart",
-                    "chartKey": "1"
-                }
+                "## Total Price\n\n${{total}}"
             ]
         }
     ],
     "resources": {
-        "charts": {
-            "1": {
-                "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
-                "data": {
-                    "name": "itemsData_selected"
-                },
-                "mark": "bar",
-                "encoding": {
-                    "x": {
-                        "field": "category",
-                        "type": "nominal",
-                        "title": "Category"
-                    },
-                    "y": {
-                        "aggregate": "count",
-                        "type": "quantitative",
-                        "title": "Number of Items"
-                    },
-                    "color": {
-                        "field": "category",
-                        "type": "nominal",
-                        "legend": {
-                            "title": "Category"
-                        }
-                    }
-                }
-            }
-        }
     }
 }
