@@ -4,7 +4,7 @@
     "style": {
         "css": [
             "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f7fa; }",
-            "#header, #filters, #stats, #chart, #table { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }",
+            "#header, #filters, #table { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }",
             "#header { background: #667eea; color: white; text-align: center; }",
             "h1 { margin: 0; padding: 10px 0; font-size: 1.8em; font-weight: 400; }",
             "h2 { margin: 0 0 15px 0; color: #333; font-size: 1.2em; }",
@@ -23,12 +23,7 @@
         {
             "variableId": "selectedGenre",
             "type": "string",
-            "initialValue": "All Genres"
-        },
-        {
-            "variableId": "selectedDecade",
-            "type": "string",
-            "initialValue": "All Decades"
+            "initialValue": ""
         },
         {
             "variableId": "filteredMovies",
@@ -39,30 +34,8 @@
                 "dataSourceNames": ["moviesData"],
                 "dataFrameTransformations": [
                     {
-                        "type": "formula",
-                        "expr": "year(datum.Release_Date)",
-                        "as": "release_year"
-                    },
-                    {
                         "type": "filter",
-                        "expr": "(selectedGenre === 'All Genres' || datum.Major_Genre === selectedGenre) && (selectedDecade === 'All Decades' || (selectedDecade === '1970s' && datum.release_year >= 1970 && datum.release_year < 1980) || (selectedDecade === '1980s' && datum.release_year >= 1980 && datum.release_year < 1990) || (selectedDecade === '1990s' && datum.release_year >= 1990 && datum.release_year < 2000) || (selectedDecade === '2000s' && datum.release_year >= 2000 && datum.release_year < 2010) || (selectedDecade === '2010s' && datum.release_year >= 2010 && datum.release_year < 2020))"
-                    }
-                ]
-            }
-        },
-        {
-            "variableId": "movieStats",
-            "type": "object",
-            "isArray": true,
-            "initialValue": [],
-            "calculation": {
-                "dataSourceNames": ["filteredMovies"],
-                "dataFrameTransformations": [
-                    {
-                        "type": "aggregate",
-                        "ops": ["count", "mean", "max", "min"],
-                        "fields": ["Title", "IMDB_Rating", "IMDB_Rating", "IMDB_Rating"],
-                        "as": ["total_movies", "avg_rating", "max_rating", "min_rating"]
+                        "expr": "selectedGenre === '' || datum.Major_Genre === selectedGenre"
                     }
                 ]
             }
@@ -82,29 +55,10 @@
                 {
                     "type": "dropdown",
                     "variableId": "selectedGenre",
-                    "options": ["All Genres", "Action", "Adventure", "Comedy", "Drama", "Horror", "Romance", "Thriller", "Documentary", "Animation", "Musical", "Western"]
-                },
-                "**Decade:**",
-                {
-                    "type": "dropdown",
-                    "variableId": "selectedDecade",
-                    "options": ["All Decades", "1970s", "1980s", "1990s", "2000s", "2010s"]
-                }
-            ]
-        },
-        {
-            "groupId": "stats",
-            "elements": [
-                "## Movie Statistics\n\n**Total Movies:** {{movieStats[0].total_movies || 0}}\n\n**Average IMDB Rating:** {{(movieStats[0].avg_rating || 0).toFixed(1)}}\n\n**Highest Rating:** {{movieStats[0].max_rating || 0}}\n\n**Lowest Rating:** {{movieStats[0].min_rating || 0}}"
-            ]
-        },
-        {
-            "groupId": "chart",
-            "elements": [
-                "## Rating Distribution\n",
-                {
-                    "type": "chart",
-                    "chartKey": "ratingDistribution"
+                    "dynamicOptions": {
+                        "dataSourceName": "moviesData",
+                        "fieldName": "Major_Genre"
+                    }
                 }
             ]
         },
@@ -126,28 +80,5 @@
                 }
             ]
         }
-    ],
-    "resources": {
-        "charts": {
-            "ratingDistribution": {
-                "data": {"name": "filteredMovies"},
-                "mark": {"type": "bar", "color": "#667eea"},
-                "encoding": {
-                    "x": {
-                        "field": "IMDB_Rating",
-                        "type": "quantitative",
-                        "bin": {"maxbins": 10},
-                        "title": "IMDB Rating"
-                    },
-                    "y": {
-                        "aggregate": "count",
-                        "type": "quantitative",
-                        "title": "Number of Movies"
-                    }
-                },
-                "width": 400,
-                "height": 250
-            }
-        }
-    }
+    ]
 }
