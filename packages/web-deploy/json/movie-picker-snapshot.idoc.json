@@ -1,0 +1,222 @@
+{
+    "$schema": "../../../docs/schema/idoc_v1.json",
+    "title": "Movies Database Explorer",
+    "style": {
+        "css": [
+            "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f7fa; }",
+            "#header, .filter-stage { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }",
+            "#header { background: #667eea; color: white; text-align: center; }",
+            "h1 { margin: 0; padding: 10px 0; font-size: 1.8em; font-weight: 400; }",
+            "h2 { margin: 0 0 15px 0; color: #333; font-size: 1.2em; }",
+            ".tabulator { max-width: 100%; overflow: auto; }"
+        ]
+    },
+    "dataLoaders": [
+        {
+            "dataSourceName": "moviesData",
+            "type": "url",
+            "format": "json",
+            "url": "https://vega.github.io/editor/data/movies.json"
+        }
+    ],
+    "variables": [
+        {
+            "variableId": "selectedGenre",
+            "type": "string",
+            "initialValue": ""
+        },
+        {
+            "variableId": "selected_Major_Genre",
+            "type": "string",
+            "initialValue": "All Movies",
+            "calculation": {
+                "vegaExpression": "selectedGenre && selectedGenre !== 'null' && selectedGenre !== '' ? selectedGenre + ' Movies' : 'All Movies'"
+            }
+        },
+        {
+            "variableId": "filteredByGenre",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": ["moviesData"],
+                "dataFrameTransformations": [
+                    {
+                        "type": "filter",
+                        "expr": "!selectedGenre || selectedGenre === '' || selectedGenre === 'null' || datum['Major Genre'] === selectedGenre"
+                    }
+                ]
+            }
+        },
+        {
+            "variableId": "selectedCreativeType",
+            "type": "string",
+            "initialValue": ""
+        },
+        {
+            "variableId": "filteredByCreativeType",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": ["filteredByGenre"],
+                "dataFrameTransformations": [
+                    {
+                        "type": "filter",
+                        "expr": "!selectedCreativeType || selectedCreativeType === '' || selectedCreativeType === 'null' || datum['Creative Type'] === selectedCreativeType"
+                    }
+                ]
+            }
+        },
+        {
+            "variableId": "selected_Creative_Type",
+            "type": "string",
+            "initialValue": "All Creative Types",
+            "calculation": {
+                "vegaExpression": "selectedCreativeType && selectedCreativeType !== 'null' && selectedCreativeType !== '' ? selectedCreativeType + ' Movies' : 'All Creative Types'"
+            }
+        },
+        {
+            "variableId": "selectedMpaaRating",
+            "type": "string",
+            "initialValue": ""
+        },
+        {
+            "variableId": "filteredByMpaaRating",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": ["filteredByCreativeType"],
+                "dataFrameTransformations": [
+                    {
+                        "type": "filter",
+                        "expr": "!selectedMpaaRating || selectedMpaaRating === '' || selectedMpaaRating === 'null' || datum['MPAA Rating'] === selectedMpaaRating"
+                    }
+                ]
+            }
+        },
+        {
+            "variableId": "selected_MPAA_Rating",
+            "type": "string",
+            "initialValue": "All Ratings",
+            "calculation": {
+                "vegaExpression": "selectedMpaaRating && selectedMpaaRating !== 'null' && selectedMpaaRating !== '' ? selectedMpaaRating + ' Movies' : 'All Ratings'"
+            }
+        }
+    ],
+    "groups": [
+        {
+            "groupId": "header",
+            "elements": [
+                "# Movies Database Explorer"
+            ]
+        },
+        {
+            "groupId": "genreFilter",
+            "className": "filter-stage",
+            "elements": [
+                "## Step 1: Filter by Genre\n\n**Select Genre:**",
+                {
+                    "type": "dropdown",
+                    "variableId": "selectedGenre",
+                    "dynamicOptions": {
+                        "dataSourceName": "moviesData",
+                        "fieldName": "Major Genre"
+                    }
+                },
+                "## {{selected_Major_Genre}}\n",
+                {
+                    "type": "tabulator",
+                    "dataSourceName": "filteredByGenre",
+                    "tabulatorOptions": {
+                        "autoColumns": true,
+                        "layout": "fitColumns",
+                        "minHeight": "400px",
+                        "maxHeight": "400px",
+                        "pagination": "local",
+                        "paginationSize": 15
+                    }
+                }
+            ]
+        },
+        {
+            "groupId": "creativeTypeFilter",
+            "className": "filter-stage",
+            "elements": [
+                "## Step 2: Filter by Creative Type\n\n**Select Creative Type:**",
+                {
+                    "type": "dropdown",
+                    "variableId": "selectedCreativeType",
+                    "dynamicOptions": {
+                        "dataSourceName": "filteredByGenre",
+                        "fieldName": "Creative Type"
+                    }
+                },
+                "## {{selected_Creative_Type}}\n",
+                {
+                    "type": "tabulator",
+                    "dataSourceName": "filteredByCreativeType",
+                    "tabulatorOptions": {
+                        "autoColumns": true,
+                        "layout": "fitColumns",
+                        "minHeight": "400px",
+                        "maxHeight": "400px",
+                        "pagination": "local",
+                        "paginationSize": 15,
+                        "columns": [
+                            {"title": "Title", "field": "Title"},
+                            {"title": "Director", "field": "Director"},
+                            {"title": "Creative Type", "field": "Creative Type", "visible": false},
+                            {"title": "Release Date", "field": "Release Date"},
+                            {"title": "MPAA Rating", "field": "MPAA Rating"},
+                            {"title": "Running Time", "field": "Running Time min"},
+                            {"title": "IMDB Rating", "field": "IMDB Rating"},
+                            {"title": "US Gross", "field": "US Gross", "formatter": "money"},
+                            {"title": "Worldwide Gross", "field": "Worldwide Gross", "formatter": "money"}
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "groupId": "mpaaRatingFilter",
+            "className": "filter-stage",
+            "elements": [
+                "## Step 3: Filter by MPAA Rating\n\n**Select MPAA Rating:**",
+                {
+                    "type": "dropdown",
+                    "variableId": "selectedMpaaRating",
+                    "dynamicOptions": {
+                        "dataSourceName": "filteredByCreativeType",
+                        "fieldName": "MPAA Rating"
+                    }
+                },
+                "## {{selected_MPAA_Rating}}\n",
+                {
+                    "type": "tabulator",
+                    "dataSourceName": "filteredByMpaaRating",
+                    "tabulatorOptions": {
+                        "autoColumns": true,
+                        "layout": "fitColumns",
+                        "minHeight": "400px",
+                        "maxHeight": "400px",
+                        "pagination": "local",
+                        "paginationSize": 15,
+                        "columns": [
+                            {"title": "Title", "field": "Title"},
+                            {"title": "Director", "field": "Director"},
+                            {"title": "Creative Type", "field": "Creative Type", "visible": false},
+                            {"title": "Release Date", "field": "Release Date"},
+                            {"title": "MPAA Rating", "field": "MPAA Rating", "visible": false},
+                            {"title": "Running Time", "field": "Running Time min"},
+                            {"title": "IMDB Rating", "field": "IMDB Rating"},
+                            {"title": "US Gross", "field": "US Gross", "formatter": "money"},
+                            {"title": "Worldwide Gross", "field": "Worldwide Gross", "formatter": "money"}
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}
