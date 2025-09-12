@@ -26,7 +26,7 @@
             "initialValue": ""
         },
         {
-            "variableId": "tableHeaderText",
+            "variableId": "selected_Major_Genre",
             "type": "string",
             "initialValue": "All Movies",
             "calculation": {
@@ -49,12 +49,12 @@
             }
         },
         {
-            "variableId": "selectedDirector",
+            "variableId": "selectedCreativeType",
             "type": "string",
             "initialValue": ""
         },
         {
-            "variableId": "filteredByDirector",
+            "variableId": "filteredByCreativeType",
             "type": "object",
             "isArray": true,
             "initialValue": [],
@@ -63,17 +63,45 @@
                 "dataFrameTransformations": [
                     {
                         "type": "filter",
-                        "expr": "!selectedDirector || selectedDirector === '' || selectedDirector === 'null' || datum['Director'] === selectedDirector"
+                        "expr": "!selectedCreativeType || selectedCreativeType === '' || selectedCreativeType === 'null' || datum['Creative Type'] === selectedCreativeType"
                     }
                 ]
             }
         },
         {
-            "variableId": "directorTableHeaderText",
+            "variableId": "selected_Creative_Type",
             "type": "string",
-            "initialValue": "All Directors",
+            "initialValue": "All Creative Types",
             "calculation": {
-                "vegaExpression": "selectedDirector && selectedDirector !== 'null' && selectedDirector !== '' ? selectedDirector + ' Movies' : 'All Directors'"
+                "vegaExpression": "selectedCreativeType && selectedCreativeType !== 'null' && selectedCreativeType !== '' ? selectedCreativeType + ' Movies' : 'All Creative Types'"
+            }
+        },
+        {
+            "variableId": "selectedMpaaRating",
+            "type": "string",
+            "initialValue": ""
+        },
+        {
+            "variableId": "filteredByMpaaRating",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": ["filteredByCreativeType"],
+                "dataFrameTransformations": [
+                    {
+                        "type": "filter",
+                        "expr": "!selectedMpaaRating || selectedMpaaRating === '' || selectedMpaaRating === 'null' || datum['MPAA Rating'] === selectedMpaaRating"
+                    }
+                ]
+            }
+        },
+        {
+            "variableId": "selected_MPAA_Rating",
+            "type": "string",
+            "initialValue": "All Ratings",
+            "calculation": {
+                "vegaExpression": "selectedMpaaRating && selectedMpaaRating !== 'null' && selectedMpaaRating !== '' ? selectedMpaaRating + ' Movies' : 'All Ratings'"
             }
         }
     ],
@@ -97,7 +125,7 @@
                         "fieldName": "Major Genre"
                     }
                 },
-                "## {{tableHeaderText}}\n",
+                "## {{selected_Major_Genre}}\n",
                 {
                     "type": "tabulator",
                     "dataSourceName": "filteredByGenre",
@@ -113,22 +141,22 @@
             ]
         },
         {
-            "groupId": "directorFilter",
+            "groupId": "creativeTypeFilter",
             "className": "filter-stage",
             "elements": [
-                "## Step 2: Filter by Director\n\n**Select Director:**",
+                "## Step 2: Filter by Creative Type\n\n**Select Creative Type:**",
                 {
                     "type": "dropdown",
-                    "variableId": "selectedDirector",
+                    "variableId": "selectedCreativeType",
                     "dynamicOptions": {
                         "dataSourceName": "filteredByGenre",
-                        "fieldName": "Director"
+                        "fieldName": "Creative Type"
                     }
                 },
-                "## {{directorTableHeaderText}}\n",
+                "## {{selected_Creative_Type}}\n",
                 {
                     "type": "tabulator",
-                    "dataSourceName": "filteredByDirector",
+                    "dataSourceName": "filteredByCreativeType",
                     "tabulatorOptions": {
                         "autoColumns": true,
                         "layout": "fitColumns",
@@ -138,9 +166,49 @@
                         "paginationSize": 15,
                         "columns": [
                             {"title": "Title", "field": "Title"},
-                            {"title": "Director", "field": "Director", "visible": false},
+                            {"title": "Director", "field": "Director"},
+                            {"title": "Creative Type", "field": "Creative Type", "visible": false},
                             {"title": "Release Date", "field": "Release Date"},
                             {"title": "MPAA Rating", "field": "MPAA Rating"},
+                            {"title": "Running Time", "field": "Running Time min"},
+                            {"title": "IMDB Rating", "field": "IMDB Rating"},
+                            {"title": "US Gross", "field": "US Gross", "formatter": "money"},
+                            {"title": "Worldwide Gross", "field": "Worldwide Gross", "formatter": "money"}
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "groupId": "mpaaRatingFilter",
+            "className": "filter-stage",
+            "elements": [
+                "## Step 3: Filter by MPAA Rating\n\n**Select MPAA Rating:**",
+                {
+                    "type": "dropdown",
+                    "variableId": "selectedMpaaRating",
+                    "dynamicOptions": {
+                        "dataSourceName": "filteredByCreativeType",
+                        "fieldName": "MPAA Rating"
+                    }
+                },
+                "## {{selected_MPAA_Rating}}\n",
+                {
+                    "type": "tabulator",
+                    "dataSourceName": "filteredByMpaaRating",
+                    "tabulatorOptions": {
+                        "autoColumns": true,
+                        "layout": "fitColumns",
+                        "minHeight": "400px",
+                        "maxHeight": "400px",
+                        "pagination": "local",
+                        "paginationSize": 15,
+                        "columns": [
+                            {"title": "Title", "field": "Title"},
+                            {"title": "Director", "field": "Director"},
+                            {"title": "Creative Type", "field": "Creative Type", "visible": false},
+                            {"title": "Release Date", "field": "Release Date"},
+                            {"title": "MPAA Rating", "field": "MPAA Rating", "visible": false},
                             {"title": "Running Time", "field": "Running Time min"},
                             {"title": "IMDB Rating", "field": "IMDB Rating"},
                             {"title": "US Gross", "field": "US Gross", "formatter": "money"},
