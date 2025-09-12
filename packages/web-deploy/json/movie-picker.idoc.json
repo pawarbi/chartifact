@@ -4,7 +4,7 @@
     "style": {
         "css": [
             "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f7fa; }",
-            "#header, #filters, #table { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }",
+            "#header, .filter-stage { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }",
             "#header { background: #667eea; color: white; text-align: center; }",
             "h1 { margin: 0; padding: 10px 0; font-size: 1.8em; font-weight: 400; }",
             "h2 { margin: 0 0 15px 0; color: #333; font-size: 1.2em; }",
@@ -26,7 +26,7 @@
             "initialValue": ""
         },
         {
-            "variableId": "filteredMovies",
+            "variableId": "filteredByGenre",
             "type": "object",
             "isArray": true,
             "initialValue": [],
@@ -35,7 +35,7 @@
                 "dataFrameTransformations": [
                     {
                         "type": "filter",
-                        "expr": "selectedGenre === '' || datum.Major_Genre === selectedGenre"
+                        "expr": "selectedGenre === '' || datum['Major Genre'] === selectedGenre"
                     }
                 ]
             }
@@ -49,33 +49,29 @@
             ]
         },
         {
-            "groupId": "filters",
+            "groupId": "genreFilter",
+            "className": "filter-stage",
             "elements": [
-                "## Filters\n\n**Genre:**",
+                "## Step 1: Filter by Genre\n\n**Select Genre:**",
                 {
                     "type": "dropdown",
                     "variableId": "selectedGenre",
                     "dynamicOptions": {
                         "dataSourceName": "moviesData",
-                        "fieldName": "Major_Genre"
+                        "fieldName": "Major Genre"
                     }
-                }
-            ]
-        },
-        {
-            "groupId": "table",
-            "elements": [
-                "## Movie Listings\n",
+                },
+                "## {{selectedGenre ? selectedGenre + ' Movies' : 'All Movies'}}\n",
                 {
                     "type": "tabulator",
-                    "dataSourceName": "filteredMovies",
+                    "dataSourceName": "filteredByGenre",
                     "tabulatorOptions": {
                         "autoColumns": true,
                         "layout": "fitColumns",
-                        "minHeight": "500px",
-                        "maxHeight": "500px",
+                        "minHeight": "400px",
+                        "maxHeight": "400px",
                         "pagination": "local",
-                        "paginationSize": 20
+                        "paginationSize": 15
                     }
                 }
             ]
