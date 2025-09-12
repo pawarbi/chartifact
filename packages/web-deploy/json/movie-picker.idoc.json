@@ -4,12 +4,16 @@
     "style": {
         "css": [
             "body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f7fa; }",
-            "#header, #filters, #table { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }",
+            "#header, #filters, #stats, #chart, #table { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }",
             "#header { background: #667eea; color: white; text-align: center; }",
             "h1 { margin: 0; padding: 10px 0; font-size: 1.8em; font-weight: 400; }",
             "h2 { margin: 0 0 15px 0; color: #333; font-size: 1.2em; }",
             ".filter-row { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }",
             ".filter-row label { font-weight: 500; color: #555; min-width: 80px; }",
+            ".stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }",
+            ".stat-card { background: #f8fafc; padding: 15px; border-radius: 6px; text-align: center; border-left: 4px solid #667eea; }",
+            ".stat-value { font-size: 1.8em; font-weight: bold; color: #667eea; margin-bottom: 5px; }",
+            ".stat-label { color: #666; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }",
             ".tabulator { max-width: 100%; overflow: auto; }"
         ]
     },
@@ -41,6 +45,23 @@
                     }
                 ]
             }
+        },
+        {
+            "variableId": "movieStats",
+            "type": "object",
+            "isArray": true,
+            "initialValue": [],
+            "calculation": {
+                "dataSourceNames": ["filteredMovies"],
+                "dataFrameTransformations": [
+                    {
+                        "type": "aggregate",
+                        "ops": ["count", "mean", "max", "min"],
+                        "fields": ["Title", "IMDB_Rating", "IMDB_Rating", "IMDB_Rating"],
+                        "as": ["total_movies", "avg_rating", "max_rating", "min_rating"]
+                    }
+                ]
+            }
         }
     ],
     "groups": [
@@ -69,6 +90,92 @@
             ]
         },
         {
+            "groupId": "stats",
+            "elements": [
+                "## Movie Statistics\n",
+                {
+                    "type": "group",
+                    "className": "stats-grid",
+                    "elements": [
+                        {
+                            "type": "group",
+                            "className": "stat-card",
+                            "elements": [
+                                {
+                                    "type": "text",
+                                    "className": "stat-value",
+                                    "text": "{{movieStats[0].total_movies || 0}}"
+                                },
+                                {
+                                    "type": "text",
+                                    "className": "stat-label",
+                                    "text": "Total Movies"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "group",
+                            "className": "stat-card",
+                            "elements": [
+                                {
+                                    "type": "text",
+                                    "className": "stat-value",
+                                    "text": "{{(movieStats[0].avg_rating || 0).toFixed(1)}}"
+                                },
+                                {
+                                    "type": "text",
+                                    "className": "stat-label",
+                                    "text": "Average IMDB Rating"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "group",
+                            "className": "stat-card",
+                            "elements": [
+                                {
+                                    "type": "text",
+                                    "className": "stat-value",
+                                    "text": "{{movieStats[0].max_rating || 0}}"
+                                },
+                                {
+                                    "type": "text",
+                                    "className": "stat-label",
+                                    "text": "Highest Rating"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "group",
+                            "className": "stat-card",
+                            "elements": [
+                                {
+                                    "type": "text",
+                                    "className": "stat-value",
+                                    "text": "{{movieStats[0].min_rating || 0}}"
+                                },
+                                {
+                                    "type": "text",
+                                    "className": "stat-label",
+                                    "text": "Lowest Rating"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "groupId": "chart",
+            "elements": [
+                "## Rating Distribution\n",
+                {
+                    "type": "chart",
+                    "chartKey": "ratingDistribution"
+                }
+            ]
+        },
+        {
             "groupId": "table",
             "elements": [
                 "## Movie Listings\n",
@@ -88,5 +195,26 @@
         }
     ],
     "resources": {
+        "charts": {
+            "ratingDistribution": {
+                "data": {"name": "filteredMovies"},
+                "mark": {"type": "bar", "color": "#667eea"},
+                "encoding": {
+                    "x": {
+                        "field": "IMDB_Rating",
+                        "type": "quantitative",
+                        "bin": {"maxbins": 10},
+                        "title": "IMDB Rating"
+                    },
+                    "y": {
+                        "aggregate": "count",
+                        "type": "quantitative",
+                        "title": "Number of Movies"
+                    }
+                },
+                "width": 400,
+                "height": 250
+            }
+        }
     }
 }
