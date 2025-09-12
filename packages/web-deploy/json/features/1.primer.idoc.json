@@ -88,6 +88,12 @@
                 "- **Doubled temperature:** **{{doubled_temperature}}** (calculated from `temperature`)",
                 "Note: Some variable names are reserved and cannot be used (e.g. `datum`, `event`, etc.).",
                 "---",
+                "### Plugin Syntax",
+                "Plugins are defined using **triple backticks** with the syntax ` ```[format] [plugin-type] ` where format can be `json` or `yaml`.",
+                "- **Use YAML mostly** for cleaner, readable configuration",
+                "- **Use JSON** when copying from libraries like Vega or Tabulator",
+                "View the source of this document to see plugin syntax examples for all the controls below.",
+                "---",
                 "### Input Controls",
                 "Input controls let users change variable values interactively. Changes are instantly reflected in markdown and calculations above.",
                 {
