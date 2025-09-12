@@ -8,12 +8,6 @@
             "#header { background: #667eea; color: white; text-align: center; }",
             "h1 { margin: 0; padding: 10px 0; font-size: 1.8em; font-weight: 400; }",
             "h2 { margin: 0 0 15px 0; color: #333; font-size: 1.2em; }",
-            ".filter-row { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }",
-            ".filter-row label { font-weight: 500; color: #555; min-width: 80px; }",
-            ".stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }",
-            ".stat-card { background: #f8fafc; padding: 15px; border-radius: 6px; text-align: center; border-left: 4px solid #667eea; }",
-            ".stat-value { font-size: 1.8em; font-weight: bold; color: #667eea; margin-bottom: 5px; }",
-            ".stat-label { color: #666; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.5px; }",
             ".tabulator { max-width: 100%; overflow: auto; }"
         ]
     },
@@ -84,101 +78,24 @@
         {
             "groupId": "filters",
             "elements": [
-                "## Filters\n",
+                "## Filters\n\n**Genre:**",
                 {
-                    "type": "group",
-                    "className": "filter-row",
-                    "elements": [
-                        "**Genre:**",
-                        {
-                            "type": "dropdown",
-                            "variableId": "selectedGenre",
-                            "options": ["All Genres", "Action", "Adventure", "Comedy", "Drama", "Horror", "Romance", "Thriller", "Documentary", "Animation", "Musical", "Western"]
-                        },
-                        "**Decade:**",
-                        {
-                            "type": "dropdown",
-                            "variableId": "selectedDecade",
-                            "options": ["All Decades", "1970s", "1980s", "1990s", "2000s", "2010s"]
-                        }
-                    ]
+                    "type": "dropdown",
+                    "variableId": "selectedGenre",
+                    "options": ["All Genres", "Action", "Adventure", "Comedy", "Drama", "Horror", "Romance", "Thriller", "Documentary", "Animation", "Musical", "Western"]
+                },
+                "**Decade:**",
+                {
+                    "type": "dropdown",
+                    "variableId": "selectedDecade",
+                    "options": ["All Decades", "1970s", "1980s", "1990s", "2000s", "2010s"]
                 }
             ]
         },
         {
             "groupId": "stats",
             "elements": [
-                "## Movie Statistics\n",
-                {
-                    "type": "group",
-                    "className": "stats-grid",
-                    "elements": [
-                        {
-                            "type": "group",
-                            "className": "stat-card",
-                            "elements": [
-                                {
-                                    "type": "text",
-                                    "className": "stat-value",
-                                    "text": "{{movieStats[0].total_movies || 0}}"
-                                },
-                                {
-                                    "type": "text",
-                                    "className": "stat-label",
-                                    "text": "Total Movies"
-                                }
-                            ]
-                        },
-                        {
-                            "type": "group",
-                            "className": "stat-card",
-                            "elements": [
-                                {
-                                    "type": "text",
-                                    "className": "stat-value",
-                                    "text": "{{(movieStats[0].avg_rating || 0).toFixed(1)}}"
-                                },
-                                {
-                                    "type": "text",
-                                    "className": "stat-label",
-                                    "text": "Average IMDB Rating"
-                                }
-                            ]
-                        },
-                        {
-                            "type": "group",
-                            "className": "stat-card",
-                            "elements": [
-                                {
-                                    "type": "text",
-                                    "className": "stat-value",
-                                    "text": "{{movieStats[0].max_rating || 0}}"
-                                },
-                                {
-                                    "type": "text",
-                                    "className": "stat-label",
-                                    "text": "Highest Rating"
-                                }
-                            ]
-                        },
-                        {
-                            "type": "group",
-                            "className": "stat-card",
-                            "elements": [
-                                {
-                                    "type": "text",
-                                    "className": "stat-value",
-                                    "text": "{{movieStats[0].min_rating || 0}}"
-                                },
-                                {
-                                    "type": "text",
-                                    "className": "stat-label",
-                                    "text": "Lowest Rating"
-                                }
-                            ]
-                        }
-                    ]
-                }
+                "## Movie Statistics\n\n**Total Movies:** {{movieStats[0].total_movies || 0}}\n\n**Average IMDB Rating:** {{(movieStats[0].avg_rating || 0).toFixed(1)}}\n\n**Highest Rating:** {{movieStats[0].max_rating || 0}}\n\n**Lowest Rating:** {{movieStats[0].min_rating || 0}}"
             ]
         },
         {
