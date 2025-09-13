@@ -40,7 +40,7 @@
     {
       "title": "Movies Database Explorer",
       "description": "Progressive filtering interface for exploring a movie database with multiple filter stages.",
-      "href": "json/movie-picker-snapshot.idoc.json"
+      "href": "json/movie-picker-basic.idoc.json"
     }
   ]
 }

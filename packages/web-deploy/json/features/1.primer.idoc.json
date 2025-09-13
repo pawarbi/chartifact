@@ -46,7 +46,6 @@
             "type": "number",
             "initialValue": 42,
             "calculation": {
-                "dependsOn": ["obj"],
                 "vegaExpression": "obj.value"
             }
         },
@@ -55,7 +54,6 @@
             "type": "number",
             "initialValue": 40,
             "calculation": {
-                "dependsOn": ["temperature"],
                 "vegaExpression": "temperature * 2"
             }
         }
@@ -66,13 +64,14 @@
             "elements": [
                 "# Chartifact Primer",
                 "Explore the features below and **view source** to see how markdown elements are used throughout this page.",
+                "",
                 "---",
                 "### Markdown",
                 "Chartifact supports markdown for formatting text, headings, lists, and more. HTML tags are not allowed.",
                 "**Bold**, *italic*, `code`, and [links](https://microsoft.com).",
                 "1. Numbered item\n2. Another item",
                 "- Bullet point\n- Another bullet",
-                "Variables can also be used inside image URLs (`![alt text]({{variableName}})`) and hyperlink URLs (`[link text]({{variableName}})`).",
+                "",
                 "---",
                 "### Variables",
                 "Variables store values you can reference in markdown using `{{variableName}}`. They can be strings, numbers, booleans, arrays, objects, or calculated values.",
@@ -82,19 +81,23 @@
                 "- **Array:** Selected items: **{{selectedItems}}**.",
                 "- **Object:** Foo is **{{obj_foo}}**, value is **{{obj_value}}**.",
                 "- **String:** Favorite color: **{{selectedColor}}**.",
+                "",
                 "---",
                 "### Calculated Variables",
                 "Calculated variables derive their value from other variables using [Vega's expression language](https://vega.github.io/vega/docs/expressions/).",
                 "- **Doubled temperature:** **{{doubled_temperature}}** (calculated from `temperature`)",
                 "Note: Some variable names are reserved and cannot be used (e.g. `datum`, `event`, etc.).",
+                "",
                 "---",
                 "### Plugins",
                 "Plugins are what make Chartifacts interactive.",
-                "**In JSON format** (like this document): Add plugins as objects to the elements array.",
-                "**In Markdown format**: Define plugins using **triple backticks** with the syntax ` ```[format] [plugin-type] ` where format can be `json` or `yaml`.",
+                "#### In JSON format\n Add plugins as objects to the elements array.",
+                "#### In Markdown format\n Define plugins using **triple backticks** with the syntax ` ```[format] [plugin-type] ` where format can be `json` or `yaml`.",
                 "- **Use YAML mostly** for cleaner, readable configuration",
                 "- **Use JSON** when copying from libraries like Vega or Tabulator",
+                "",
                 "View the source of this document to see plugin syntax examples for all the controls below.",
+                "",
                 "---",
                 "### Input Controls",
                 "Input controls let users change variable values interactively. Changes are instantly reflected in markdown and calculations above.",
@@ -130,6 +133,7 @@
                     "multiple": true,
                     "size": 3
                 },
+                "",
                 "---",
                 "### Tips",
                 "- Use variables in any markdown context, including headings and lists.",
