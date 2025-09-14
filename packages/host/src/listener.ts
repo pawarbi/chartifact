@@ -288,28 +288,31 @@ export class Listener {
   }
 
   /**
-   * Check if the sandbox iframe is still functional by testing if we can access its content window
+   * Check if the sandbox iframe is still functional
+   * Conservative approach that only detects clear evidence of tombstoning
    */
   private isSandboxFunctional(): boolean {
-    try {
-      if (!this.sandbox || !this.sandbox.iframe) {
-        return false;
-      }
-      
-      // Try to access the iframe's content window and check if the src is still valid
-      const iframe = this.sandbox.iframe;
-      const contentWindow = iframe.contentWindow;
-      
-      // If we can't access the content window or the src is invalid, sandbox is not functional
-      if (!contentWindow || !iframe.src || iframe.src === 'about:blank') {
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      // If accessing iframe throws an error, it's not functional
+    if (!this.sandbox || !this.sandbox.iframe) {
       return false;
     }
+    
+    const iframe = this.sandbox.iframe;
+    const contentWindow = iframe.contentWindow;
+    
+    // Only recreate if we have clear evidence of a broken iframe
+    // Missing contentWindow is a clear sign of tombstoning
+    if (!contentWindow) {
+      return false;
+    }
+    
+    // Missing or invalid src indicates a problem
+    if (!iframe.src || iframe.src === 'about:blank') {
+      return false;
+    }
+    
+    // For normal cases (including blob URLs), assume functional to preserve user state
+    // Only the clear failures above will trigger recreation
+    return true;
   }
 
   /**
