@@ -33,6 +33,26 @@ export interface TextboxElementProps extends VariableControl {
 }
 
 /**
+ * Number
+ * use for numeric input (integers and decimals)
+ */
+export interface NumberElement extends NumberElementProps {
+  type: 'number';
+}
+export interface NumberElementProps extends VariableControl {
+  /** minimum allowed value */
+  min?: number;
+  /** maximum allowed value */
+  max?: number;
+  /** step increment for the input */
+  step?: number;
+  /** placeholder text to show when input is empty */
+  placeholder?: string;
+}
+
+
+
+/**
  * Slider
  * prefer sliders over textbox for numbers. Never use for boolean values.
  */
@@ -208,6 +228,7 @@ export type InteractiveElement =
   | DropdownElement
   | ImageElement
   | MermaidElement
+  | NumberElement
   | PresetsElement
   | SliderElement
   | TabulatorElement
