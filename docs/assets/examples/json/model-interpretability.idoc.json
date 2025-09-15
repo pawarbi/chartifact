@@ -1,0 +1,124 @@
+{
+  "$schema": "https://microsoft.github.io/chartifact/schema/idoc_v1.json",
+  "title": "Model Interpretability Dashboard",
+  "dataLoaders": [
+    {
+      "dataSourceName": "modelData",
+      "type": "inline",
+      "format": "json",
+      "content": [
+        { "id": 1, "age": 25, "income": 50000, "actual": 1, "prob": 0.8 },
+        { "id": 2, "age": 45, "income": 80000, "actual": 0, "prob": 0.1 },
+        { "id": 3, "age": 35, "income": 60000, "actual": 1, "prob": 0.4 },
+        { "id": 4, "age": 52, "income": 120000, "actual": 0, "prob": 0.6 },
+        { "id": 5, "age": 23, "income": 40000, "actual": 1, "prob": 0.9 },
+        { "id": 6, "age": 31, "income": 70000, "actual": 0, "prob": 0.2 },
+        { "id": 7, "age": 40, "income": 90000, "actual": 1, "prob": 0.7 },
+        { "id": 8, "age": 28, "income": 55000, "actual": 0, "prob": 0.3 },
+        { "id": 9, "age": 60, "income": 110000, "actual": 1, "prob": 0.45 },
+        { "id": 10, "age": 48, "income": 95000, "actual": 0, "prob": 0.65 },
+        { "id": 11, "age": 36, "income": 62000, "actual": 1, "prob": 0.85 },
+        { "id": 12, "age": 29, "income": 52000, "actual": 0, "prob": 0.25 }
+      ]
+    },
+    {
+      "dataSourceName": "featureImportance",
+      "type": "inline",
+      "format": "json",
+      "content": [
+        { "feature": "age", "importance": 0.55 },
+        { "feature": "income", "importance": 0.45 }
+      ]
+    }
+  ],
+  "variables": [
+    { "variableId": "threshold", "type": "number", "initialValue": 0.5 },
+    { "variableId": "selectedFeature", "type": "string", "initialValue": "age" },
+    {
+      "variableId": "selectedFeatureTitle",
+      "type": "string",
+      "initialValue": "Age",
+      "calculation": { "vegaExpression": "selectedFeature === 'age' ? 'Age' : 'Income'" }
+    }
+  ],
+  "groups": [
+    {
+      "groupId": "main",
+      "elements": [
+        "# Model Interpretability Dashboard", "### Adjust Classification Threshold",
+        {
+          "type": "slider",
+          "variableId": "threshold",
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        "### Confusion Matrix",
+        { "type": "chart", "chartKey": "confusion" },
+        "### Feature Importance",
+        { "type": "chart", "chartKey": "importance" },
+        "### Probability vs {{selectedFeatureTitle}}",
+        {
+          "type": "dropdown",
+          "variableId": "selectedFeature",
+          "options": [
+            { "label": "Age", "value": "age" },
+            { "label": "Income", "value": "income" }
+          ]
+        },
+        { "type": "chart", "chartKey": "scatter" },
+        "### Data",
+        {
+          "type": "tabulator",
+          "dataSourceName": "modelData",
+          "tabulatorOptions": {
+            "autoColumns": true,
+            "layout": "fitColumns",
+            "minHeight": "200px",
+            "maxHeight": "200px"
+          }
+        }
+      ]
+    }
+  ],
+  "resources": {
+    "charts": {
+      "confusion": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+        "data": { "name": "modelData" },
+        "transform": [
+          { "calculate": "datum.prob >= threshold ? 1 : 0", "as": "prediction" }
+        ],
+        "mark": "rect",
+        "encoding": {
+          "x": { "field": "prediction", "type": "nominal", "title": "Predicted" },
+          "y": { "field": "actual", "type": "nominal", "title": "Actual" },
+          "color": { "aggregate": "count", "type": "quantitative", "title": "Count" }
+        }
+      },
+      "importance": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+        "data": { "name": "featureImportance" },
+        "mark": "bar",
+        "encoding": {
+          "x": { "field": "feature", "type": "nominal", "title": "Feature" },
+          "y": { "field": "importance", "type": "quantitative", "title": "Importance" },
+          "color": { "field": "feature", "type": "nominal", "legend": null }
+        }
+      },
+      "scatter": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+        "data": { "name": "modelData" },
+        "transform": [
+          { "calculate": "datum[selectedFeature]", "as": "featureValue" }
+        ],
+        "mark": "point",
+        "encoding": {
+          "x": { "field": "featureValue", "type": "quantitative", "title": { "signal": "selectedFeatureTitle" } },
+          "y": { "field": "prob", "type": "quantitative", "title": "Predicted Probability" },
+          "color": { "field": "actual", "type": "nominal", "title": "Actual" }
+        }
+      }
+    }
+  }
+}

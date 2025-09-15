@@ -52,5 +52,11 @@
       "description": "Track your transactions and spending patterns.",
       "href": "markdown/bank-statement.idoc.md"
     }
+    ,
+    {
+      "title": "Model Interpretability Dashboard",
+      "description": "Adjust thresholds and explore feature impacts for a sample classifier.",
+      "href": "markdown/model-interpretability.idoc.md"
+    }
   ]
 }
