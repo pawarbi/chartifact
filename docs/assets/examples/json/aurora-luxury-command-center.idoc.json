@@ -1,0 +1,1152 @@
+{
+  "$schema": "https://microsoft.github.io/chartifact/schema/idoc_v1.json",
+  "title": "Aurora Luxury Command Center",
+  "style": {
+    "css": [
+      "body { font-family: 'Inter', 'Segoe UI', sans-serif; background: radial-gradient(120% 120% at 20% 20%, #14162b 0%, #050714 55%, #02030a 100%); color: #e7efff; margin: 0; padding: 32px; display: grid; gap: 24px; grid-template-columns: repeat(12, 1fr); grid-auto-rows: minmax(150px, auto); box-sizing: border-box; }",
+      ".group { background: rgba(16, 19, 40, 0.85); border: 1px solid rgba(95, 123, 255, 0.25); border-radius: 18px; padding: 24px; box-shadow: 0 12px 32px rgba(5, 12, 42, 0.45); backdrop-filter: blur(18px); }",
+      "#main { grid-column: 1 / span 12; display: grid; gap: 20px; background: linear-gradient(135deg, rgba(33, 43, 102, 0.88), rgba(83, 37, 116, 0.88)); }",
+      "#insights { grid-column: 1 / span 12; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; background: rgba(13, 18, 36, 0.92); }",
+      "#curation { grid-column: 1 / span 7; display: grid; grid-template-rows: auto 1fr 1fr; gap: 16px; }",
+      "#ambience { grid-column: 8 / span 5; display: grid; grid-template-rows: 1fr; gap: 16px; }",
+      ".chartifact-dropdown label { font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; color: #b7c4ff; margin-bottom: 6px; display: block; }",
+      ".chartifact-dropdown select { width: 100%; border-radius: 14px; padding: 12px 16px; background: rgba(14, 21, 40, 0.95); color: #f1f5ff; border: 1px solid rgba(118, 140, 255, 0.45); font-size: 1rem; }",
+      ".chartifact-dropdown select:focus { outline: none; border-color: rgba(148, 170, 255, 0.85); box-shadow: 0 0 0 2px rgba(94, 123, 255, 0.35); }",
+      ".tabulator { background: transparent; color: #e7efff; border-radius: 12px; overflow: hidden; }",
+      ".tabulator .tabulator-header { background: rgba(26, 33, 64, 0.72); border-bottom: 1px solid rgba(101, 132, 255, 0.35); color: #cad5ff; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; }",
+      ".tabulator .tabulator-row { background: rgba(9, 12, 24, 0.4); border-bottom: 1px solid rgba(78, 102, 182, 0.3); }",
+      ".tabulator .tabulator-row:hover { background: rgba(44, 59, 120, 0.55); }",
+      ".tabulator .tabulator-cell { border-right: none; padding: 10px 12px; font-size: 0.95rem; }",
+      ".tabulator .tabulator-header .tabulator-col { border-right: none; }",
+      ".vega-embed .vega-actions { display: none !important; }",
+      "@media (max-width: 1100px) { #curation { grid-column: 1 / span 12; } #ambience { grid-column: 1 / span 12; } }",
+      "@media (max-width: 860px) { body { grid-template-columns: repeat(6, 1fr); } #main, #insights, #curation, #ambience { grid-column: 1 / span 6; } }"
+    ],
+    "googleFonts": {
+      "googleFontsUrl": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Cormorant+Garamond:wght@600&display=swap",
+      "mapping": {
+        "body": "'Inter', sans-serif",
+        "headings": "'Inter', sans-serif",
+        "hero": "'Cormorant Garamond', serif"
+      }
+    }
+  },
+  "dataLoaders": [
+    {
+      "dataSourceName": "auroraOperations",
+      "type": "inline",
+      "format": "json",
+      "content": [
+        {
+          "date": "2025-02-07",
+          "wing": "Aurora Sky Deck",
+          "occupancy": 0.92,
+          "avgDailyRate": 1820,
+          "experienceRating": 4.86,
+          "wellnessIndex": 93,
+          "curatedMoments": 44,
+          "butlerResponse": 12
+        },
+        {
+          "date": "2025-02-14",
+          "wing": "Aurora Sky Deck",
+          "occupancy": 0.94,
+          "avgDailyRate": 1885,
+          "experienceRating": 4.91,
+          "wellnessIndex": 95,
+          "curatedMoments": 47,
+          "butlerResponse": 11
+        },
+        {
+          "date": "2025-02-21",
+          "wing": "Aurora Sky Deck",
+          "occupancy": 0.95,
+          "avgDailyRate": 1910,
+          "experienceRating": 4.94,
+          "wellnessIndex": 96,
+          "curatedMoments": 52,
+          "butlerResponse": 10
+        },
+        {
+          "date": "2025-02-28",
+          "wing": "Aurora Sky Deck",
+          "occupancy": 0.97,
+          "avgDailyRate": 1950,
+          "experienceRating": 4.96,
+          "wellnessIndex": 97,
+          "curatedMoments": 56,
+          "butlerResponse": 9
+        },
+        {
+          "date": "2025-02-07",
+          "wing": "Horizon Atrium",
+          "occupancy": 0.88,
+          "avgDailyRate": 1710,
+          "experienceRating": 4.72,
+          "wellnessIndex": 90,
+          "curatedMoments": 38,
+          "butlerResponse": 15
+        },
+        {
+          "date": "2025-02-14",
+          "wing": "Horizon Atrium",
+          "occupancy": 0.89,
+          "avgDailyRate": 1725,
+          "experienceRating": 4.78,
+          "wellnessIndex": 91,
+          "curatedMoments": 41,
+          "butlerResponse": 14
+        },
+        {
+          "date": "2025-02-21",
+          "wing": "Horizon Atrium",
+          "occupancy": 0.9,
+          "avgDailyRate": 1740,
+          "experienceRating": 4.81,
+          "wellnessIndex": 92,
+          "curatedMoments": 45,
+          "butlerResponse": 13
+        },
+        {
+          "date": "2025-02-28",
+          "wing": "Horizon Atrium",
+          "occupancy": 0.92,
+          "avgDailyRate": 1765,
+          "experienceRating": 4.84,
+          "wellnessIndex": 93,
+          "curatedMoments": 48,
+          "butlerResponse": 12
+        },
+        {
+          "date": "2025-02-07",
+          "wing": "Celestial Suites",
+          "occupancy": 0.95,
+          "avgDailyRate": 2100,
+          "experienceRating": 4.93,
+          "wellnessIndex": 96,
+          "curatedMoments": 52,
+          "butlerResponse": 9
+        },
+        {
+          "date": "2025-02-14",
+          "wing": "Celestial Suites",
+          "occupancy": 0.96,
+          "avgDailyRate": 2135,
+          "experienceRating": 4.95,
+          "wellnessIndex": 97,
+          "curatedMoments": 55,
+          "butlerResponse": 8
+        },
+        {
+          "date": "2025-02-21",
+          "wing": "Celestial Suites",
+          "occupancy": 0.97,
+          "avgDailyRate": 2170,
+          "experienceRating": 4.97,
+          "wellnessIndex": 98,
+          "curatedMoments": 58,
+          "butlerResponse": 8
+        },
+        {
+          "date": "2025-02-28",
+          "wing": "Celestial Suites",
+          "occupancy": 0.98,
+          "avgDailyRate": 2210,
+          "experienceRating": 4.99,
+          "wellnessIndex": 99,
+          "curatedMoments": 62,
+          "butlerResponse": 7
+        }
+      ]
+    },
+    {
+      "dataSourceName": "curationExperiences",
+      "type": "inline",
+      "format": "json",
+      "content": [
+        {
+          "experience": "Helios Dawn Ritual",
+          "start": "06:30",
+          "wing": "Aurora Sky Deck",
+          "lead": "Aria Le\u00f3n",
+          "guests": 24,
+          "status": "Ready"
+        },
+        {
+          "experience": "Celestial Sound Bath",
+          "start": "20:45",
+          "wing": "Celestial Suites",
+          "lead": "Nova Chen",
+          "guests": 18,
+          "status": "Coordinating"
+        },
+        {
+          "experience": "Luminary Chef's Table",
+          "start": "19:30",
+          "wing": "Horizon Atrium",
+          "lead": "Chef L. Park",
+          "guests": 12,
+          "status": "In review"
+        },
+        {
+          "experience": "Nebula Observatory",
+          "start": "22:00",
+          "wing": "Aurora Sky Deck",
+          "lead": "Atlas Venn",
+          "guests": 16,
+          "status": "Ready"
+        },
+        {
+          "experience": "Stellar Mixology Lab",
+          "start": "21:15",
+          "wing": "Horizon Atrium",
+          "lead": "Elise Moreau",
+          "guests": 26,
+          "status": "Ready"
+        },
+        {
+          "experience": "Aurora Drift Meditation",
+          "start": "17:45",
+          "wing": "Celestial Suites",
+          "lead": "Mira Sundar",
+          "guests": 20,
+          "status": "Ready"
+        }
+      ]
+    },
+    {
+      "dataSourceName": "conciergeMissions",
+      "type": "inline",
+      "format": "json",
+      "content": [
+        {
+          "suite": "C-1802",
+          "guest": "Sato Family",
+          "request": "Private observatory with astrophysicist",
+          "priority": "High",
+          "owner": "Iris",
+          "status": "In progress"
+        },
+        {
+          "suite": "A-0905",
+          "guest": "Dr. Laurent",
+          "request": "Culinary pairing with rare vintages",
+          "priority": "Medium",
+          "owner": "Mason",
+          "status": "Staged"
+        },
+        {
+          "suite": "H-1204",
+          "guest": "Singh-Li Alliance",
+          "request": "Aria drone performance in atrium",
+          "priority": "High",
+          "owner": "Rafael",
+          "status": "Coordinating"
+        },
+        {
+          "suite": "S-2301",
+          "guest": "Elena Armitage",
+          "request": "Thermal float suite extension",
+          "priority": "Low",
+          "owner": "Noa",
+          "status": "Confirmed"
+        },
+        {
+          "suite": "Sky Penthouse",
+          "guest": "Avery Ward",
+          "request": "90 min composer-in-residence recital",
+          "priority": "Critical",
+          "owner": "Soren",
+          "status": "Awaiting confirmation"
+        }
+      ]
+    },
+    {
+      "dataSourceName": "ambientSensory",
+      "type": "inline",
+      "format": "json",
+      "content": [
+        {
+          "zone": "Sky Atrium",
+          "phase": "Sunrise",
+          "lightingLux": 260,
+          "soundscape": 34,
+          "scentIntensity": 58
+        },
+        {
+          "zone": "Sky Atrium",
+          "phase": "Twilight",
+          "lightingLux": 180,
+          "soundscape": 26,
+          "scentIntensity": 64
+        },
+        {
+          "zone": "Sky Atrium",
+          "phase": "Midnight",
+          "lightingLux": 120,
+          "soundscape": 18,
+          "scentIntensity": 42
+        },
+        {
+          "zone": "Solstice Spa",
+          "phase": "Sunrise",
+          "lightingLux": 140,
+          "soundscape": 22,
+          "scentIntensity": 68
+        },
+        {
+          "zone": "Solstice Spa",
+          "phase": "Twilight",
+          "lightingLux": 110,
+          "soundscape": 16,
+          "scentIntensity": 74
+        },
+        {
+          "zone": "Solstice Spa",
+          "phase": "Midnight",
+          "lightingLux": 80,
+          "soundscape": 12,
+          "scentIntensity": 60
+        },
+        {
+          "zone": "Celestial Lounge",
+          "phase": "Sunrise",
+          "lightingLux": 200,
+          "soundscape": 28,
+          "scentIntensity": 56
+        },
+        {
+          "zone": "Celestial Lounge",
+          "phase": "Twilight",
+          "lightingLux": 170,
+          "soundscape": 21,
+          "scentIntensity": 62
+        },
+        {
+          "zone": "Celestial Lounge",
+          "phase": "Midnight",
+          "lightingLux": 130,
+          "soundscape": 14,
+          "scentIntensity": 48
+        }
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "variableId": "selectedWing",
+      "type": "string",
+      "initialValue": "All Wings"
+    },
+    {
+      "variableId": "filteredAuroraOperations",
+      "type": "object",
+      "isArray": true,
+      "initialValue": [],
+      "calculation": {
+        "dataSourceNames": [
+          "auroraOperations"
+        ],
+        "dataFrameTransformations": [
+          {
+            "type": "filter",
+            "expr": "selectedWing === 'All Wings' ? true : datum.wing === selectedWing"
+          }
+        ]
+      }
+    },
+    {
+      "variableId": "latestWingSnapshot",
+      "type": "object",
+      "isArray": true,
+      "initialValue": [],
+      "calculation": {
+        "dataSourceNames": [
+          "filteredAuroraOperations"
+        ],
+        "dataFrameTransformations": [
+          {
+            "type": "window",
+            "groupby": [
+              "wing"
+            ],
+            "sort": {
+              "field": "date",
+              "order": "descending"
+            },
+            "ops": [
+              "row_number"
+            ],
+            "as": [
+              "wingRank"
+            ]
+          },
+          {
+            "type": "filter",
+            "expr": "datum.wingRank === 1"
+          },
+          {
+            "type": "project",
+            "fields": [
+              "wing",
+              "date",
+              "occupancy",
+              "avgDailyRate",
+              "experienceRating",
+              "wellnessIndex",
+              "curatedMoments",
+              "butlerResponse"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "variableId": "snapshotAggregates",
+      "type": "object",
+      "isArray": true,
+      "initialValue": [],
+      "calculation": {
+        "dataSourceNames": [
+          "latestWingSnapshot"
+        ],
+        "dataFrameTransformations": [
+          {
+            "type": "aggregate",
+            "fields": [
+              "occupancy",
+              "avgDailyRate",
+              "experienceRating",
+              "wellnessIndex",
+              "butlerResponse"
+            ],
+            "ops": [
+              "mean",
+              "mean",
+              "mean",
+              "mean",
+              "mean"
+            ],
+            "as": [
+              "avgOccupancy",
+              "avgAdr",
+              "avgExperience",
+              "avgWellness",
+              "avgResponse"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "variableId": "avgOccupancy",
+      "type": "number",
+      "initialValue": 0,
+      "calculation": {
+        "vegaExpression": "data('snapshotAggregates')[0] ? data('snapshotAggregates')[0].avgOccupancy : 0"
+      }
+    },
+    {
+      "variableId": "avgAdr",
+      "type": "number",
+      "initialValue": 0,
+      "calculation": {
+        "vegaExpression": "data('snapshotAggregates')[0] ? data('snapshotAggregates')[0].avgAdr : 0"
+      }
+    },
+    {
+      "variableId": "avgExperience",
+      "type": "number",
+      "initialValue": 0,
+      "calculation": {
+        "vegaExpression": "data('snapshotAggregates')[0] ? data('snapshotAggregates')[0].avgExperience : 0"
+      }
+    },
+    {
+      "variableId": "avgWellness",
+      "type": "number",
+      "initialValue": 0,
+      "calculation": {
+        "vegaExpression": "data('snapshotAggregates')[0] ? data('snapshotAggregates')[0].avgWellness : 0"
+      }
+    },
+    {
+      "variableId": "avgResponse",
+      "type": "number",
+      "initialValue": 0,
+      "calculation": {
+        "vegaExpression": "data('snapshotAggregates')[0] ? data('snapshotAggregates')[0].avgResponse : 0"
+      }
+    },
+    {
+      "variableId": "kpiTiles",
+      "type": "object",
+      "isArray": true,
+      "initialValue": [],
+      "calculation": {
+        "vegaExpression": "var wingLabel = selectedWing === 'All Wings' ? 'All wings harmonized' : selectedWing; var occupancySafe = avgOccupancy || 0; var adrSafe = avgAdr || 0; var experienceSafe = avgExperience || 0; var responseSafe = avgResponse || 0; var wellnessSafe = avgWellness || 0; return [{ metric: 'Occupancy pulse', value: format(occupancySafe * 100, '.1f') + '%', detail: wingLabel + ' \u00b7 Wellness ' + format(wellnessSafe, '.0f') }, { metric: 'Suite ADR', value: '$' + format(adrSafe, ',.0f'), detail: 'Nightly average for curated stays' }, { metric: 'Guest delight', value: format(experienceSafe, '.2f') + ' / 5', detail: 'Experiential rating across the focus' }, { metric: 'Concierge response', value: format(responseSafe, '.1f') + ' min', detail: 'Median live-response cadence' }];"
+      }
+    }
+  ],
+  "groups": [
+    {
+      "groupId": "main",
+      "elements": [
+        {
+          "type": "chart",
+          "chartKey": "heroBadge"
+        },
+        {
+          "type": "dropdown",
+          "variableId": "selectedWing",
+          "label": "Wing focus",
+          "options": [
+            "All Wings",
+            "Aurora Sky Deck",
+            "Horizon Atrium",
+            "Celestial Suites"
+          ]
+        },
+        {
+          "type": "chart",
+          "chartKey": "kpiBoard"
+        }
+      ]
+    },
+    {
+      "groupId": "insights",
+      "elements": [
+        {
+          "type": "chart",
+          "chartKey": "occupancyTrend"
+        },
+        {
+          "type": "chart",
+          "chartKey": "experienceTrend"
+        }
+      ]
+    },
+    {
+      "groupId": "curation",
+      "elements": [
+        {
+          "type": "chart",
+          "chartKey": "curatedMoments"
+        },
+        {
+          "type": "tabulator",
+          "dataSourceName": "curationExperiences",
+          "variableId": "curationExperiencesTable",
+          "editable": false,
+          "tabulatorOptions": {
+            "layout": "fitColumns",
+            "maxHeight": "250px",
+            "columns": [
+              {
+                "title": "Experience",
+                "field": "experience"
+              },
+              {
+                "title": "Start",
+                "field": "start"
+              },
+              {
+                "title": "Wing",
+                "field": "wing"
+              },
+              {
+                "title": "Curator",
+                "field": "lead"
+              },
+              {
+                "title": "Guests",
+                "field": "guests"
+              },
+              {
+                "title": "Status",
+                "field": "status"
+              }
+            ]
+          }
+        },
+        {
+          "type": "tabulator",
+          "dataSourceName": "conciergeMissions",
+          "variableId": "conciergeMissionsTable",
+          "editable": false,
+          "tabulatorOptions": {
+            "layout": "fitColumns",
+            "maxHeight": "250px",
+            "columns": [
+              {
+                "title": "Suite",
+                "field": "suite"
+              },
+              {
+                "title": "Guest",
+                "field": "guest"
+              },
+              {
+                "title": "Request",
+                "field": "request"
+              },
+              {
+                "title": "Priority",
+                "field": "priority"
+              },
+              {
+                "title": "Owner",
+                "field": "owner"
+              },
+              {
+                "title": "Status",
+                "field": "status"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "groupId": "ambience",
+      "elements": [
+        {
+          "type": "chart",
+          "chartKey": "ambientHeatmap"
+        }
+      ]
+    }
+  ],
+  "resources": {
+    "charts": {
+      "heroBadge": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 90,
+        "data": {
+          "values": [
+            {}
+          ]
+        },
+        "layer": [
+          {
+            "mark": {
+              "type": "text",
+              "fontSize": 34,
+              "fontWeight": 600,
+              "font": "Cormorant Garamond",
+              "color": "#F6F8FF",
+              "align": "left"
+            },
+            "encoding": {
+              "text": {
+                "value": "Aurora Luxury Command Center"
+              },
+              "x": {
+                "value": 16
+              },
+              "y": {
+                "value": 38
+              }
+            }
+          },
+          {
+            "mark": {
+              "type": "text",
+              "fontSize": 16,
+              "color": "#C7D7FF",
+              "align": "left"
+            },
+            "encoding": {
+              "text": {
+                "value": "Craft bespoke itineraries and orchestrate every guest signal in real time"
+              },
+              "x": {
+                "value": 16
+              },
+              "y": {
+                "value": 70
+              }
+            }
+          }
+        ],
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          }
+        }
+      },
+      "kpiBoard": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 140,
+        "data": {
+          "name": "kpiTiles"
+        },
+        "encoding": {
+          "x": {
+            "field": "metric",
+            "type": "nominal",
+            "title": null,
+            "axis": {
+              "domain": false,
+              "ticks": false,
+              "labels": false
+            }
+          }
+        },
+        "layer": [
+          {
+            "mark": {
+              "type": "text",
+              "dy": -20,
+              "fontSize": 15,
+              "fontWeight": 500,
+              "color": "#92a4ff"
+            },
+            "encoding": {
+              "text": {
+                "field": "metric"
+              }
+            }
+          },
+          {
+            "mark": {
+              "type": "text",
+              "fontSize": 32,
+              "fontWeight": 700,
+              "color": "#f8faff"
+            },
+            "encoding": {
+              "text": {
+                "field": "value"
+              }
+            }
+          },
+          {
+            "mark": {
+              "type": "text",
+              "dy": 22,
+              "fontSize": 13,
+              "color": "#c3cdfc"
+            },
+            "encoding": {
+              "text": {
+                "field": "detail"
+              }
+            }
+          }
+        ],
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          },
+          "axis": {
+            "labelColor": "#aeb9ff",
+            "titleColor": "#e7efff"
+          }
+        }
+      },
+      "occupancyTrend": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 220,
+        "title": {
+          "text": "Occupancy by wing",
+          "anchor": "start",
+          "color": "#e7efff",
+          "fontSize": 16
+        },
+        "data": {
+          "name": "filteredAuroraOperations"
+        },
+        "transform": [
+          {
+            "calculate": "datum.occupancy * 100",
+            "as": "occupancyPct"
+          }
+        ],
+        "mark": {
+          "type": "line",
+          "strokeWidth": 3,
+          "point": {
+            "filled": true,
+            "size": 70
+          }
+        },
+        "encoding": {
+          "x": {
+            "field": "date",
+            "type": "temporal",
+            "title": null,
+            "axis": {
+              "labelColor": "#aeb9ff",
+              "grid": false
+            }
+          },
+          "y": {
+            "field": "occupancyPct",
+            "type": "quantitative",
+            "title": "Occupancy (%)",
+            "axis": {
+              "labelColor": "#aeb9ff"
+            }
+          },
+          "color": {
+            "field": "wing",
+            "type": "nominal",
+            "title": null,
+            "scale": {
+              "range": [
+                "#90b4ff",
+                "#f9a8ff",
+                "#6ee7ff"
+              ]
+            },
+            "legend": {
+              "labelColor": "#e7efff"
+            }
+          },
+          "tooltip": [
+            {
+              "field": "wing",
+              "type": "nominal"
+            },
+            {
+              "field": "date",
+              "type": "temporal",
+              "title": "Curation"
+            },
+            {
+              "field": "occupancyPct",
+              "type": "quantitative",
+              "title": "Occupancy",
+              "format": ".1f"
+            },
+            {
+              "field": "avgDailyRate",
+              "type": "quantitative",
+              "title": "ADR",
+              "format": "$,.0f"
+            }
+          ]
+        },
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          }
+        }
+      },
+      "experienceTrend": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 220,
+        "title": {
+          "text": "Guest delight rating",
+          "anchor": "start",
+          "color": "#e7efff",
+          "fontSize": 16
+        },
+        "layer": [
+          {
+            "data": {
+              "values": [
+                {}
+              ]
+            },
+            "mark": {
+              "type": "rule",
+              "color": "#4338CA",
+              "strokeDash": [
+                6,
+                3
+              ]
+            },
+            "encoding": {
+              "y": {
+                "datum": 4.8
+              }
+            }
+          },
+          {
+            "data": {
+              "name": "filteredAuroraOperations"
+            },
+            "mark": {
+              "type": "line",
+              "strokeWidth": 2.5,
+              "point": {
+                "filled": true,
+                "size": 60
+              }
+            },
+            "encoding": {
+              "x": {
+                "field": "date",
+                "type": "temporal",
+                "title": null,
+                "axis": {
+                  "labelColor": "#aeb9ff"
+                }
+              },
+              "y": {
+                "field": "experienceRating",
+                "type": "quantitative",
+                "title": "Experience score",
+                "scale": {
+                  "domain": [
+                    4.6,
+                    5
+                  ]
+                },
+                "axis": {
+                  "labelColor": "#aeb9ff"
+                }
+              },
+              "color": {
+                "field": "wing",
+                "type": "nominal",
+                "legend": {
+                  "labelColor": "#e7efff"
+                },
+                "scale": {
+                  "range": [
+                    "#fca5ff",
+                    "#9cd2ff",
+                    "#7cf0d4"
+                  ]
+                }
+              },
+              "tooltip": [
+                {
+                  "field": "wing",
+                  "type": "nominal"
+                },
+                {
+                  "field": "date",
+                  "type": "temporal",
+                  "title": "Curation"
+                },
+                {
+                  "field": "experienceRating",
+                  "type": "quantitative",
+                  "title": "Rating",
+                  "format": ".2f"
+                },
+                {
+                  "field": "wellnessIndex",
+                  "type": "quantitative",
+                  "title": "Wellness index"
+                }
+              ]
+            }
+          }
+        ],
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          }
+        }
+      },
+      "curatedMoments": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 240,
+        "title": {
+          "text": "Curated experiences ready now",
+          "anchor": "start",
+          "color": "#e7efff",
+          "fontSize": 16
+        },
+        "data": {
+          "name": "latestWingSnapshot"
+        },
+        "mark": {
+          "type": "bar",
+          "cornerRadiusEnd": 14
+        },
+        "encoding": {
+          "x": {
+            "field": "curatedMoments",
+            "type": "quantitative",
+            "title": "Experiences prepared",
+            "axis": {
+              "labelColor": "#aeb9ff"
+            }
+          },
+          "y": {
+            "field": "wing",
+            "type": "nominal",
+            "title": null,
+            "sort": "-x",
+            "axis": {
+              "labelColor": "#e7efff"
+            }
+          },
+          "color": {
+            "field": "wing",
+            "type": "nominal",
+            "legend": null,
+            "scale": {
+              "range": [
+                "#5be7ff",
+                "#f5a6ff",
+                "#c4f58f"
+              ]
+            }
+          },
+          "tooltip": [
+            {
+              "field": "wing",
+              "type": "nominal"
+            },
+            {
+              "field": "curatedMoments",
+              "type": "quantitative",
+              "title": "Curated moments"
+            },
+            {
+              "field": "avgDailyRate",
+              "type": "quantitative",
+              "title": "ADR",
+              "format": "$,.0f"
+            },
+            {
+              "field": "butlerResponse",
+              "type": "quantitative",
+              "title": "Concierge response (min)",
+              "format": ".1f"
+            }
+          ]
+        },
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          }
+        }
+      },
+      "ambientHeatmap": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 280,
+        "title": {
+          "text": "Ambient orchestration matrix",
+          "anchor": "start",
+          "color": "#e7efff",
+          "fontSize": 16
+        },
+        "data": {
+          "name": "ambientSensory"
+        },
+        "layer": [
+          {
+            "mark": {
+              "type": "rect",
+              "cornerRadius": 6
+            },
+            "encoding": {
+              "x": {
+                "field": "phase",
+                "type": "nominal",
+                "title": "Phase",
+                "sort": [
+                  "Sunrise",
+                  "Twilight",
+                  "Midnight"
+                ],
+                "axis": {
+                  "labelColor": "#aeb9ff"
+                }
+              },
+              "y": {
+                "field": "zone",
+                "type": "nominal",
+                "title": null,
+                "axis": {
+                  "labelColor": "#e7efff"
+                }
+              },
+              "color": {
+                "field": "lightingLux",
+                "type": "quantitative",
+                "title": "Lighting (lux)",
+                "scale": {
+                  "scheme": "magma"
+                }
+              },
+              "tooltip": [
+                {
+                  "field": "zone",
+                  "type": "nominal"
+                },
+                {
+                  "field": "phase",
+                  "type": "nominal"
+                },
+                {
+                  "field": "lightingLux",
+                  "type": "quantitative",
+                  "title": "Lighting",
+                  "format": "0"
+                },
+                {
+                  "field": "soundscape",
+                  "type": "quantitative",
+                  "title": "Soundscape",
+                  "format": "0"
+                },
+                {
+                  "field": "scentIntensity",
+                  "type": "quantitative",
+                  "title": "Scent"
+                }
+              ]
+            }
+          },
+          {
+            "mark": {
+              "type": "text",
+              "color": "#f8faff",
+              "fontSize": 12
+            },
+            "encoding": {
+              "x": {
+                "field": "phase",
+                "type": "nominal",
+                "sort": [
+                  "Sunrise",
+                  "Twilight",
+                  "Midnight"
+                ]
+              },
+              "y": {
+                "field": "zone",
+                "type": "nominal"
+              },
+              "text": {
+                "field": "scentIntensity",
+                "type": "quantitative",
+                "format": "0"
+              }
+            }
+          }
+        ],
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          },
+          "axis": {
+            "labelColor": "#aeb9ff",
+            "titleColor": "#e7efff"
+          }
+        }
+      }
+    }
+  }
+}
