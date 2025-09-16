@@ -1,0 +1,3459 @@
+{
+  "$schema": "https://microsoft.github.io/chartifact/schema/idoc_v1.json",
+  "title": "Geospatial Analysis",
+  "style": {
+    "css": [
+      "html, body { height: 100%; margin: 0; padding: 0; scroll-behavior: smooth; }",
+      "body { font-family: 'Inter', 'Segoe UI', sans-serif; background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%); color: #0f172a; overflow-y: auto; scroll-snap-type: y mandatory; padding: 0 0 64px; }",
+      "body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(60% 60% at 20% 20%, rgba(129, 140, 248, 0.18), transparent), radial-gradient(70% 70% at 80% 30%, rgba(14, 165, 233, 0.12), transparent); pointer-events: none; }",
+      ".group { position: relative; width: min(1200px, calc(100% - 96px)); margin: 64px auto 0; padding: clamp(32px, 6vw, 56px); background: rgba(255, 255, 255, 0.96); border: 1px solid rgba(99, 102, 241, 0.16); border-radius: 28px; box-shadow: 0 32px 80px rgba(15, 23, 42, 0.12); backdrop-filter: blur(12px); display: grid; row-gap: 24px; align-content: start; box-sizing: border-box; scroll-snap-align: start; }",
+      "#overviewSlide, #productSlide { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; row-gap: 24px; }",
+      "#overviewSlide > .element:nth-child(1), #overviewSlide > .element:nth-child(2), #overviewSlide > .element:nth-child(3), #overviewSlide > .element:nth-child(9), #overviewSlide > .element:nth-child(10) { grid-column: 1 / -1; }",
+      "#overviewSlide > .element:nth-child(4) { grid-column: 1 / span 6; }",
+      "#overviewSlide > .element:nth-child(5) { grid-column: 7 / span 3; }",
+      "#overviewSlide > .element:nth-child(6) { grid-column: 10 / span 3; }",
+      "#overviewSlide > .element:nth-child(7) { grid-column: 1 / span 6; }",
+      "#overviewSlide > .element:nth-child(8) { grid-column: 7 / span 6; }",
+      "#productSlide > .element:nth-child(1) { grid-column: 1 / span 8; }",
+      "#productSlide > .element:nth-child(2) { grid-column: 9 / -1; justify-self: end; align-self: start; }",
+      "#productSlide > .element:nth-child(3) { grid-column: 1 / -1; }",
+      "#productSlide > .element:nth-child(4) { grid-column: 1 / span 6; }",
+      "#productSlide > .element:nth-child(5) { grid-column: 7 / span 3; }",
+      "#productSlide > .element:nth-child(6) { grid-column: 10 / span 3; }",
+      "#productSlide > .element:nth-child(7), #productSlide > .element:nth-child(8), #productSlide > .element:nth-child(9) { grid-column: 1 / -1; }",
+      ".chartifact-dropdown { display: grid; row-gap: 6px; }",
+      ".chartifact-dropdown label { font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; color: #475569; font-weight: 600; }",
+      ".chartifact-dropdown select { border-radius: 14px; padding: 12px 16px; border: 1px solid rgba(99, 102, 241, 0.28); background: rgba(248, 250, 252, 0.96); color: #0f172a; font-weight: 600; box-shadow: 0 12px 30px rgba(79, 70, 229, 0.14); transition: box-shadow 0.2s ease; }",
+      ".chartifact-dropdown select:focus { outline: none; border-color: rgba(37, 99, 235, 0.6); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.28); }",
+      ".tabulator { background: transparent; border-radius: 18px; border: 1px solid rgba(148, 163, 184, 0.24); box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); overflow: hidden; }",
+      ".tabulator .tabulator-header { background: rgba(99, 102, 241, 0.08); font-weight: 600; letter-spacing: 0.04em; color: #1f2937; }",
+      ".tabulator .tabulator-row { background: rgba(255, 255, 255, 0.92); }",
+      ".tabulator .tabulator-row:nth-child(even) { background: rgba(241, 245, 249, 0.92); }",
+      ".tabulator .tabulator-row:hover { background: rgba(224, 231, 255, 0.95); }",
+      ".vega-embed .vega-actions { display: none !important; }",
+      "@media (max-width: 1200px) { #overviewSlide, #productSlide { grid-template-columns: repeat(6, minmax(0, 1fr)); } #overviewSlide > .element:nth-child(4) { grid-column: 1 / span 6; } #overviewSlide > .element:nth-child(5), #overviewSlide > .element:nth-child(6) { grid-column: span 3; } #overviewSlide > .element:nth-child(7) { grid-column: 1 / span 6; } #overviewSlide > .element:nth-child(8) { grid-column: 1 / span 6; } #productSlide > .element:nth-child(1) { grid-column: 1 / span 6; } #productSlide > .element:nth-child(2) { grid-column: 1 / span 6; justify-self: stretch; } #productSlide > .element:nth-child(4) { grid-column: 1 / span 6; } #productSlide > .element:nth-child(5), #productSlide > .element:nth-child(6) { grid-column: span 3; } }",
+      "@media (max-width: 720px) { body { scroll-snap-type: none; padding-bottom: 32px; } .group { width: calc(100% - 32px); margin: 32px auto 0; padding: 24px 20px; border-radius: 22px; row-gap: 18px; } #overviewSlide, #productSlide { grid-template-columns: repeat(1, minmax(0, 1fr)); row-gap: 18px; } #overviewSlide > .element, #productSlide > .element { grid-column: 1 / -1 !important; } }"
+    ],
+    "googleFonts": {
+      "googleFontsUrl": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600&display=swap",
+      "mapping": {
+        "body": "'Inter', sans-serif",
+        "headings": "'Inter', sans-serif",
+        "hero": "'Space Grotesk', sans-serif"
+      }
+    }
+  },
+  "dataLoaders": [
+    {
+      "dataSourceName": "supplyChainSales",
+      "type": "inline",
+      "format": "json",
+      "content": [
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Aether Sensor",
+          "channel": "Enterprise",
+          "region": "West",
+          "state": "California",
+          "stateCode": "CA",
+          "units": 430,
+          "revenue": 623500,
+          "onTimeRate": 0.97,
+          "leadTimeDays": 4.7
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Aether Sensor",
+          "channel": "Distribution",
+          "region": "South",
+          "state": "Texas",
+          "stateCode": "TX",
+          "units": 390,
+          "revenue": 565500,
+          "onTimeRate": 0.94,
+          "leadTimeDays": 5.3
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Aether Sensor",
+          "channel": "Retail",
+          "region": "Northeast",
+          "state": "New York",
+          "stateCode": "NY",
+          "units": 320,
+          "revenue": 464000,
+          "onTimeRate": 0.92,
+          "leadTimeDays": 5.8
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Aether Sensor",
+          "channel": "E-commerce",
+          "region": "West",
+          "state": "Washington",
+          "stateCode": "WA",
+          "units": 270,
+          "revenue": 391500,
+          "onTimeRate": 0.95,
+          "leadTimeDays": 4.3
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Aether Sensor",
+          "channel": "Enterprise",
+          "region": "Midwest",
+          "state": "Illinois",
+          "stateCode": "IL",
+          "units": 300,
+          "revenue": 435000,
+          "onTimeRate": 0.93,
+          "leadTimeDays": 5.2
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Flux Router",
+          "channel": "Distribution",
+          "region": "South",
+          "state": "Texas",
+          "stateCode": "TX",
+          "units": 450,
+          "revenue": 441000,
+          "onTimeRate": 0.93,
+          "leadTimeDays": 5.0
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Flux Router",
+          "channel": "Retail",
+          "region": "South",
+          "state": "Florida",
+          "stateCode": "FL",
+          "units": 380,
+          "revenue": 372400,
+          "onTimeRate": 0.91,
+          "leadTimeDays": 5.2
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Flux Router",
+          "channel": "E-commerce",
+          "region": "South",
+          "state": "Georgia",
+          "stateCode": "GA",
+          "units": 340,
+          "revenue": 333200,
+          "onTimeRate": 0.92,
+          "leadTimeDays": 5.4
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Flux Router",
+          "channel": "Enterprise",
+          "region": "South",
+          "state": "North Carolina",
+          "stateCode": "NC",
+          "units": 310,
+          "revenue": 303800,
+          "onTimeRate": 0.9,
+          "leadTimeDays": 4.9
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Flux Router",
+          "channel": "Marketplace",
+          "region": "West",
+          "state": "Arizona",
+          "stateCode": "AZ",
+          "units": 280,
+          "revenue": 274400,
+          "onTimeRate": 0.89,
+          "leadTimeDays": 5.6
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Nova Drone",
+          "channel": "Enterprise",
+          "region": "West",
+          "state": "California",
+          "stateCode": "CA",
+          "units": 260,
+          "revenue": 546000,
+          "onTimeRate": 0.9,
+          "leadTimeDays": 6.7
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Nova Drone",
+          "channel": "Enterprise",
+          "region": "West",
+          "state": "Colorado",
+          "stateCode": "CO",
+          "units": 220,
+          "revenue": 462000,
+          "onTimeRate": 0.92,
+          "leadTimeDays": 6.1
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Nova Drone",
+          "channel": "Retail",
+          "region": "West",
+          "state": "Washington",
+          "stateCode": "WA",
+          "units": 210,
+          "revenue": 441000,
+          "onTimeRate": 0.91,
+          "leadTimeDays": 6.3
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Nova Drone",
+          "channel": "Distribution",
+          "region": "West",
+          "state": "Oregon",
+          "stateCode": "OR",
+          "units": 190,
+          "revenue": 399000,
+          "onTimeRate": 0.9,
+          "leadTimeDays": 6.2
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Nova Drone",
+          "channel": "Marketplace",
+          "region": "West",
+          "state": "Nevada",
+          "stateCode": "NV",
+          "units": 170,
+          "revenue": 357000,
+          "onTimeRate": 0.88,
+          "leadTimeDays": 6.5
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Pulse Tracker",
+          "channel": "Healthcare",
+          "region": "Northeast",
+          "state": "New York",
+          "stateCode": "NY",
+          "units": 520,
+          "revenue": 322400,
+          "onTimeRate": 0.94,
+          "leadTimeDays": 4.4
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Pulse Tracker",
+          "channel": "Retail",
+          "region": "Northeast",
+          "state": "New Jersey",
+          "stateCode": "NJ",
+          "units": 430,
+          "revenue": 266600,
+          "onTimeRate": 0.93,
+          "leadTimeDays": 4.7
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Pulse Tracker",
+          "channel": "Healthcare",
+          "region": "Northeast",
+          "state": "Massachusetts",
+          "stateCode": "MA",
+          "units": 390,
+          "revenue": 241800,
+          "onTimeRate": 0.95,
+          "leadTimeDays": 4.3
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Pulse Tracker",
+          "channel": "Distribution",
+          "region": "Northeast",
+          "state": "Pennsylvania",
+          "stateCode": "PA",
+          "units": 360,
+          "revenue": 223200,
+          "onTimeRate": 0.92,
+          "leadTimeDays": 4.9
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Pulse Tracker",
+          "channel": "Enterprise",
+          "region": "Midwest",
+          "state": "Illinois",
+          "stateCode": "IL",
+          "units": 340,
+          "revenue": 210800,
+          "onTimeRate": 0.91,
+          "leadTimeDays": 5.0
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Zenith Beacon",
+          "channel": "Distribution",
+          "region": "South",
+          "state": "Florida",
+          "stateCode": "FL",
+          "units": 410,
+          "revenue": 549400,
+          "onTimeRate": 0.9,
+          "leadTimeDays": 5.7
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Zenith Beacon",
+          "channel": "Enterprise",
+          "region": "South",
+          "state": "Texas",
+          "stateCode": "TX",
+          "units": 380,
+          "revenue": 509200,
+          "onTimeRate": 0.91,
+          "leadTimeDays": 5.4
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Zenith Beacon",
+          "channel": "Retail",
+          "region": "West",
+          "state": "California",
+          "stateCode": "CA",
+          "units": 360,
+          "revenue": 482400,
+          "onTimeRate": 0.92,
+          "leadTimeDays": 5.2
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Zenith Beacon",
+          "channel": "Marketplace",
+          "region": "South",
+          "state": "Georgia",
+          "stateCode": "GA",
+          "units": 330,
+          "revenue": 442200,
+          "onTimeRate": 0.89,
+          "leadTimeDays": 5.5
+        },
+        {
+          "date": "2024-01-01",
+          "month": "2024-01",
+          "product": "Zenith Beacon",
+          "channel": "Retail",
+          "region": "Midwest",
+          "state": "Ohio",
+          "stateCode": "OH",
+          "units": 310,
+          "revenue": 415400,
+          "onTimeRate": 0.9,
+          "leadTimeDays": 5.3
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Aether Sensor",
+          "channel": "Enterprise",
+          "region": "West",
+          "state": "California",
+          "stateCode": "CA",
+          "units": 447,
+          "revenue": 648150,
+          "onTimeRate": 0.96,
+          "leadTimeDays": 4.6
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Aether Sensor",
+          "channel": "Distribution",
+          "region": "South",
+          "state": "Texas",
+          "stateCode": "TX",
+          "units": 406,
+          "revenue": 588700,
+          "onTimeRate": 0.93,
+          "leadTimeDays": 5.2
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Aether Sensor",
+          "channel": "Retail",
+          "region": "Northeast",
+          "state": "New York",
+          "stateCode": "NY",
+          "units": 333,
+          "revenue": 482850,
+          "onTimeRate": 0.91,
+          "leadTimeDays": 5.7
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Aether Sensor",
+          "channel": "E-commerce",
+          "region": "West",
+          "state": "Washington",
+          "stateCode": "WA",
+          "units": 281,
+          "revenue": 407450,
+          "onTimeRate": 0.94,
+          "leadTimeDays": 4.2
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Aether Sensor",
+          "channel": "Enterprise",
+          "region": "Midwest",
+          "state": "Illinois",
+          "stateCode": "IL",
+          "units": 312,
+          "revenue": 452400,
+          "onTimeRate": 0.92,
+          "leadTimeDays": 5.1
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Flux Router",
+          "channel": "Distribution",
+          "region": "South",
+          "state": "Texas",
+          "stateCode": "TX",
+          "units": 468,
+          "revenue": 458640,
+          "onTimeRate": 0.92,
+          "leadTimeDays": 4.9
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Flux Router",
+          "channel": "Retail",
+          "region": "South",
+          "state": "Florida",
+          "stateCode": "FL",
+          "units": 395,
+          "revenue": 387100,
+          "onTimeRate": 0.9,
+          "leadTimeDays": 5.1
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Flux Router",
+          "channel": "E-commerce",
+          "region": "South",
+          "state": "Georgia",
+          "stateCode": "GA",
+          "units": 354,
+          "revenue": 346920,
+          "onTimeRate": 0.91,
+          "leadTimeDays": 5.3
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Flux Router",
+          "channel": "Enterprise",
+          "region": "South",
+          "state": "North Carolina",
+          "stateCode": "NC",
+          "units": 322,
+          "revenue": 315560,
+          "onTimeRate": 0.89,
+          "leadTimeDays": 4.8
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Flux Router",
+          "channel": "Marketplace",
+          "region": "West",
+          "state": "Arizona",
+          "stateCode": "AZ",
+          "units": 291,
+          "revenue": 285180,
+          "onTimeRate": 0.88,
+          "leadTimeDays": 5.5
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Nova Drone",
+          "channel": "Enterprise",
+          "region": "West",
+          "state": "California",
+          "stateCode": "CA",
+          "units": 270,
+          "revenue": 567000,
+          "onTimeRate": 0.89,
+          "leadTimeDays": 6.6
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Nova Drone",
+          "channel": "Enterprise",
+          "region": "West",
+          "state": "Colorado",
+          "stateCode": "CO",
+          "units": 229,
+          "revenue": 480900,
+          "onTimeRate": 0.91,
+          "leadTimeDays": 6.0
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Nova Drone",
+          "channel": "Retail",
+          "region": "West",
+          "state": "Washington",
+          "stateCode": "WA",
+          "units": 218,
+          "revenue": 457800,
+          "onTimeRate": 0.9,
+          "leadTimeDays": 6.2
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Nova Drone",
+          "channel": "Distribution",
+          "region": "West",
+          "state": "Oregon",
+          "stateCode": "OR",
+          "units": 198,
+          "revenue": 415800,
+          "onTimeRate": 0.89,
+          "leadTimeDays": 6.1
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Nova Drone",
+          "channel": "Marketplace",
+          "region": "West",
+          "state": "Nevada",
+          "stateCode": "NV",
+          "units": 177,
+          "revenue": 371700,
+          "onTimeRate": 0.87,
+          "leadTimeDays": 6.4
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Pulse Tracker",
+          "channel": "Healthcare",
+          "region": "Northeast",
+          "state": "New York",
+          "stateCode": "NY",
+          "units": 541,
+          "revenue": 335420,
+          "onTimeRate": 0.93,
+          "leadTimeDays": 4.3
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Pulse Tracker",
+          "channel": "Retail",
+          "region": "Northeast",
+          "state": "New Jersey",
+          "stateCode": "NJ",
+          "units": 447,
+          "revenue": 277140,
+          "onTimeRate": 0.92,
+          "leadTimeDays": 4.6
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Pulse Tracker",
+          "channel": "Healthcare",
+          "region": "Northeast",
+          "state": "Massachusetts",
+          "stateCode": "MA",
+          "units": 406,
+          "revenue": 251720,
+          "onTimeRate": 0.94,
+          "leadTimeDays": 4.2
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Pulse Tracker",
+          "channel": "Distribution",
+          "region": "Northeast",
+          "state": "Pennsylvania",
+          "stateCode": "PA",
+          "units": 374,
+          "revenue": 231880,
+          "onTimeRate": 0.91,
+          "leadTimeDays": 4.8
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Pulse Tracker",
+          "channel": "Enterprise",
+          "region": "Midwest",
+          "state": "Illinois",
+          "stateCode": "IL",
+          "units": 354,
+          "revenue": 219480,
+          "onTimeRate": 0.9,
+          "leadTimeDays": 4.9
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Zenith Beacon",
+          "channel": "Distribution",
+          "region": "South",
+          "state": "Florida",
+          "stateCode": "FL",
+          "units": 426,
+          "revenue": 570840,
+          "onTimeRate": 0.89,
+          "leadTimeDays": 5.6
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Zenith Beacon",
+          "channel": "Enterprise",
+          "region": "South",
+          "state": "Texas",
+          "stateCode": "TX",
+          "units": 395,
+          "revenue": 529300,
+          "onTimeRate": 0.9,
+          "leadTimeDays": 5.3
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Zenith Beacon",
+          "channel": "Retail",
+          "region": "West",
+          "state": "California",
+          "stateCode": "CA",
+          "units": 374,
+          "revenue": 501160,
+          "onTimeRate": 0.91,
+          "leadTimeDays": 5.1
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Zenith Beacon",
+          "channel": "Marketplace",
+          "region": "South",
+          "state": "Georgia",
+          "stateCode": "GA",
+          "units": 343,
+          "revenue": 459620,
+          "onTimeRate": 0.88,
+          "leadTimeDays": 5.4
+        },
+        {
+          "date": "2024-02-01",
+          "month": "2024-02",
+          "product": "Zenith Beacon",
+          "channel": "Retail",
+          "region": "Midwest",
+          "state": "Ohio",
+          "stateCode": "OH",
+          "units": 322,
+          "revenue": 431480,
+          "onTimeRate": 0.89,
+          "leadTimeDays": 5.2
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Aether Sensor",
+          "channel": "Enterprise",
+          "region": "West",
+          "state": "California",
+          "stateCode": "CA",
+          "units": 417,
+          "revenue": 604650,
+          "onTimeRate": 0.982,
+          "leadTimeDays": 4.35
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Aether Sensor",
+          "channel": "Distribution",
+          "region": "South",
+          "state": "Texas",
+          "stateCode": "TX",
+          "units": 378,
+          "revenue": 548100,
+          "onTimeRate": 0.952,
+          "leadTimeDays": 4.95
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Aether Sensor",
+          "channel": "Retail",
+          "region": "Northeast",
+          "state": "New York",
+          "stateCode": "NY",
+          "units": 310,
+          "revenue": 449500,
+          "onTimeRate": 0.932,
+          "leadTimeDays": 5.45
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Aether Sensor",
+          "channel": "E-commerce",
+          "region": "West",
+          "state": "Washington",
+          "stateCode": "WA",
+          "units": 262,
+          "revenue": 379900,
+          "onTimeRate": 0.962,
+          "leadTimeDays": 3.95
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Aether Sensor",
+          "channel": "Enterprise",
+          "region": "Midwest",
+          "state": "Illinois",
+          "stateCode": "IL",
+          "units": 291,
+          "revenue": 421950,
+          "onTimeRate": 0.942,
+          "leadTimeDays": 4.85
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Flux Router",
+          "channel": "Distribution",
+          "region": "South",
+          "state": "Texas",
+          "stateCode": "TX",
+          "units": 436,
+          "revenue": 427280,
+          "onTimeRate": 0.942,
+          "leadTimeDays": 4.65
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Flux Router",
+          "channel": "Retail",
+          "region": "South",
+          "state": "Florida",
+          "stateCode": "FL",
+          "units": 369,
+          "revenue": 361620,
+          "onTimeRate": 0.922,
+          "leadTimeDays": 4.85
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Flux Router",
+          "channel": "E-commerce",
+          "region": "South",
+          "state": "Georgia",
+          "stateCode": "GA",
+          "units": 330,
+          "revenue": 323400,
+          "onTimeRate": 0.932,
+          "leadTimeDays": 5.05
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Flux Router",
+          "channel": "Enterprise",
+          "region": "South",
+          "state": "North Carolina",
+          "stateCode": "NC",
+          "units": 301,
+          "revenue": 294980,
+          "onTimeRate": 0.912,
+          "leadTimeDays": 4.55
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Flux Router",
+          "channel": "Marketplace",
+          "region": "West",
+          "state": "Arizona",
+          "stateCode": "AZ",
+          "units": 272,
+          "revenue": 266560,
+          "onTimeRate": 0.902,
+          "leadTimeDays": 5.25
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Nova Drone",
+          "channel": "Enterprise",
+          "region": "West",
+          "state": "California",
+          "stateCode": "CA",
+          "units": 252,
+          "revenue": 529200,
+          "onTimeRate": 0.912,
+          "leadTimeDays": 6.35
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Nova Drone",
+          "channel": "Enterprise",
+          "region": "West",
+          "state": "Colorado",
+          "stateCode": "CO",
+          "units": 213,
+          "revenue": 447300,
+          "onTimeRate": 0.932,
+          "leadTimeDays": 5.75
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Nova Drone",
+          "channel": "Retail",
+          "region": "West",
+          "state": "Washington",
+          "stateCode": "WA",
+          "units": 204,
+          "revenue": 428400,
+          "onTimeRate": 0.922,
+          "leadTimeDays": 5.95
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Nova Drone",
+          "channel": "Distribution",
+          "region": "West",
+          "state": "Oregon",
+          "stateCode": "OR",
+          "units": 184,
+          "revenue": 386400,
+          "onTimeRate": 0.912,
+          "leadTimeDays": 5.85
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Nova Drone",
+          "channel": "Marketplace",
+          "region": "West",
+          "state": "Nevada",
+          "stateCode": "NV",
+          "units": 165,
+          "revenue": 346500,
+          "onTimeRate": 0.892,
+          "leadTimeDays": 6.15
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Pulse Tracker",
+          "channel": "Healthcare",
+          "region": "Northeast",
+          "state": "New York",
+          "stateCode": "NY",
+          "units": 504,
+          "revenue": 312480,
+          "onTimeRate": 0.952,
+          "leadTimeDays": 4.05
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Pulse Tracker",
+          "channel": "Retail",
+          "region": "Northeast",
+          "state": "New Jersey",
+          "stateCode": "NJ",
+          "units": 417,
+          "revenue": 258540,
+          "onTimeRate": 0.942,
+          "leadTimeDays": 4.35
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Pulse Tracker",
+          "channel": "Healthcare",
+          "region": "Northeast",
+          "state": "Massachusetts",
+          "stateCode": "MA",
+          "units": 378,
+          "revenue": 234360,
+          "onTimeRate": 0.962,
+          "leadTimeDays": 3.95
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Pulse Tracker",
+          "channel": "Distribution",
+          "region": "Northeast",
+          "state": "Pennsylvania",
+          "stateCode": "PA",
+          "units": 349,
+          "revenue": 216380,
+          "onTimeRate": 0.932,
+          "leadTimeDays": 4.55
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Pulse Tracker",
+          "channel": "Enterprise",
+          "region": "Midwest",
+          "state": "Illinois",
+          "stateCode": "IL",
+          "units": 330,
+          "revenue": 204600,
+          "onTimeRate": 0.922,
+          "leadTimeDays": 4.65
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Zenith Beacon",
+          "channel": "Distribution",
+          "region": "South",
+          "state": "Florida",
+          "stateCode": "FL",
+          "units": 398,
+          "revenue": 533320,
+          "onTimeRate": 0.912,
+          "leadTimeDays": 5.35
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Zenith Beacon",
+          "channel": "Enterprise",
+          "region": "South",
+          "state": "Texas",
+          "stateCode": "TX",
+          "units": 369,
+          "revenue": 494460,
+          "onTimeRate": 0.922,
+          "leadTimeDays": 5.05
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Zenith Beacon",
+          "channel": "Retail",
+          "region": "West",
+          "state": "California",
+          "stateCode": "CA",
+          "units": 349,
+          "revenue": 467660,
+          "onTimeRate": 0.932,
+          "leadTimeDays": 4.85
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Zenith Beacon",
+          "channel": "Marketplace",
+          "region": "South",
+          "state": "Georgia",
+          "stateCode": "GA",
+          "units": 320,
+          "revenue": 428800,
+          "onTimeRate": 0.902,
+          "leadTimeDays": 5.15
+        },
+        {
+          "date": "2024-03-01",
+          "month": "2024-03",
+          "product": "Zenith Beacon",
+          "channel": "Retail",
+          "region": "Midwest",
+          "state": "Ohio",
+          "stateCode": "OH",
+          "units": 301,
+          "revenue": 403340,
+          "onTimeRate": 0.912,
+          "leadTimeDays": 4.95
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Aether Sensor",
+          "channel": "Enterprise",
+          "region": "West",
+          "state": "California",
+          "stateCode": "CA",
+          "units": 464,
+          "revenue": 672800,
+          "onTimeRate": 0.975,
+          "leadTimeDays": 4.45
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Aether Sensor",
+          "channel": "Distribution",
+          "region": "South",
+          "state": "Texas",
+          "stateCode": "TX",
+          "units": 421,
+          "revenue": 610450,
+          "onTimeRate": 0.945,
+          "leadTimeDays": 5.05
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Aether Sensor",
+          "channel": "Retail",
+          "region": "Northeast",
+          "state": "New York",
+          "stateCode": "NY",
+          "units": 346,
+          "revenue": 501700,
+          "onTimeRate": 0.925,
+          "leadTimeDays": 5.55
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Aether Sensor",
+          "channel": "E-commerce",
+          "region": "West",
+          "state": "Washington",
+          "stateCode": "WA",
+          "units": 292,
+          "revenue": 423400,
+          "onTimeRate": 0.955,
+          "leadTimeDays": 4.05
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Aether Sensor",
+          "channel": "Enterprise",
+          "region": "Midwest",
+          "state": "Illinois",
+          "stateCode": "IL",
+          "units": 324,
+          "revenue": 469800,
+          "onTimeRate": 0.935,
+          "leadTimeDays": 4.95
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Flux Router",
+          "channel": "Distribution",
+          "region": "South",
+          "state": "Texas",
+          "stateCode": "TX",
+          "units": 486,
+          "revenue": 476280,
+          "onTimeRate": 0.935,
+          "leadTimeDays": 4.75
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Flux Router",
+          "channel": "Retail",
+          "region": "South",
+          "state": "Florida",
+          "stateCode": "FL",
+          "units": 410,
+          "revenue": 401800,
+          "onTimeRate": 0.915,
+          "leadTimeDays": 4.95
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Flux Router",
+          "channel": "E-commerce",
+          "region": "South",
+          "state": "Georgia",
+          "stateCode": "GA",
+          "units": 367,
+          "revenue": 359660,
+          "onTimeRate": 0.925,
+          "leadTimeDays": 5.15
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Flux Router",
+          "channel": "Enterprise",
+          "region": "South",
+          "state": "North Carolina",
+          "stateCode": "NC",
+          "units": 335,
+          "revenue": 328300,
+          "onTimeRate": 0.905,
+          "leadTimeDays": 4.65
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Flux Router",
+          "channel": "Marketplace",
+          "region": "West",
+          "state": "Arizona",
+          "stateCode": "AZ",
+          "units": 302,
+          "revenue": 295960,
+          "onTimeRate": 0.895,
+          "leadTimeDays": 5.35
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Nova Drone",
+          "channel": "Enterprise",
+          "region": "West",
+          "state": "California",
+          "stateCode": "CA",
+          "units": 281,
+          "revenue": 590100,
+          "onTimeRate": 0.905,
+          "leadTimeDays": 6.45
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Nova Drone",
+          "channel": "Enterprise",
+          "region": "West",
+          "state": "Colorado",
+          "stateCode": "CO",
+          "units": 238,
+          "revenue": 499800,
+          "onTimeRate": 0.925,
+          "leadTimeDays": 5.85
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Nova Drone",
+          "channel": "Retail",
+          "region": "West",
+          "state": "Washington",
+          "stateCode": "WA",
+          "units": 227,
+          "revenue": 476700,
+          "onTimeRate": 0.915,
+          "leadTimeDays": 6.05
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Nova Drone",
+          "channel": "Distribution",
+          "region": "West",
+          "state": "Oregon",
+          "stateCode": "OR",
+          "units": 205,
+          "revenue": 430500,
+          "onTimeRate": 0.905,
+          "leadTimeDays": 5.95
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Nova Drone",
+          "channel": "Marketplace",
+          "region": "West",
+          "state": "Nevada",
+          "stateCode": "NV",
+          "units": 184,
+          "revenue": 386400,
+          "onTimeRate": 0.885,
+          "leadTimeDays": 6.25
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Pulse Tracker",
+          "channel": "Healthcare",
+          "region": "Northeast",
+          "state": "New York",
+          "stateCode": "NY",
+          "units": 562,
+          "revenue": 348440,
+          "onTimeRate": 0.945,
+          "leadTimeDays": 4.15
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Pulse Tracker",
+          "channel": "Retail",
+          "region": "Northeast",
+          "state": "New Jersey",
+          "stateCode": "NJ",
+          "units": 464,
+          "revenue": 287680,
+          "onTimeRate": 0.935,
+          "leadTimeDays": 4.45
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Pulse Tracker",
+          "channel": "Healthcare",
+          "region": "Northeast",
+          "state": "Massachusetts",
+          "stateCode": "MA",
+          "units": 421,
+          "revenue": 261020,
+          "onTimeRate": 0.955,
+          "leadTimeDays": 4.05
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Pulse Tracker",
+          "channel": "Distribution",
+          "region": "Northeast",
+          "state": "Pennsylvania",
+          "stateCode": "PA",
+          "units": 389,
+          "revenue": 241180,
+          "onTimeRate": 0.925,
+          "leadTimeDays": 4.65
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Pulse Tracker",
+          "channel": "Enterprise",
+          "region": "Midwest",
+          "state": "Illinois",
+          "stateCode": "IL",
+          "units": 367,
+          "revenue": 227540,
+          "onTimeRate": 0.915,
+          "leadTimeDays": 4.75
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Zenith Beacon",
+          "channel": "Distribution",
+          "region": "South",
+          "state": "Florida",
+          "stateCode": "FL",
+          "units": 443,
+          "revenue": 593620,
+          "onTimeRate": 0.905,
+          "leadTimeDays": 5.45
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Zenith Beacon",
+          "channel": "Enterprise",
+          "region": "South",
+          "state": "Texas",
+          "stateCode": "TX",
+          "units": 410,
+          "revenue": 549400,
+          "onTimeRate": 0.915,
+          "leadTimeDays": 5.15
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Zenith Beacon",
+          "channel": "Retail",
+          "region": "West",
+          "state": "California",
+          "stateCode": "CA",
+          "units": 389,
+          "revenue": 521260,
+          "onTimeRate": 0.925,
+          "leadTimeDays": 4.95
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Zenith Beacon",
+          "channel": "Marketplace",
+          "region": "South",
+          "state": "Georgia",
+          "stateCode": "GA",
+          "units": 356,
+          "revenue": 477040,
+          "onTimeRate": 0.895,
+          "leadTimeDays": 5.25
+        },
+        {
+          "date": "2024-04-01",
+          "month": "2024-04",
+          "product": "Zenith Beacon",
+          "channel": "Retail",
+          "region": "Midwest",
+          "state": "Ohio",
+          "stateCode": "OH",
+          "units": 335,
+          "revenue": 448900,
+          "onTimeRate": 0.905,
+          "leadTimeDays": 5.05
+        }
+      ]
+    },
+    {
+      "dataSourceName": "networkLocations",
+      "type": "inline",
+      "format": "json",
+      "content": [
+        {
+          "location": "Cascade Forge Plant",
+          "city": "Everett, WA",
+          "state": "WA",
+          "region": "West",
+          "type": "Manufacturing Plant",
+          "focusProduct": "Aether Sensor",
+          "weeklyThroughput": 5400,
+          "capacity": 7000,
+          "utilization": 0.77,
+          "utilizationPercent": 77,
+          "safetyStockDays": 16,
+          "status": "Stable",
+          "latitude": 47.9789,
+          "longitude": -122.2021
+        },
+        {
+          "location": "Willamette Distribution Hub",
+          "city": "Portland, OR",
+          "state": "OR",
+          "region": "West",
+          "type": "Distribution Center",
+          "focusProduct": "Nova Drone",
+          "weeklyThroughput": 6200,
+          "capacity": 8000,
+          "utilization": 0.78,
+          "utilizationPercent": 78,
+          "safetyStockDays": 18,
+          "status": "Scaling",
+          "latitude": 45.5152,
+          "longitude": -122.6784
+        },
+        {
+          "location": "High Desert Consolidation",
+          "city": "Reno, NV",
+          "state": "NV",
+          "region": "West",
+          "type": "Fulfillment Hub",
+          "focusProduct": "Nova Drone",
+          "weeklyThroughput": 4800,
+          "capacity": 6500,
+          "utilization": 0.74,
+          "utilizationPercent": 74,
+          "safetyStockDays": 14,
+          "status": "Stable",
+          "latitude": 39.5296,
+          "longitude": -119.8138
+        },
+        {
+          "location": "Front Range Control Tower",
+          "city": "Denver, CO",
+          "state": "CO",
+          "region": "West",
+          "type": "Logistics Control",
+          "focusProduct": "Nova Drone",
+          "weeklyThroughput": 5300,
+          "capacity": 6800,
+          "utilization": 0.78,
+          "utilizationPercent": 78,
+          "safetyStockDays": 15,
+          "status": "Stable",
+          "latitude": 39.7392,
+          "longitude": -104.9903
+        },
+        {
+          "location": "Lone Star Mega DC",
+          "city": "Dallas, TX",
+          "state": "TX",
+          "region": "South",
+          "type": "Distribution Center",
+          "focusProduct": "Flux Router",
+          "weeklyThroughput": 8900,
+          "capacity": 10500,
+          "utilization": 0.85,
+          "utilizationPercent": 85,
+          "safetyStockDays": 12,
+          "status": "Watch",
+          "latitude": 32.7767,
+          "longitude": -96.797
+        },
+        {
+          "location": "Gulf Port Staging",
+          "city": "Houston, TX",
+          "state": "TX",
+          "region": "South",
+          "type": "Port Staging",
+          "focusProduct": "Zenith Beacon",
+          "weeklyThroughput": 7600,
+          "capacity": 9200,
+          "utilization": 0.83,
+          "utilizationPercent": 83,
+          "safetyStockDays": 13,
+          "status": "Stable",
+          "latitude": 29.7604,
+          "longitude": -95.3698
+        },
+        {
+          "location": "Peachtree Flow Center",
+          "city": "Atlanta, GA",
+          "state": "GA",
+          "region": "South",
+          "type": "Regional Hub",
+          "focusProduct": "Zenith Beacon",
+          "weeklyThroughput": 6800,
+          "capacity": 8800,
+          "utilization": 0.77,
+          "utilizationPercent": 77,
+          "safetyStockDays": 15,
+          "status": "Scaling",
+          "latitude": 33.749,
+          "longitude": -84.388
+        },
+        {
+          "location": "Great Lakes Crossdock",
+          "city": "Chicago, IL",
+          "state": "IL",
+          "region": "Midwest",
+          "type": "Crossdock",
+          "focusProduct": "Pulse Tracker",
+          "weeklyThroughput": 6400,
+          "capacity": 8200,
+          "utilization": 0.78,
+          "utilizationPercent": 78,
+          "safetyStockDays": 17,
+          "status": "Stable",
+          "latitude": 41.8781,
+          "longitude": -87.6298
+        },
+        {
+          "location": "Atlantic Gateway",
+          "city": "Newark, NJ",
+          "state": "NJ",
+          "region": "Northeast",
+          "type": "Air Gateway",
+          "focusProduct": "Pulse Tracker",
+          "weeklyThroughput": 7200,
+          "capacity": 9000,
+          "utilization": 0.8,
+          "utilizationPercent": 80,
+          "safetyStockDays": 18,
+          "status": "Watch",
+          "latitude": 40.7357,
+          "longitude": -74.1724
+        },
+        {
+          "location": "Sunrise Export Terminal",
+          "city": "Miami, FL",
+          "state": "FL",
+          "region": "South",
+          "type": "Export Terminal",
+          "focusProduct": "Zenith Beacon",
+          "weeklyThroughput": 7000,
+          "capacity": 8400,
+          "utilization": 0.83,
+          "utilizationPercent": 83,
+          "safetyStockDays": 14,
+          "status": "Scaling",
+          "latitude": 25.7617,
+          "longitude": -80.1918
+        }
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "variableId": "selectedProduct",
+      "type": "string",
+      "initialValue": "All Products"
+    },
+    {
+      "variableId": "filteredProductSales",
+      "type": "object",
+      "isArray": true,
+      "initialValue": [],
+      "calculation": {
+        "dataSourceNames": [
+          "supplyChainSales"
+        ],
+        "dataFrameTransformations": [
+          {
+            "type": "filter",
+            "expr": "selectedProduct === 'All Products' ? true : datum.product === selectedProduct"
+          }
+        ]
+      }
+    },
+    {
+      "variableId": "overallAggregates",
+      "type": "object",
+      "isArray": true,
+      "initialValue": [],
+      "calculation": {
+        "dataSourceNames": [
+          "supplyChainSales"
+        ],
+        "dataFrameTransformations": [
+          {
+            "type": "aggregate",
+            "ops": [
+              "sum",
+              "sum",
+              "average",
+              "average"
+            ],
+            "fields": [
+              "revenue",
+              "units",
+              "onTimeRate",
+              "leadTimeDays"
+            ],
+            "as": [
+              "totalRevenue",
+              "totalUnits",
+              "avgOnTime",
+              "avgLeadTime"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "variableId": "overviewNarrative",
+      "type": "object",
+      "isArray": true,
+      "initialValue": [],
+      "calculation": {
+        "vegaExpression": "var metrics = data('overallAggregates')[0] || { totalRevenue: 0, totalUnits: 0, avgOnTime: 0 };var revenueLine = '$' + format((metrics.totalRevenue || 0) / 1e6, '.1f') + 'M revenue guided by ' + format(metrics.totalUnits || 0, ',.0f') + ' units shipped year-to-date.';var serviceLine = 'Ten logistics locations sustain coverage across all regions with on-time performance of ' + format((metrics.avgOnTime || 0) * 100, '.1f') + '%.';var kpiLine = 'KPI tiles summarize portfolio revenue, units delivered, service reliability, and lead time so you can gauge health in seconds.';var navigationLine = 'Scroll or use PgDn to advance to the product focus slide and pivot the experience by item.';var interactionLine = 'Click or touch any bar, segment, or row to cross-filter peers and keep related visuals synchronized.';return [{ order: 1, text: 'Slide 1 \u00b7 Command center overview', style: 'label', y: 16 }, { order: 2, text: revenueLine, style: 'body', y: 48 }, { order: 3, text: serviceLine, style: 'body', y: 78 }, { order: 4, text: kpiLine, style: 'body', y: 108 }, { order: 5, text: navigationLine, style: 'body', y: 138 }, { order: 6, text: interactionLine, style: 'body', y: 168 }];"
+      }
+    },
+    {
+      "variableId": "overviewKpiTiles",
+      "type": "object",
+      "isArray": true,
+      "initialValue": [],
+      "calculation": {
+        "vegaExpression": "var metrics = data('overallAggregates')[0] || { totalRevenue: 0, totalUnits: 0, avgOnTime: 0, avgLeadTime: 0 };return [{ metric: 'Portfolio revenue', value: '$' + format((metrics.totalRevenue || 0) / 1e6, '.1f') + 'M', detail: 'Five flagship products' }, { metric: 'Units delivered', value: format(metrics.totalUnits || 0, ',.0f'), detail: 'Shipments across top markets' }, { metric: 'On-time promise', value: format((metrics.avgOnTime || 0) * 100, '.1f') + '%', detail: 'Fulfillment punctuality' }, { metric: 'Avg lead time', value: format(metrics.avgLeadTime || 0, '.1f') + ' days', detail: 'Door-to-door velocity' }];"
+      }
+    },
+    {
+      "variableId": "topStatesOverall",
+      "type": "object",
+      "isArray": true,
+      "initialValue": [],
+      "calculation": {
+        "dataSourceNames": [
+          "supplyChainSales"
+        ],
+        "dataFrameTransformations": [
+          {
+            "type": "aggregate",
+            "groupby": [
+              "state",
+              "stateCode"
+            ],
+            "ops": [
+              "sum",
+              "sum",
+              "average"
+            ],
+            "fields": [
+              "revenue",
+              "units",
+              "onTimeRate"
+            ],
+            "as": [
+              "totalRevenue",
+              "totalUnits",
+              "avgOnTime"
+            ]
+          },
+          {
+            "type": "collect",
+            "sort": {
+              "field": "totalRevenue",
+              "order": "descending"
+            }
+          },
+          {
+            "type": "window",
+            "ops": [
+              "row_number"
+            ],
+            "sort": {
+              "field": "totalRevenue",
+              "order": "descending"
+            },
+            "as": [
+              "rank"
+            ]
+          },
+          {
+            "type": "filter",
+            "expr": "datum.rank <= 5"
+          },
+          {
+            "type": "formula",
+            "expr": "datum.totalRevenue / 1000000",
+            "as": "revenueMillions"
+          },
+          {
+            "type": "formula",
+            "expr": "datum.avgOnTime * 100",
+            "as": "onTimePct"
+          }
+        ]
+      }
+    },
+    {
+      "variableId": "productAggregates",
+      "type": "object",
+      "isArray": true,
+      "initialValue": [],
+      "calculation": {
+        "dataSourceNames": [
+          "filteredProductSales"
+        ],
+        "dataFrameTransformations": [
+          {
+            "type": "aggregate",
+            "ops": [
+              "sum",
+              "sum",
+              "average",
+              "average"
+            ],
+            "fields": [
+              "revenue",
+              "units",
+              "onTimeRate",
+              "leadTimeDays"
+            ],
+            "as": [
+              "totalRevenue",
+              "totalUnits",
+              "avgOnTime",
+              "avgLeadTime"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "variableId": "productKpiTiles",
+      "type": "object",
+      "isArray": true,
+      "initialValue": [],
+      "calculation": {
+        "vegaExpression": "var focus = selectedProduct === 'All Products' ? 'All products aggregated' : selectedProduct + ' focus';var metrics = data('productAggregates')[0] || { totalRevenue: 0, totalUnits: 0, avgOnTime: 0, avgLeadTime: 0 };return [{ metric: 'Revenue', value: '$' + format((metrics.totalRevenue || 0) / 1e6, '.1f') + 'M', detail: focus }, { metric: 'Units shipped', value: format(metrics.totalUnits || 0, ',.0f'), detail: 'Delivered across regions' }, { metric: 'On-time', value: format((metrics.avgOnTime || 0) * 100, '.1f') + '%', detail: 'Service reliability' }, { metric: 'Lead time', value: format(metrics.avgLeadTime || 0, '.1f') + ' days', detail: 'Average transit' }];"
+      }
+    },
+    {
+      "variableId": "productNarrative",
+      "type": "object",
+      "isArray": true,
+      "initialValue": [],
+      "calculation": {
+        "vegaExpression": "var focusName = selectedProduct === 'All Products' ? 'All products' : selectedProduct;var metrics = data('productAggregates')[0] || { totalRevenue: 0, totalUnits: 0 };var headline = '$' + format((metrics.totalRevenue || 0) / 1e6, '.1f') + 'M across ' + format((metrics.totalUnits || 0), ',.0f') + ' units';var prompt = 'Use the selector on the right to focus on a single product or stay in the aggregated view.';var detail = 'Channel mix, ranked states, and the geospatial map refresh instantly so you can rebalance coverage.';var action = 'Interact with the bars or highlighted states to cross-filter the table and expose performance context.';return [{ order: 1, text: 'Slide 2 \u00b7 Product drilldown', style: 'label', y: 16 }, { order: 2, text: headline, style: 'body', y: 48 }, { order: 3, text: prompt, style: 'body', y: 78 }, { order: 4, text: detail, style: 'body', y: 108 }, { order: 5, text: action, style: 'body', y: 138 }];"
+      }
+    },
+    {
+      "variableId": "productChannelShare",
+      "type": "object",
+      "isArray": true,
+      "initialValue": [],
+      "calculation": {
+        "dataSourceNames": [
+          "filteredProductSales"
+        ],
+        "dataFrameTransformations": [
+          {
+            "type": "aggregate",
+            "groupby": [
+              "channel"
+            ],
+            "ops": [
+              "sum",
+              "sum"
+            ],
+            "fields": [
+              "revenue",
+              "units"
+            ],
+            "as": [
+              "totalRevenue",
+              "totalUnits"
+            ]
+          },
+          {
+            "type": "collect",
+            "sort": {
+              "field": "totalRevenue",
+              "order": "descending"
+            }
+          },
+          {
+            "type": "formula",
+            "expr": "datum.totalRevenue / 1000000",
+            "as": "revenueMillions"
+          }
+        ]
+      }
+    },
+    {
+      "variableId": "productStatePerformance",
+      "type": "object",
+      "isArray": true,
+      "initialValue": [],
+      "calculation": {
+        "dataSourceNames": [
+          "filteredProductSales"
+        ],
+        "dataFrameTransformations": [
+          {
+            "type": "aggregate",
+            "groupby": [
+              "state",
+              "stateCode"
+            ],
+            "ops": [
+              "sum",
+              "sum",
+              "average",
+              "average"
+            ],
+            "fields": [
+              "revenue",
+              "units",
+              "onTimeRate",
+              "leadTimeDays"
+            ],
+            "as": [
+              "totalRevenue",
+              "totalUnits",
+              "avgOnTime",
+              "avgLeadTime"
+            ]
+          },
+          {
+            "type": "collect",
+            "sort": {
+              "field": "totalRevenue",
+              "order": "descending"
+            }
+          },
+          {
+            "type": "window",
+            "ops": [
+              "row_number"
+            ],
+            "sort": {
+              "field": "totalRevenue",
+              "order": "descending"
+            },
+            "as": [
+              "rank"
+            ]
+          },
+          {
+            "type": "formula",
+            "expr": "datum.totalRevenue / 1000000",
+            "as": "revenueMillions"
+          },
+          {
+            "type": "formula",
+            "expr": "format(datum.totalRevenue / 1000000, '.2f') + 'M'",
+            "as": "revenueDisplay"
+          },
+          {
+            "type": "formula",
+            "expr": "format(datum.totalUnits, ',.0f')",
+            "as": "unitsDisplay"
+          },
+          {
+            "type": "formula",
+            "expr": "datum.avgOnTime * 100",
+            "as": "onTimePct"
+          },
+          {
+            "type": "formula",
+            "expr": "format(datum.avgOnTime * 100, '.1f') + '%'",
+            "as": "onTimeDisplay"
+          },
+          {
+            "type": "formula",
+            "expr": "format(datum.avgLeadTime, '.1f') + ' days'",
+            "as": "leadTimeDisplay"
+          }
+        ]
+      }
+    },
+    {
+      "variableId": "topStatesByProduct",
+      "type": "object",
+      "isArray": true,
+      "initialValue": [],
+      "calculation": {
+        "dataSourceNames": [
+          "filteredProductSales"
+        ],
+        "dataFrameTransformations": [
+          {
+            "type": "aggregate",
+            "groupby": [
+              "state",
+              "stateCode"
+            ],
+            "ops": [
+              "sum",
+              "sum",
+              "average",
+              "average"
+            ],
+            "fields": [
+              "revenue",
+              "units",
+              "onTimeRate",
+              "leadTimeDays"
+            ],
+            "as": [
+              "totalRevenue",
+              "totalUnits",
+              "avgOnTime",
+              "avgLeadTime"
+            ]
+          },
+          {
+            "type": "collect",
+            "sort": {
+              "field": "totalRevenue",
+              "order": "descending"
+            }
+          },
+          {
+            "type": "window",
+            "ops": [
+              "row_number"
+            ],
+            "sort": {
+              "field": "totalRevenue",
+              "order": "descending"
+            },
+            "as": [
+              "rank"
+            ]
+          },
+          {
+            "type": "filter",
+            "expr": "datum.rank <= 5"
+          },
+          {
+            "type": "formula",
+            "expr": "datum.totalRevenue / 1000000",
+            "as": "revenueMillions"
+          },
+          {
+            "type": "formula",
+            "expr": "datum.avgOnTime * 100",
+            "as": "onTimePct"
+          }
+        ]
+      }
+    }
+  ],
+  "groups": [
+    {
+      "groupId": "overviewSlide",
+      "elements": [
+        {
+          "type": "chart",
+          "chartKey": "heroTitle"
+        },
+        {
+          "type": "chart",
+          "chartKey": "overviewStory"
+        },
+        {
+          "type": "chart",
+          "chartKey": "overviewKpiBoard"
+        },
+        {
+          "type": "chart",
+          "chartKey": "overallRevenueTrend"
+        },
+        {
+          "type": "chart",
+          "chartKey": "overallUnitsByRegion"
+        },
+        {
+          "type": "chart",
+          "chartKey": "overallProductShare"
+        },
+        {
+          "type": "chart",
+          "chartKey": "overallTopStatesMap"
+        },
+        {
+          "type": "chart",
+          "chartKey": "networkFootprintMap"
+        },
+        {
+          "type": "chart",
+          "chartKey": "networkTableHeading"
+        },
+        {
+          "type": "tabulator",
+          "dataSourceName": "networkLocations",
+          "tabulatorOptions": {
+            "layout": "fitColumns",
+            "minHeight": "320px",
+            "columns": [
+              {
+                "title": "Location",
+                "field": "location",
+                "widthGrow": 2
+              },
+              {
+                "title": "City",
+                "field": "city"
+              },
+              {
+                "title": "Type",
+                "field": "type",
+                "widthGrow": 1.5
+              },
+              {
+                "title": "Focus",
+                "field": "focusProduct"
+              },
+              {
+                "title": "Throughput / wk",
+                "field": "weeklyThroughput",
+                "formatter": "money",
+                "formatterParams": {
+                  "symbol": "",
+                  "precision": 0
+                }
+              },
+              {
+                "title": "Utilization %",
+                "field": "utilizationPercent"
+              },
+              {
+                "title": "Safety Stock (days)",
+                "field": "safetyStockDays"
+              },
+              {
+                "title": "Status",
+                "field": "status"
+              }
+            ],
+            "initialSort": [
+              {
+                "column": "utilizationPercent",
+                "dir": "desc"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "groupId": "productSlide",
+      "elements": [
+        {
+          "type": "chart",
+          "chartKey": "productIntro"
+        },
+        {
+          "type": "dropdown",
+          "variableId": "selectedProduct",
+          "label": "Select product",
+          "options": [
+            "All Products",
+            "Aether Sensor",
+            "Flux Router",
+            "Nova Drone",
+            "Pulse Tracker",
+            "Zenith Beacon"
+          ]
+        },
+        {
+          "type": "chart",
+          "chartKey": "productKpiBoard"
+        },
+        {
+          "type": "chart",
+          "chartKey": "productRevenueTrend"
+        },
+        {
+          "type": "chart",
+          "chartKey": "productChannelBar"
+        },
+        {
+          "type": "chart",
+          "chartKey": "productTopStatesBar"
+        },
+        {
+          "type": "chart",
+          "chartKey": "productTopStatesMap"
+        },
+        {
+          "type": "chart",
+          "chartKey": "productTableHeading"
+        },
+        {
+          "type": "tabulator",
+          "dataSourceName": "productStatePerformance",
+          "tabulatorOptions": {
+            "layout": "fitColumns",
+            "minHeight": "320px",
+            "columns": [
+              {
+                "title": "Rank",
+                "field": "rank",
+                "width": 70
+              },
+              {
+                "title": "State",
+                "field": "state"
+              },
+              {
+                "title": "Revenue",
+                "field": "revenueDisplay"
+              },
+              {
+                "title": "Units",
+                "field": "unitsDisplay"
+              },
+              {
+                "title": "On-time",
+                "field": "onTimeDisplay"
+              },
+              {
+                "title": "Lead time",
+                "field": "leadTimeDisplay"
+              }
+            ],
+            "initialSort": [
+              {
+                "column": "rank",
+                "dir": "asc"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "resources": {
+    "charts": {
+      "heroTitle": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 120,
+        "data": {
+          "values": [
+            {}
+          ]
+        },
+        "layer": [
+          {
+            "mark": {
+              "type": "text",
+              "fontSize": 12,
+              "letterSpacing": 3,
+              "fontWeight": 600,
+              "color": "#4f46e5",
+              "align": "left",
+              "baseline": "top"
+            },
+            "encoding": {
+              "text": {
+                "value": "SUPPLY CHAIN COMMAND CENTER"
+              },
+              "x": {
+                "value": 0
+              },
+              "y": {
+                "value": 12
+              }
+            }
+          },
+          {
+            "mark": {
+              "type": "text",
+              "fontSize": 44,
+              "fontWeight": 700,
+              "color": "#0f172a",
+              "align": "left",
+              "baseline": "top",
+              "font": "Space Grotesk"
+            },
+            "encoding": {
+              "text": {
+                "value": "Geospatial Analysis"
+              },
+              "x": {
+                "value": 0
+              },
+              "y": {
+                "value": 52
+              }
+            }
+          },
+          {
+            "mark": {
+              "type": "text",
+              "fontSize": 18,
+              "fontWeight": 500,
+              "color": "#475569",
+              "align": "left",
+              "baseline": "top"
+            },
+            "encoding": {
+              "text": {
+                "value": "Unified visibility into revenue velocity, service health, and coverage intensity."
+              },
+              "x": {
+                "value": 0
+              },
+              "y": {
+                "value": 102
+              }
+            }
+          }
+        ],
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          }
+        }
+      },
+      "overviewStory": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 200,
+        "data": {
+          "name": "overviewNarrative"
+        },
+        "layer": [
+          {
+            "transform": [
+              {
+                "filter": "datum.style === 'label'"
+              }
+            ],
+            "mark": {
+              "type": "text",
+              "fontSize": 12,
+              "fontWeight": 600,
+              "letterSpacing": 3,
+              "color": "#6366f1",
+              "align": "left",
+              "baseline": "top"
+            },
+            "encoding": {
+              "text": {
+                "field": "text"
+              },
+              "x": {
+                "value": 0
+              },
+              "y": {
+                "field": "y",
+                "type": "quantitative",
+                "axis": null
+              }
+            }
+          },
+          {
+            "transform": [
+              {
+                "filter": "datum.style === 'body'"
+              }
+            ],
+            "mark": {
+              "type": "text",
+              "fontSize": 18,
+              "fontWeight": 500,
+              "color": "#1e293b",
+              "align": "left",
+              "baseline": "top"
+            },
+            "encoding": {
+              "text": {
+                "field": "text"
+              },
+              "x": {
+                "value": 0
+              },
+              "y": {
+                "field": "y",
+                "type": "quantitative",
+                "axis": null
+              }
+            }
+          }
+        ],
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          }
+        }
+      },
+      "overviewKpiBoard": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 150,
+        "data": {
+          "name": "overviewKpiTiles"
+        },
+        "encoding": {
+          "x": {
+            "field": "metric",
+            "type": "nominal",
+            "title": null,
+            "axis": {
+              "domain": false,
+              "ticks": false,
+              "labels": false
+            }
+          }
+        },
+        "layer": [
+          {
+            "mark": {
+              "type": "text",
+              "dy": -24,
+              "fontSize": 14,
+              "fontWeight": 600,
+              "color": "#475569"
+            },
+            "encoding": {
+              "text": {
+                "field": "metric"
+              }
+            }
+          },
+          {
+            "mark": {
+              "type": "text",
+              "fontSize": 32,
+              "fontWeight": 700,
+              "color": "#0f172a"
+            },
+            "encoding": {
+              "text": {
+                "field": "value"
+              }
+            }
+          },
+          {
+            "mark": {
+              "type": "text",
+              "dy": 26,
+              "fontSize": 13,
+              "color": "#64748b"
+            },
+            "encoding": {
+              "text": {
+                "field": "detail"
+              }
+            }
+          }
+        ],
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          }
+        }
+      },
+      "overallRevenueTrend": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 260,
+        "title": {
+          "text": "Revenue trajectory",
+          "anchor": "start",
+          "color": "#0f172a",
+          "fontSize": 16,
+          "fontWeight": 600
+        },
+        "data": {
+          "name": "supplyChainSales"
+        },
+        "transform": [
+          {
+            "aggregate": [
+              {
+                "op": "sum",
+                "field": "revenue",
+                "as": "totalRevenue"
+              }
+            ],
+            "groupby": [
+              "date"
+            ]
+          },
+          {
+            "calculate": "datum.totalRevenue / 1000000",
+            "as": "revenueMillions"
+          }
+        ],
+        "mark": {
+          "type": "line",
+          "strokeWidth": 3,
+          "point": {
+            "filled": true,
+            "size": 70
+          }
+        },
+        "encoding": {
+          "x": {
+            "field": "date",
+            "type": "temporal",
+            "title": "Month"
+          },
+          "y": {
+            "field": "revenueMillions",
+            "type": "quantitative",
+            "title": "Revenue (M USD)"
+          },
+          "color": {
+            "value": "#2563eb"
+          },
+          "tooltip": [
+            {
+              "field": "date",
+              "type": "temporal",
+              "title": "Month",
+              "format": "%b %Y"
+            },
+            {
+              "field": "revenueMillions",
+              "type": "quantitative",
+              "title": "Revenue (M USD)",
+              "format": ".2f"
+            }
+          ]
+        },
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          },
+          "axis": {
+            "labelColor": "#334155",
+            "titleColor": "#334155",
+            "gridColor": "#e2e8f0"
+          }
+        }
+      },
+      "overallUnitsByRegion": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 260,
+        "title": {
+          "text": "Units by region",
+          "anchor": "start",
+          "color": "#0f172a",
+          "fontSize": 16,
+          "fontWeight": 600
+        },
+        "data": {
+          "name": "supplyChainSales"
+        },
+        "transform": [
+          {
+            "aggregate": [
+              {
+                "op": "sum",
+                "field": "units",
+                "as": "totalUnits"
+              }
+            ],
+            "groupby": [
+              "region"
+            ]
+          },
+          {
+            "collect": {
+              "sort": {
+                "field": "totalUnits",
+                "order": "descending"
+              }
+            }
+          }
+        ],
+        "mark": {
+          "type": "bar",
+          "cornerRadiusEnd": 6
+        },
+        "encoding": {
+          "y": {
+            "field": "region",
+            "type": "nominal",
+            "sort": "-x",
+            "title": "Region"
+          },
+          "x": {
+            "field": "totalUnits",
+            "type": "quantitative",
+            "title": "Units"
+          },
+          "color": {
+            "field": "region",
+            "type": "nominal",
+            "scale": {
+              "range": [
+                "#2563eb",
+                "#0ea5e9",
+                "#22c55e",
+                "#f97316"
+              ]
+            },
+            "legend": {
+              "title": "Region"
+            }
+          },
+          "tooltip": [
+            {
+              "field": "region",
+              "type": "nominal",
+              "title": "Region"
+            },
+            {
+              "field": "totalUnits",
+              "type": "quantitative",
+              "title": "Units",
+              "format": ",.0f"
+            }
+          ]
+        },
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          },
+          "axis": {
+            "labelColor": "#334155",
+            "titleColor": "#334155",
+            "grid": false
+          }
+        }
+      },
+      "overallProductShare": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 260,
+        "title": {
+          "text": "Revenue mix by product",
+          "anchor": "start",
+          "color": "#0f172a",
+          "fontSize": 16,
+          "fontWeight": 600
+        },
+        "data": {
+          "name": "supplyChainSales"
+        },
+        "transform": [
+          {
+            "aggregate": [
+              {
+                "op": "sum",
+                "field": "revenue",
+                "as": "totalRevenue"
+              }
+            ],
+            "groupby": [
+              "product"
+            ]
+          }
+        ],
+        "mark": {
+          "type": "arc",
+          "innerRadius": 80,
+          "outerRadius": 130
+        },
+        "encoding": {
+          "theta": {
+            "field": "totalRevenue",
+            "type": "quantitative"
+          },
+          "color": {
+            "field": "product",
+            "type": "nominal",
+            "scale": {
+              "range": [
+                "#1d4ed8",
+                "#0ea5e9",
+                "#6366f1",
+                "#22c55e",
+                "#f97316"
+              ]
+            },
+            "legend": {
+              "title": "Product"
+            }
+          },
+          "tooltip": [
+            {
+              "field": "product",
+              "type": "nominal",
+              "title": "Product"
+            },
+            {
+              "field": "totalRevenue",
+              "type": "quantitative",
+              "title": "Revenue",
+              "format": "$,.0f"
+            }
+          ]
+        },
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          }
+        }
+      },
+      "overallTopStatesMap": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 320,
+        "title": {
+          "text": "Top 5 revenue states",
+          "anchor": "start",
+          "color": "#0f172a",
+          "fontSize": 16,
+          "fontWeight": 600
+        },
+        "projection": {
+          "type": "albersUsa"
+        },
+        "layer": [
+          {
+            "data": {
+              "url": "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json",
+              "format": {
+                "type": "topojson",
+                "feature": "states"
+              }
+            },
+            "mark": {
+              "type": "geoshape",
+              "fill": "#f1f5f9",
+              "stroke": "#cbd5f5",
+              "strokeWidth": 0.8
+            }
+          },
+          {
+            "data": {
+              "url": "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json",
+              "format": {
+                "type": "topojson",
+                "feature": "states"
+              }
+            },
+            "transform": [
+              {
+                "lookup": "properties.name",
+                "from": {
+                  "data": {
+                    "name": "topStatesOverall"
+                  },
+                  "key": "state",
+                  "fields": [
+                    "totalRevenue",
+                    "totalUnits",
+                    "rank",
+                    "revenueMillions"
+                  ]
+                }
+              }
+            ],
+            "mark": {
+              "type": "geoshape"
+            },
+            "encoding": {
+              "color": {
+                "field": "revenueMillions",
+                "type": "quantitative",
+                "title": "Revenue (M USD)",
+                "scale": {
+                  "scheme": "blues"
+                }
+              },
+              "opacity": {
+                "condition": {
+                  "test": "datum.totalRevenue != null",
+                  "value": 1
+                },
+                "value": 0.2
+              },
+              "tooltip": [
+                {
+                  "field": "properties.name",
+                  "type": "nominal",
+                  "title": "State"
+                },
+                {
+                  "field": "rank",
+                  "type": "ordinal",
+                  "title": "Rank"
+                },
+                {
+                  "field": "totalUnits",
+                  "type": "quantitative",
+                  "title": "Units",
+                  "format": ",.0f"
+                },
+                {
+                  "field": "revenueMillions",
+                  "type": "quantitative",
+                  "title": "Revenue (M USD)",
+                  "format": ".2f"
+                }
+              ]
+            }
+          }
+        ],
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          }
+        }
+      },
+      "networkFootprintMap": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 320,
+        "title": {
+          "text": "Logistics network coverage",
+          "anchor": "start",
+          "color": "#0f172a",
+          "fontSize": 16,
+          "fontWeight": 600
+        },
+        "projection": {
+          "type": "albersUsa"
+        },
+        "layer": [
+          {
+            "data": {
+              "url": "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json",
+              "format": {
+                "type": "topojson",
+                "feature": "states"
+              }
+            },
+            "mark": {
+              "type": "geoshape",
+              "fill": "#f8fafc",
+              "stroke": "#e2e8f0"
+            }
+          },
+          {
+            "data": {
+              "name": "networkLocations"
+            },
+            "transform": [
+              {
+                "calculate": "datum.utilization * 100",
+                "as": "utilizationPct"
+              }
+            ],
+            "mark": {
+              "type": "circle",
+              "stroke": "#0f172a",
+              "strokeWidth": 0.6
+            },
+            "encoding": {
+              "longitude": {
+                "field": "longitude",
+                "type": "quantitative"
+              },
+              "latitude": {
+                "field": "latitude",
+                "type": "quantitative"
+              },
+              "size": {
+                "field": "weeklyThroughput",
+                "type": "quantitative",
+                "title": "Weekly throughput",
+                "scale": {
+                  "domain": [
+                    4500,
+                    9000
+                  ],
+                  "range": [
+                    80,
+                    400
+                  ]
+                }
+              },
+              "color": {
+                "field": "utilizationPct",
+                "type": "quantitative",
+                "title": "Utilization %",
+                "scale": {
+                  "scheme": "teals"
+                }
+              },
+              "tooltip": [
+                {
+                  "field": "location",
+                  "type": "nominal",
+                  "title": "Location"
+                },
+                {
+                  "field": "type",
+                  "type": "nominal",
+                  "title": "Role"
+                },
+                {
+                  "field": "focusProduct",
+                  "type": "nominal",
+                  "title": "Focus"
+                },
+                {
+                  "field": "weeklyThroughput",
+                  "type": "quantitative",
+                  "title": "Throughput / wk",
+                  "format": ",.0f"
+                },
+                {
+                  "field": "utilizationPct",
+                  "type": "quantitative",
+                  "title": "Utilization",
+                  "format": ".1f"
+                },
+                {
+                  "field": "safetyStockDays",
+                  "type": "quantitative",
+                  "title": "Safety stock (days)"
+                }
+              ]
+            }
+          }
+        ],
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          }
+        }
+      },
+      "networkTableHeading": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 90,
+        "data": {
+          "values": [
+            {}
+          ]
+        },
+        "layer": [
+          {
+            "mark": {
+              "type": "text",
+              "fontSize": 12,
+              "fontWeight": 600,
+              "letterSpacing": 3,
+              "color": "#6366f1",
+              "align": "left",
+              "baseline": "top"
+            },
+            "encoding": {
+              "text": {
+                "value": "NETWORK HEALTH"
+              },
+              "x": {
+                "value": 0
+              },
+              "y": {
+                "value": 12
+              }
+            }
+          },
+          {
+            "mark": {
+              "type": "text",
+              "fontSize": 20,
+              "fontWeight": 600,
+              "color": "#0f172a",
+              "align": "left",
+              "baseline": "top"
+            },
+            "encoding": {
+              "text": {
+                "value": "Ten active locations anchoring coverage"
+              },
+              "x": {
+                "value": 0
+              },
+              "y": {
+                "value": 44
+              }
+            }
+          },
+          {
+            "mark": {
+              "type": "text",
+              "fontSize": 16,
+              "color": "#475569",
+              "align": "left",
+              "baseline": "top"
+            },
+            "encoding": {
+              "text": {
+                "value": "Track utilization, stock posture, and focus product for every node."
+              },
+              "x": {
+                "value": 0
+              },
+              "y": {
+                "value": 74
+              }
+            }
+          }
+        ],
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          }
+        }
+      },
+      "productIntro": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 180,
+        "data": {
+          "name": "productNarrative"
+        },
+        "layer": [
+          {
+            "transform": [
+              {
+                "filter": "datum.style === 'label'"
+              }
+            ],
+            "mark": {
+              "type": "text",
+              "fontSize": 12,
+              "fontWeight": 600,
+              "letterSpacing": 3,
+              "color": "#0f766e",
+              "align": "left",
+              "baseline": "top"
+            },
+            "encoding": {
+              "text": {
+                "field": "text"
+              },
+              "x": {
+                "value": 0
+              },
+              "y": {
+                "field": "y",
+                "type": "quantitative",
+                "axis": null
+              }
+            }
+          },
+          {
+            "transform": [
+              {
+                "filter": "datum.style === 'body'"
+              }
+            ],
+            "mark": {
+              "type": "text",
+              "fontSize": 18,
+              "fontWeight": 500,
+              "color": "#134e4a",
+              "align": "left",
+              "baseline": "top"
+            },
+            "encoding": {
+              "text": {
+                "field": "text"
+              },
+              "x": {
+                "value": 0
+              },
+              "y": {
+                "field": "y",
+                "type": "quantitative",
+                "axis": null
+              }
+            }
+          }
+        ],
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          }
+        }
+      },
+      "productKpiBoard": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 150,
+        "data": {
+          "name": "productKpiTiles"
+        },
+        "encoding": {
+          "x": {
+            "field": "metric",
+            "type": "nominal",
+            "title": null,
+            "axis": {
+              "domain": false,
+              "ticks": false,
+              "labels": false
+            }
+          }
+        },
+        "layer": [
+          {
+            "mark": {
+              "type": "text",
+              "dy": -24,
+              "fontSize": 14,
+              "fontWeight": 600,
+              "color": "#0f766e"
+            },
+            "encoding": {
+              "text": {
+                "field": "metric"
+              }
+            }
+          },
+          {
+            "mark": {
+              "type": "text",
+              "fontSize": 32,
+              "fontWeight": 700,
+              "color": "#0f172a"
+            },
+            "encoding": {
+              "text": {
+                "field": "value"
+              }
+            }
+          },
+          {
+            "mark": {
+              "type": "text",
+              "dy": 26,
+              "fontSize": 13,
+              "color": "#475569"
+            },
+            "encoding": {
+              "text": {
+                "field": "detail"
+              }
+            }
+          }
+        ],
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          }
+        }
+      },
+      "productRevenueTrend": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 240,
+        "title": {
+          "text": "Revenue trend",
+          "anchor": "start",
+          "color": "#0f172a",
+          "fontSize": 16,
+          "fontWeight": 600
+        },
+        "data": {
+          "name": "filteredProductSales"
+        },
+        "transform": [
+          {
+            "aggregate": [
+              {
+                "op": "sum",
+                "field": "revenue",
+                "as": "totalRevenue"
+              }
+            ],
+            "groupby": [
+              "date"
+            ]
+          },
+          {
+            "calculate": "datum.totalRevenue / 1000000",
+            "as": "revenueMillions"
+          }
+        ],
+        "mark": {
+          "type": "line",
+          "strokeWidth": 3,
+          "point": {
+            "filled": true,
+            "size": 60
+          }
+        },
+        "encoding": {
+          "x": {
+            "field": "date",
+            "type": "temporal",
+            "title": "Month"
+          },
+          "y": {
+            "field": "revenueMillions",
+            "type": "quantitative",
+            "title": "Revenue (M USD)"
+          },
+          "color": {
+            "value": "#0ea5e9"
+          },
+          "tooltip": [
+            {
+              "field": "date",
+              "type": "temporal",
+              "title": "Month",
+              "format": "%b %Y"
+            },
+            {
+              "field": "revenueMillions",
+              "type": "quantitative",
+              "title": "Revenue (M USD)",
+              "format": ".2f"
+            }
+          ]
+        },
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          },
+          "axis": {
+            "labelColor": "#334155",
+            "titleColor": "#334155",
+            "gridColor": "#e2e8f0"
+          }
+        }
+      },
+      "productChannelBar": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 240,
+        "title": {
+          "text": "Channel contribution",
+          "anchor": "start",
+          "color": "#0f172a",
+          "fontSize": 16,
+          "fontWeight": 600
+        },
+        "data": {
+          "name": "productChannelShare"
+        },
+        "mark": {
+          "type": "bar",
+          "cornerRadiusEnd": 6
+        },
+        "encoding": {
+          "y": {
+            "field": "channel",
+            "type": "nominal",
+            "sort": "-x",
+            "title": "Channel"
+          },
+          "x": {
+            "field": "revenueMillions",
+            "type": "quantitative",
+            "title": "Revenue (M USD)"
+          },
+          "color": {
+            "field": "channel",
+            "type": "nominal",
+            "scale": {
+              "range": [
+                "#2563eb",
+                "#0ea5e9",
+                "#22c55e",
+                "#f97316",
+                "#6366f1"
+              ]
+            },
+            "legend": {
+              "title": "Channel"
+            }
+          },
+          "tooltip": [
+            {
+              "field": "channel",
+              "type": "nominal",
+              "title": "Channel"
+            },
+            {
+              "field": "totalUnits",
+              "type": "quantitative",
+              "title": "Units",
+              "format": ",.0f"
+            },
+            {
+              "field": "revenueMillions",
+              "type": "quantitative",
+              "title": "Revenue (M USD)",
+              "format": ".2f"
+            }
+          ]
+        },
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          },
+          "axis": {
+            "labelColor": "#334155",
+            "titleColor": "#334155",
+            "grid": false
+          }
+        }
+      },
+      "productTopStatesBar": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 240,
+        "title": {
+          "text": "Top states by revenue",
+          "anchor": "start",
+          "color": "#0f172a",
+          "fontSize": 16,
+          "fontWeight": 600
+        },
+        "data": {
+          "name": "topStatesByProduct"
+        },
+        "transform": [
+          {
+            "calculate": "datum.totalRevenue / 1000000",
+            "as": "revenueMillions"
+          }
+        ],
+        "mark": {
+          "type": "bar",
+          "cornerRadiusEnd": 6
+        },
+        "encoding": {
+          "y": {
+            "field": "state",
+            "type": "nominal",
+            "sort": "-x",
+            "title": "State"
+          },
+          "x": {
+            "field": "revenueMillions",
+            "type": "quantitative",
+            "title": "Revenue (M USD)"
+          },
+          "color": {
+            "value": "#6366f1"
+          },
+          "tooltip": [
+            {
+              "field": "state",
+              "type": "nominal",
+              "title": "State"
+            },
+            {
+              "field": "totalUnits",
+              "type": "quantitative",
+              "title": "Units",
+              "format": ",.0f"
+            },
+            {
+              "field": "revenueMillions",
+              "type": "quantitative",
+              "title": "Revenue (M USD)",
+              "format": ".2f"
+            }
+          ]
+        },
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          },
+          "axis": {
+            "labelColor": "#334155",
+            "titleColor": "#334155",
+            "grid": false
+          }
+        }
+      },
+      "productTopStatesMap": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 320,
+        "title": {
+          "text": "Top 5 states for selection",
+          "anchor": "start",
+          "color": "#0f172a",
+          "fontSize": 16,
+          "fontWeight": 600
+        },
+        "projection": {
+          "type": "albersUsa"
+        },
+        "layer": [
+          {
+            "data": {
+              "url": "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json",
+              "format": {
+                "type": "topojson",
+                "feature": "states"
+              }
+            },
+            "mark": {
+              "type": "geoshape",
+              "fill": "#f8fafc",
+              "stroke": "#e2e8f0"
+            }
+          },
+          {
+            "data": {
+              "url": "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json",
+              "format": {
+                "type": "topojson",
+                "feature": "states"
+              }
+            },
+            "transform": [
+              {
+                "lookup": "properties.name",
+                "from": {
+                  "data": {
+                    "name": "topStatesByProduct"
+                  },
+                  "key": "state",
+                  "fields": [
+                    "totalRevenue",
+                    "totalUnits",
+                    "rank",
+                    "revenueMillions",
+                    "onTimePct"
+                  ]
+                }
+              }
+            ],
+            "mark": {
+              "type": "geoshape"
+            },
+            "encoding": {
+              "color": {
+                "field": "revenueMillions",
+                "type": "quantitative",
+                "title": "Revenue (M USD)",
+                "scale": {
+                  "scheme": "purples"
+                }
+              },
+              "opacity": {
+                "condition": {
+                  "test": "datum.totalRevenue != null",
+                  "value": 1
+                },
+                "value": 0.2
+              },
+              "tooltip": [
+                {
+                  "field": "properties.name",
+                  "type": "nominal",
+                  "title": "State"
+                },
+                {
+                  "field": "rank",
+                  "type": "ordinal",
+                  "title": "Rank"
+                },
+                {
+                  "field": "totalUnits",
+                  "type": "quantitative",
+                  "title": "Units",
+                  "format": ",.0f"
+                },
+                {
+                  "field": "revenueMillions",
+                  "type": "quantitative",
+                  "title": "Revenue (M USD)",
+                  "format": ".2f"
+                },
+                {
+                  "field": "onTimePct",
+                  "type": "quantitative",
+                  "title": "On-time %",
+                  "format": ".1f"
+                }
+              ]
+            }
+          }
+        ],
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          }
+        }
+      },
+      "productTableHeading": {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+        "width": "container",
+        "height": 90,
+        "data": {
+          "values": [
+            {}
+          ]
+        },
+        "layer": [
+          {
+            "mark": {
+              "type": "text",
+              "fontSize": 12,
+              "fontWeight": 600,
+              "letterSpacing": 3,
+              "color": "#0f766e",
+              "align": "left",
+              "baseline": "top"
+            },
+            "encoding": {
+              "text": {
+                "value": "STATE PERFORMANCE"
+              },
+              "x": {
+                "value": 0
+              },
+              "y": {
+                "value": 12
+              }
+            }
+          },
+          {
+            "mark": {
+              "type": "text",
+              "fontSize": 20,
+              "fontWeight": 600,
+              "color": "#0f172a",
+              "align": "left",
+              "baseline": "top"
+            },
+            "encoding": {
+              "text": {
+                "value": "Compare coverage depth by state"
+              },
+              "x": {
+                "value": 0
+              },
+              "y": {
+                "value": 44
+              }
+            }
+          },
+          {
+            "mark": {
+              "type": "text",
+              "fontSize": 16,
+              "color": "#475569",
+              "align": "left",
+              "baseline": "top"
+            },
+            "encoding": {
+              "text": {
+                "value": "Sort by revenue, units, or service quality to rebalance focus."
+              },
+              "x": {
+                "value": 0
+              },
+              "y": {
+                "value": 74
+              }
+            }
+          }
+        ],
+        "config": {
+          "background": "transparent",
+          "view": {
+            "stroke": null
+          }
+        }
+      }
+    }
+  }
+}
