@@ -3,22 +3,36 @@
   "title": "Geospatial Analysis",
   "style": {
     "css": [
-      "body { font-family: 'Inter', 'Segoe UI', sans-serif; margin: 0; padding: 36px 40px 80px; background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%); color: #0f172a; }",
-      ".group { background: rgba(255, 255, 255, 0.92); border: 1px solid rgba(99, 102, 241, 0.12); border-radius: 20px; padding: 28px 32px; box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08); backdrop-filter: blur(8px); }",
-      "#main { display: grid; gap: 24px; }",
-      "#overviewInsights, #productCharts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }",
-      "#overviewMap { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }",
-      "#networkTable, #productIntro, #productMetrics, #productMap, #productTable { display: grid; gap: 20px; }",
-      ".chartifact-dropdown label { font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; color: #475569; font-weight: 600; margin-bottom: 6px; }",
-      ".chartifact-dropdown select { border-radius: 14px; padding: 12px 16px; border: 1px solid rgba(99, 102, 241, 0.25); background: rgba(248, 250, 252, 0.9); color: #0f172a; font-weight: 500; transition: box-shadow 0.2s ease; }",
-      ".chartifact-dropdown select:focus { outline: none; border-color: rgba(37, 99, 235, 0.5); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18); }",
-      ".tabulator { background: transparent; border-radius: 16px; border: 1px solid rgba(148, 163, 184, 0.25); }",
+      "html, body { height: 100%; margin: 0; padding: 0; scroll-behavior: smooth; }",
+      "body { font-family: 'Inter', 'Segoe UI', sans-serif; background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%); color: #0f172a; overflow-y: auto; scroll-snap-type: y mandatory; padding: 0 0 64px; }",
+      "body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(60% 60% at 20% 20%, rgba(129, 140, 248, 0.18), transparent), radial-gradient(70% 70% at 80% 30%, rgba(14, 165, 233, 0.12), transparent); pointer-events: none; }",
+      ".group { position: relative; width: min(1200px, calc(100% - 96px)); margin: 64px auto 0; padding: clamp(32px, 6vw, 56px); background: rgba(255, 255, 255, 0.96); border: 1px solid rgba(99, 102, 241, 0.16); border-radius: 28px; box-shadow: 0 32px 80px rgba(15, 23, 42, 0.12); backdrop-filter: blur(12px); display: grid; row-gap: 24px; align-content: start; box-sizing: border-box; scroll-snap-align: start; }",
+      "#overviewSlide, #productSlide { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; row-gap: 24px; }",
+      "#overviewSlide > .element:nth-child(1), #overviewSlide > .element:nth-child(2), #overviewSlide > .element:nth-child(3), #overviewSlide > .element:nth-child(9), #overviewSlide > .element:nth-child(10) { grid-column: 1 / -1; }",
+      "#overviewSlide > .element:nth-child(4) { grid-column: 1 / span 6; }",
+      "#overviewSlide > .element:nth-child(5) { grid-column: 7 / span 3; }",
+      "#overviewSlide > .element:nth-child(6) { grid-column: 10 / span 3; }",
+      "#overviewSlide > .element:nth-child(7) { grid-column: 1 / span 6; }",
+      "#overviewSlide > .element:nth-child(8) { grid-column: 7 / span 6; }",
+      "#productSlide > .element:nth-child(1) { grid-column: 1 / span 8; }",
+      "#productSlide > .element:nth-child(2) { grid-column: 9 / -1; justify-self: end; align-self: start; }",
+      "#productSlide > .element:nth-child(3) { grid-column: 1 / -1; }",
+      "#productSlide > .element:nth-child(4) { grid-column: 1 / span 6; }",
+      "#productSlide > .element:nth-child(5) { grid-column: 7 / span 3; }",
+      "#productSlide > .element:nth-child(6) { grid-column: 10 / span 3; }",
+      "#productSlide > .element:nth-child(7), #productSlide > .element:nth-child(8), #productSlide > .element:nth-child(9) { grid-column: 1 / -1; }",
+      ".chartifact-dropdown { display: grid; row-gap: 6px; }",
+      ".chartifact-dropdown label { font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; color: #475569; font-weight: 600; }",
+      ".chartifact-dropdown select { border-radius: 14px; padding: 12px 16px; border: 1px solid rgba(99, 102, 241, 0.28); background: rgba(248, 250, 252, 0.96); color: #0f172a; font-weight: 600; box-shadow: 0 12px 30px rgba(79, 70, 229, 0.14); transition: box-shadow 0.2s ease; }",
+      ".chartifact-dropdown select:focus { outline: none; border-color: rgba(37, 99, 235, 0.6); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.28); }",
+      ".tabulator { background: transparent; border-radius: 18px; border: 1px solid rgba(148, 163, 184, 0.24); box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); overflow: hidden; }",
       ".tabulator .tabulator-header { background: rgba(99, 102, 241, 0.08); font-weight: 600; letter-spacing: 0.04em; color: #1f2937; }",
-      ".tabulator .tabulator-row { background: rgba(255,255,255,0.92); }",
-      ".tabulator .tabulator-row:nth-child(even) { background: rgba(241, 245, 249, 0.9); }",
+      ".tabulator .tabulator-row { background: rgba(255, 255, 255, 0.92); }",
+      ".tabulator .tabulator-row:nth-child(even) { background: rgba(241, 245, 249, 0.92); }",
       ".tabulator .tabulator-row:hover { background: rgba(224, 231, 255, 0.95); }",
       ".vega-embed .vega-actions { display: none !important; }",
-      "@media (max-width: 900px) { body { padding: 24px; } .group { padding: 24px; } }"
+      "@media (max-width: 1200px) { #overviewSlide, #productSlide { grid-template-columns: repeat(6, minmax(0, 1fr)); } #overviewSlide > .element:nth-child(4) { grid-column: 1 / span 6; } #overviewSlide > .element:nth-child(5), #overviewSlide > .element:nth-child(6) { grid-column: span 3; } #overviewSlide > .element:nth-child(7) { grid-column: 1 / span 6; } #overviewSlide > .element:nth-child(8) { grid-column: 1 / span 6; } #productSlide > .element:nth-child(1) { grid-column: 1 / span 6; } #productSlide > .element:nth-child(2) { grid-column: 1 / span 6; justify-self: stretch; } #productSlide > .element:nth-child(4) { grid-column: 1 / span 6; } #productSlide > .element:nth-child(5), #productSlide > .element:nth-child(6) { grid-column: span 3; } }",
+      "@media (max-width: 720px) { body { scroll-snap-type: none; padding-bottom: 32px; } .group { width: calc(100% - 32px); margin: 32px auto 0; padding: 24px 20px; border-radius: 22px; row-gap: 18px; } #overviewSlide, #productSlide { grid-template-columns: repeat(1, minmax(0, 1fr)); row-gap: 18px; } #overviewSlide > .element, #productSlide > .element { grid-column: 1 / -1 !important; } }"
     ],
     "googleFonts": {
       "googleFontsUrl": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600&display=swap",
@@ -1568,7 +1582,7 @@
       "isArray": true,
       "initialValue": [],
       "calculation": {
-        "vegaExpression": "var metrics = data('overallAggregates')[0] || { totalRevenue: 0, totalUnits: 0, avgOnTime: 0 };var revenueLine = '$' + format((metrics.totalRevenue || 0) / 1e6, '.1f') + 'M revenue guided by ' + format(metrics.totalUnits || 0, ',.0f') + ' units shipped year-to-date.';var serviceLine = 'Ten logistics locations sustain coverage across all regions with on-time performance of ' + format((metrics.avgOnTime || 0) * 100, '.1f') + '%.';return [{ order: 1, text: 'Portfolio overview', style: 'label', y: 16 }, { order: 2, text: revenueLine, style: 'body', y: 48 }, { order: 3, text: serviceLine, style: 'body', y: 78 }, { order: 4, text: 'Use the drilldowns below to adapt coverage and service posture by product.', style: 'body', y: 108 }];"
+        "vegaExpression": "var metrics = data('overallAggregates')[0] || { totalRevenue: 0, totalUnits: 0, avgOnTime: 0 };var revenueLine = '$' + format((metrics.totalRevenue || 0) / 1e6, '.1f') + 'M revenue guided by ' + format(metrics.totalUnits || 0, ',.0f') + ' units shipped year-to-date.';var serviceLine = 'Ten logistics locations sustain coverage across all regions with on-time performance of ' + format((metrics.avgOnTime || 0) * 100, '.1f') + '%.';var kpiLine = 'KPI tiles summarize portfolio revenue, units delivered, service reliability, and lead time so you can gauge health in seconds.';var navigationLine = 'Scroll or use PgDn to advance to the product focus slide and pivot the experience by item.';var interactionLine = 'Click or touch any bar, segment, or row to cross-filter peers and keep related visuals synchronized.';return [{ order: 1, text: 'Slide 1 \u00b7 Command center overview', style: 'label', y: 16 }, { order: 2, text: revenueLine, style: 'body', y: 48 }, { order: 3, text: serviceLine, style: 'body', y: 78 }, { order: 4, text: kpiLine, style: 'body', y: 108 }, { order: 5, text: navigationLine, style: 'body', y: 138 }, { order: 6, text: interactionLine, style: 'body', y: 168 }];"
       }
     },
     {
@@ -1698,7 +1712,7 @@
       "isArray": true,
       "initialValue": [],
       "calculation": {
-        "vegaExpression": "var focusName = selectedProduct === 'All Products' ? 'All products' : selectedProduct;var metrics = data('productAggregates')[0] || { totalRevenue: 0, totalUnits: 0 };var headline = '$' + format((metrics.totalRevenue || 0) / 1e6, '.1f') + 'M across ' + format(metrics.totalUnits || 0, ',.0f') + ' units';return [{ order: 1, text: focusName + ' focus', style: 'label', y: 16 }, { order: 2, text: headline, style: 'body', y: 48 }, { order: 3, text: 'Channel mix and lead time update instantly when you pivot the selector.', style: 'body', y: 78 }, { order: 4, text: 'Map spotlights the top five revenue states to rebalance inventory posture.', style: 'body', y: 108 }];"
+        "vegaExpression": "var focusName = selectedProduct === 'All Products' ? 'All products' : selectedProduct;var metrics = data('productAggregates')[0] || { totalRevenue: 0, totalUnits: 0 };var headline = '$' + format((metrics.totalRevenue || 0) / 1e6, '.1f') + 'M across ' + format((metrics.totalUnits || 0), ',.0f') + ' units';var prompt = 'Use the selector on the right to focus on a single product or stay in the aggregated view.';var detail = 'Channel mix, ranked states, and the geospatial map refresh instantly so you can rebalance coverage.';var action = 'Interact with the bars or highlighted states to cross-filter the table and expose performance context.';return [{ order: 1, text: 'Slide 2 \u00b7 Product drilldown', style: 'label', y: 16 }, { order: 2, text: headline, style: 'body', y: 48 }, { order: 3, text: prompt, style: 'body', y: 78 }, { order: 4, text: detail, style: 'body', y: 108 }, { order: 5, text: action, style: 'body', y: 138 }];"
       }
     },
     {
@@ -1907,7 +1921,7 @@
   ],
   "groups": [
     {
-      "groupId": "main",
+      "groupId": "overviewSlide",
       "elements": [
         {
           "type": "chart",
@@ -1920,12 +1934,7 @@
         {
           "type": "chart",
           "chartKey": "overviewKpiBoard"
-        }
-      ]
-    },
-    {
-      "groupId": "overviewInsights",
-      "elements": [
+        },
         {
           "type": "chart",
           "chartKey": "overallRevenueTrend"
@@ -1937,12 +1946,7 @@
         {
           "type": "chart",
           "chartKey": "overallProductShare"
-        }
-      ]
-    },
-    {
-      "groupId": "overviewMap",
-      "elements": [
+        },
         {
           "type": "chart",
           "chartKey": "overallTopStatesMap"
@@ -1950,12 +1954,7 @@
         {
           "type": "chart",
           "chartKey": "networkFootprintMap"
-        }
-      ]
-    },
-    {
-      "groupId": "networkTable",
-      "elements": [
+        },
         {
           "type": "chart",
           "chartKey": "networkTableHeading"
@@ -2018,7 +2017,7 @@
       ]
     },
     {
-      "groupId": "productIntro",
+      "groupId": "productSlide",
       "elements": [
         {
           "type": "chart",
@@ -2036,21 +2035,11 @@
             "Pulse Tracker",
             "Zenith Beacon"
           ]
-        }
-      ]
-    },
-    {
-      "groupId": "productMetrics",
-      "elements": [
+        },
         {
           "type": "chart",
           "chartKey": "productKpiBoard"
-        }
-      ]
-    },
-    {
-      "groupId": "productCharts",
-      "elements": [
+        },
         {
           "type": "chart",
           "chartKey": "productRevenueTrend"
@@ -2062,21 +2051,11 @@
         {
           "type": "chart",
           "chartKey": "productTopStatesBar"
-        }
-      ]
-    },
-    {
-      "groupId": "productMap",
-      "elements": [
+        },
         {
           "type": "chart",
           "chartKey": "productTopStatesMap"
-        }
-      ]
-    },
-    {
-      "groupId": "productTable",
-      "elements": [
+        },
         {
           "type": "chart",
           "chartKey": "productTableHeading"
@@ -2213,7 +2192,7 @@
       "overviewStory": {
         "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
         "width": "container",
-        "height": 140,
+        "height": 200,
         "data": {
           "name": "overviewNarrative"
         },
@@ -2242,7 +2221,8 @@
               },
               "y": {
                 "field": "y",
-                "type": "quantitative"
+                "type": "quantitative",
+                "axis": null
               }
             }
           },
@@ -2269,7 +2249,8 @@
               },
               "y": {
                 "field": "y",
-                "type": "quantitative"
+                "type": "quantitative",
+                "axis": null
               }
             }
           }
@@ -2910,7 +2891,7 @@
       "productIntro": {
         "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
         "width": "container",
-        "height": 140,
+        "height": 180,
         "data": {
           "name": "productNarrative"
         },
@@ -2939,7 +2920,8 @@
               },
               "y": {
                 "field": "y",
-                "type": "quantitative"
+                "type": "quantitative",
+                "axis": null
               }
             }
           },
@@ -2966,7 +2948,8 @@
               },
               "y": {
                 "field": "y",
-                "type": "quantitative"
+                "type": "quantitative",
+                "axis": null
               }
             }
           }
